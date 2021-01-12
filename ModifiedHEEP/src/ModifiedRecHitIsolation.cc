@@ -112,14 +112,13 @@ double ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const
 	    if(fabs(etaclus) < 1.479) { // Barrel num crystals, crystal width = 0.0174
 	      if (fabs(etaDiff) < 0.0174*etaSlice_) continue;
 	      if ((etaDiff*etaDiff + phiDiff*phiDiff) < 0.00030276*r2) continue;
-        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + (addTrk.phi()-phi)*(addTrk.phi()-phi) < 0.00030276*r2_2nd ) continue;
-
-        if( fabs(addTrk.eta()-eta) < 0.0174*etaSlice2nd_ && fabs(addTrk.phi()-phi) < extRadius_ ) continue;
+        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + reco::deltaPhi(addTrk.phi(),phi)*reco::deltaPhi(addTrk.phi(),phi) < 0.00030276*r2_2nd ) continue;
+        if( fabs(addTrk.eta()-eta) < 0.0174*etaSlice2nd_ && fabs( reco::deltaPhi(addTrk.phi(),phi) ) < extRadius_ ) continue;
 	    } else { // Endcap num crystals, crystal width = 0.00864*fabs(sinh(eta))
 	      if (fabs(etaDiff) < 0.00864*fabs(sinh(eta))*etaSlice_) continue;
 	      if ((etaDiff*etaDiff + phiDiff*phiDiff) < (0.000037325*(cosh(2*eta)-1)*r2)) continue;
-        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + (addTrk.phi()-phi)*(addTrk.phi()-phi) < (0.000037325*(cosh(2*eta)-1)*r2_2nd) ) continue;
-        if ( fabs(addTrk.eta()-eta) < 0.00864*fabs(sinh(eta))*etaSlice2nd_ && fabs(addTrk.phi()-phi) < extRadius_ ) continue;
+        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + reco::deltaPhi(addTrk.phi(),phi)*reco::deltaPhi(addTrk.phi(),phi) < (0.000037325*(cosh(2*eta)-1)*r2_2nd) ) continue;
+        if ( fabs(addTrk.eta()-eta) < 0.00864*fabs(sinh(eta))*etaSlice2nd_ && fabs( reco::deltaPhi(addTrk.phi(),phi) ) < extRadius_ ) continue;
 	    }
 	  } else {
 	    if (fabs(etaDiff) < etaSlice_)
@@ -216,13 +215,13 @@ double ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco
 	    if( fabs(etaclus) < 1.479 ) { // Barrel num crystals, crystal width = 0.0174
 	      if ( fabs(etaDiff) < 0.0174*etaSlice_) continue;
 	      if ((etaDiff*etaDiff + phiDiff*phiDiff) < 0.00030276*r2) continue;
-        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + (addTrk.phi()-phi)*(addTrk.phi()-phi) < 0.00030276*r2_2nd) continue;
-        if ( fabs(addTrk.eta()-eta) < 0.0174*etaSlice2nd_ && fabs(addTrk.phi()-phi) < extRadius_ ) continue;
+        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + reco::deltaPhi(addTrk.phi(),phi)*reco::deltaPhi(addTrk.phi(),phi) < 0.00030276*r2_2nd) continue;
+        if ( fabs(addTrk.eta()-eta) < 0.0174*etaSlice2nd_ && fabs( reco::deltaPhi(addTrk.phi(),phi) ) < extRadius_ ) continue;
 	    } else { // Endcap num crystals, crystal width = 0.00864*fabs(sinh(eta))
 	      if ( fabs(etaDiff) < 0.00864*fabs(sinh(eta))*etaSlice_) continue;
 	      if ((etaDiff*etaDiff + phiDiff*phiDiff) < (0.000037325*(cosh(2*eta)-1)*r2)) continue;
-        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + (addTrk.phi()-phi)*(addTrk.phi()-phi) < (0.000037325*(cosh(2*eta)-1)*r2_2nd)) continue;
-        if ( fabs(addTrk.eta()-eta) < 0.00864*fabs(sinh(eta))*etaSlice2nd_ && fabs(addTrk.phi()-phi) < extRadius_ ) continue;
+        if ( (addTrk.eta()-eta)*(addTrk.eta()-eta) + reco::deltaPhi(addTrk.phi(),phi)*reco::deltaPhi(addTrk.phi(),phi) < (0.000037325*(cosh(2*eta)-1)*r2_2nd)) continue;
+        if ( fabs(addTrk.eta()-eta) < 0.00864*fabs(sinh(eta))*etaSlice2nd_ && fabs( reco::deltaPhi(addTrk.phi(),phi) ) < extRadius_ ) continue;
 	    }
 	  } else {
 	    if ( fabs(etaDiff) < etaSlice_) continue;  // jurassic strip cut

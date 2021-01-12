@@ -77,10 +77,6 @@ private:
       float& rtMatchedTrk,
 		  const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos)const;
 
-  // const reco::GsfTrack& additionalGsfTrkSelector(const reco::GsfElectron& ele,
-  //     edm::View<reco::GsfTrack> gsfTrks,
-  //     bool& addGsfTrkSel);
-
   template <typename T> void setToken(edm::EDGetTokenT<T>& token,edm::InputTag tag){token=consumes<T>(tag);}
   template <typename T> void setToken(edm::EDGetTokenT<T>& token,const edm::ParameterSet& iPara,const std::string& tag){token=consumes<T>(iPara.getParameter<edm::InputTag>(tag));}
   template <typename T> void setToken(std::vector<edm::EDGetTokenT<T> >& tokens,const edm::ParameterSet& iPara,const std::string& tagName){
@@ -313,27 +309,6 @@ calTrkIso(const reco::GsfElectron& ele,
     return trkIso;
   }
 }
-
-// const reco::GsfTrack& ModifiedHEEPIDValueMapProducer::
-// additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::View<reco::GsfTrack> gsfTrks, bool& addGsfTrkSel) {
-//   std::vector<reco::GsfTrack> additionalGsfTrks;
-//   const reco::GsfTrack& eleTrk = *ele.gsfTrack();
-//   for (size_t gsfTrkNr = 0; gsfTrkNr < gsfTrks.size(); gsfTrkNr++) {
-//     auto& gsfTrk = gsfTrks[gsfTrkNr];
-//     if(gsfTrk.pt() == eleTrk.pt()) continue;
-//     const ModifiedEleTkIsolFromCands::TrkCuts& cuts = std::abs(gsfTrk.eta())<1.5 ? trkIsoCalc_.barrelCuts_ : trkIsoCalc_.endcapCuts_;
-//     if(trkIsoCalc_.additionalGsfTrkSel(gsfTrk,gsfTrk.pt(),cuts,eleTrk.eta(),eleTrk.phi(),eleTrk.vz())) {
-//       additionalGsfTrks.push_back(gsfTrk);
-//       addGsfTrkSel = true;
-//     }
-//   }
-//   std::sort(additionalGsfTrks.begin(), additionalGsfTrks.end(), [](reco::GsfTrack a, reco::GsfTrack b) {return a.pt() > b.pt();} );
-//   if(additionalGsfTrks.empty()) {
-//     return eleTrk;
-//     addGsfTrkSel = false;
-//   }
-//   else return additionalGsfTrks.front();
-// }
 
 template<typename T>
 void ModifiedHEEPIDValueMapProducer::writeValueMap(edm::Event &iEvent,

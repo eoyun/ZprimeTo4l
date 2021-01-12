@@ -99,11 +99,12 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
     // if(cand.charge()!=0 && passPIDVeto(cand.pdgId(),pidVeto)){ // 80X
       const reco::Track& trk = cand.pseudoTrack();
       if(passTrkSel(trk,trk.pt(),cuts,eleEta,elePhi,eleVZ)){
-        if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs(addTrk.phi()-trk.phi()) < cuts.dPhi2nd) {
+        if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) {
           nrMatchedTrk++;
           rtMatchedTrk = addTrk.pt()/trk.pt();
           continue;
-        };
+        }
+
       	ptSum+=trk.pt();
       	nrTrks++;
       }
@@ -136,11 +137,12 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
 
   for(auto& trk : tracks){
     if(passTrkSel(trk,trk.pt(),cuts,eleEta,elePhi,eleVZ)){
-      if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs(addTrk.phi()-trk.phi()) < cuts.dPhi2nd) {
+      if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) {
         nrMatchedTrk++;
         rtMatchedTrk = addTrk.pt()/trk.pt();
         continue;
-      };
+      }
+
       ptSum+=trk.pt();
       nrTrks++;
     }
@@ -212,8 +214,8 @@ bool ModifiedEleTkIsolFromCands::additionalGsfTrkSel(const reco::TrackBase& trk,
     trk.hitPattern().numberOfValidHits() >= cuts.minHits &&
     trk.hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits &&
     //(trk.ptError()/trkPt < cuts.maxDPtPt || cuts.maxDPtPt<0) &&
-    // passQual(trk,cuts.allowedQualities) &&
-    //passAlgo(trk,cuts.algosToReject) &&
+    passQual(trk,cuts.allowedQualities) &&
+    passAlgo(trk,cuts.algosToReject) &&
     trkPt > cuts.addGsfminPt;
 }
 
