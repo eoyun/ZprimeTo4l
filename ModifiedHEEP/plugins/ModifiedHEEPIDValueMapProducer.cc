@@ -73,8 +73,6 @@ private:
 		  const std::vector<edm::Handle<pat::PackedCandidateCollection> >& handles,
       // const std::vector<edm::Handle<reco::TrackCollection>>& handles,
       const reco::GsfTrack& gsfTrk,
-      int& nrMatchedTrk,
-      float& rtMatchedTrk,
 		  const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos)const;
 
   template <typename T> void setToken(edm::EDGetTokenT<T>& token,edm::InputTag tag){token=consumes<T>(tag);}
@@ -165,8 +163,6 @@ private:
   static const std::string eleTrkPtIsoLabel_;
   static const std::string eleNrSaturateIn5x5Label_;
 
-  static const std::string eleNrMatchedTrkLabel_;
-  static const std::string eleRtMatchedTrkLabel_;
   static const std::string eleAddGsfTrkSelLabel_;
   static const std::string eleNoSelectedGsfTrkLabel_;
   static const std::string eleAddGsfTrkLabel_;
@@ -175,8 +171,6 @@ private:
 const std::string ModifiedHEEPIDValueMapProducer::eleTrkPtIsoLabel_="eleTrkPtIso";
 const std::string ModifiedHEEPIDValueMapProducer::eleNrSaturateIn5x5Label_="eleNrSaturateIn5x5";
 
-const std::string ModifiedHEEPIDValueMapProducer::eleNrMatchedTrkLabel_ = "eleNrMatchedTrk";
-const std::string ModifiedHEEPIDValueMapProducer::eleRtMatchedTrkLabel_ = "eleRtMatchedTrk";
 const std::string ModifiedHEEPIDValueMapProducer::eleAddGsfTrkSelLabel_ = "eleAddGsfTrkSel";
 const std::string ModifiedHEEPIDValueMapProducer::eleNoSelectedGsfTrkLabel_ = "eleNoSelectedGsfTrk";
 const std::string ModifiedHEEPIDValueMapProducer::eleAddGsfTrkLabel_ = "eleAddGsfTrk";
@@ -211,8 +205,6 @@ ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::Parame
   produces<edm::ValueMap<float> >(eleTrkPtIsoLabel_);
   produces<edm::ValueMap<int> >(eleNrSaturateIn5x5Label_);
 
-  produces<edm::ValueMap<int>>(eleNrMatchedTrkLabel_);
-  produces<edm::ValueMap<float>>(eleRtMatchedTrkLabel_);
   produces<edm::ValueMap<bool>>(eleAddGsfTrkSelLabel_);
   produces<edm::ValueMap<int>>(eleNoSelectedGsfTrkLabel_);
   produces<edm::ValueMap<reco::GsfTrackRef>>(eleAddGsfTrkLabel_);
@@ -241,21 +233,17 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
   std::vector<float> eleTrkPtIso;
   std::vector<int> eleNrSaturateIn5x5;
 
-  std::vector<int> eleNrMatchedTrk;
-  std::vector<float> eleRtMatchedTrk;
   std::vector<bool> eleAddGsfTrkSel;
   std::vector<int> eleNoSelectedGsfTrk;
   std::vector<reco::GsfTrackRef> eleAddGsfTrk;
 
   for(size_t eleNr=0;eleNr<eleHandle->size();eleNr++){
-    int nrMatchedTrk = 0; float rtMatchedTrk = 0.0; bool addGsfTrkSel = false; int noSelectedGsfTrk = 0;
+    bool addGsfTrkSel = false; int noSelectedGsfTrk = 0;
     auto elePtr = eleHandle->ptrAt(eleNr);
     auto additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(*elePtr,gsfTrkHandle, addGsfTrkSel, noSelectedGsfTrk);
-    eleTrkPtIso.push_back(calTrkIso(*elePtr,*eleHandle,candHandles,*(additionalGsfTrk.get()),nrMatchedTrk,rtMatchedTrk,candVetos));
+    eleTrkPtIso.push_back(calTrkIso(*elePtr,*eleHandle,candHandles,*(additionalGsfTrk.get()),candVetos));
     eleNrSaturateIn5x5.push_back(nrSaturatedCrysIn5x5(*elePtr,ebRecHitHandle,eeRecHitHandle,caloTopoHandle));
 
-    eleNrMatchedTrk.push_back(nrMatchedTrk);
-    eleRtMatchedTrk.push_back(rtMatchedTrk);
     eleAddGsfTrkSel.push_back(addGsfTrkSel);
     eleNoSelectedGsfTrk.push_back(noSelectedGsfTrk);
     eleAddGsfTrk.push_back(additionalGsfTrk);
@@ -264,8 +252,6 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
   writeValueMap(iEvent,eleHandle,eleTrkPtIso,eleTrkPtIsoLabel_);
   writeValueMap(iEvent,eleHandle,eleNrSaturateIn5x5,eleNrSaturateIn5x5Label_);
 
-  writeValueMap(iEvent,eleHandle,eleNrMatchedTrk,eleNrMatchedTrkLabel_);
-  writeValueMap(iEvent,eleHandle,eleRtMatchedTrk,eleRtMatchedTrkLabel_);
   writeValueMap(iEvent,eleHandle,eleAddGsfTrkSel,eleAddGsfTrkSelLabel_);
   writeValueMap(iEvent,eleHandle,eleNoSelectedGsfTrk,eleNoSelectedGsfTrkLabel_);
   writeValueMap(iEvent,eleHandle,eleAddGsfTrk,eleAddGsfTrkLabel_);
@@ -288,8 +274,6 @@ calTrkIso(const reco::GsfElectron& ele,
 	  const std::vector<edm::Handle<pat::PackedCandidateCollection> >& handles,
     // const std::vector<edm::Handle<reco::TrackCollection>>& handles,
     const reco::GsfTrack& gsfTrk,
-    int& nrMatchedTrk,
-    float& rtMatchedTrk,
 	  const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos)const
 {
   if(ele.gsfTrack().isNull()) return std::numeric_limits<float>::max();
@@ -299,8 +283,8 @@ calTrkIso(const reco::GsfElectron& ele,
       auto& handle = handles[handleNr];
       if(handle.isValid()){
       	if(handleNr<pidVetos.size()){
-      	  trkIso+= trkIsoCalc_.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk,nrMatchedTrk,rtMatchedTrk,pidVetos[handleNr]);
-          // trkIso+= trkIsoCalc_.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk,nrMatchedTrk,rtMatchedTrk);
+      	  trkIso+= trkIsoCalc_.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk,pidVetos[handleNr]);
+          // trkIso+= trkIsoCalc_.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk);
       	}else{
       	  throw cms::Exception("LogicError") <<" somehow the pidVetos and handles do not much, given this is checked at construction time, something has gone wrong in the code handle nr "<<handleNr<<" size of vetos "<<pidVetos.size();
       	}

@@ -83,23 +83,17 @@ public:
 
   std::pair<int,double> calIsol(const reco::TrackBase& trk,const pat::PackedCandidateCollection& cands,
         const reco::TrackBase& addTrk,
-        int& nrMatchedTrk,
-        float& rtMatchedTrk,
         const PIDVeto=PIDVeto::NONE)const;
   std::pair<int,double> calIsol(const double eleEta,const double elePhi,const double eleVZ,
 				const pat::PackedCandidateCollection& cands,
         const reco::TrackBase& addTrk,
-        int& nrMatchedTrk,
-        float& rtMatchedTrk,
         const PIDVeto=PIDVeto::NONE)const;
 
 
-  std::pair<int,double> calIsol(const reco::TrackBase& trk,const reco::TrackCollection& tracks, const reco::TrackBase& addTrk, int& nrMatchedTrk, float& rtMatchedTrk)const;
+  std::pair<int,double> calIsol(const reco::TrackBase& trk,const reco::TrackCollection& tracks, const reco::TrackBase& addTrk)const;
   std::pair<int,double> calIsol(const double eleEta,const double elePhi,const double eleVZ,
 				const reco::TrackCollection& tracks,
-        const reco::TrackBase& addTrk,
-        int& nrMatchedTrk,
-        float& rtMatchedTrk) const;
+        const reco::TrackBase& addTrk) const;
 
   //little helper function for the four calIsol functions for it to directly return the pt
   template<typename ...Args>

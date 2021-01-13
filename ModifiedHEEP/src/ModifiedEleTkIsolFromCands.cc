@@ -73,11 +73,9 @@ std::pair<int,double>
 ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
 			    const pat::PackedCandidateCollection& cands,
           const reco::TrackBase& addTrk,
-          int& nrMatchedTrk,
-          float& rtMatchedTrk,
-			    const PIDVeto pidVeto)const
+			    const PIDVeto pidVeto) const
 {
-  return calIsol(eleTrk.eta(),eleTrk.phi(),eleTrk.vz(),cands,addTrk,nrMatchedTrk,rtMatchedTrk,pidVeto);
+  return calIsol(eleTrk.eta(),eleTrk.phi(),eleTrk.vz(),cands,addTrk,pidVeto);
 }
 
 std::pair<int,double>
@@ -85,9 +83,7 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
 			    const double eleVZ,
 			    const pat::PackedCandidateCollection& cands,
           const reco::TrackBase& addTrk,
-          int& nrMatchedTrk,
-          float& rtMatchedTrk,
-			    const PIDVeto pidVeto)const
+			    const PIDVeto pidVeto) const
 {
   double ptSum=0.;
   int nrTrks=0;
@@ -99,11 +95,7 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
     // if(cand.charge()!=0 && passPIDVeto(cand.pdgId(),pidVeto)){ // 80X
       const reco::Track& trk = cand.pseudoTrack();
       if(passTrkSel(trk,trk.pt(),cuts,eleEta,elePhi,eleVZ)){
-        if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) {
-          nrMatchedTrk++;
-          rtMatchedTrk = addTrk.pt()/trk.pt();
-          continue;
-        }
+        if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) continue;
 
       	ptSum+=trk.pt();
       	nrTrks++;
@@ -118,17 +110,16 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
 
 std::pair<int,double>
 ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
-			    const reco::TrackCollection& tracks, const reco::TrackBase& addTrk, int& nrMatchedTrk, float& rtMatchedTrk)const
+			    const reco::TrackCollection& tracks, const reco::TrackBase& addTrk) const
 {
-  return calIsol(eleTrk.eta(),eleTrk.phi(),eleTrk.vz(),tracks,addTrk,nrMatchedTrk,rtMatchedTrk);
+  return calIsol(eleTrk.eta(),eleTrk.phi(),eleTrk.vz(),tracks,addTrk);
 }
 
 std::pair<int,double>
 ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
 			    const double eleVZ,
 			    const reco::TrackCollection& tracks,
-          const reco::TrackBase& addTrk,
-          int& nrMatchedTrk, float& rtMatchedTrk)const
+          const reco::TrackBase& addTrk) const
 {
   double ptSum=0.;
   int nrTrks=0;
@@ -137,11 +128,7 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
 
   for(auto& trk : tracks){
     if(passTrkSel(trk,trk.pt(),cuts,eleEta,elePhi,eleVZ)){
-      if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) {
-        nrMatchedTrk++;
-        rtMatchedTrk = addTrk.pt()/trk.pt();
-        continue;
-      }
+      if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) continue;
 
       ptSum+=trk.pt();
       nrTrks++;
