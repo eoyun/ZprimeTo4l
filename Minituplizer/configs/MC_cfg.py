@@ -22,7 +22,7 @@ InputFilesList = ['dcap://cluster142.knu.ac.kr/'+DirPath+x for x in InputFilesLi
 ## Source
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-       ''
+       ''#'root://cms-xrd-global.cern.ch//store/mc/RunIISummer16MiniAODv3/ZZTo4L_13TeV_powheg_pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v1/100000/42BA2638-E9C6-E811-9BEB-001A649D47FD.root'
     )
 )
 
@@ -33,7 +33,7 @@ process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-process.GlobalTag.globaltag = cms.string("80X_mcRun2_asymptotic_2016_TrancheIV_v6")
+process.GlobalTag.globaltag = cms.string("94X_mcRun2_asymptotic_v3")#80X_mcRun2_asymptotic_2016_TrancheIV_v6
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string('Ntuple.root')
@@ -52,16 +52,20 @@ process.noscraping = cms.EDFilter("FilterOutScraping",
     thresh = cms.untracked.double(0.25)
 )
 
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+from PhysicsTools.PatUtils.l1ECALPrefiringWeightProducer_cfi import l1ECALPrefiringWeightProducer
+process.prefiringweight = l1ECALPrefiringWeightProducer.clone(
+    TheJets = cms.InputTag("slimmedJets"), #this should be the slimmedJets collection with up to date JECs !
+    DataEra = cms.string("2016BtoH"), #Use 2016BtoH for 2016
+    UseJetEMPt = cms.bool(False),
+    PrefiringRateSystematicUncty = cms.double(0.2),
+    SkipWarnings = False
+)
 
-dataFormat = DataFormat.MiniAOD
-switchOnVIDElectronIdProducer(process, dataFormat)
-ElectronIDs = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff']
-for idmod in ElectronIDs:
-    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,era='2016-Legacy')
 
 newTask = cms.Task()
-process.egmGsfElectronIDSequence.associate(newTask)
+process.egammaPostRecoSeq.associate(newTask)
 
 process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
@@ -89,7 +93,6 @@ process.tree = cms.EDAnalyzer("Minituplizer",
     Jets = cms.InputTag("slimmedJets"),
     MET = cms.InputTag("slimmedMETs"),
     GsfTracks = cms.InputTag("reducedEgamma:reducedGsfTracks"),
-    HEEPVID = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV70"),
     nrSatCrysMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleNrSaturateIn5x5"),
     trkIsoMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleTrkPtIso"),
     lostTracks = cms.InputTag("lostTracks"),
@@ -106,6 +109,7 @@ process.tree = cms.EDAnalyzer("Minituplizer",
 
 process.p = cms.Path(
     process.goodOfflinePrimaryVertices*
-    process.egmGsfElectronIDSequence*
+    process.prefiringweight*
+    process.egammaPostRecoSeq*
     process.tree
 )

@@ -128,6 +128,7 @@ public:
   double rap;
   double phi;
   double en;
+  double enCorr;
   int charge;
   double enSC;
   double preEnSC;
@@ -176,19 +177,9 @@ public:
   double dr03EcalRecHitSumEt;
   double dr03HcalDepth1TowerSumEt;
   bool passHEEP;
-  bool passHEEPTrkIso;
-  bool passHEEPEMHad1Iso;
-  bool passHEEPEt;
-  bool passHEEPdEtaInSeed;
-  bool passHEEPdPhiIn;
-  bool passHEEPE2x5OverE5x5;
-  bool passHEEPHoverE;
-  bool passHEEPdxy;
-  bool passHEEPMissingHits;
-  bool passHEEPEcalDriven;
+  // bool passHEEPTrkIso;
   // bool passN1HEEPTrkIso;
   double HEEPTrkIso;
-  double HEEPEMHad1Iso;
   int HEEPnrSatCrysValue;
   double HEEPTrkIsoMod;
   bool HEEPaddGsfTrkSel;
@@ -298,6 +289,8 @@ public:
   double pt;
   double eta;
   double phi;
+  double en;
+  double enCorr;
   double etaSC;
   double phiSC;
   double HoverE;
@@ -503,6 +496,9 @@ public:
   double weight;
   int nGenParticles;
   int nGenJets;
+  double prefiringweight;
+  double prefiringweightup;
+  double prefiringweightdown;
 
   std::vector<NtupleTrigger> triggers;
   std::vector<NtupleMuon> muons;

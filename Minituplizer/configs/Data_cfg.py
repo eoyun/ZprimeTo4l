@@ -22,7 +22,7 @@ InputFilesList = ['dcap://cluster142.knu.ac.kr/'+DirPath+x for x in InputFilesLi
 ## Source
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-       ''
+       ''#'root://cms-xrd-global.cern.ch//store/data/Run2016G/DoubleEG/MINIAOD/17Jul2018-v1/00000/52D5ADE9-C095-E811-82BF-34E6D7BDDEDB.root'
     )
 )
 
@@ -33,7 +33,7 @@ process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-process.GlobalTag.globaltag = cms.string("80X_mcRun2_asymptotic_2016_TrancheIV_v6")
+process.GlobalTag.globaltag = cms.string("94X_dataRun2_v10")
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string('Ntuple.root')
@@ -52,16 +52,11 @@ process.noscraping = cms.EDFilter("FilterOutScraping",
     thresh = cms.untracked.double(0.25)
 )
 
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-
-dataFormat = DataFormat.MiniAOD
-switchOnVIDElectronIdProducer(process, dataFormat)
-ElectronIDs = ['RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff']
-for idmod in ElectronIDs:
-    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,era='2016-Legacy')
 
 newTask = cms.Task()
-process.egmGsfElectronIDSequence.associate(newTask)
+process.egammaPostRecoSeq.associate(newTask)
 
 process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
@@ -89,7 +84,6 @@ process.tree = cms.EDAnalyzer("Minituplizer",
     Jets = cms.InputTag("slimmedJets"),
     MET = cms.InputTag("slimmedMETs"),
     GsfTracks = cms.InputTag("reducedEgamma:reducedGsfTracks"),
-    HEEPVID = cms.InputTag("egmGsfElectronIDs:heepElectronID-HEEPV70"),
     nrSatCrysMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleNrSaturateIn5x5"),
     trkIsoMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleTrkPtIso"),
     lostTracks = cms.InputTag("lostTracks"),
@@ -106,6 +100,6 @@ process.tree = cms.EDAnalyzer("Minituplizer",
 
 process.p = cms.Path(
     process.goodOfflinePrimaryVertices*
-    process.egmGsfElectronIDSequence*
+    process.egammaPostRecoSeq*
     process.tree
 )

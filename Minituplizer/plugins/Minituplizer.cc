@@ -158,7 +158,6 @@ class Minituplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       edm::EDGetTokenT<std::vector<reco::GenJet>> genjetToken;
       edm::EDGetTokenT<GenEventInfoProduct> generatorToken;
       edm::EDGetTokenT<std::vector<reco::GsfTrack>> GsfTrackToken;
-      edm::EDGetTokenT<edm::ValueMap<vid::CutFlowResult>> HEEPVIDResultToken;
       edm::EDGetTokenT<edm::ValueMap<int>> nrSatCrysMapToken;
       edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken;
       edm::EDGetTokenT<edm::ValueMap<bool>> addGsfTrkSelToken;
@@ -168,6 +167,9 @@ class Minituplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
       edm::ParameterSet vtxFitterPset;
       edm::EDGetTokenT<std::vector<pat::PackedCandidate>> lostTracksToken;
       edm::EDGetTokenT<std::vector<pat::PackedCandidate>> eleTracksToken;
+      edm::EDGetTokenT< double > prefweight_token;
+      edm::EDGetTokenT< double > prefweightup_token;
+      edm::EDGetTokenT< double > prefweightdown_token;
 
       edm::EDGetTokenT<double> rhoToken;
 
@@ -212,7 +214,6 @@ genparticlesToken(consumes<std::vector<reco::GenParticle>>(iConfig.getParameter<
 genjetToken(consumes<std::vector<reco::GenJet>>(iConfig.getParameter<edm::InputTag>("GenJets"))),
 generatorToken(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("Generator"))),
 GsfTrackToken(consumes<std::vector<reco::GsfTrack>>(iConfig.getParameter<edm::InputTag>("GsfTracks"))),
-HEEPVIDResultToken(consumes<edm::ValueMap<vid::CutFlowResult>>(iConfig.getParameter<edm::InputTag>("HEEPVID"))),
 nrSatCrysMapToken(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("nrSatCrysMap"))),
 trkIsoMapToken(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
 addGsfTrkSelToken(consumes<edm::ValueMap<bool>>(iConfig.getParameter<edm::InputTag>("addGsfTrkSelMap"))),
@@ -225,32 +226,28 @@ eleTracksToken(consumes<std::vector<pat::PackedCandidate>>(iConfig.getParameter<
 
 // EcalRecHitIsoToken(consumes<edm::ValueMap<double>>(iConfig.getParameter<edm::InputTag>("EcalRecHitIsoMap"))),
 
-rhoToken(consumes<double>(iConfig.getParameter<edm::InputTag>("rho")))
+rhoToken(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))) {
+  prefweight_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProb"));
+  prefweightup_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbUp"));
+  prefweightdown_token = consumes< double >(edm::InputTag("prefiringweight:nonPrefiringProbDown"));
 
-{
-   //now do what ever initialization is needed
-   usesResource("TFileService");
-
+  //now do what ever initialization is needed
+  usesResource("TFileService");
 }
 
-
-Minituplizer::~Minituplizer()
-{
+Minituplizer::~Minituplizer() {
 
    // do anything here that needs to be done at desctruction time
    // (e.g. close files, deallocate resources etc.)
 
 }
 
-
 //
 // member functions
 //
 
 // ------------ method called for each event  ------------
-void
-Minituplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void Minituplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   using namespace edm;
 
   evt_.triggers.clear();
@@ -275,6 +272,23 @@ Minituplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   evt_.event = iEvent.id().event();
   evt_.lumi = iEvent.id().luminosityBlock();
   evt_.nVertices = PVHandle->size();
+
+  if (isMC) {
+    edm::Handle< double > theprefweight;
+    iEvent.getByToken(prefweight_token, theprefweight ) ;
+    edm::Handle< double > theprefweightup;
+    iEvent.getByToken(prefweightup_token, theprefweightup ) ;
+    edm::Handle< double > theprefweightdown;
+    iEvent.getByToken(prefweightdown_token, theprefweightdown ) ;
+
+    evt_.prefiringweight = (*theprefweight);
+    evt_.prefiringweightup = (*theprefweightup);
+    evt_.prefiringweightdown = (*theprefweightdown);
+  } else {
+    evt_.prefiringweight = 1.;
+    evt_.prefiringweightup = 1.;
+    evt_.prefiringweightdown = 1.;
+  }
 
   if (isMC) {
     edm::Handle<std::vector<PileupSummaryInfo>> PUInfo;
@@ -539,9 +553,6 @@ void Minituplizer::fillElectrons(const edm::Event& iEvent) {
   edm::Handle<std::vector<pat::Electron>> electrons;
   iEvent.getByToken(electronsToken, electrons);
 
-  edm::Handle<edm::ValueMap<vid::CutFlowResult>> HEEPVIDResult;
-  iEvent.getByToken(HEEPVIDResultToken, HEEPVIDResult);
-
   edm::Handle<edm::ValueMap<int>> nrSatCrysMap;
   edm::Handle<edm::ValueMap<float>> trkIsoMap;
   iEvent.getByToken(trkIsoMapToken, trkIsoMap);
@@ -571,6 +582,7 @@ void Minituplizer::fillElectrons(const edm::Event& iEvent) {
     el_.rap = el->rapidity();
     el_.phi = el->phi();
     el_.en = el->energy();
+    el_.enCorr = el->userFloat("ecalTrkEnergyPostCorr");
     el_.charge = el->charge();
 
     el_.enSC = el->superCluster()->energy();
@@ -628,26 +640,14 @@ void Minituplizer::fillElectrons(const edm::Event& iEvent) {
     el_.miniPUIso = el->miniPFIsolation().puChargedHadronIso();
     el_.dr03EcalRecHitSumEt = el->dr03EcalRecHitSumEt();
     el_.dr03HcalDepth1TowerSumEt = el->dr03HcalDepth1TowerSumEt();
-    const vid::CutFlowResult& HEEPCutFlowResult = (*HEEPVIDResult)[elPtr];
-    el_.passHEEP = HEEPCutFlowResult.cutFlowPassed();
-    el_.passHEEPTrkIso = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::TRKISO);
-    el_.passHEEPEMHad1Iso = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::EMHADD1ISO);
-    el_.passHEEPEt = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::ET);
-    el_.passHEEPdEtaInSeed = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::DETAINSEED);
-    el_.passHEEPdPhiIn = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::DPHIIN);
-    el_.passHEEPE2x5OverE5x5 = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::E2X5OVER5X5);
-    el_.passHEEPHoverE = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::HADEM);
-    el_.passHEEPdxy = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::DXY);
-    el_.passHEEPMissingHits = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::MISSHITS);
-    el_.passHEEPEcalDriven = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::ECALDRIVEN);
+    el_.passHEEP = static_cast<bool>(el->electronID("heepElectronID-HEEPV70")); // HEEPCutFlowResult.cutFlowPassed();
+    // el_.passHEEPTrkIso = HEEPCutFlowResult.getCutResultByIndex(HEEPV70::TRKISO);
     // el_.passN1HEEPTrkIso = HEEPCutFlowResult.getCutFlowResultMasking(HEEPV70::TRKISO).cutFlowPassed();
-    el_.HEEPTrkIso = HEEPCutFlowResult.getValueCutUpon(HEEPV70::TRKISO);
-    el_.HEEPEMHad1Iso = HEEPCutFlowResult.getValueCutUpon(HEEPV70::EMHADD1ISO);
+    el_.HEEPTrkIso = el->userFloat("heepTrkPtIso"); // HEEPCutFlowResult.getValueCutUpon(HEEPV70::TRKISO);
     el_.HEEPnrSatCrysValue = (*nrSatCrysMap)[elPtr];
     el_.HEEPTrkIsoMod = (*trkIsoMap)[elPtr];
     el_.HEEPaddGsfTrkSel = (*addGsfTrkSelMap)[elPtr];
     el_.HEEPEcalRecHitIsoMod = (*EcalRecHitIsoMap)[elPtr];
-
     el_.HEEPnoSelectedGsfTrk = (*noSelectedGsfTrkMap)[elPtr];
 
     reco::GsfTrackRef addGsfTrk = (*addGsfTrkMap)[elPtr];
@@ -820,6 +820,8 @@ void Minituplizer::fillPhotons(const edm::Event& iEvent) {
     pho_.pt = pho->pt();
     pho_.eta = pho->eta();
     pho_.phi = pho->phi();
+    pho_.en = pho->energy();
+    pho_.enCorr = pho->userFloat("ecalEnergyPostCorr");
     pho_.etaSC = pho->superCluster()->eta();
     pho_.phiSC = pho->superCluster()->phi();
     pho_.HoverE = pho->hadTowOverEm();
