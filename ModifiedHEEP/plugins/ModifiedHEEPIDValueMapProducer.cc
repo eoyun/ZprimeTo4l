@@ -68,12 +68,12 @@ private:
 				  edm::Handle<EcalRecHitCollection>& eeHits,
 				  edm::ESHandle<CaloTopology>& caloTopo);
 
-  float calTrkIso(const reco::GsfElectron& ele,
-		  const edm::View<reco::GsfElectron>& eles,
-		  const std::vector<edm::Handle<pat::PackedCandidateCollection> >& handles,
-      // const std::vector<edm::Handle<reco::TrackCollection>>& handles,
-      const reco::GsfTrack& gsfTrk,
-		  const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos)const;
+  static float calTrkIso(const reco::GsfElectron& ele,
+		                 const edm::View<reco::GsfElectron>& eles,
+		                 const std::vector<edm::Handle<pat::PackedCandidateCollection> >& handles,
+                         const reco::GsfTrack& gsfTrk,
+                         const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
+                         const ModifiedEleTkIsolFromCands& trkIsoCalc);
 
   template <typename T> void setToken(edm::EDGetTokenT<T>& token,edm::InputTag tag){token=consumes<T>(tag);}
   template <typename T> void setToken(edm::EDGetTokenT<T>& token,const edm::ParameterSet& iPara,const std::string& tag){token=consumes<T>(iPara.getParameter<edm::InputTag>(tag));}
@@ -151,34 +151,37 @@ private:
   DualToken<EcalRecHitCollection> eeRecHitToken_;
   DualToken<edm::View<reco::GsfElectron> > eleToken_;
   std::vector<DualToken<pat::PackedCandidateCollection> > candTokens_;
-  // std::vector<DualToken<reco::TrackCollection>> candTokens_;
   DualToken<reco::GsfTrackCollection> gsfTrkToken_;
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
 
   ModifiedEleTkIsolFromCands trkIsoCalc_;
+  ModifiedEleTkIsolFromCands trkIso04Calc_;
+  bool makeTrkIso04_;
   DataFormat dataFormat_;
   std::vector<ModifiedEleTkIsolFromCands::PIDVeto> candVetosAOD_;
   std::vector<ModifiedEleTkIsolFromCands::PIDVeto> candVetosMiniAOD_;
 
   static const std::string eleTrkPtIsoLabel_;
+  static const std::string eleTrkPtIso04Label_;
   static const std::string eleNrSaturateIn5x5Label_;
 
-  static const std::string eleAddGsfTrkSelLabel_;
-  static const std::string eleNoSelectedGsfTrkLabel_;
+  static const std::string eleNumSelectedGsfTrkLabel_;
   static const std::string eleAddGsfTrkLabel_;
 };
 
 const std::string ModifiedHEEPIDValueMapProducer::eleTrkPtIsoLabel_="eleTrkPtIso";
+const std::string ModifiedHEEPIDValueMapProducer::eleTrkPtIso04Label_="eleTrkPtIso04";
 const std::string ModifiedHEEPIDValueMapProducer::eleNrSaturateIn5x5Label_="eleNrSaturateIn5x5";
 
-const std::string ModifiedHEEPIDValueMapProducer::eleAddGsfTrkSelLabel_ = "eleAddGsfTrkSel";
-const std::string ModifiedHEEPIDValueMapProducer::eleNoSelectedGsfTrkLabel_ = "eleNoSelectedGsfTrk";
+const std::string ModifiedHEEPIDValueMapProducer::eleNumSelectedGsfTrkLabel_ = "eleNumSelectedGsfTrk";
 const std::string ModifiedHEEPIDValueMapProducer::eleAddGsfTrkLabel_ = "eleAddGsfTrk";
 
 
 
 ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::ParameterSet& iConfig):
   trkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("trkIsoConfig")),
+  trkIso04Calc_(iConfig.getParameter<edm::ParameterSet>("trkIso04Config")),
+  makeTrkIso04_(iConfig.getParameter<bool>("makeTrkIso04_")),
   dataFormat_(iConfig.getParameter<int>("dataFormat"))
 {
   setToken(ebRecHitToken_,iConfig,"ebRecHitsAOD","ebRecHitsMiniAOD",dataFormat_);
@@ -203,10 +206,10 @@ ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::Parame
   }
 
   produces<edm::ValueMap<float> >(eleTrkPtIsoLabel_);
+  if(makeTrkIso04_) produces<edm::ValueMap<float> >(eleTrkPtIso04Label_);
   produces<edm::ValueMap<int> >(eleNrSaturateIn5x5Label_);
 
-  produces<edm::ValueMap<bool>>(eleAddGsfTrkSelLabel_);
-  produces<edm::ValueMap<int>>(eleNoSelectedGsfTrkLabel_);
+  produces<edm::ValueMap<int>>(eleNumSelectedGsfTrkLabel_);
   produces<edm::ValueMap<reco::GsfTrackRef>>(eleAddGsfTrkLabel_);
 }
 
@@ -231,29 +234,29 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
   iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
 
   std::vector<float> eleTrkPtIso;
+  std::vector<float> eleTrkPtIso04;
   std::vector<int> eleNrSaturateIn5x5;
 
-  std::vector<bool> eleAddGsfTrkSel;
-  std::vector<int> eleNoSelectedGsfTrk;
+  std::vector<int> eleNumSelectedGsfTrk;
   std::vector<reco::GsfTrackRef> eleAddGsfTrk;
 
-  for(size_t eleNr=0;eleNr<eleHandle->size();eleNr++){
-    bool addGsfTrkSel = false; int noSelectedGsfTrk = 0;
-    auto elePtr = eleHandle->ptrAt(eleNr);
-    auto additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(*elePtr,gsfTrkHandle, addGsfTrkSel, noSelectedGsfTrk);
-    eleTrkPtIso.push_back(calTrkIso(*elePtr,*eleHandle,candHandles,*(additionalGsfTrk.get()),candVetos));
-    eleNrSaturateIn5x5.push_back(nrSaturatedCrysIn5x5(*elePtr,ebRecHitHandle,eeRecHitHandle,caloTopoHandle));
-
-    eleAddGsfTrkSel.push_back(addGsfTrkSel);
-    eleNoSelectedGsfTrk.push_back(noSelectedGsfTrk);
+  for(auto const& ele : *eleHandle) {
+    int numSelectedGsfTrk = 0;
+    auto additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(ele,gsfTrkHandle,numSelectedGsfTrk);
+    eleTrkPtIso.push_back(calTrkIso(ele,*eleHandle,candHandles,*(additionalGsfTrk.get()),candVetos,trkIsoCalc_));
+    if(makeTrkIso04_){
+      eleTrkPtIso04.push_back(calTrkIso(ele,*eleHandle,candHandles,*(additionalGsfTrk.get()),candVetos,trkIso04Calc_));
+    }
+    eleNrSaturateIn5x5.push_back(nrSaturatedCrysIn5x5(ele,ebRecHitHandle,eeRecHitHandle,caloTopoHandle));
+    eleNumSelectedGsfTrk.push_back(numSelectedGsfTrk);
     eleAddGsfTrk.push_back(additionalGsfTrk);
   }
 
   writeValueMap(iEvent,eleHandle,eleTrkPtIso,eleTrkPtIsoLabel_);
+  if(makeTrkIso04_) writeValueMap(iEvent,eleHandle,eleTrkPtIso04,eleTrkPtIso04Label_);
   writeValueMap(iEvent,eleHandle,eleNrSaturateIn5x5,eleNrSaturateIn5x5Label_);
 
-  writeValueMap(iEvent,eleHandle,eleAddGsfTrkSel,eleAddGsfTrkSelLabel_);
-  writeValueMap(iEvent,eleHandle,eleNoSelectedGsfTrk,eleNoSelectedGsfTrkLabel_);
+  writeValueMap(iEvent,eleHandle,eleNumSelectedGsfTrk,eleNumSelectedGsfTrkLabel_);
   writeValueMap(iEvent,eleHandle,eleAddGsfTrk,eleAddGsfTrkLabel_);
 }
 
@@ -272,9 +275,9 @@ float ModifiedHEEPIDValueMapProducer::
 calTrkIso(const reco::GsfElectron& ele,
 	  const edm::View<reco::GsfElectron>& eles,
 	  const std::vector<edm::Handle<pat::PackedCandidateCollection> >& handles,
-    // const std::vector<edm::Handle<reco::TrackCollection>>& handles,
-    const reco::GsfTrack& gsfTrk,
-	  const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos)const
+      const reco::GsfTrack& gsfTrk,
+	  const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
+      const ModifiedEleTkIsolFromCands& trkIsoCalc)
 {
   if(ele.gsfTrack().isNull()) return std::numeric_limits<float>::max();
   else{
@@ -283,8 +286,7 @@ calTrkIso(const reco::GsfElectron& ele,
       auto& handle = handles[handleNr];
       if(handle.isValid()){
       	if(handleNr<pidVetos.size()){
-      	  trkIso+= trkIsoCalc_.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk,pidVetos[handleNr]);
-          // trkIso+= trkIsoCalc_.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk);
+      	  trkIso+= trkIsoCalc.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk,pidVetos[handleNr]);
       	}else{
       	  throw cms::Exception("LogicError") <<" somehow the pidVetos and handles do not much, given this is checked at construction time, something has gone wrong in the code handle nr "<<handleNr<<" size of vetos "<<pidVetos.size();
       	}
@@ -318,15 +320,17 @@ void ModifiedHEEPIDValueMapProducer::fillDescriptions(edm::ConfigurationDescript
   desc.add<edm::InputTag>("elesAOD",edm::InputTag("gedGsfElectrons"));
   desc.add<edm::InputTag>("gsfTrksAOD",edm::InputTag("electronGsfTracks"));
 
-  desc.add<edm::InputTag>("ebRecHitsMiniAOD",edm::InputTag("reducedEgamma","reducedEBRecHits"));
-  desc.add<edm::InputTag>("eeRecHitsMiniAOD",edm::InputTag("reducedEgamma","reducedEERecHits"));
+  desc.add<edm::InputTag>("ebRecHitsMiniAOD",edm::InputTag("reducedEcalRecHitsEB"));
+  desc.add<edm::InputTag>("eeRecHitsMiniAOD",edm::InputTag("reducedEcalRecHitsEE"));
   desc.add<std::vector<edm::InputTag> >("candsMiniAOD",{edm::InputTag("packedCandidates")});
   desc.add<std::vector<std::string> >("candVetosMiniAOD",{"none"});
-  desc.add<edm::InputTag>("elesMiniAOD",edm::InputTag("slimmedElectrons"));
+  desc.add<edm::InputTag>("elesMiniAOD",edm::InputTag("gedGsfElectrons"));
   desc.add<edm::InputTag>("gsfTrksMiniAOD",edm::InputTag("reducedEgamma:reducedGsfTracks"));
   desc.add<int>("dataFormat",0);
-
+  desc.add<bool>("makeTrkIso04",false);
   desc.add("trkIsoConfig",ModifiedEleTkIsolFromCands::pSetDescript());
+  desc.add("trkIso04Config",ModifiedEleTkIsolFromCands::pSetDescript());
+
 
   descriptions.addDefault(desc);
 }

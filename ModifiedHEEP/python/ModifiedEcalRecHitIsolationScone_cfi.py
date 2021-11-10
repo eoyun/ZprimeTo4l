@@ -36,8 +36,8 @@ ModifiedEcalRecHitIsolationScone = cms.EDProducer("ModifiedEcalRecHitIsolationPr
     recHitSeverityExclBarrel = stdGsfEle.recHitSeverityToBeExcludedBarrel,
     recHitSeverityExclEndcaps = stdGsfEle.recHitSeverityToBeExcludedEndcaps,
 
-    jurassicWidth2nd = cms.double(2.0),
-    intRadius2nd = cms.double(4.0),
+    jurassicWidth2nd = cms.double(1.5),
+    intRadius2nd = cms.double(3.0),
 
     trkIsoConfig = trkIsol03CfgV2,
     # gsfTrks = cms.InputTag("electronGsfTracks")

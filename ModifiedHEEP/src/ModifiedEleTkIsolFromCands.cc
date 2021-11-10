@@ -46,9 +46,9 @@ edm::ParameterSetDescription ModifiedEleTkIsolFromCands::TrkCuts::pSetDescript()
   desc.add<double>("maxDZ",0.1);
   desc.add<double>("maxDPtPt",-1);
   desc.add<double>("addGsfminPt",10.0);
-  desc.add<int>("minHits",0);
-  desc.add<int>("minPixelHits",0);
-  desc.add<std::vector<std::string> >("allowedQualities",{"highPurity"});
+  desc.add<int>("minHits",8);
+  desc.add<int>("minPixelHits",1);
+  desc.add<std::vector<std::string> >("allowedQualities");
   desc.add<std::vector<std::string> >("algosToReject");
   return desc;
 }
@@ -90,12 +90,12 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
 
   const TrkCuts& cuts = std::abs(eleEta)<1.5 ? barrelCuts_ : endcapCuts_;
 
-  for(auto& cand  : cands) {
+  for(auto& cand : cands) {
     if(cand.hasTrackDetails() && cand.charge()!=0 && passPIDVeto(cand.pdgId(),pidVeto)){ // 94X
-    // if(cand.charge()!=0 && passPIDVeto(cand.pdgId(),pidVeto)){ // 80X
       const reco::Track& trk = cand.pseudoTrack();
       if(passTrkSel(trk,trk.pt(),cuts,eleEta,elePhi,eleVZ)){
-        if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) continue;
+        if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd)
+          continue;
 
       	ptSum+=trk.pt();
       	nrTrks++;
@@ -128,7 +128,8 @@ ModifiedEleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
 
   for(auto& trk : tracks){
     if(passTrkSel(trk,trk.pt(),cuts,eleEta,elePhi,eleVZ)){
-      if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd) continue;
+      if(std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd)
+        continue;
 
       ptSum+=trk.pt();
       nrTrks++;
@@ -191,46 +192,41 @@ bool ModifiedEleTkIsolFromCands::additionalGsfTrkSel(const reco::TrackBase& trk,
 				    const double eleVZ)
 {
   const float dR2 = reco::deltaR2(eleEta,elePhi,trk.eta(),trk.phi());
-  // const float dEta = trk.eta()-eleEta;
   const float dZ = eleVZ - trk.vz();
 
   return trk.eta() != eleEta &&
     dR2 <= cuts.addGsfDR2 &&
-  //  std::abs(dEta)>=cuts.minDEta &&
     std::abs(dZ)<cuts.maxDZ &&
     trk.hitPattern().numberOfValidHits() >= cuts.minHits &&
     trk.hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits &&
-    //(trk.ptError()/trkPt < cuts.maxDPtPt || cuts.maxDPtPt<0) &&
     passQual(trk,cuts.allowedQualities) &&
     passAlgo(trk,cuts.algosToReject) &&
     trkPt > cuts.addGsfminPt;
 }
 
-const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::Handle<reco::GsfTrackCollection> gsfTrks, bool& addGsfTrkSel) {
-  int noSelectedGsfTrk = 0;
-  return additionalGsfTrkSelector(ele, gsfTrks, addGsfTrkSel, noSelectedGsfTrk);
-}
-
-const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::Handle<reco::GsfTrackCollection> gsfTrks, bool& addGsfTrkSel, int& noSelectedGsfTrk) {
+const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::Handle<reco::GsfTrackCollection> gsfTrks, int& numSelectedGsfTrk) {
   std::vector<reco::GsfTrackRef> additionalGsfTrks;
   const reco::GsfTrackRef eleTrk = ele.gsfTrack();
-  for (size_t gsfTrkNr = 0; gsfTrkNr < gsfTrks->size(); gsfTrkNr++) {
-    auto gsfTrk = gsfTrks->at(gsfTrkNr);
-    if( gsfTrk.pt()==eleTrk->pt() && gsfTrk.eta()==eleTrk->eta() && gsfTrk.phi()==eleTrk->phi() ) continue;
+
+  for (size_t iGsf = 0; iGsf < gsfTrks->size(); iGsf++) {
+    auto gsfTrk = gsfTrks->at(iGsf);
+
+    if( gsfTrk.pt()==eleTrk->pt() && gsfTrk.eta()==eleTrk->eta() && gsfTrk.phi()==eleTrk->phi() )
+      continue;
+
     const ModifiedEleTkIsolFromCands::TrkCuts& cuts = std::abs(gsfTrk.eta())<1.5 ? barrelCuts_ : endcapCuts_;
     if(additionalGsfTrkSel(gsfTrk,gsfTrk.pt(),cuts,eleTrk->eta(),eleTrk->phi(),eleTrk->vz())) {
-      additionalGsfTrks.push_back(edm::Ref<reco::GsfTrackCollection>(gsfTrks,gsfTrkNr));
-      addGsfTrkSel = true;
+      additionalGsfTrks.push_back(edm::Ref<reco::GsfTrackCollection>(gsfTrks,iGsf));
     }
   }
+
   std::sort(additionalGsfTrks.begin(), additionalGsfTrks.end(), [](reco::GsfTrackRef a, reco::GsfTrackRef b) {return a->pt() > b->pt();} );
+  numSelectedGsfTrk = additionalGsfTrks.size();
+
   if(additionalGsfTrks.empty()) {
-    addGsfTrkSel = false;
     noSelectedGsfTrk = 0;
     return eleTrk;
   }
-
-  noSelectedGsfTrk = additionalGsfTrks.size();
 
   return additionalGsfTrks.front();
 }

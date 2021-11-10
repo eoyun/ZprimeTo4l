@@ -111,17 +111,12 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   trkIsoCalc_(config.getParameter<edm::ParameterSet>("trkIsoConfig")),
   conf_(config)
 {
+  // use configuration file to setup input/output collection names
+  //inputs
   setToken(emObjectToken_,config,"emObjectProducer");
   setToken(ecalBarrelRecHitToken_,config,"ecalBarrelRecHitCollection");
   setToken(ecalEndcapRecHitToken_,config,"ecalEndcapRecHitCollection");
   setToken(gsfTrkToken_,config,"gsfTrks");
-  // use configuration file to setup input/output collection names
-  //inputs
-  // emObjectProducer_               = conf_.getParameter<edm::InputTag>("emObjectProducer");
-  // ecalBarrelRecHitProducer_       = conf_.getParameter<edm::InputTag>("ecalBarrelRecHitProducer");
-  // ecalBarrelRecHitCollection_     = conf_.getParameter<edm::InputTag>("ecalBarrelRecHitCollection");
-  // ecalEndcapRecHitProducer_       = conf_.getParameter<edm::InputTag>("ecalEndcapRecHitProducer");
-  // ecalEndcapRecHitCollection_     = conf_.getParameter<edm::InputTag>("ecalEndcapRecHitCollection");
 
   //vetos
   egIsoPtMinBarrel_               = conf_.getParameter<double>("etMinBarrel");
@@ -154,6 +149,7 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
 
   //register your products
   produces < edm::ValueMap<double> >("EcalRecHitIso");
+  produces < edm::ValueMap<double> >("invertedEcalRecHitIso");
 }
 
 
@@ -196,6 +192,10 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   edm::ValueMap<double>::Filler filler(*isoMap);
   std::vector<double> retV(emObjectHandle->size(),0);
 
+  auto invIsoMap = std::make_unique<edm::ValueMap<double>>();
+  edm::ValueMap<double>::Filler invFiller(*invIsoMap);
+  std::vector<double> invRetV(emObjectHandle->size(),0);
+
   ModifiedRecHitIsolation ecalBarrelIsol(egIsoConeSizeOut_,egIsoConeSizeInBarrel_,egIsoJurassicWidth_,egIsoPtMinBarrel_,egIsoEMinBarrel_,caloGeom,*ecalBarrelRecHitHandle,sevLevel,DetId::Ecal,recHitFlagsEnumsEB_,recHitSeverityEnumsEB_,egIsoJurassicWidth2nd_,egIsoConeSizeIn2nd_);
   ecalBarrelIsol.setUseNumCrystals(useNumCrystals_);
   ecalBarrelIsol.setVetoClustered(vetoClustered_);
@@ -212,24 +212,24 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
     //this can be safely replaced by another method which determines where the emobject is
     //then we either get the isolation Et or isolation Energy depending on user selection
     double isoValue =0.;
+    double invIsoValue = 0.;
 
     reco::SuperClusterRef superClus = emObjectHandle->at(i).get<reco::SuperClusterRef>();
 
-    bool addGsfTrkSel = false;
-
-    auto additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(*emObjectHandle->ptrAt(i),gsfTrkHandle, addGsfTrkSel);
+    int eleNumSelectedGsfTrk = 0;
+    auto additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(*emObjectHandle->ptrAt(i),gsfTrkHandle, eleNumSelectedGsfTrk);
 
     if(tryBoth_){ //barrel + endcap
-      if(useIsolEt_) isoValue =  ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get())) + ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()));
-      else           isoValue =  ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get())) + ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()));
+      if(useIsolEt_) isoValue =  ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue) + ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
+      else           isoValue =  ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue) + ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
     }
     else if( fabs(superClus->eta())<1.479) { //barrel
-      if(useIsolEt_) isoValue =  ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()));
-      else           isoValue =  ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()));
+      if(useIsolEt_) isoValue =  ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
+      else           isoValue =  ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
     }
     else{ //endcap
-      if(useIsolEt_) isoValue =  ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()));
-      else           isoValue =  ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()));
+      if(useIsolEt_) isoValue =  ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
+      else           isoValue =  ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
     }
 
     //we subtract off the electron energy here as well
@@ -241,6 +241,7 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
     if(subtract_) isoValue-= subtractVal;
 
     retV[i]=isoValue;
+    invRetV[i]=invIsoValue;
     //all done, isolation is now in the map
 
   }//end of loop over em objects
@@ -248,7 +249,11 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   filler.insert(emObjectHandle,retV.begin(),retV.end());
   filler.fill();
 
+  invFiller.insert(emObjectHandle,invRetV.begin(),invRetV.end());
+  invFiller.fill();
+
   iEvent.put(std::move(isoMap),"EcalRecHitIso");
+  iEvent.put(std::move(invIsoMap),"invEcalRecHitIso");
 
 }
 

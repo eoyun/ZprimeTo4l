@@ -108,8 +108,7 @@ public:
 			 const double eleEta,const double elePhi,
 			 const double eleVZ);
 
-  const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::Handle<reco::GsfTrackCollection> gsfTrks, bool& addGsfTrkSel, int& noSelectedGsfTrk);
-  const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::Handle<reco::GsfTrackCollection> gsfTrks, bool& addGsfTrkSel);
+  const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::Handle<reco::GsfTrackCollection> gsfTrks, int& numSelectedGsfTrk);
 
 private:
   static bool passTrkSel(const reco::TrackBase& trk,
