@@ -357,8 +357,11 @@ void Minituplizer::fillTriggers(const edm::Event &iEvent, const edm::EventSetup&
   iEvent.getByToken(triggerToken,ResultHandle);
 
   string Trigs[] = {
+    // https://docs.google.com/spreadsheets/d/1Yy1VYIp-__pVUDFUs6JDNUh4XGlL2SlOsqXjdCsNiGU/edit#gid=663660886
+    // https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary
     "HLT_DoubleEle33_CaloIdL_MW_v*",
     "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW_v*",
+    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*",
     "HLT_DoubleEle37_Ele27_CaloIdL_GsfTrkIdVL_v*",
     "HLT_Ele27_WPTight_Gsf_v*",
     "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_v*",

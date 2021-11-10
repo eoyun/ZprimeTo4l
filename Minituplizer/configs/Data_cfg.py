@@ -45,13 +45,6 @@ process.goodOfflinePrimaryVertices = cms.EDFilter("VertexSelector",
     filter = cms.bool(True),   # otherwise it won't filter the events, just produce an empty vertex collection.
 )
 
-process.noscraping = cms.EDFilter("FilterOutScraping",
-    applyfilter = cms.untracked.bool(True),
-    debugOn = cms.untracked.bool(False),
-    numtrack = cms.untracked.uint32(10),
-    thresh = cms.untracked.double(0.25)
-)
-
 from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,era='2016-Legacy')
 

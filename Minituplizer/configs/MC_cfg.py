@@ -45,13 +45,6 @@ process.goodOfflinePrimaryVertices = cms.EDFilter("VertexSelector",
     filter = cms.bool(True),   # otherwise it won't filter the events, just produce an empty vertex collection.
 )
 
-process.noscraping = cms.EDFilter("FilterOutScraping",
-    applyfilter = cms.untracked.bool(True),
-    debugOn = cms.untracked.bool(False),
-    numtrack = cms.untracked.uint32(10),
-    thresh = cms.untracked.double(0.25)
-)
-
 from PhysicsTools.PatUtils.l1ECALPrefiringWeightProducer_cfi import l1ECALPrefiringWeightProducer
 process.prefiringweight = l1ECALPrefiringWeightProducer.clone(
     TheJets = cms.InputTag("slimmedJets"), #this should be the slimmedJets collection with up to date JECs !
