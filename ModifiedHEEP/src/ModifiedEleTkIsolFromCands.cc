@@ -224,7 +224,7 @@ const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(con
   numSelectedGsfTrk = additionalGsfTrks.size();
 
   if(additionalGsfTrks.empty()) {
-    noSelectedGsfTrk = 0;
+    numSelectedGsfTrk = 0;
     return eleTrk;
   }
 

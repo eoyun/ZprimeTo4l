@@ -1,7 +1,0 @@
-<use name="root"/>
-<use name="rootmath"/>
-<use name="rootrflx"/>
-<use name="clhep"/>
-<export>
-  <lib name="1"/>
-</export>

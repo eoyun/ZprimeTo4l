@@ -47,11 +47,11 @@ class ModifiedRecHitIsolation {
                          double etaSlice2nd,
                          double intRadius2nd);
 
-  double getEtSum(const reco::GsfElectron * emObject, const reco::TrackBase& addTrk, double& invIsoValue) const {return getSum_(emObject, addTrk, invIsoValue, true);}
-  double getEnergySum(const reco::GsfElectron * emObject, const reco::TrackBase& addTrk, double& invIsoValue) const{ return  getSum_(emObject, addTrk, invIsoValue, false);}
+  double getEtSum(const reco::GsfElectron * emObject, const reco::Track& addTrk, double& invIsoValue) const {return getSum_(emObject, addTrk, invIsoValue, true);}
+  double getEnergySum(const reco::GsfElectron * emObject, const reco::Track& addTrk, double& invIsoValue) const{ return  getSum_(emObject, addTrk, invIsoValue, false);}
 
-  double getEtSum(const reco::SuperCluster* emObject, const reco::TrackBase& addTrk, double& invIsoValue) const {return getSum_(emObject, addTrk, invIsoValue, true);}
-  double getEnergySum(const reco::SuperCluster * emObject, const reco::TrackBase& addTrk, double& invIsoValue) const{ return  getSum_(emObject, addTrk, invIsoValue, false);}
+  double getEtSum(const reco::SuperCluster* emObject, const reco::Track& addTrk, double& invIsoValue) const {return getSum_(emObject, addTrk, invIsoValue, true);}
+  double getEnergySum(const reco::SuperCluster * emObject, const reco::Track& addTrk, double& invIsoValue) const{ return  getSum_(emObject, addTrk, invIsoValue, false);}
 
   void setUseNumCrystals(bool b=true) { useNumCrystals_ = b; }
   void setVetoClustered(bool b=true) { vetoClustered_ = b; }
@@ -73,8 +73,8 @@ class ModifiedRecHitIsolation {
   ~ModifiedRecHitIsolation() ;
 
  private:
-  double getSum_(const reco::GsfElectron *, const reco::TrackBase& addTrk, double& invIsoValue, bool returnEt ) const;
-  double getSum_(const reco::SuperCluster *, const reco::TrackBase& addTrk, double& invIsoValue, bool returnEt ) const;
+  double getSum_(const reco::GsfElectron *, const reco::Track& addTrk, double& invIsoValue, bool returnEt ) const;
+  double getSum_(const reco::SuperCluster *, const reco::Track& addTrk, double& invIsoValue, bool returnEt ) const;
 
   double extRadius_;
   double intRadius_;

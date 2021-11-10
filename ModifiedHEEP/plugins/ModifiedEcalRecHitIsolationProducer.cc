@@ -70,7 +70,7 @@ private:
   edm::EDGetTokenT<edm::View<reco::GsfElectron>> emObjectToken_;
   edm::EDGetTokenT<EcalRecHitCollection> ecalBarrelRecHitToken_;
   edm::EDGetTokenT<EcalRecHitCollection> ecalEndcapRecHitToken_;
-  edm::EDGetTokenT<reco::GsfTrackCollection> gsfTrkToken_;
+  edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
 
   double egIsoPtMinBarrel_; //minimum Et noise cut
   double egIsoEMinBarrel_;  //minimum E noise cut
@@ -101,22 +101,18 @@ private:
   std::vector<int> recHitSeverityEnumsEB_;
   std::vector<int> recHitSeverityEnumsEE_;
 
-  ModifiedEleTkIsolFromCands trkIsoCalc_;
-
   edm::ParameterSet conf_;
 
 };
 
-ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const edm::ParameterSet& config):
-  trkIsoCalc_(config.getParameter<edm::ParameterSet>("trkIsoConfig")),
-  conf_(config)
-{
+ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const edm::ParameterSet& config)
+: conf_(config) {
   // use configuration file to setup input/output collection names
   //inputs
   setToken(emObjectToken_,config,"emObjectProducer");
   setToken(ecalBarrelRecHitToken_,config,"ecalBarrelRecHitCollection");
   setToken(ecalEndcapRecHitToken_,config,"ecalEndcapRecHitCollection");
-  setToken(gsfTrkToken_,config,"gsfTrks");
+  setToken(addGsfTrkToken_,config,"addGsfTrkMap");
 
   //vetos
   egIsoPtMinBarrel_               = conf_.getParameter<double>("etMinBarrel");
@@ -175,8 +171,8 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   edm::Handle<EcalRecHitCollection> ecalEndcapRecHitHandle;
   iEvent.getByToken(ecalEndcapRecHitToken_, ecalEndcapRecHitHandle);
 
-  edm::Handle<reco::GsfTrackCollection> gsfTrkHandle;
-  iEvent.getByToken(gsfTrkToken_, gsfTrkHandle);
+  edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkMap;
+  iEvent.getByToken(addGsfTrkToken_, addGsfTrkMap);
 
   edm::ESHandle<EcalSeverityLevelAlgo> sevlv;
   iSetup.get<EcalSeverityLevelAlgoRcd>().get(sevlv);
@@ -216,8 +212,7 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
 
     reco::SuperClusterRef superClus = emObjectHandle->at(i).get<reco::SuperClusterRef>();
 
-    int eleNumSelectedGsfTrk = 0;
-    auto additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(*emObjectHandle->ptrAt(i),gsfTrkHandle, eleNumSelectedGsfTrk);
+    auto additionalGsfTrk = (*addGsfTrkMap)[emObjectHandle->ptrAt(i)];
 
     if(tryBoth_){ //barrel + endcap
       if(useIsolEt_) isoValue =  ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue) + ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);

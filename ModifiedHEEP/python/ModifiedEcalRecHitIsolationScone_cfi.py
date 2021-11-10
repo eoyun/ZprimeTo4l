@@ -39,7 +39,5 @@ ModifiedEcalRecHitIsolationScone = cms.EDProducer("ModifiedEcalRecHitIsolationPr
     jurassicWidth2nd = cms.double(1.5),
     intRadius2nd = cms.double(3.0),
 
-    trkIsoConfig = trkIsol03CfgV2,
-    # gsfTrks = cms.InputTag("electronGsfTracks")
-    gsfTrks = cms.InputTag("reducedEgamma:reducedGsfTracks")
+    addGsfTrkMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk")
 )

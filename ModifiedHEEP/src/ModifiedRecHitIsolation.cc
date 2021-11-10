@@ -75,7 +75,7 @@ ModifiedRecHitIsolation::ModifiedRecHitIsolation (double extRadius,
 ModifiedRecHitIsolation::~ModifiedRecHitIsolation ()
 {}
 
-double ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, double& invIsoValue, bool returnEt) const {
+double ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const reco::Track& addTrk, double& invIsoValue, bool returnEt) const {
 
   double energySum = 0.;
   if (! caloHits_.empty()) {
@@ -197,7 +197,7 @@ double ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const
 
 
 
-double ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco::TrackBase& addTrk, bool returnEt) const {
+double ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco::Track& addTrk, double& invIsoValue, bool returnEt) const {
 
   double energySum = 0.;
   if (! caloHits_.empty()){
