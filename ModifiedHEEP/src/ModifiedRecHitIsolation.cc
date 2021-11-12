@@ -75,16 +75,14 @@ ModifiedRecHitIsolation::ModifiedRecHitIsolation (double extRadius,
 ModifiedRecHitIsolation::~ModifiedRecHitIsolation ()
 {}
 
-double ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const reco::Track& addTrk, double& invIsoValue, bool returnEt) const {
+float ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt) const {
 
-  double energySum = 0.;
+  float energySum = 0.;
   if (! caloHits_.empty()) {
     //Take the SC position
     reco::SuperClusterRef sc = emObject->get<reco::SuperClusterRef>();
     math::XYZPoint const & theCaloPosition = sc.get()->position();
-    GlobalPoint pclu (theCaloPosition.x () ,
-		      theCaloPosition.y () ,
-		      theCaloPosition.z () );
+    GlobalPoint pclu (theCaloPosition.x (), theCaloPosition.y (), theCaloPosition.z () );
     float etaclus = pclu.eta();
     float phiclus = pclu.phi();
     float r2 = intRadius_*intRadius_;
@@ -99,19 +97,19 @@ double ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const
       EcalRecHitCollection::const_iterator j = caloHits_.end();
 
       for (CaloSubdetectorGeometry::DetIdSet::const_iterator  i = chosen.begin ();i != chosen.end (); ++i){ //loop selected cells
-	j = caloHits_.find(*i); // find selected cell among rechits
-	if(j != caloHits_.end()) { // add rechit only if available
-	  auto cell  = theCaloGeom_->getGeometry(*i);
-	  float eta = cell->etaPos();
-	  float phi = cell->phiPos();
-	  float etaDiff = eta - etaclus;
-	  float phiDiff= reco::deltaPhi(phi,phiclus);
-	  float energy = j->energy();
-    double etaGSF2 = (addTrk.outerPosition().eta()-eta)*(addTrk.outerPosition().eta()-eta);
-    double phiGSF2 = reco::deltaPhi(addTrk.outerPosition().phi(),phi)*reco::deltaPhi(addTrk.outerPosition().phi(),phi);
-    double etaDiffGSF = std::abs(addTrk.outerPosition().eta()-eta);
-    double phiDiffGSF = std::abs( reco::deltaPhi(addTrk.outerPosition().phi(),phi) );
-    bool isNearGsf = false;
+        j = caloHits_.find(*i); // find selected cell among rechits
+    if(j != caloHits_.end()) { // add rechit only if available
+      auto cell  = theCaloGeom_->getGeometry(*i);
+      float eta = cell->etaPos();
+      float phi = cell->phiPos();
+      float etaDiff = eta - etaclus;
+      float phiDiff= reco::deltaPhi(phi,phiclus);
+      float energy = j->energy();
+      float etaGSF2 = (addTrk.eta()-eta)*(addTrk.eta()-eta);
+      float phiGSF2 = reco::deltaPhi(addTrk.phi(),phi)*reco::deltaPhi(addTrk.phi(),phi);
+      float etaDiffGSF = std::abs(addTrk.eta()-eta);
+      float phiDiffGSF = std::abs( reco::deltaPhi(addTrk.phi(),phi) );
+      bool isNearGsf = false;
 
 	  if(useNumCrystals_) {
 	    if(fabs(etaclus) < 1.479) { // Barrel num crystals, crystal width = 0.0174
@@ -197,19 +195,17 @@ double ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const
 
 
 
-double ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco::Track& addTrk, double& invIsoValue, bool returnEt) const {
+float ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt) const {
 
-  double energySum = 0.;
+  float energySum = 0.;
   if (! caloHits_.empty()){
     //Take the SC position
 
     const math::XYZPoint& theCaloPosition = sc->position();
-    GlobalPoint pclu (theCaloPosition.x () ,
-		      theCaloPosition.y () ,
-		      theCaloPosition.z () );
-    double etaclus = pclu.eta();
-    double phiclus = pclu.phi();
-    double r2 = intRadius_*intRadius_;
+    GlobalPoint pclu (theCaloPosition.x (), theCaloPosition.y (), theCaloPosition.z () );
+    float etaclus = pclu.eta();
+    float phiclus = pclu.phi();
+    float r2 = intRadius_*intRadius_;
     float r2_2nd = intRadius2nd_*intRadius2nd_;
 
     std::vector< std::pair<DetId, float> >::const_iterator rhIt;
@@ -220,19 +216,19 @@ double ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco
       EcalRecHitCollection::const_iterator j=caloHits_.end();
       for (CaloSubdetectorGeometry::DetIdSet::const_iterator  i = chosen.begin ();i!= chosen.end ();++i){//loop selected cells
 
-	j=caloHits_.find(*i); // find selected cell among rechits
-	if( j!=caloHits_.end()){ // add rechit only if available
-	  const  GlobalPoint & position = (theCaloGeom_.product())->getPosition(*i);
-	  double eta = position.eta();
-	  double phi = position.phi();
-	  double etaDiff = eta - etaclus;
-	  double phiDiff= reco::deltaPhi(phi,phiclus);
-	  double energy = j->energy();
-    double etaGSF2 = (addTrk.outerPosition().eta()-eta)*(addTrk.outerPosition().eta()-eta);
-    double phiGSF2 = reco::deltaPhi(addTrk.outerPosition().phi(),phi)*reco::deltaPhi(addTrk.outerPosition().phi(),phi);
-    double etaDiffGSF = std::abs(addTrk.outerPosition().eta()-eta);
-    double phiDiffGSF = std::abs( reco::deltaPhi(addTrk.outerPosition().phi(),phi) );
-    bool isNearGsf = false;
+        j=caloHits_.find(*i); // find selected cell among rechits
+    if( j!=caloHits_.end()){ // add rechit only if available
+      const  GlobalPoint & position = (theCaloGeom_.product())->getPosition(*i);
+      float eta = position.eta();
+      float phi = position.phi();
+      float etaDiff = eta - etaclus;
+      float phiDiff= reco::deltaPhi(phi,phiclus);
+      float energy = j->energy();
+      float etaGSF2 = (addTrk.eta()-eta)*(addTrk.eta()-eta);
+      float phiGSF2 = reco::deltaPhi(addTrk.phi(),phi)*reco::deltaPhi(addTrk.phi(),phi);
+      float etaDiffGSF = std::abs(addTrk.eta()-eta);
+      float phiDiffGSF = std::abs( reco::deltaPhi(addTrk.phi(),phi) );
+      bool isNearGsf = false;
 
 	  if(useNumCrystals_) {
 	    if( fabs(etaclus) < 1.479 ) { // Barrel num crystals, crystal width = 0.0174
@@ -289,7 +285,7 @@ double ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco
 	  }
 
 
-	  double et = energy*position.perp()/position.mag();
+	  float et = energy*position.perp()/position.mag();
 	  if ( et > etLow_ && energy > eLow_){ //Changed energy --> fabs(energy) -- then changed into energy
       if (isNearGsf) {
         if(returnEt)

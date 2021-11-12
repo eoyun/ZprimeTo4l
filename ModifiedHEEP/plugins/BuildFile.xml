@@ -26,6 +26,7 @@
 <use name="CommonTools/Utils"/>
 <use name="Geometry/CaloGeometry"/>
 <use name="Geometry/Records"/>
+<use name="TrackingTools/IPTools"/>
 <export>
 </export>
 <library file="*.cc" name="ZprimeTo4l_ModifiedHEEP_plugins">

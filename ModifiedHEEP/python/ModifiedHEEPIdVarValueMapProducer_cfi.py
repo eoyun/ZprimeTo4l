@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-from ZprimeTo4l.ModifiedHEEP.ModifiedElectronTrackIsolations_cfi import trkIsol03CfgV2
+from ZprimeTo4l.ModifiedHEEP.ModifiedElectronTrackIsolations_cfi import trkIsol03CfgV2, trkIsol04CfgV2
 
 ModifiedHEEPIDVarValueMaps = cms.EDProducer("ModifiedHEEPIDValueMapProducer",
                                     beamSpot=cms.InputTag("offlineBeamSpot"),

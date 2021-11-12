@@ -181,7 +181,7 @@ const std::string ModifiedHEEPIDValueMapProducer::eleAddGsfTrkLabel_ = "eleAddGs
 ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::ParameterSet& iConfig):
   trkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("trkIsoConfig")),
   trkIso04Calc_(iConfig.getParameter<edm::ParameterSet>("trkIso04Config")),
-  makeTrkIso04_(iConfig.getParameter<bool>("makeTrkIso04_")),
+  makeTrkIso04_(iConfig.getParameter<bool>("makeTrkIso04")),
   dataFormat_(iConfig.getParameter<int>("dataFormat"))
 {
   setToken(ebRecHitToken_,iConfig,"ebRecHitsAOD","ebRecHitsMiniAOD",dataFormat_);

@@ -144,8 +144,8 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   recHitSeverityEnumsEE_ = StringToEnumValue<EcalSeverityLevel::SeverityLevel>(recHitSeverityEE_);
 
   //register your products
-  produces < edm::ValueMap<double> >("EcalRecHitIso");
-  produces < edm::ValueMap<double> >("invertedEcalRecHitIso");
+  produces < edm::ValueMap<float> >("EcalRecHitIso");
+  produces < edm::ValueMap<float> >("invertedEcalRecHitIso");
 }
 
 
@@ -184,13 +184,13 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   const CaloGeometry* caloGeom = pG.product();
 
   //reco::CandViewDoubleAssociations* isoMap = new reco::CandViewDoubleAssociations( reco::CandidateBaseRefProd( emObjectHandle ) );
-  auto isoMap = std::make_unique<edm::ValueMap<double>>();
-  edm::ValueMap<double>::Filler filler(*isoMap);
-  std::vector<double> retV(emObjectHandle->size(),0);
+  auto isoMap = std::make_unique<edm::ValueMap<float>>();
+  edm::ValueMap<float>::Filler filler(*isoMap);
+  std::vector<float> retV(emObjectHandle->size(),0);
 
-  auto invIsoMap = std::make_unique<edm::ValueMap<double>>();
-  edm::ValueMap<double>::Filler invFiller(*invIsoMap);
-  std::vector<double> invRetV(emObjectHandle->size(),0);
+  auto invIsoMap = std::make_unique<edm::ValueMap<float>>();
+  edm::ValueMap<float>::Filler invFiller(*invIsoMap);
+  std::vector<float> invRetV(emObjectHandle->size(),0);
 
   ModifiedRecHitIsolation ecalBarrelIsol(egIsoConeSizeOut_,egIsoConeSizeInBarrel_,egIsoJurassicWidth_,egIsoPtMinBarrel_,egIsoEMinBarrel_,caloGeom,*ecalBarrelRecHitHandle,sevLevel,DetId::Ecal,recHitFlagsEnumsEB_,recHitSeverityEnumsEB_,egIsoJurassicWidth2nd_,egIsoConeSizeIn2nd_);
   ecalBarrelIsol.setUseNumCrystals(useNumCrystals_);
@@ -207,8 +207,8 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
     //this might not be the best way, are we guaranteed that eta<1.5 is barrel
     //this can be safely replaced by another method which determines where the emobject is
     //then we either get the isolation Et or isolation Energy depending on user selection
-    double isoValue =0.;
-    double invIsoValue = 0.;
+    float isoValue =0.;
+    float invIsoValue = 0.;
 
     reco::SuperClusterRef superClus = emObjectHandle->at(i).get<reco::SuperClusterRef>();
 
@@ -248,7 +248,7 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   invFiller.fill();
 
   iEvent.put(std::move(isoMap),"EcalRecHitIso");
-  iEvent.put(std::move(invIsoMap),"invEcalRecHitIso");
+  iEvent.put(std::move(invIsoMap),"invertedEcalRecHitIso");
 
 }
 
