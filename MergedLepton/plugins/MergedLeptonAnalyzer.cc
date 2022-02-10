@@ -61,7 +61,10 @@ private:
     int numberOfValidTrackerHits, numberOfValidPixelHits, numberOfValidStripHits,
     trackerLayersWithMeasurement, pixelLayersWithMeasurement, stripLayersWithMeasurement,
     trackerLayersWithoutMeasurement, pixelLayersWithoutMeasurement, stripLayersWithoutMeasurement;
-    float trackerVoM, pixelVoM, stripVoM, pfPt, tunepPt, genPt, PFoGen, TPoGen;
+    int isHighPt, isTrackerHighPt, isPFloose, isPFmedium, isPFtight;
+    int isGlobal, isTracker, isStdAlone, bestType, tunePtype, nShower, nMatchedStations, nExpectedStations;
+    float trackerVoM, pixelVoM, stripVoM, pfPt, tunepPt, genPt, PFoGen, TPoGen, trackerPt, TRKoGen;
+    float globalChi2, globalNormChi2, trackerChi2, trackerNormChi2, tunepChi2, tunepNormChi2;
   } MuonStruct;
 
   typedef struct {
@@ -77,7 +80,10 @@ private:
   TString mustr_ = TString("numberOfValidTrackerHits/I:numberOfValidPixelHits:numberOfValidStripHits:")
   + "trackerLayersWithMeasurement:pixelLayersWithMeasurement:stripLayersWithMeasurement:"
   + "trackerLayersWithoutMeasurement:pixelLayersWithoutMeasurement:stripLayersWithoutMeasurement:"
-  + "trackerVoM/F:pixelVoM:stripVoM:pfPt:tunepPt:genPt:PFoGen:TPoGen";
+  + "isHighPt:isTrackerHighPt:isPFloose:isPFmedium:isPFtight:"
+  + "isGlobal:isTracker:isStdAlone:bestType:tunePtype:nShower:nMatchedStations:nExpectedStations:"
+  + "trackerVoM/F:pixelVoM:stripVoM:pfPt:tunepPt:genPt:PFoGen:TPoGen:trackerPt:TRKoGen:"
+  + "globalChi2:globalNormChi2:trackerChi2:trackerNormChi2:tunepChi2:tunepNormChi2";
 
   TString metstr_ = "PFphi/F:PFdPhi:PFpt:PFoGen:PFSumEt:TPphi:TPdPhi:TPpt:TPoGen:TPSumEt:dSumEt:nMuon/I";
 };
@@ -101,6 +107,8 @@ void MergedLeptonAnalyzer::beginJob() {
   initTObj(fs,"solo");
   initTObj(fs,"tag");
   initTObj(fs,"probe");
+  initTObj(fs,"highPt1");
+  initTObj(fs,"highPt2");
 
   METstruct pfmetStruct, puppimetStruct;
   metvalues_["pfMET"] = pfmetStruct;
@@ -315,8 +323,8 @@ void MergedLeptonAnalyzer::fillByCategory(std::vector<edm::Ptr<reco::Muon>>& muo
 
       return;
     } default:
-      fillMuons(muons.front(),*muonItr,vtx,"tag");
-      fillMuons(muons.at(1),*std::next(muonItr,1),vtx,"probe");
+      fillMuons(muons.front(),*muonItr,vtx,"highPt1");
+      fillMuons(muons.at(1),*std::next(muonItr,1),vtx,"highPt2");
       break;
   }
 
@@ -349,6 +357,35 @@ void MergedLeptonAnalyzer::fillMuons(const edm::Ptr<reco::Muon>& aMuon,
   if (muon::isTightMuon(*aMuon,vtx))
     histo1d_[prefix+"_passIDs"]->Fill(4.5);
 
+  values_[prefix+"_muon"].isHighPt = muon::isHighPtMuon(*aMuon,vtx);
+  values_[prefix+"_muon"].isTrackerHighPt = isHighPtTrackerMuon(*aMuon,vtx);
+  values_[prefix+"_muon"].isPFloose = muon::isLooseMuon(*aMuon);
+  values_[prefix+"_muon"].isPFmedium = muon::isMediumMuon(*aMuon);
+  values_[prefix+"_muon"].isPFtight = muon::isTightMuon(*aMuon,vtx);
+
+  values_[prefix+"_muon"].isGlobal = aMuon->isGlobalMuon();
+  values_[prefix+"_muon"].isTracker = aMuon->isTrackerMuon();
+  values_[prefix+"_muon"].isStdAlone = aMuon->isStandAloneMuon();
+  values_[prefix+"_muon"].bestType = static_cast<int>(aMuon->muonBestTrackType());
+  values_[prefix+"_muon"].tunePtype = static_cast<int>(aMuon->tunePMuonBestTrackType());
+  values_[prefix+"_muon"].nShower = aMuon->numberOfShowers();
+  values_[prefix+"_muon"].nMatchedStations = aMuon->numberOfMatchedStations();
+  values_[prefix+"_muon"].nExpectedStations = aMuon->expectedNnumberOfMatchedStations();
+
+  values_[prefix+"_muon"].pfPt = aMuon->pt();
+  values_[prefix+"_muon"].tunepPt = aMuon->tunePMuonBestTrack()->pt();
+  values_[prefix+"_muon"].genPt = matched->pt();
+  values_[prefix+"_muon"].PFoGen = aMuon->pt()/matched->pt();
+  values_[prefix+"_muon"].TPoGen = aMuon->tunePMuonBestTrack()->pt()/matched->pt();
+  values_[prefix+"_muon"].trackerPt = aMuon->isTrackerMuon() ? aMuon->innerTrack()->pt() : -1.;
+  values_[prefix+"_muon"].TRKoGen = aMuon->isTrackerMuon() ? aMuon->innerTrack()->pt()/matched->pt() : -1.;
+  values_[prefix+"_muon"].globalChi2 = aMuon->isGlobalMuon() ? aMuon->globalTrack()->chi2() : -1.;
+  values_[prefix+"_muon"].globalNormChi2 = aMuon->isGlobalMuon() ? aMuon->globalTrack()->normalizedChi2() : -1.;
+  values_[prefix+"_muon"].trackerChi2 = aMuon->isTrackerMuon() ? aMuon->innerTrack()->chi2() : -1.;
+  values_[prefix+"_muon"].trackerNormChi2 = aMuon->isTrackerMuon() ? aMuon->innerTrack()->normalizedChi2() : -1.;
+  values_[prefix+"_muon"].tunepChi2 = aMuon->isGlobalMuon() ? aMuon->tunePMuonBestTrack()->chi2() : -1.;
+  values_[prefix+"_muon"].tunepNormChi2 = aMuon->isGlobalMuon() ? aMuon->tunePMuonBestTrack()->normalizedChi2() : -1.;
+
   if (!aMuon->isTrackerMuon())
     return;
 
@@ -365,11 +402,6 @@ void MergedLeptonAnalyzer::fillMuons(const edm::Ptr<reco::Muon>& aMuon,
   values_[prefix+"_muon"].trackerVoM = static_cast<float>(innerTrack->hitPattern().numberOfValidTrackerHits())/static_cast<float>(aMuon->innerTrack()->hitPattern().trackerLayersWithMeasurement());
   values_[prefix+"_muon"].pixelVoM = static_cast<float>(innerTrack->hitPattern().numberOfValidPixelHits())/static_cast<float>(aMuon->innerTrack()->hitPattern().pixelLayersWithMeasurement());
   values_[prefix+"_muon"].stripVoM = static_cast<float>(innerTrack->hitPattern().numberOfValidStripHits())/static_cast<float>(aMuon->innerTrack()->hitPattern().stripLayersWithMeasurement());
-  values_[prefix+"_muon"].pfPt = aMuon->pt();
-  values_[prefix+"_muon"].tunepPt = aMuon->tunePMuonBestTrack()->pt();
-  values_[prefix+"_muon"].genPt = matched->pt();
-  values_[prefix+"_muon"].PFoGen = aMuon->pt()/matched->pt();
-  values_[prefix+"_muon"].TPoGen = aMuon->tunePMuonBestTrack()->pt()/matched->pt();
   tree_[prefix+"_muonTree"]->Fill();
 
   histo1d_[prefix+"_algo"]->Fill(static_cast<float>(innerTrack->algo())+0.5);
