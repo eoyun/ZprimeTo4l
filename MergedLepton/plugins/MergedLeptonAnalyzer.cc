@@ -45,8 +45,9 @@ private:
     std::vector<edm::Ptr<reco::GenParticle>>::const_iterator muonItr,
     const edm::Handle<edm::View<reco::Muon>>& muonHandle,
     const reco::Vertex& vtx);
-  void fillMuons(const edm::Ptr<reco::Muon>&, const edm::Ptr<reco::GenParticle>&, const reco::Vertex&, std::string);
+  void fillMuons(const edm::Ptr<reco::Muon>&, const edm::Ptr<reco::GenParticle>&, const edm::Ptr<reco::GenParticle>&, const reco::Vertex&, std::string);
   void fillMets(const edm::Ptr<reco::Muon>&, const edm::Ptr<reco::GenParticle>&, const pat::MET&, const std::vector<edm::Ptr<reco::Muon>>&, std::string);
+  void fillMets(const edm::Ptr<reco::Muon>&, const pat::MET&, const std::vector<edm::Ptr<reco::Muon>>&, std::string);
 
   edm::EDGetTokenT<edm::View<reco::Muon>> srcMuon_;
   edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
@@ -63,12 +64,13 @@ private:
     trackerLayersWithoutMeasurement, pixelLayersWithoutMeasurement, stripLayersWithoutMeasurement;
     int isHighPt, isTrackerHighPt, isPFloose, isPFmedium, isPFtight;
     int isGlobal, isTracker, isStdAlone, bestType, tunePtype, nShower, nMatchedStations, nExpectedStations;
-    float trackerVoM, pixelVoM, stripVoM, pfPt, tunepPt, genPt, PFoGen, TPoGen, trackerPt, TRKoGen;
+    float trackerVoM, pixelVoM, stripVoM, pfPt, tunepPt, genPt, genEta, genPhi, PFoGen, TPoGen, trackerPt, TRKoGen;
+    float pairPt, pairEta, pairPhi;
     float globalChi2, globalNormChi2, trackerChi2, trackerNormChi2, tunepChi2, tunepNormChi2;
   } MuonStruct;
 
   typedef struct {
-    float PFphi, PFdPhi, PFpt, PFoGen, PFSumEt, TPphi, TPdPhi, TPpt, TPoGen, TPSumEt, dSumEt;
+    float PFphi, PFdPhi, PFpt, PFoGen, PFoMu, MuEta, PFSumEt, TPphi, TPdPhi, TPpt, TPoGen, TPoMu, TPSumEt, dSumEt, sumEtRatio, sumEtRatioTP;
     int nMuon;
   } METstruct;
 
@@ -82,10 +84,11 @@ private:
   + "trackerLayersWithoutMeasurement:pixelLayersWithoutMeasurement:stripLayersWithoutMeasurement:"
   + "isHighPt:isTrackerHighPt:isPFloose:isPFmedium:isPFtight:"
   + "isGlobal:isTracker:isStdAlone:bestType:tunePtype:nShower:nMatchedStations:nExpectedStations:"
-  + "trackerVoM/F:pixelVoM:stripVoM:pfPt:tunepPt:genPt:PFoGen:TPoGen:trackerPt:TRKoGen:"
+  + "trackerVoM/F:pixelVoM:stripVoM:pfPt:tunepPt:genPt:genEta:genPhi:PFoGen:TPoGen:trackerPt:TRKoGen:"
+  + "pairPt:pairEta:pairPhi:"
   + "globalChi2:globalNormChi2:trackerChi2:trackerNormChi2:tunepChi2:tunepNormChi2";
 
-  TString metstr_ = "PFphi/F:PFdPhi:PFpt:PFoGen:PFSumEt:TPphi:TPdPhi:TPpt:TPoGen:TPSumEt:dSumEt:nMuon/I";
+  TString metstr_ = "PFphi/F:PFdPhi:PFpt:PFoGen:PFoMu:MuEta:PFSumEt:TPphi:TPdPhi:TPpt:TPoGen:TPoMu:TPSumEt:dSumEt:sumEtRatio:sumEtRatioTP:nMuon/I";
 };
 
 MergedLeptonAnalyzer::MergedLeptonAnalyzer(const edm::ParameterSet& iConfig) :
@@ -103,6 +106,7 @@ void MergedLeptonAnalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
+  histo1d_["pt_H"] = fs->make<TH1D>("pt_H","p_{T}(H)",200,0.,200.);
 
   initTObj(fs,"solo");
   initTObj(fs,"tag");
@@ -110,14 +114,20 @@ void MergedLeptonAnalyzer::beginJob() {
   initTObj(fs,"highPt1");
   initTObj(fs,"highPt2");
 
-  METstruct pfmetStruct, puppimetStruct;
+  METstruct pfmetStruct, puppimetStruct, stdPfmetStruct, stdPuppimetStruct;
   metvalues_["pfMET"] = pfmetStruct;
   metvalues_["puppiMET"] = puppimetStruct;
+  metvalues_["stdPfMET"] = stdPfmetStruct;
+  metvalues_["stdPuppiMET"] = stdPuppimetStruct;
 
   tree_["pfMETTree"] = fs->make<TTree>("pfMETTree","pfMETTree");
   tree_["pfMETTree"]->Branch("METstruct",&(metvalues_["pfMET"]),metstr_);
   tree_["puppiMETTree"] = fs->make<TTree>("puppiMETTree","puppiMETTree");
   tree_["puppiMETTree"]->Branch("METstruct",&(metvalues_["puppiMET"]),metstr_);
+  tree_["stdPfMETTree"] = fs->make<TTree>("stdPfMETTree","stdPfMETTree");
+  tree_["stdPfMETTree"]->Branch("METstruct",&(metvalues_["stdPfMET"]),metstr_);
+  tree_["stdPuppiMETTree"] = fs->make<TTree>("stdPuppiMETTree","stdPuppiMETTree");
+  tree_["stdPuppiMETTree"]->Branch("METstruct",&(metvalues_["stdPuppiMET"]),metstr_);
 }
 
 void MergedLeptonAnalyzer::initTObj(edm::Service<TFileService>& fs, std::string prefix) {
@@ -162,6 +172,9 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
   for (unsigned int idx = 0; idx < genptcHandle->size(); ++idx) {
     auto genptc = genptcHandle->ptrAt(idx);
+
+    if ( genptc->isHardProcess() && genptc->pdgId()==35 )
+      histo1d_["pt_H"]->Fill(genptc->pt());
 
     if ( std::abs(genptc->pdgId())==13 && genptc->isPromptFinalState() && genptc->pt() > ptThres_ )
       promptMuons.push_back(genptc);
@@ -251,6 +264,23 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
     fillMets(mergedMuon, *probe, pfMEThandle->at(0), finalMuons, "pfMET");
     fillMets(mergedMuon, *probe, puppiMEThandle->at(0), finalMuons, "puppiMET");
+  } else if ( nmuon==4 ) {
+    auto findNN = [&finalMuons](const pat::MET& met) {
+      edm::Ptr<reco::Muon> candidate;
+      double dphicand = DBL_MAX;
+
+      for (auto aMuon : finalMuons) {
+        double dphi = reco::deltaPhi(aMuon->phi(),met.phi());
+
+        if (dphi < dphicand)
+          candidate = aMuon;
+      }
+
+      return candidate;
+    };
+
+    fillMets(findNN(pfMEThandle->at(0)),pfMEThandle->at(0), finalMuons, "stdPfMET");
+    fillMets(findNN(puppiMEThandle->at(0)),puppiMEThandle->at(0), finalMuons, "stdPuppiMET");
   }
 }
 
@@ -313,18 +343,18 @@ void MergedLeptonAnalyzer::fillByCategory(std::vector<edm::Ptr<reco::Muon>>& muo
       }
 
       if (candidates.size()==0) {
-        fillMuons(aMuon,*matched,vtx,"solo");
+        fillMuons(aMuon,*matched,*probe,vtx,"solo");
         return;
       }
 
       std::sort(candidates.begin(),candidates.end(),sortByTuneP);
-      fillMuons(aMuon,*matched,vtx,"tag");
-      fillMuons(candidates.front(),*probe,vtx,"probe");
+      fillMuons(aMuon,*matched,*probe,vtx,"tag");
+      fillMuons(candidates.front(),*probe,*matched,vtx,"probe");
 
       return;
     } default:
-      fillMuons(muons.front(),*muonItr,vtx,"highPt1");
-      fillMuons(muons.at(1),*std::next(muonItr,1),vtx,"highPt2");
+      fillMuons(muons.front(),*muonItr,*std::next(muonItr,1),vtx,"highPt1");
+      fillMuons(muons.at(1),*std::next(muonItr,1),*muonItr,vtx,"highPt2");
       break;
   }
 
@@ -337,6 +367,7 @@ bool MergedLeptonAnalyzer::sortByTuneP(const edm::Ptr<reco::Muon> a, const edm::
 
 void MergedLeptonAnalyzer::fillMuons(const edm::Ptr<reco::Muon>& aMuon,
                                      const edm::Ptr<reco::GenParticle>& matched,
+                                     const edm::Ptr<reco::GenParticle>& probe,
                                      const reco::Vertex& vtx,
                                      std::string prefix) {
   if (aMuon->isGlobalMuon())
@@ -375,10 +406,15 @@ void MergedLeptonAnalyzer::fillMuons(const edm::Ptr<reco::Muon>& aMuon,
   values_[prefix+"_muon"].pfPt = aMuon->pt();
   values_[prefix+"_muon"].tunepPt = aMuon->tunePMuonBestTrack()->pt();
   values_[prefix+"_muon"].genPt = matched->pt();
+  values_[prefix+"_muon"].genEta = matched->eta();
+  values_[prefix+"_muon"].genPhi = matched->phi();
   values_[prefix+"_muon"].PFoGen = aMuon->pt()/matched->pt();
   values_[prefix+"_muon"].TPoGen = aMuon->tunePMuonBestTrack()->pt()/matched->pt();
   values_[prefix+"_muon"].trackerPt = aMuon->isTrackerMuon() ? aMuon->innerTrack()->pt() : -1.;
   values_[prefix+"_muon"].TRKoGen = aMuon->isTrackerMuon() ? aMuon->innerTrack()->pt()/matched->pt() : -1.;
+  values_[prefix+"_muon"].pairPt = probe->pt();
+  values_[prefix+"_muon"].pairEta = probe->eta();
+  values_[prefix+"_muon"].pairPhi = probe->phi();
   values_[prefix+"_muon"].globalChi2 = aMuon->isGlobalMuon() ? aMuon->globalTrack()->chi2() : -1.;
   values_[prefix+"_muon"].globalNormChi2 = aMuon->isGlobalMuon() ? aMuon->globalTrack()->normalizedChi2() : -1.;
   values_[prefix+"_muon"].trackerChi2 = aMuon->isTrackerMuon() ? aMuon->innerTrack()->chi2() : -1.;
@@ -427,6 +463,8 @@ void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Muon>& aMuon,
   metvalues_[prefix].PFdPhi = reco::deltaPhi(met.phi(),matched->phi());
   metvalues_[prefix].PFpt = met.pt();
   metvalues_[prefix].PFoGen = met.pt()/matched->pt();
+  metvalues_[prefix].PFoMu = met.pt()/aMuon->pt();
+  metvalues_[prefix].MuEta = aMuon->eta();
   metvalues_[prefix].PFSumEt = met.sumEt();
 
   pat::MET::Vector2 tpvec;
@@ -436,6 +474,7 @@ void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Muon>& aMuon,
   metvalues_[prefix].TPdPhi = reco::deltaPhi(tpvec.phi(),matched->phi());
   metvalues_[prefix].TPpt = tpvec.pt();
   metvalues_[prefix].TPoGen = tpvec.pt()/matched->pt();
+  metvalues_[prefix].TPoMu = tpvec.pt()/aMuon->tunePMuonBestTrack()->pt();
 
   float sumpt = 0.;
   float sumTPpt = 0.;
@@ -447,6 +486,46 @@ void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Muon>& aMuon,
 
   metvalues_[prefix].TPSumEt = met.sumEt() + sumTPpt - sumpt;
   metvalues_[prefix].dSumEt = met.sumEt() - sumpt;
+  metvalues_[prefix].sumEtRatio = met.sumEt()/sumpt;
+  metvalues_[prefix].sumEtRatioTP = metvalues_[prefix].TPSumEt/sumTPpt;
+  metvalues_[prefix].nMuon = static_cast<int>(finalMuons.size());
+
+  tree_[prefix+"Tree"]->Fill();
+}
+
+void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Muon>& aMuon,
+                                    const pat::MET& met,
+                                    const std::vector<edm::Ptr<reco::Muon>>& finalMuons,
+                                    std::string prefix) {
+  metvalues_[prefix].PFphi = met.phi();
+  metvalues_[prefix].PFdPhi = reco::deltaPhi(met.phi(),aMuon->phi());
+  metvalues_[prefix].PFpt = met.pt();
+  metvalues_[prefix].PFoGen = 1.;
+  metvalues_[prefix].PFoMu = met.pt()/aMuon->pt();
+  metvalues_[prefix].MuEta = aMuon->eta();
+  metvalues_[prefix].PFSumEt = met.sumEt();
+
+  pat::MET::Vector2 tpvec;
+  tpvec.px = met.px() + aMuon->px() - aMuon->tunePMuonBestTrack()->px();
+  tpvec.py = met.py() + aMuon->py() - aMuon->tunePMuonBestTrack()->py();
+  metvalues_[prefix].TPphi = tpvec.phi();
+  metvalues_[prefix].TPdPhi = reco::deltaPhi(met.phi(),aMuon->tunePMuonBestTrack()->phi());
+  metvalues_[prefix].TPpt = tpvec.pt();
+  metvalues_[prefix].TPoGen = 1.;
+  metvalues_[prefix].TPoMu = tpvec.pt()/aMuon->tunePMuonBestTrack()->pt();
+
+  float sumpt = 0.;
+  float sumTPpt = 0.;
+
+  for (auto mu : finalMuons) {
+    sumpt += mu->pt();
+    sumTPpt += mu->tunePMuonBestTrack()->pt();
+  }
+
+  metvalues_[prefix].TPSumEt = met.sumEt() + sumTPpt - sumpt;
+  metvalues_[prefix].dSumEt = met.sumEt() - sumpt;
+  metvalues_[prefix].sumEtRatio = met.sumEt()/sumpt;
+  metvalues_[prefix].sumEtRatioTP = metvalues_[prefix].TPSumEt/sumTPpt;
   metvalues_[prefix].nMuon = static_cast<int>(finalMuons.size());
 
   tree_[prefix+"Tree"]->Fill();
