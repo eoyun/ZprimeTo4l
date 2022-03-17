@@ -15,6 +15,11 @@
 <use name="DataFormats/VertexReco"/>
 <use name="DataFormats/Math"/>
 <use name="DataFormats/HepMCCandidate"/>
+<use name="TrackingTools/TransientTrack"/>
+<use name="TrackingTools/Records"/>
+<use name="RecoVertex/KalmanVertexFit"/>
+<use name="RecoVertex/VertexPrimitives"/>
+<use name="RecoEgamma/EgammaTools"/>
 <use name="root"/>
 <use name="rootmath"/>
 <export>
