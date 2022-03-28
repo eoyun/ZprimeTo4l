@@ -99,6 +99,11 @@ private:
                       const int& nrSatCrys,
                       const double& rho,
                       int& cutflow);
+  bool hasPassedHEEP(const reco::GsfElectron& el,
+                     const reco::Vertex& primaryVertex,
+                     const int& nrSatCrys,
+                     const double& rho,
+                     int& cutflow);
 
   edm::EDGetTokenT<edm::View<reco::Muon>> srcMuon_;
   edm::EDGetTokenT<edm::View<reco::GsfElectron>> srcEle_;
@@ -154,7 +159,7 @@ private:
     int expectedMissingInnerHits;
     float convVtxFitProb, convVtxChi2, convDist, convDcot, convRadius;
     int passConversionVeto, nbrem;
-    float fbrem;
+    float fbrem, fbremSC;
   } ElectronStruct;
 
   typedef struct {
@@ -201,7 +206,7 @@ private:
   + "expectedMissingInnerHits/I:"
   + "convVtxFitProb/F:convVtxChi2:convDist:convDcot:convRadius:"
   + "passConversionVeto/I:nbrem:"
-  + "fbrem/F";
+  + "fbrem/F:fbremSC";
 
   TString addgsfstr_ = TString("Gsfpt/F:Gsfeta:Gsfphi:")
   + "lostHits/I:nValidHits:nValidPixelHits:"
@@ -235,6 +240,7 @@ void MergedLeptonAnalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
+  histo1d_["cutflow_HEEP"] = fs->make<TH1D>("cutflow_HEEP","cutflow_HEEP",15,0.,15.);
   histo1d_["pt_H"] = fs->make<TH1D>("pt_H","p_{T}(H)",200,0.,200.);
   histo1d_["isEcalDriven"] = fs->make<TH1D>("isEcalDriven","isEcalDriven",2,0.,2.);
   histo1d_["isTrackerDriven"] = fs->make<TH1D>("isTrackerDriven","isTrackerDriven",2,0.,2.);
@@ -388,21 +394,6 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
     if ( !(aEle->pt() > ptThres_) )
       continue;
 
-    histo1d_["isEcalDriven"]->Fill(static_cast<float>(aEle->ecalDrivenSeed())+0.5);
-    histo1d_["isTrackerDriven"]->Fill(static_cast<float>(aEle->trackerDrivenSeed())+0.5);
-
-    bool passModifiedHEEP = isModifiedHEEP(*aEle,
-                                           primaryVertex,
-                                           (*trkIsoMapHandle)[aEle],
-                                           (*ecalIsoMapHandle)[aEle],
-                                           (*nrSatCrysHandle)[aEle],
-                                           *rhoHandle,
-                                           cutflow);
-    histo1d_["cutflow"]->Fill(static_cast<float>(cutflow)+0.5);
-
-    if ( !passModifiedHEEP )
-      continue;
-
     bool matched = false;
     size_t igen = 0;
 
@@ -415,6 +406,32 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
         break;
       }
     }
+
+    if ( !matched )
+      continue;
+
+    histo1d_["isEcalDriven"]->Fill(static_cast<float>(aEle->ecalDrivenSeed())+0.5);
+    histo1d_["isTrackerDriven"]->Fill(static_cast<float>(aEle->trackerDrivenSeed())+0.5);
+
+    bool passModifiedHEEP = isModifiedHEEP(*aEle,
+                                           primaryVertex,
+                                           (*trkIsoMapHandle)[aEle],
+                                           (*ecalIsoMapHandle)[aEle],
+                                           (*nrSatCrysHandle)[aEle],
+                                           *rhoHandle,
+                                           cutflow);
+    histo1d_["cutflow"]->Fill(static_cast<float>(cutflow)+0.5);
+
+    int cutflow_HEEP = 0;
+    hasPassedHEEP(*aEle,
+                  primaryVertex,
+                  (*nrSatCrysHandle)[aEle],
+                  *rhoHandle,
+                  cutflow_HEEP);
+    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(cutflow_HEEP)+0.5);
+
+    if ( !passModifiedHEEP )
+      return; // WARNING veto events
 
     if (matched)
       (igen < 2) ? heeps1.push_back(aEle) : heeps2.push_back(aEle);
@@ -735,8 +752,23 @@ void MergedLeptonAnalyzer::fillMuons(const edm::Ptr<reco::Muon>& aMuon,
   values_[prefix+"_muon"].tunepChi2 = aMuon->isGlobalMuon() ? aMuon->tunePMuonBestTrack()->chi2() : -1.;
   values_[prefix+"_muon"].tunepNormChi2 = aMuon->isGlobalMuon() ? aMuon->tunePMuonBestTrack()->normalizedChi2() : -1.;
 
-  if (!aMuon->isTrackerMuon())
+  if (!aMuon->isTrackerMuon()) {
+    values_[prefix+"_muon"].numberOfValidTrackerHits = -1;
+    values_[prefix+"_muon"].numberOfValidPixelHits = -1;
+    values_[prefix+"_muon"].numberOfValidStripHits = -1;
+    values_[prefix+"_muon"].trackerLayersWithMeasurement = -1;
+    values_[prefix+"_muon"].pixelLayersWithMeasurement = -1;
+    values_[prefix+"_muon"].stripLayersWithMeasurement = -1;
+    values_[prefix+"_muon"].trackerLayersWithoutMeasurement = -1;
+    values_[prefix+"_muon"].pixelLayersWithoutMeasurement = -1;
+    values_[prefix+"_muon"].stripLayersWithoutMeasurement = -1;
+    values_[prefix+"_muon"].trackerVoM = -1.;
+    values_[prefix+"_muon"].pixelVoM = -1.;
+    values_[prefix+"_muon"].stripVoM = -1.;
+    tree_[prefix+"_muonTree"]->Fill();
+
     return;
+  }
 
   auto innerTrack = aMuon->innerTrack();
   values_[prefix+"_muon"].numberOfValidTrackerHits = innerTrack->hitPattern().numberOfValidTrackerHits();
@@ -864,6 +896,7 @@ void MergedLeptonAnalyzer::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
 
   elvalues_[prefix+"_el"].fbrem = el->fbrem();
   elvalues_[prefix+"_el"].nbrem = el->numberOfBrems();
+  elvalues_[prefix+"_el"].fbremSC = el->superClusterFbrem();
 
   tree_[prefix+"_elTree"]->Fill();
 }
@@ -1051,7 +1084,7 @@ bool MergedLeptonAnalyzer::isModifiedHEEP(const reco::GsfElectron& el,
   double etSC = (el.superCluster()->energy())*(Rt/R);
   double etaSC = el.superCluster()->eta();
   double caloIsoVal = ecalIso + el.dr03HcalDepth1TowerSumEt();
-  if ( etSC < 35. )
+  if ( etSC < 20. )
     return false;
   cutflow++;
   if ( !el.ecalDriven() )
@@ -1096,6 +1129,80 @@ bool MergedLeptonAnalyzer::isModifiedHEEP(const reco::GsfElectron& el,
       cutflow++;
 
     return ( caloIso && HoEcut && dxycut );
+  }
+
+  return false;
+}
+
+bool MergedLeptonAnalyzer::hasPassedHEEP(const reco::GsfElectron& el,
+                                         const reco::Vertex& primaryVertex,
+                                         const int& nrSatCrys,
+                                         const double& rho,
+                                         int& cutflow) {
+  auto sq = [](const double& val) { return val*val; };
+  double R = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()) + sq(el.superCluster()->z()));
+  double Rt = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()));
+  double etSC = (el.superCluster()->energy())*(Rt/R);
+  double etaSC = el.superCluster()->eta();
+  double caloIsoVal = el.dr03EcalRecHitSumEt() + el.dr03HcalDepth1TowerSumEt();
+  if ( etSC < 20. )
+    return false;
+  cutflow++;
+  if ( !el.ecalDriven() )
+    return false;
+  cutflow++;
+  if ( !(std::abs(el.deltaPhiSuperClusterTrackAtVtx()) < 0.06) )
+    return false;
+  cutflow++;
+  if ( nrSatCrys > 0 )
+    return false;
+  cutflow++;
+  if ( el.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) > 1 )
+    return false;
+  cutflow++;
+  if ( el.dr03TkSumPtHEEP() > 5. )
+    return false;
+  cutflow++;
+  if ( std::abs(etaSC) < 1.4442 ) {
+    bool HoEcut = ( el.full5x5_hcalOverEcal() < (1./el.energy() + 0.05) );
+    bool caloIso = ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho );
+    bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.02;
+    bool dEtaInCut = std::abs( el.deltaEtaSeedClusterTrackAtVtx() ) < 0.004;
+    bool ssCut = ( el.full5x5_e2x5Max()/el.full5x5_e5x5() > 0.94 ||
+                   el.full5x5_e1x5()/el.full5x5_e5x5() > 0.83 );
+
+    if (HoEcut)
+      cutflow++;
+    if (caloIso)
+      cutflow++;
+    if (dxycut)
+      cutflow++;
+    if (dEtaInCut)
+      cutflow++;
+    if (ssCut)
+      cutflow++;
+
+    return ( caloIso && HoEcut && dxycut && dEtaInCut && ssCut );
+  } else if ( std::abs(etaSC) > 1.566 && std::abs(etaSC) < 2.5 ) {
+    bool HoEcut = ( el.full5x5_hcalOverEcal() < (5./el.energy() + 0.05) );
+    bool caloIso = ( etSC < 50. ) ? ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho )
+                                  : ( caloIsoVal < 2 + 0.03*(etSC-50.) + 0.28*rho );
+    bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.05;
+    bool dEtaInCut = std::abs( el.deltaEtaSeedClusterTrackAtVtx() ) < 0.006;
+    bool ssCut = ( el.full5x5_sigmaIetaIeta() < 0.03 );
+
+    if (HoEcut)
+      cutflow++;
+    if (caloIso)
+      cutflow++;
+    if (dxycut)
+      cutflow++;
+    if (dEtaInCut)
+      cutflow++;
+    if (ssCut)
+      cutflow++;
+
+    return ( caloIso && HoEcut && dxycut && dEtaInCut && ssCut );
   }
 
   return false;
