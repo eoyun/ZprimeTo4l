@@ -14,6 +14,7 @@ mergedLeptonAnalyzer = cms.EDAnalyzer("MergedLeptonAnalyzer",
   rho=cms.InputTag("fixedGridRhoFastjetAll"),
   conversions = cms.InputTag("reducedEgamma:reducedConversions"),
   beamSpot = cms.InputTag("offlineBeamSpot"),
+  triggerResults = cms.InputTag("TriggerResults","","PAT"),
   KFParameters = cms.PSet(
         maxDistance = cms.double(0.01),
         maxNbrOfIterations = cms.int32(10)

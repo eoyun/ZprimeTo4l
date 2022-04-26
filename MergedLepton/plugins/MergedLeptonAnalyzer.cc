@@ -22,6 +22,8 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "FWCore/Common/interface/TriggerNames.h"
 
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
@@ -74,8 +76,17 @@ private:
                       const reco::Vertex& vtx);
 
   void fillMuons(const edm::Ptr<reco::Muon>&, const edm::Ptr<reco::GenParticle>&, const edm::Ptr<reco::GenParticle>&, const reco::Vertex&, std::string);
-  void fillMets(const edm::Ptr<reco::Muon>&, const edm::Ptr<reco::GenParticle>&, const pat::MET&, const std::vector<edm::Ptr<reco::Muon>>&, std::string);
-  void fillMets(const edm::Ptr<reco::Candidate>&, const pat::MET&, const std::vector<edm::Ptr<reco::Candidate>>&, std::string);
+  void fillMets(const edm::Ptr<reco::Muon>&,
+                const edm::Ptr<reco::GenParticle>&,
+                const pat::MET&,
+                const std::vector<edm::Ptr<reco::Muon>>&,
+                const unsigned int&,
+                std::string);
+  void fillMets(const edm::Ptr<reco::Candidate>&,
+                const pat::MET&,
+                const std::vector<edm::Ptr<reco::Candidate>>&,
+                const unsigned int&,
+                std::string);
 
   void fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
                      const reco::Vertex& vtx,
@@ -118,6 +129,7 @@ private:
   edm::EDGetTokenT<double> rhoToken_;
   edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
   edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
+  edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   edm::ESHandle<TransientTrackBuilder> TTBuilder_;
   edm::ESHandle<MagneticField> magField_;
   edm::ParameterSet vtxFitterPset_;
@@ -139,6 +151,7 @@ private:
   typedef struct {
     float PFphi, PFdPhi, PFpt, PFoGen, PFoMu, MuEta, PFSumEt, TPphi, TPdPhi, TPpt, TPoGen, TPoMu, TPSumEt, dSumEt, sumEtRatio, sumEtRatioTP;
     int nLepton;
+    unsigned int bitmask;
   } METstruct;
 
   typedef struct {
@@ -188,7 +201,8 @@ private:
   + "globalChi2:globalNormChi2:trackerChi2:trackerNormChi2:tunepChi2:tunepNormChi2";
 
   TString metstr_ = TString("PFphi/F:PFdPhi:PFpt:PFoGen:PFoMu:MuEta:PFSumEt:")
-  + "TPphi:TPdPhi:TPpt:TPoGen:TPoMu:TPSumEt:dSumEt:sumEtRatio:sumEtRatioTP:nLepton/I";
+  + "TPphi:TPdPhi:TPpt:TPoGen:TPoMu:TPSumEt:dSumEt:sumEtRatio:sumEtRatioTP:nLepton/I:"
+  + "bitmask/i";
 
   TString elstr_ = TString("pt/F:eta:phi:en:genPt:charge/I:")
   + "enSC/F:etSC:etaSC:phiSC:etaSCWidth:phiSCWidth:"
@@ -230,6 +244,7 @@ addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<
 rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
 conversionsToken_(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("conversions"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
+triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 vtxFitterPset_(iConfig.getParameter<edm::ParameterSet>("KFParameters")),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 drThres_(iConfig.getParameter<double>("drThres")) {
@@ -241,6 +256,8 @@ void MergedLeptonAnalyzer::beginJob() {
   edm::Service<TFileService> fs;
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
   histo1d_["cutflow_HEEP"] = fs->make<TH1D>("cutflow_HEEP","cutflow_HEEP",15,0.,15.);
+  histo1d_["bitmask_METfilter_merged"] = fs->make<TH1D>("bitmask_METfilter_merged","bitmask_METfilter_merged",15,0,15);
+  histo1d_["bitmask_METfilter_resolved"] = fs->make<TH1D>("bitmask_METfilter_resolved","bitmask_METfilter_resolved",15,0,15);
   histo1d_["pt_H"] = fs->make<TH1D>("pt_H","p_{T}(H)",200,0.,200.);
   histo1d_["isEcalDriven"] = fs->make<TH1D>("isEcalDriven","isEcalDriven",2,0.,2.);
   histo1d_["isTrackerDriven"] = fs->make<TH1D>("isTrackerDriven","isTrackerDriven",2,0.,2.);
@@ -329,6 +346,9 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
+  edm::Handle<edm::TriggerResults> resultHandle;
+  iEvent.getByToken(triggerToken_,resultHandle);
+
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTBuilder_);
   iSetup.get<IdealMagneticFieldRecord>().get(magField_);
 
@@ -354,6 +374,33 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
   if (promptLeptons.size()!=4)
     return;
+
+  edm::TriggerNames triglist = iEvent.triggerNames(*resultHandle);
+
+  unsigned int bitmask_METfilter = 0;
+
+  for (unsigned int iTrig = 0; iTrig < resultHandle.product()->size(); iTrig++) {
+    const std::string trigname = triglist.triggerName(iTrig);
+
+    if (resultHandle.product()->accept(iTrig)) {
+      if (trigname.find("Flag_goodVertices") != std::string::npos)
+        bitmask_METfilter |= 1;
+      if (trigname.find("Flag_globalSuperTightHalo2016Filter") != std::string::npos)
+        bitmask_METfilter |= (1<<1);
+      if (trigname.find("Flag_HBHENoiseFilter") != std::string::npos)
+        bitmask_METfilter |= (1<<2);
+      if (trigname.find("Flag_HBHENoiseIsoFilter") != std::string::npos)
+        bitmask_METfilter |= (1<<3);
+      if (trigname.find("EcalDeadCellTriggerPrimitiveFilter") != std::string::npos)
+        bitmask_METfilter |= (1<<4);
+      if (trigname.find("Flag_BadPFMuonFilter") != std::string::npos)
+        bitmask_METfilter |= (1<<5);
+      if (trigname.find("Flag_BadPFMuonDzFilter") != std::string::npos)
+        bitmask_METfilter |= (1<<6);
+      if (trigname.find("Flag_eeBadScFilter") != std::string::npos)
+        bitmask_METfilter |= (1<<7);
+    }
+  }
 
   auto sisterLambda = [](const edm::Ptr<reco::GenParticle> a, const edm::Ptr<reco::GenParticle> b) {
     return (a->mother() == b->mother()) ? (a->pt() > b->pt()) : (a->mother() < b->mother());
@@ -518,8 +565,13 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
       matched = std::next(matched,1);
     }
 
-    fillMets(mergedMuon, *probe, pfMEThandle->at(0), finalMuons, "pf");
-    fillMets(mergedMuon, *probe, puppiMEThandle->at(0), finalMuons, "puppi");
+    for (unsigned int idx = 0; idx < 8; idx++) {
+      if ( bitmask_METfilter & (1<<idx) )
+        histo1d_["bitmask_METfilter_merged"]->Fill(static_cast<float>(idx)+0.5);
+    }
+
+    fillMets(mergedMuon, *probe, pfMEThandle->at(0), finalMuons, bitmask_METfilter, "pf");
+    fillMets(mergedMuon, *probe, puppiMEThandle->at(0), finalMuons, bitmask_METfilter, "puppi");
   } else if ( nmuon==4 || noMu ) {
     std::vector<edm::Ptr<reco::Candidate>> finalCands;
     auto fillCandidate = [&finalCands](const edm::Ptr<reco::Candidate>& cand) { finalCands.push_back(cand); };
@@ -544,8 +596,13 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
       return candidate;
     };
 
-    fillMets(findNN(pfMEThandle->at(0)),pfMEThandle->at(0), finalCands, "stdPf");
-    fillMets(findNN(puppiMEThandle->at(0)),puppiMEThandle->at(0), finalCands, "stdPuppi");
+    for (unsigned int idx = 0; idx < 8; idx++) {
+      if ( bitmask_METfilter & (1<<idx) )
+        histo1d_["bitmask_METfilter_resolved"]->Fill(static_cast<float>(idx)+0.5);
+    }
+
+    fillMets(findNN(pfMEThandle->at(0)),pfMEThandle->at(0), finalCands, bitmask_METfilter, "stdPf");
+    fillMets(findNN(puppiMEThandle->at(0)),puppiMEThandle->at(0), finalCands, bitmask_METfilter, "stdPuppi");
   }
 }
 
@@ -972,6 +1029,7 @@ void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Muon>& aMuon,
                                     const edm::Ptr<reco::GenParticle>& matched,
                                     const pat::MET& met,
                                     const std::vector<edm::Ptr<reco::Muon>>& finalMuons,
+                                    const unsigned int& bitmask,
                                     std::string prefix) {
   metvalues_[prefix+"_MET"].PFphi = met.phi();
   metvalues_[prefix+"_MET"].PFdPhi = reco::deltaPhi(met.phi(),matched->phi());
@@ -980,6 +1038,7 @@ void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Muon>& aMuon,
   metvalues_[prefix+"_MET"].PFoMu = met.pt()/aMuon->pt();
   metvalues_[prefix+"_MET"].MuEta = aMuon->eta();
   metvalues_[prefix+"_MET"].PFSumEt = met.sumEt();
+  metvalues_[prefix+"_MET"].bitmask = bitmask;
 
   pat::MET::Vector2 tpvec;
   tpvec.px = met.px() + aMuon->px() - aMuon->tunePMuonBestTrack()->px();
@@ -1010,6 +1069,7 @@ void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Muon>& aMuon,
 void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Candidate>& aLepton,
                                     const pat::MET& met,
                                     const std::vector<edm::Ptr<reco::Candidate>>& finalLeptons,
+                                    const unsigned int& bitmask,
                                     std::string prefix) {
   metvalues_[prefix+"_MET"].PFphi = met.phi();
   metvalues_[prefix+"_MET"].PFdPhi = reco::deltaPhi(met.phi(),aLepton->phi());
@@ -1018,6 +1078,7 @@ void MergedLeptonAnalyzer::fillMets(const edm::Ptr<reco::Candidate>& aLepton,
   metvalues_[prefix+"_MET"].PFoMu = met.pt()/aLepton->pt();
   metvalues_[prefix+"_MET"].MuEta = aLepton->eta();
   metvalues_[prefix+"_MET"].PFSumEt = met.sumEt();
+  metvalues_[prefix+"_MET"].bitmask = bitmask;
 
   pat::MET::Vector2 tpvec;
   tpvec.px = met.px();
