@@ -12,6 +12,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+# usage
+# train: python3 mergedElePreprocess.py HxAx_el.root True True dr1 EB
+# test : python3 mergedElePreprocess.py H2000A10_el.root False False dr2 EB model/HxAx_el_dr2_EB.model
+
 argv = sys.argv
 filename = argv[1]
 
@@ -29,6 +33,18 @@ nFeature = 17
 arr_mergedEl = np.zeros(shape=(mergedTree.GetEntries(),nFeature))
 arr_resolvedEl = np.zeros(shape=(resolvedTree1.GetEntries()+resolvedTree2.GetEntries(),nFeature))
 
+def deltaPhi(phi1, phi2):
+    dphi = phi2 - phi1
+    if dphi > math.pi:
+        dphi -= 2.*math.pi
+    elif dphi <= -math.pi:
+        dphi += 2.*math.pi
+
+    return dphi
+
+def deltaR2(eta1,phi1,eta2,phi2):
+    return abs(eta1-eta2)**2 + abs(deltaPhi(phi1,phi2))**2
+
 def fill_arr(aTree,aGsfTree,anArr,startIdx):
     for iEl, el in enumerate(aTree):
         if argv[5]=='EB':
@@ -44,27 +60,52 @@ def fill_arr(aTree,aGsfTree,anArr,startIdx):
 
         if argv[4]=='ss':
             if argv[5]=='EB':
-                if not abs(aGsfTree.Gsfphi - el.phi) > 2*0.0174:
+                if not abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) > 2*0.0174:
                     continue
             else:
-                if not abs(aGsfTree.Gsfphi - el.phi) > 2*0.00864*abs(math.sinh(el.eta)):
+                if not abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) > 2*0.00864*abs(math.sinh(el.eta)):
                     continue
         elif argv[4]=='trk':
             if argv[5]=='EB':
-                if not abs(aGsfTree.Gsfphi - el.phi) < 0.0174:
+                if not abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) < 0.0174:
                     continue
             else:
-                if not abs(aGsfTree.Gsfphi - el.phi) < 0.00864*abs(math.sinh(el.eta)):
+                if not abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) < 0.00864*abs(math.sinh(el.eta)):
                     continue
         elif argv[4]=='int':
             if argv[5]=='EB':
-                if not ( abs(aGsfTree.Gsfphi - el.phi) > 0.0174 and
-                         abs(aGsfTree.Gsfphi - el.phi) < 2.*0.0174 ):
+                if not ( abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) > 0.0174 and
+                         abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) < 2.*0.0174 ):
                     continue
             else:
-                if not ( abs(aGsfTree.Gsfphi - el.phi) > 0.00864*abs(math.sinh(el.eta)) and
-                         abs(aGsfTree.Gsfphi - el.phi) < 2.*0.00864*abs(math.sinh(el.eta)) ):
+                if not ( abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) > 0.00864*abs(math.sinh(el.eta)) and
+                         abs(deltaPhi(aGsfTree.Gsfphi,el.phi)) < 2.*0.00864*abs(math.sinh(el.eta)) ):
                     continue
+        elif argv[4]=='dr1':
+            if argv[5]=='EB':
+                if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < 0.0174**2:
+                    continue
+            else:
+                if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < (0.00864*abs(math.sinh(el.eta)))**2:
+                    continue
+        elif argv[4]=='dr2':
+            if argv[5]=='EB':
+                if not ( deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > 0.0174**2 and
+                         deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < (2*0.0174)**2 ):
+                    continue
+            else:
+                if not ( deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > (0.00864*abs(math.sinh(el.eta)))**2 and
+                         deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < (2*0.00864*abs(math.sinh(el.eta)))**2 ):
+                    continue
+        elif argv[4]=='dr3':
+            if argv[5]=='EB':
+                if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > (2*0.0174)**2:
+                    continue
+            else:
+                if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > (2*0.00864*abs(math.sinh(el.eta)))**2:
+                    continue
+        elif argv[4]=='all':
+            pass
         else:
             NameError('Please check dPhi(trk/int/ss) argument, the current argument is %s' % argv[4])
 
@@ -123,10 +164,6 @@ y_mergedEl = np.ones(shape=(df_mergedEl.shape[0],))
 y_resolvedEl = np.zeros(shape=(df_resolvedEl.shape[0],))
 y_total = np.concatenate((y_mergedEl,y_resolvedEl), axis=0)
 
-# if df_total.shape[0]%2==1: # avoid exception of xgboost "Size of weights must equal to number of rows"
-#     df_total = df_total[:-1]
-#     y_total = y_total[:-1]
-
 transformer = sklearn.preprocessing.StandardScaler()
 x_total = transformer.fit_transform(df_total)
 np_meanstd = np.array([transformer.mean_,transformer.scale_])
@@ -175,7 +212,7 @@ if argv[2]=="True": # hyper-optimization
     weightSum = np.sum(wgts_total)
 
     param_space = {
-        'max_depth': hyperopt.hp.quniform('max_depth',5,10,1),
+        'max_depth': hyperopt.hp.quniform('max_depth',1,5,1), # lower depth, more robust
         'eta': hyperopt.hp.loguniform('eta',-3.,-1.), # from exp(-3) to exp(1)
         'gamma': hyperopt.hp.uniform('gamma',0.,10.),
         'lambda': hyperopt.hp.uniform('lambda',0.,2.),
@@ -191,7 +228,12 @@ if argv[2]=="True": # hyper-optimization
 
     np.savez('npz/'+os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'.npz', meanstd=np_meanstd, bestparams=np.array(best))
 
-npz_params = np.load('npz/'+os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'.npz',allow_pickle=True)
+npz_params = np.array([])
+
+if len(argv) > 6 and os.path.splitext(argv[6])[1]=='.model':
+   npz_params = np.load('npz/'+os.path.splitext(os.path.basename(argv[6]))[0]+'.npz',allow_pickle=True)
+else:
+   npz_params = np.load('npz/'+os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'.npz',allow_pickle=True)
 
 param = npz_params['bestparams'][()] # numpy stores dict as 0-d array
 param['max_depth'] = int(param['max_depth'])
@@ -211,7 +253,11 @@ if argv[3]=='True':
     bst = xgb.train(param, dtrain, num_round, evallist, callbacks=[early_stop])
     bst.save_model('model/'+os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'.model')
 else:
-    bst.load_model('model/'+os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'.model')
+    if len(argv) > 6 and os.path.splitext(argv[6])[1]=='.model':
+        print('load model %s' % argv[6])
+        bst.load_model(argv[6])
+    else:
+        bst.load_model('model/'+os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'.model')
 
 dTrainPredict    = bst.predict(dtrain)
 dTestPredict     = bst.predict(dtest)
@@ -231,8 +277,6 @@ def drawScoreOverlay(dSigPredictTrain, dBkgPredictTrain, dSigPredictTest, dBkgPr
     plt.grid()
     plt.yscale('log')
     plt.xlim([0,1])
-    # plt.ylim([0,100])
-    # plt.title(plotname, fontsize=8)
     plt.xlabel('Score')
     plt.ylabel('a.u.')
     plt.legend(loc=(0.65,0.65))
@@ -259,8 +303,13 @@ def drawImportance(gain, cover, colname_full, plotname, dirname="plot"):
 
     return
 
-drawScoreOverlay(scoreMerged_train,scoreResolved_train,scoreMerged_test,scoreResolved_test,os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5])
+plotname = os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]
+if len(argv) > 6 and os.path.splitext(argv[6])[1]=='.model':
+    plotname += ('_'+os.path.splitext(os.path.basename(argv[6]))[0])
 
-gain = bst.get_score( importance_type='gain')
-cover = bst.get_score(importance_type='cover')
-drawImportance(gain,cover,col_names,os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'_importance')
+drawScoreOverlay(scoreMerged_train,scoreResolved_train,scoreMerged_test,scoreResolved_test,plotname)
+
+if argv[3]=='True':
+    gain = bst.get_score( importance_type='gain')
+    cover = bst.get_score(importance_type='cover')
+    drawImportance(gain,cover,col_names,os.path.splitext(filename)[0]+'_'+argv[4]+'_'+argv[5]+'_importance')
