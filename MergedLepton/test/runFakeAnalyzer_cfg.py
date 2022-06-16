@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process('MergedAnalyzer')
+process = cms.Process('FakeAnalyzer')
 
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -30,7 +30,7 @@ process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
-process.load("ZprimeTo4l.MergedLepton.MergedLeptonAnalyzer_cfi")
+process.load("ZprimeTo4l.MergedLepton.MergedFakeAnalyzer_cfi")
 
 from PhysicsTools.PatUtils.l1PrefiringWeightProducer_cfi import l1PrefiringWeightProducer
 process.prefiringweight = l1PrefiringWeightProducer.clone(
@@ -42,16 +42,16 @@ process.prefiringweight = l1PrefiringWeightProducer.clone(
     PrefiringRateSystematicUnctyMuon = cms.double(0.2)
 )
 
-process.mergedAnalyzer_step = cms.Path(
+process.fakeAnalyzer_step = cms.Path(
     process.prefiringweight*
     process.ModifiedHEEPIDVarValueMaps*
     process.ModifiedEcalRecHitIsolationScone*
-    process.mergedLeptonAnalyzer
+    process.mergedFakeAnalyzer
 )
 
 process.endjob_step = cms.EndPath(process.endOfProcess)
 
-process.schedule = cms.Schedule(process.mergedAnalyzer_step,process.endjob_step)
+process.schedule = cms.Schedule(process.fakeAnalyzer_step,process.endjob_step)
 
 # Automatic addition of the customisation function from Configuration.DataProcessing.Utils
 from Configuration.DataProcessing.Utils import addMonitoring

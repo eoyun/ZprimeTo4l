@@ -20,6 +20,7 @@
 <use name="RecoVertex/KalmanVertexFit"/>
 <use name="RecoVertex/VertexPrimitives"/>
 <use name="RecoEgamma/EgammaTools"/>
+<use name="ZprimeTo4l/MergedLepton"/>
 <use name="root"/>
 <use name="rootmath"/>
 <export>
