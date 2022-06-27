@@ -88,6 +88,7 @@ void MergedFakeAnalyzer::beginJob() {
   aHelper_.SetFileService(&fs);
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
   histo1d_["cutflow_HEEP"] = fs->make<TH1D>("cutflow_HEEP","cutflow_HEEP",15,0.,15.);
+  histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
 
   aHelper_.initElectronTree("ElectronStruct","fake","el");
   aHelper_.initAddGsfTree("AddGsfStruct","fakeGsf","addGsf");
@@ -131,6 +132,9 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<GenEventInfoProduct> genInfo;
   iEvent.getByToken(generatorToken_, genInfo);
   double mcweight = genInfo->weight();
+  
+  double aWeight = prefiringweight*mcweight/std::abs(mcweight);
+  histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
 
   aHelper_.SetMCweight(mcweight);
   aHelper_.SetPrefiringWeight(prefiringweight);
@@ -187,7 +191,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                                       (*nrSatCrysHandle)[aEle],
                                       *rhoHandle,
                                       cutflow);
-    histo1d_["cutflow"]->Fill(static_cast<float>(cutflow)+0.5);
+    histo1d_["cutflow"]->Fill(static_cast<float>(cutflow)+0.5,aWeight);
 
     int cutflow_HEEP = 0;
     MergedLeptonIDs::hasPassedHEEP(*aEle,
@@ -195,7 +199,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                                    (*nrSatCrysHandle)[aEle],
                                    *rhoHandle,
                                    cutflow_HEEP);
-    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(cutflow_HEEP)+0.5);
+    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(cutflow_HEEP)+0.5,aWeight);
 
     if ( !passModifiedHEEP )
       continue;

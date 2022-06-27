@@ -131,6 +131,7 @@ void MergedLeptonAnalyzer::beginJob() {
   histo1d_["pt_H"] = fs->make<TH1D>("pt_H","p_{T}(H)",200,0.,200.);
   histo1d_["isEcalDriven"] = fs->make<TH1D>("isEcalDriven","isEcalDriven",2,0.,2.);
   histo1d_["isTrackerDriven"] = fs->make<TH1D>("isTrackerDriven","isTrackerDriven",2,0.,2.);
+  histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
 
   aHelper_.initMuonTree("MuonStruct","solo","muon");
   aHelper_.initMuonTree("MuonStruct","tag","muon");
@@ -200,6 +201,9 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
   edm::Handle<GenEventInfoProduct> genInfo;
   iEvent.getByToken(generatorToken_, genInfo);
   double mcweight = genInfo->weight();
+  
+  double aWeight = prefiringweight*mcweight/std::abs(mcweight);
+  histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
 
   edm::Handle<edm::TriggerResults> resultHandle;
   iEvent.getByToken(triggerToken_,resultHandle);
@@ -226,7 +230,7 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
     auto genptc = genptcHandle->ptrAt(idx);
 
     if ( genptc->isHardProcess() && genptc->pdgId()==35 )
-      histo1d_["pt_H"]->Fill(genptc->pt());
+      histo1d_["pt_H"]->Fill(genptc->pt(),aWeight);
 
     if ( ( std::abs(genptc->pdgId())==11 || std::abs(genptc->pdgId())==13 ) && genptc->isPromptFinalState() && genptc->pt() > ptThres_ )
       promptLeptons.push_back(genptc);
@@ -317,8 +321,8 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
     if ( !matched )
       continue;
 
-    histo1d_["isEcalDriven"]->Fill(static_cast<float>(aEle->ecalDrivenSeed())+0.5);
-    histo1d_["isTrackerDriven"]->Fill(static_cast<float>(aEle->trackerDrivenSeed())+0.5);
+    histo1d_["isEcalDriven"]->Fill(static_cast<float>(aEle->ecalDrivenSeed())+0.5,aWeight);
+    histo1d_["isTrackerDriven"]->Fill(static_cast<float>(aEle->trackerDrivenSeed())+0.5,aWeight);
 
     bool passModifiedHEEP =
       MergedLeptonIDs::isModifiedHEEP(*aEle,
@@ -328,7 +332,7 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                                       (*nrSatCrysHandle)[aEle],
                                       *rhoHandle,
                                       cutflow);
-    histo1d_["cutflow"]->Fill(static_cast<float>(cutflow)+0.5);
+    histo1d_["cutflow"]->Fill(static_cast<float>(cutflow)+0.5,aWeight);
 
     int cutflow_HEEP = 0;
     MergedLeptonIDs::hasPassedHEEP(*aEle,
@@ -336,7 +340,7 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                                    (*nrSatCrysHandle)[aEle],
                                    *rhoHandle,
                                    cutflow_HEEP);
-    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(cutflow_HEEP)+0.5);
+    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(cutflow_HEEP)+0.5,aWeight);
 
     if ( !passModifiedHEEP )
       return; // WARNING veto events
@@ -426,7 +430,7 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
     for (unsigned int idx = 0; idx < 8; idx++) {
       if ( bitmask_METfilter & (1<<idx) )
-        histo1d_["bitmask_METfilter_merged"]->Fill(static_cast<float>(idx)+0.5);
+        histo1d_["bitmask_METfilter_merged"]->Fill(static_cast<float>(idx)+0.5,aWeight);
     }
 
     aHelper_.fillMETs(mergedMuon, *probe, pfMEThandle->at(0), finalMuons, bitmask_METfilter, "pf");
@@ -457,7 +461,7 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
     for (unsigned int idx = 0; idx < 8; idx++) {
       if ( bitmask_METfilter & (1<<idx) )
-        histo1d_["bitmask_METfilter_resolved"]->Fill(static_cast<float>(idx)+0.5);
+        histo1d_["bitmask_METfilter_resolved"]->Fill(static_cast<float>(idx)+0.5,aWeight);
     }
 
     aHelper_.fillMETs(findNN(pfMEThandle->at(0)),pfMEThandle->at(0), finalCands, bitmask_METfilter, "stdPf");
