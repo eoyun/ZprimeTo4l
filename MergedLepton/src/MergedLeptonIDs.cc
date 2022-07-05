@@ -1,8 +1,5 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 
-#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
-#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
-
 bool MergedLeptonIDs::isHighPtTrackerMuon(const reco::Muon& muon, const reco::Vertex& vtx) {
   if (!muon.isTrackerMuon())
     return false;
@@ -35,7 +32,8 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
                                      const float& ecalIso,
                                      const int& nrSatCrys,
                                      const double& rho,
-                                     int& cutflow) {
+                                     cutflowElectron& cutflow) {
+  cutflow = cutflowElectron::baseline;
   auto sq = [](const double& val) { return val*val; };
   double R = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()) + sq(el.superCluster()->z()));
   double Rt = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()));
@@ -44,33 +42,33 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
   double caloIsoVal = ecalIso + el.dr03HcalDepth1TowerSumEt();
   if ( etSC < 20. )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::minEnergy;
   if ( !el.ecalDriven() )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::ecalDriven;
   if ( !(std::abs(el.deltaPhiSuperClusterTrackAtVtx()) < 0.06) )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::dPhiIn;
   if ( nrSatCrys > 0 )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::saturatedXtal;
   if ( el.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) > 1 )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::missingInnerHits;
   if ( trkIso > 5. )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::trackIso;
   if ( std::abs(etaSC) < 1.4442 ) {
     bool HoEcut = ( el.full5x5_hcalOverEcal() < (1./el.energy() + 0.05) );
     bool caloIso = ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho );
     bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.02;
 
     if (HoEcut)
-      cutflow++;
+      cutflow = cutflowElectron::HoE;
     if (caloIso)
-      cutflow++;
+      cutflow = cutflowElectron::caloIso;
     if (dxycut)
-      cutflow++;
+      cutflow = cutflowElectron::dxy;
 
     return ( caloIso && HoEcut && dxycut );
   } else if ( std::abs(etaSC) > 1.566 && std::abs(etaSC) < 2.5 ) {
@@ -80,11 +78,11 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
     bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.05;
 
     if (HoEcut)
-      cutflow++;
+      cutflow = cutflowElectron::HoE;
     if (caloIso)
-      cutflow++;
+      cutflow = cutflowElectron::caloIso;
     if (dxycut)
-      cutflow++;
+      cutflow = cutflowElectron::dxy;
 
     return ( caloIso && HoEcut && dxycut );
   }
@@ -96,7 +94,8 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
                                     const reco::Vertex& primaryVertex,
                                     const int& nrSatCrys,
                                     const double& rho,
-                                    int& cutflow) {
+                                    cutflowElectron& cutflow) {
+  cutflow = cutflowElectron::baseline;
   auto sq = [](const double& val) { return val*val; };
   double R = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()) + sq(el.superCluster()->z()));
   double Rt = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()));
@@ -105,22 +104,22 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
   double caloIsoVal = el.dr03EcalRecHitSumEt() + el.dr03HcalDepth1TowerSumEt();
   if ( etSC < 20. )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::minEnergy;
   if ( !el.ecalDriven() )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::ecalDriven;
   if ( !(std::abs(el.deltaPhiSuperClusterTrackAtVtx()) < 0.06) )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::dPhiIn;
   if ( nrSatCrys > 0 )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::saturatedXtal;
   if ( el.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) > 1 )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::missingInnerHits;
   if ( el.dr03TkSumPtHEEP() > 5. )
     return false;
-  cutflow++;
+  cutflow = cutflowElectron::trackIso;
   if ( std::abs(etaSC) < 1.4442 ) {
     bool HoEcut = ( el.full5x5_hcalOverEcal() < (1./el.energy() + 0.05) );
     bool caloIso = ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho );
@@ -130,15 +129,15 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
                    el.full5x5_e1x5()/el.full5x5_e5x5() > 0.83 );
 
     if (HoEcut)
-      cutflow++;
+      cutflow = cutflowElectron::HoE;
     if (caloIso)
-      cutflow++;
+      cutflow = cutflowElectron::caloIso;
     if (dxycut)
-      cutflow++;
+      cutflow = cutflowElectron::dxy;
     if (dEtaInCut)
-      cutflow++;
+      cutflow = cutflowElectron::dEtaIn;
     if (ssCut)
-      cutflow++;
+      cutflow = cutflowElectron::showerShape;
 
     return ( caloIso && HoEcut && dxycut && dEtaInCut && ssCut );
   } else if ( std::abs(etaSC) > 1.566 && std::abs(etaSC) < 2.5 ) {
@@ -150,15 +149,15 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
     bool ssCut = ( el.full5x5_sigmaIetaIeta() < 0.03 );
 
     if (HoEcut)
-      cutflow++;
+      cutflow = cutflowElectron::HoE;
     if (caloIso)
-      cutflow++;
+      cutflow = cutflowElectron::caloIso;
     if (dxycut)
-      cutflow++;
+      cutflow = cutflowElectron::dxy;
     if (dEtaInCut)
-      cutflow++;
+      cutflow = cutflowElectron::dEtaIn;
     if (ssCut)
-      cutflow++;
+      cutflow = cutflowElectron::showerShape;
 
     return ( caloIso && HoEcut && dxycut && dEtaInCut && ssCut );
   }

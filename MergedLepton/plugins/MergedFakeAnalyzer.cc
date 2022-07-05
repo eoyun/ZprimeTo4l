@@ -132,7 +132,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<GenEventInfoProduct> genInfo;
   iEvent.getByToken(generatorToken_, genInfo);
   double mcweight = genInfo->weight();
-  
+
   double aWeight = prefiringweight*mcweight/std::abs(mcweight);
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
 
@@ -165,7 +165,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
     auto aEle = eleHandle->ptrAt(idx);
-    int cutflow = 0;
+    MergedLeptonIDs::cutflowElectron cutflow = MergedLeptonIDs::cutflowElectron::baseline;
 
     if ( !(aEle->pt() > ptThres_) )
       continue;
@@ -191,15 +191,15 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                                       (*nrSatCrysHandle)[aEle],
                                       *rhoHandle,
                                       cutflow);
-    histo1d_["cutflow"]->Fill(static_cast<float>(cutflow)+0.5,aWeight);
+    histo1d_["cutflow"]->Fill(static_cast<float>(static_cast<int>(cutflow))+0.5,aWeight);
 
-    int cutflow_HEEP = 0;
+    MergedLeptonIDs::cutflowElectron cutflow_HEEP = MergedLeptonIDs::cutflowElectron::baseline;
     MergedLeptonIDs::hasPassedHEEP(*aEle,
                                    *primaryVertex,
                                    (*nrSatCrysHandle)[aEle],
                                    *rhoHandle,
                                    cutflow_HEEP);
-    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(cutflow_HEEP)+0.5,aWeight);
+    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(static_cast<int>(cutflow_HEEP))+0.5,aWeight);
 
     if ( !passModifiedHEEP )
       continue;
@@ -208,7 +208,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     auto addGsfTrk = (*addGsfTrkHandle)[aEle];
     auto orgGsfTrk = aEle->gsfTrack();
 
-    if ( addGsfTrk->pt()==orgGsfTrk->pt() && addGsfTrk->eta()==orgGsfTrk->eta() && addGsfTrk->phi()==orgGsfTrk->phi() )
+    if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) )
       continue;
 
     // find whether add GSF track has a corresponding electron
@@ -224,8 +224,8 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
       const auto secGsfTrk = secEle->gsfTrack();
 
-      if ( addGsfTrk->pt()==secGsfTrk->pt() && addGsfTrk->eta()==secGsfTrk->eta() && addGsfTrk->phi()==secGsfTrk->phi() ) {
-        int cutflow2nd = 0;
+      if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,secGsfTrk) ) {
+        MergedLeptonIDs::cutflowElectron cutflow2nd = MergedLeptonIDs::cutflowElectron::baseline;
         bool passModifiedHEEP2nd =
           MergedLeptonIDs::isModifiedHEEP(*secEle,
                                           *primaryVertex,
