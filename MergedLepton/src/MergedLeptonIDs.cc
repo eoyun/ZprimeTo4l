@@ -1,5 +1,24 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 
+MergedLeptonIDs::typeElectron MergedLeptonIDs::checkTypeElectron(const cutflowElectron& acutflow_modifiedHEEP,
+                                                                 const cutflowElectron& acutflow_HEEP,
+                                                                 const cutflowElectron& acutflow_mergedElectron) {
+  if ( acutflow_modifiedHEEP==cutflowElectron::dxy &&
+       acutflow_mergedElectron!=cutflowElectron::failedHEEP ) {
+    if ( acutflow_mergedElectron==cutflowElectron::passedMVA1 ||
+         acutflow_mergedElectron==cutflowElectron::passedMVA2 )
+      return typeElectron::merged;
+    if ( acutflow_HEEP!=cutflowElectron::showerShape &&
+         acutflow_mergedElectron!=cutflowElectron::passedMVA1 )
+      return typeElectron::resolved;
+    if ( acutflow_HEEP==cutflowElectron::showerShape &&
+         acutflow_mergedElectron!=cutflowElectron::passedMVA2 )
+      return typeElectron::resolved;
+  }
+
+  return typeElectron::failed;
+}
+
 bool MergedLeptonIDs::isHighPtTrackerMuon(const reco::Muon& muon, const reco::Vertex& vtx) {
   if (!muon.isTrackerMuon())
     return false;

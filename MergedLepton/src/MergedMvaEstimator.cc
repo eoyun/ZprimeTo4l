@@ -1,5 +1,4 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedMvaEstimator.h"
-#include "CommonTools/MVAUtils/interface/GBRForestTools.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedMvaEstimator.h"
 
 #include <iostream>
@@ -27,7 +26,7 @@ MergedMvaEstimator::MergedMvaEstimator(const edm::FileInPath& weightsfile, const
 
 }
 
-double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el, const edm::Ptr<reco::Vertex>& pv) {
+double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el, const reco::Vertex& pv) {
   const unsigned int nvar = scale_mean_.size();
   float var[nvar];
 
@@ -47,8 +46,8 @@ double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el, const e
   var[mergedElectronVar::dEtaSeed] = el->deltaEtaSeedClusterTrackAtVtx();
   var[mergedElectronVar::EseedOverP] = el->eSeedClusterOverP();
   var[mergedElectronVar::EOverP] = el->eSuperClusterOverP();
-  var[mergedElectronVar::dxy] = el->gsfTrack()->dxy(pv->position());
-  var[mergedElectronVar::dz] = el->gsfTrack()->dz(pv->position());
+  var[mergedElectronVar::dxy] = el->gsfTrack()->dxy(pv.position());
+  var[mergedElectronVar::dz] = el->gsfTrack()->dz(pv.position());
   var[mergedElectronVar::fbrem] = el->fbrem();
 
   for (unsigned int idx = 0; idx < nvar; idx++)
