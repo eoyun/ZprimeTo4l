@@ -36,20 +36,6 @@ private:
                       const std::vector<T>& values,
                       const std::string& label );
 
-  enum openingAngle {
-    nullAngle = -1,
-    DR1EB,
-    DR1EE,
-    DR2EB,
-    DR2EE,
-    DR3EB,
-    DR3EE
-  };
-
-  openingAngle checkElectronOpeningAngle( edm::Ptr<pat::Electron>& aEle,
-                                          reco::GsfTrackRef& orgGsfTrk,
-                                          reco::GsfTrackRef& addGsfTrk );
-
   const edm::EDGetTokenT<edm::View<pat::Electron>> eleToken_;
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
@@ -126,11 +112,11 @@ MergedLeptonIDProducer::MergedLeptonIDProducer(const edm::ParameterSet& iConfig)
   nresolvedElectronToken_(produces<int>("nresolvedElectron")),
   nmergedElectronToken_(produces<int>("nmergedElectron")) {
 
-  produces<edm::ValueMap<int>>("cutflow_modifiedHEEP");
-  produces<edm::ValueMap<int>>("cutflow_HEEP");
-  produces<edm::ValueMap<int>>("cutflow_mergedElectron");
-  produces<edm::ValueMap<float>>("mva_mergedElectron");
-  produces<edm::ValueMap<int>>("openingAngle_mergedElectron");
+  produces<edm::ValueMap<int>>("cutflowModifiedHEEP");
+  produces<edm::ValueMap<int>>("cutflowHEEP");
+  produces<edm::ValueMap<int>>("cutflowMergedElectron");
+  produces<edm::ValueMap<float>>("mvaMergedElectron");
+  produces<edm::ValueMap<int>>("openingAngleMergedElectron");
 }
 
 template<typename T>
@@ -143,31 +129,6 @@ void MergedLeptonIDProducer::writeValueMap( edm::Event& iEvent,
   filler.insert(handle, values.begin(), values.end());
   filler.fill();
   iEvent.put(std::move(valMap),label);
-}
-
-MergedLeptonIDProducer::openingAngle MergedLeptonIDProducer::checkElectronOpeningAngle( edm::Ptr<pat::Electron>& aEle,
-                                                                                        reco::GsfTrackRef& orgGsfTrk,
-                                                                                        reco::GsfTrackRef& addGsfTrk ) {
-  double dr2 = reco::deltaR2(orgGsfTrk->eta(),orgGsfTrk->phi(),addGsfTrk->eta(),addGsfTrk->phi());
-  auto square = [](double input) { return input*input; };
-
-  if ( aEle->isEB() ) {
-    if ( dr2 < square(0.0174) )
-      return openingAngle::DR1EB;
-    else if ( dr2 > square(0.0174) && dr2 < square(2.*0.0174) )
-      return openingAngle::DR2EB;
-    else
-      return openingAngle::DR3EB;
-  } else {
-    if ( dr2 < square( 0.00864*std::abs(std::sinh(aEle->eta())) ) )
-      return openingAngle::DR1EE;
-    else if ( dr2 > square( 0.00864*std::abs(std::sinh(aEle->eta())) ) && dr2 < square( 2.*0.00864*std::abs(std::sinh(aEle->eta())) ) )
-      return openingAngle::DR2EE;
-    else
-      return openingAngle::DR3EE;
-  }
-
-  return openingAngle::nullAngle;
 }
 
 void MergedLeptonIDProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -250,7 +211,7 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
     cutflows_HEEP.emplace_back( static_cast<int>(acutflow_HEEP) );
 
     MergedLeptonIDs::cutflowElectron acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::baseline;
-    openingAngle aopenangle_mergedElectron = openingAngle::nullAngle;
+    MergedLeptonIDs::openingAngle aopenangle_mergedElectron = MergedLeptonIDs::openingAngle::nullAngle;
     double amvascore_mergedElectron = -1.;
 
     if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
@@ -286,35 +247,35 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
         else {
           bool passedMVA = false;
           // apply BDT to further reject bkg contributions (e.g. brem)
-          aopenangle_mergedElectron = checkElectronOpeningAngle(aEle,orgGsfTrk,addGsfTrk);
+          aopenangle_mergedElectron = MergedLeptonIDs::checkElectronOpeningAngle(aEle,orgGsfTrk,addGsfTrk);
 
           switch ( aopenangle_mergedElectron ) {
-            case openingAngle::DR1EB:
+            case MergedLeptonIDs::openingAngle::DR1EB:
               amvascore_mergedElectron = xgbEstimatorDR1EB_->computeMva(aEle,primaryVertex);
               passedMVA = amvascore_mergedElectron > cutDR1EB_;
               break;
-            case openingAngle::DR2EB:
+            case MergedLeptonIDs::openingAngle::DR2EB:
               amvascore_mergedElectron = xgbEstimatorDR2EB_->computeMva(aEle,primaryVertex);
               passedMVA = amvascore_mergedElectron > cutDR2EB_;
               break;
-            case openingAngle::DR3EB:
+            case MergedLeptonIDs::openingAngle::DR3EB:
               amvascore_mergedElectron = xgbEstimatorDR3EB_->computeMva(aEle,primaryVertex);
               passedMVA = amvascore_mergedElectron > cutDR3EB_;
               break;
-            case openingAngle::DR1EE:
+            case MergedLeptonIDs::openingAngle::DR1EE:
               amvascore_mergedElectron = xgbEstimatorDR1EE_->computeMva(aEle,primaryVertex);
               passedMVA = amvascore_mergedElectron > cutDR1EE_;
               break;
-            case openingAngle::DR2EE:
+            case MergedLeptonIDs::openingAngle::DR2EE:
               amvascore_mergedElectron = xgbEstimatorDR2EE_->computeMva(aEle,primaryVertex);
               passedMVA = amvascore_mergedElectron > cutDR2EE_;
               break;
-            case openingAngle::DR3EE:
+            case MergedLeptonIDs::openingAngle::DR3EE:
               amvascore_mergedElectron = xgbEstimatorDR3EE_->computeMva(aEle,primaryVertex);
               passedMVA = amvascore_mergedElectron > cutDR3EE_;
               break;
             default:
-              throw cms::Exception("LogicError") << "opening angle between the original and additional GSF track does not fit into any of MergedLeptonIDProducer::openingAngle categories" << std::endl;
+              throw cms::Exception("LogicError") << "opening angle between the original and additional GSF track does not fit into any of MergedLeptonIDs::openingAngle categories" << std::endl;
               break;
           } // switch
 
@@ -338,11 +299,11 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
       nmergedElectron++;
   } // electron loop
 
-  writeValueMap(iEvent,eleHandle,cutflows_modifiedHEEP,"cutflow_modifiedHEEP");
-  writeValueMap(iEvent,eleHandle,cutflows_HEEP,"cutflow_HEEP");
-  writeValueMap(iEvent,eleHandle,cutflows_mergedElectron,"cutflow_mergedElectron");
-  writeValueMap(iEvent,eleHandle,mvas_mergedElectron,"mva_mergedElectron");
-  writeValueMap(iEvent,eleHandle,openingAngles_mergedElectron,"openingAngle_mergedElectron");
+  writeValueMap(iEvent,eleHandle,cutflows_modifiedHEEP,"cutflowModifiedHEEP");
+  writeValueMap(iEvent,eleHandle,cutflows_HEEP,"cutflowHEEP");
+  writeValueMap(iEvent,eleHandle,cutflows_mergedElectron,"cutflowMergedElectron");
+  writeValueMap(iEvent,eleHandle,mvas_mergedElectron,"mvaMergedElectron");
+  writeValueMap(iEvent,eleHandle,openingAngles_mergedElectron,"openingAngleMergedElectron");
 
   iEvent.emplace(nresolvedElectronToken_,nresolvedElectron);
   iEvent.emplace(nmergedElectronToken_,nmergedElectron);

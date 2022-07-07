@@ -7,6 +7,7 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
@@ -36,6 +37,16 @@ namespace MergedLeptonIDs {
     passedMVA2  // merged electron MVA selection when there is no 2nd GSF track
   };
 
+  enum openingAngle {
+    nullAngle = -1,
+    DR1EB,
+    DR1EE,
+    DR2EB,
+    DR2EE,
+    DR3EB,
+    DR3EE
+  };
+
   enum typeElectron {
     failed = -1,
     resolved,
@@ -47,6 +58,10 @@ namespace MergedLeptonIDs {
              aTrk->eta()==bTrk->eta() &&
              aTrk->phi()==bTrk->phi() );
   }
+
+  openingAngle checkElectronOpeningAngle( edm::Ptr<pat::Electron>& aEle,
+                                          reco::GsfTrackRef& orgGsfTrk,
+                                          reco::GsfTrackRef& addGsfTrk );
 
   typeElectron checkTypeElectron(const cutflowElectron&, const cutflowElectron&, const cutflowElectron&);
 

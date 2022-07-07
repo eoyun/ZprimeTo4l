@@ -53,5 +53,7 @@ double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el, const r
   for (unsigned int idx = 0; idx < nvar; idx++)
     var[idx] = ( var[idx]-scale_mean_.at(idx) ) / scale_std_.at(idx);
 
-  return gbrForest_->GetResponse(var);
+  double rawScore = gbrForest_->GetResponse(var);
+
+  return 1./( 1. + std::exp(-rawScore) ); // return sigmoid
 }

@@ -1,5 +1,30 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 
+MergedLeptonIDs::openingAngle MergedLeptonIDs::checkElectronOpeningAngle( edm::Ptr<pat::Electron>& aEle,
+                                                                          reco::GsfTrackRef& orgGsfTrk,
+                                                                          reco::GsfTrackRef& addGsfTrk ) {
+  double dr2 = reco::deltaR2(orgGsfTrk->eta(),orgGsfTrk->phi(),addGsfTrk->eta(),addGsfTrk->phi());
+  auto square = [](double input) { return input*input; };
+
+  if ( aEle->isEB() ) {
+    if ( dr2 < square(0.0174) )
+      return openingAngle::DR1EB;
+    else if ( dr2 > square(0.0174) && dr2 < square(2.*0.0174) )
+      return openingAngle::DR2EB;
+    else
+      return openingAngle::DR3EB;
+  } else {
+    if ( dr2 < square( 0.00864*std::abs(std::sinh(aEle->eta())) ) )
+      return openingAngle::DR1EE;
+    else if ( dr2 > square( 0.00864*std::abs(std::sinh(aEle->eta())) ) && dr2 < square( 2.*0.00864*std::abs(std::sinh(aEle->eta())) ) )
+      return openingAngle::DR2EE;
+    else
+      return openingAngle::DR3EE;
+  }
+
+  return openingAngle::nullAngle;
+}
+
 MergedLeptonIDs::typeElectron MergedLeptonIDs::checkTypeElectron(const cutflowElectron& acutflow_modifiedHEEP,
                                                                  const cutflowElectron& acutflow_HEEP,
                                                                  const cutflowElectron& acutflow_mergedElectron) {
