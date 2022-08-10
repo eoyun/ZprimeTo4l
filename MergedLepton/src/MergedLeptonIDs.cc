@@ -44,6 +44,14 @@ MergedLeptonIDs::typeElectron MergedLeptonIDs::checkTypeElectron(const cutflowEl
   return typeElectron::failed;
 }
 
+void MergedLeptonIDs::fillCutflow(TH1* ahist, const int acutflow, const double aWeight) {
+  float acutfloat = static_cast<float>(acutflow) + 0.5;
+  int bin = ahist->FindBin(acutfloat);
+
+  for (int idx = 1; idx <= bin; idx++)
+    ahist->Fill( ahist->GetBinCenter(idx), aWeight );
+}
+
 bool MergedLeptonIDs::isHighPtTrackerMuon(const reco::Muon& muon, const reco::Vertex& vtx) {
   if (!muon.isTrackerMuon())
     return false;

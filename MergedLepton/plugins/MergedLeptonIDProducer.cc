@@ -114,7 +114,7 @@ MergedLeptonIDProducer::MergedLeptonIDProducer(const edm::ParameterSet& iConfig)
 
   produces<edm::ValueMap<int>>("cutflowModifiedHEEP");
   produces<edm::ValueMap<int>>("cutflowHEEP");
-  produces<edm::ValueMap<int>>("cutflowMergedElectron");
+  produces<edm::ValueMap<int>>("statusMergedElectron");
   produces<edm::ValueMap<float>>("mvaMergedElectron");
   produces<edm::ValueMap<int>>("openingAngleMergedElectron");
 }
@@ -175,8 +175,8 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
   cutflows_modifiedHEEP.reserve(nEle);
   std::vector<int> cutflows_HEEP;
   cutflows_HEEP.reserve(nEle);
-  std::vector<int> cutflows_mergedElectron;
-  cutflows_mergedElectron.reserve(nEle);
+  std::vector<int> status_mergedElectron;
+  status_mergedElectron.reserve(nEle);
   std::vector<float> mvas_mergedElectron;
   mvas_mergedElectron.reserve(nEle);
   std::vector<int> openingAngles_mergedElectron;
@@ -226,6 +226,8 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
       // has additional GSF track
       if ( acutflow_modifiedHEEP!=MergedLeptonIDs::cutflowElectron::dxy )
         acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::failedHEEP;
+      else if ( !aEle->passConversionVeto() )
+        acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::failConvVeto;
       else {
         acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::has2ndGsf;
 
@@ -285,7 +287,7 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
       } // end isModifiedHEEP
     } // end isSameGsfTrack
 
-    cutflows_mergedElectron.emplace_back( static_cast<int>(acutflow_mergedElectron) );
+    status_mergedElectron.emplace_back( static_cast<int>(acutflow_mergedElectron) );
     mvas_mergedElectron.emplace_back(amvascore_mergedElectron);
     openingAngles_mergedElectron.emplace_back( static_cast<int>(aopenangle_mergedElectron) );
 
@@ -301,7 +303,7 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
 
   writeValueMap(iEvent,eleHandle,cutflows_modifiedHEEP,"cutflowModifiedHEEP");
   writeValueMap(iEvent,eleHandle,cutflows_HEEP,"cutflowHEEP");
-  writeValueMap(iEvent,eleHandle,cutflows_mergedElectron,"cutflowMergedElectron");
+  writeValueMap(iEvent,eleHandle,status_mergedElectron,"statusMergedElectron");
   writeValueMap(iEvent,eleHandle,mvas_mergedElectron,"mvaMergedElectron");
   writeValueMap(iEvent,eleHandle,openingAngles_mergedElectron,"openingAngleMergedElectron");
 

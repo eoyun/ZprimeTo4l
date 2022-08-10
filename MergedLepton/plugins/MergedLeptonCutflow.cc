@@ -44,7 +44,7 @@ private:
 
   edm::EDGetTokenT<edm::ValueMap<int>> cutflow_modifiedHEEPToken_;
   edm::EDGetTokenT<edm::ValueMap<int>> cutflow_HEEPToken_;
-  edm::EDGetTokenT<edm::ValueMap<int>> cutflow_mergedElectronToken_;
+  edm::EDGetTokenT<edm::ValueMap<int>> status_mergedElectronToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> mva_mergedElectronToken_;
   edm::EDGetTokenT<edm::ValueMap<int>> openingAngle_mergedElectronToken_;
   edm::EDGetTokenT<int> nresolvedElectronToken_;
@@ -62,7 +62,7 @@ prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringPro
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 cutflow_modifiedHEEPToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("cutflow_modifiedHEEP"))),
 cutflow_HEEPToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("cutflow_HEEP"))),
-cutflow_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("cutflow_mergedElectron"))),
+status_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("status_mergedElectron"))),
 mva_mergedElectronToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mva_mergedElectron"))),
 openingAngle_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("openingAngle_mergedElectron"))),
 nresolvedElectronToken_(consumes<int>(iConfig.getParameter<edm::InputTag>("nresolvedElectron"))),
@@ -78,12 +78,12 @@ void MergedLeptonCutflow::beginJob() {
   histo1d_["cutflow_modifiedHEEP_EE"] = fs->make<TH1D>("cutflow_modifiedHEEP_EE","cutflow",11,-1.,10.);
   histo1d_["cutflow_HEEP_EB"] = fs->make<TH1D>("cutflow_HEEP_EB","cutflow",16,-1.,15.);
   histo1d_["cutflow_HEEP_EE"] = fs->make<TH1D>("cutflow_HEEP_EE","cutflow",16,-1.,15.);
-  histo1d_["cutflow_mergedElectron_DR1EB"] = fs->make<TH1D>("cutflow_mergedElectron_DR1EB","cutflow",30,-1.,29.);
-  histo1d_["cutflow_mergedElectron_DR2EB"] = fs->make<TH1D>("cutflow_mergedElectron_DR2EB","cutflow",30,-1.,29.);
-  histo1d_["cutflow_mergedElectron_DR3EB"] = fs->make<TH1D>("cutflow_mergedElectron_DR3EB","cutflow",30,-1.,29.);
-  histo1d_["cutflow_mergedElectron_DR1EE"] = fs->make<TH1D>("cutflow_mergedElectron_DR1EE","cutflow",30,-1.,29.);
-  histo1d_["cutflow_mergedElectron_DR2EE"] = fs->make<TH1D>("cutflow_mergedElectron_DR2EE","cutflow",30,-1.,29.);
-  histo1d_["cutflow_mergedElectron_DR3EE"] = fs->make<TH1D>("cutflow_mergedElectron_DR3EE","cutflow",30,-1.,29.);
+  histo1d_["status_mergedElectron_DR1EB"] = fs->make<TH1D>("status_mergedElectron_DR1EB","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_DR2EB"] = fs->make<TH1D>("status_mergedElectron_DR2EB","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_DR3EB"] = fs->make<TH1D>("status_mergedElectron_DR3EB","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_DR1EE"] = fs->make<TH1D>("status_mergedElectron_DR1EE","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_DR2EE"] = fs->make<TH1D>("status_mergedElectron_DR2EE","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_DR3EE"] = fs->make<TH1D>("status_mergedElectron_DR3EE","status",30,-1.,29.);
   histo1d_["mva1_DR1EB"] = fs->make<TH1D>("mva1_DR1EB","MVA score",200,-1.,1.);
   histo1d_["mva1_DR2EB"] = fs->make<TH1D>("mva1_DR2EB","MVA score",200,-1.,1.);
   histo1d_["mva1_DR3EB"] = fs->make<TH1D>("mva1_DR3EB","MVA score",200,-1.,1.);
@@ -165,8 +165,8 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::ValueMap<int>> cutflow_HEEPHandle;
   iEvent.getByToken(cutflow_HEEPToken_, cutflow_HEEPHandle);
 
-  edm::Handle<edm::ValueMap<int>> cutflow_mergedElectronHandle;
-  iEvent.getByToken(cutflow_mergedElectronToken_, cutflow_mergedElectronHandle);
+  edm::Handle<edm::ValueMap<int>> status_mergedElectronHandle;
+  iEvent.getByToken(status_mergedElectronToken_, status_mergedElectronHandle);
 
   edm::Handle<edm::ValueMap<float>> mva_mergedElectronHandle;
   iEvent.getByToken(mva_mergedElectronToken_, mva_mergedElectronHandle);
@@ -196,8 +196,8 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
       strHEEP += "_EE";
     }
 
-    histo1d_[strModHEEP]->Fill( static_cast<float>( (*cutflow_modifiedHEEPHandle)[aEle] ) + 0.5 , aWeight );
-    histo1d_[strHEEP]->Fill( static_cast<float>( (*cutflow_HEEPHandle)[aEle] ) + 0.5 , aWeight );
+    MergedLeptonIDs::fillCutflow( histo1d_[strModHEEP], (*cutflow_modifiedHEEPHandle)[aEle], aWeight );
+    MergedLeptonIDs::fillCutflow( histo1d_[strHEEP], (*cutflow_HEEPHandle)[aEle] , aWeight );
 
     if ( (*cutflow_modifiedHEEPHandle)[aEle] == static_cast<int>(MergedLeptonIDs::cutflowElectron::dxy) )
       npassed_modHEEP++;
@@ -233,8 +233,8 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
         break;
     }
 
-    histo1d_[static_cast<std::string>("cutflow_mergedElectron")+strOpenangle]
-      ->Fill( static_cast<float>( (*cutflow_mergedElectronHandle)[aEle] ) + 0.5 , aWeight );
+    histo1d_[static_cast<std::string>("status_mergedElectron")+strOpenangle]
+      ->Fill( static_cast<float>( (*status_mergedElectronHandle)[aEle] ) + 0.5 , aWeight );
 
     histo1d_[static_cast<std::string>("mva1")+strOpenangle]
       ->Fill( (*mva_mergedElectronHandle)[aEle] , aWeight );

@@ -32,6 +32,7 @@ namespace MergedLeptonIDs {
     failedHEEP = 20,
     no2ndGsf,
     has2ndGsf,
+    failConvVeto,
     hasMatchedElectron, // has 2nd GSF track but it's from another electron
     passedMVA1, // merged electron MVA selection when there exists 2nd GSF track
     passedMVA2  // merged electron MVA selection when there is no 2nd GSF track
@@ -64,6 +65,8 @@ namespace MergedLeptonIDs {
                                           reco::GsfTrackRef& addGsfTrk );
 
   typeElectron checkTypeElectron(const cutflowElectron&, const cutflowElectron&, const cutflowElectron&);
+
+  void fillCutflow(TH1* ahist, const int acutflow, const double aWeight);
 
   bool isModifiedHEEP(const reco::GsfElectron& el,
                       const reco::Vertex& primaryVertex,
