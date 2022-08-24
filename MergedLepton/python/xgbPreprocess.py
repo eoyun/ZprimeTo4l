@@ -127,3 +127,22 @@ class DataframeInitializer(object):
         aDf = pd.DataFrame(anArr,columns=self.col_)
 
         return aDf, wgts
+
+class SampleProcessor(object):
+    """docstring for SampleProcessor."""
+    def __init__(self, filename, xsec):
+        super(SampleProcessor, self).__init__()
+        self.filename_ = filename
+        self.xsec_ = xsec
+
+    def read(self,dfProducer):
+        afile = ROOT.TFile.Open(self.filename_)
+        atree = afile.Get("mergedFakeAnalyzer/fake_elTree")
+        aGsfTree = afile.Get("mergedFakeAnalyzer/fakeGsf_addGsfTree")
+        aWgtHist = afile.Get("mergedFakeAnalyzer/totWeightedSum")
+        totWgtSum = aWgtHist.GetBinContent(1)
+
+        df, wgts = dfProducer.fill_arr(atree,aGsfTree)
+        wgts = wgts*(self.xsec_*1000./totWgtSum)
+
+        return df, wgts

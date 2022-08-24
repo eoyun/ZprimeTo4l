@@ -31,27 +31,16 @@ mergedGsfTree = aFile.Get("mergedLeptonAnalyzer/mergedEl1Gsf_addGsfTree")
 mergedWgtHist= aFile.Get("mergedLeptonAnalyzer/totWeightedSum")
 mergedTotWgtSum = mergedWgtHist.GetBinContent(1)
 
-dyFile = ROOT.TFile.Open(args.dyFile)
-dyTree = dyFile.Get("mergedFakeAnalyzer/fake_elTree")
-dyGsfTree = dyFile.Get("mergedFakeAnalyzer/fakeGsf_addGsfTree")
-dyWgtHist = dyFile.Get("mergedFakeAnalyzer/totWeightedSum")
-dyTotWgtSum = dyWgtHist.GetBinContent(1)
-
-ttFile = ROOT.TFile.Open(args.ttFile)
-ttTree = ttFile.Get("mergedFakeAnalyzer/fake_elTree")
-ttGsfTree = ttFile.Get("mergedFakeAnalyzer/fakeGsf_addGsfTree")
-ttWgtHist = ttFile.Get("mergedFakeAnalyzer/totWeightedSum")
-ttTotWgtSum = ttWgtHist.GetBinContent(1)
-
 dfProducer = zprep.DataframeInitializer(args.det,args.angle)
-df_mergedEl, wgts_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
-df_dyEl, wgts_dyEl = dfProducer.fill_arr(dyTree,dyGsfTree)
-tt_dyEl, wgts_ttEl = dfProducer.fill_arr(ttTree,ttGsfTree)
-col_names = dfProducer.col_names()
 
-# normalize bkg by xsec
-wgts_dyEl = wgts_dyEl*(6077.22*1000./dyTotWgtSum)
-wgts_ttEl = wgts_ttEl*(831.76*1000./ttTotWgtSum)
+dyProcessor = zprep.SampleProcessor(args.dyFile,6077.22)
+df_dyEl, wgts_dyEl = dyProcessor.read(dfProducer)
+
+ttProcessor = zprep.SampleProcessor(args.ttFile,831.76)
+df_ttEl, wgts_ttEl = ttProcessor.read(dfProducer)
+
+df_mergedEl, wgts_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
+col_names = dfProducer.col_names()
 
 # equalize sumwgt(bkg) to sumwgt(sig) to avoid class imbalance
 sum_sig = np.sum(wgts_mergedEl)
@@ -61,7 +50,7 @@ wgts_dyEl = wgts_dyEl*(sum_sig/sum_bkg)
 wgts_ttEl = wgts_ttEl*(sum_sig/sum_bkg)
 
 # concat bkg
-df_bkg = pd.concat([df_dyEl,tt_dyEl], axis=0, ignore_index=True)
+df_bkg = pd.concat([df_dyEl,df_ttEl], axis=0, ignore_index=True)
 wgts_bkg = np.concatenate((wgts_dyEl,wgts_ttEl), axis=0)
 
 # prepare labels
@@ -183,13 +172,21 @@ transformer.mean_ = np_meanstd[0]
 transformer.scale_ = np_meanstd[1]
 trans_mergedEl = transformer.transform(df_mergedEl)
 trans_DY = transformer.transform(df_dyEl)
-trans_TT = transformer.transform(tt_dyEl)
+trans_TT = transformer.transform(df_ttEl)
 dSig = xgb.DMatrix(trans_mergedEl, weight=wgts_mergedEl, label=y_mergedEl, feature_names=col_names)
 dDy = xgb.DMatrix(trans_DY, weight=wgts_dyEl, label=np.zeros(shape=(df_dyEl.shape[0],)), feature_names=col_names)
-dTT = xgb.DMatrix(trans_TT, weight=wgts_ttEl, label=np.zeros(shape=(tt_dyEl.shape[0],)), feature_names=col_names)
+dTT = xgb.DMatrix(trans_TT, weight=wgts_ttEl, label=np.zeros(shape=(df_ttEl.shape[0],)), feature_names=col_names)
 
 dSigPredict = bst.predict(dSig)
 dDyPredict = bst.predict(dDy)
 dTTPredict = bst.predict(dTT)
 
-zvis.drawScoreByProcess(dSigPredict, wgts_mergedEl, dDyPredict, wgts_dyEl, dTTPredict, wgts_ttEl, args.angle+'_'+args.det+'_scoreProcess')
+zvis.drawScoreByProcess(
+    dSigPredict,
+    wgts_mergedEl,
+    list(np.array([dTTPredict,dDyPredict],dtype=object)),
+    list(np.array([wgts_ttEl,wgts_dyEl],dtype=object)),
+    ['TT','DY'],
+    ['tomato','wheat'],
+    args.angle+'_'+args.det+'_scoreProcess'
+)

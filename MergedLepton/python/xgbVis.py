@@ -21,13 +21,11 @@ def drawScoreOverlay(dSigPredictTrain, dBkgPredictTrain, dSigPredictTest, dBkgPr
     plt.close()
 
     return
-    
-def drawScoreByProcess(dSigPredict, sigWgt, dDyPredict, dyWgt, dTTPredict, ttWgt, plotname, dirname="plot"):
-    dBkg = list(np.array([dTTPredict,dDyPredict],dtype=object))
-    dWgt = list(np.array([ttWgt,dyWgt],dtype=object))
+
+def drawScoreByProcess(dSigPredict, sigWgt, dBkgPredicts, bkgWgts, labellist, colorlist, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.rc('font', size=12)
-    plt.hist(dBkg, 100, stacked=True, weights=dWgt, label=['TT','DY'], range=(0,1), color=['tomato','wheat'])
+    plt.hist(dBkgPredicts, 100, stacked=True, weights=bkgWgts, label=labellist, range=(0,1), color=colorlist)
     plt.hist(dSigPredict, 100, weights=sigWgt, histtype=u'step', label='Sig', range=(0,1), color='navy')
     plt.grid()
     plt.yscale('log')
