@@ -3,13 +3,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-def drawScoreOverlay(dSigPredictTrain, dBkgPredictTrain, dSigPredictTest, dBkgPredictTest, plotname, dirname="plot"):
+def drawScoreOverlay(dSigPredictTrain, wgtsSigTrain, dBkgPredictTrain, wgtsBkgTrain, dSigPredictTest, wgtsSigTest, dBkgPredictTest, wgtsBkgTest, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.rc('font', size=12)
-    plt.hist(dSigPredictTrain, 100, density=True, histtype=u'step', label='Train:Sig', range=(0,1), color='navy')
-    plt.hist(dBkgPredictTrain, 100, density=True, histtype=u'step', label='Train:Bkg', range=(0,1), color='maroon')
-    plt.hist(dSigPredictTest, 100, density=True, alpha=0.4, label='Test:Sig', range=(0,1), color='blue')
-    plt.hist(dBkgPredictTest, 100, density=True, alpha=0.4, label='Test:Bkg', range=(0,1), color='red')
+    plt.hist(dSigPredictTrain, 100, weights=wgtsSigTrain, density=True, histtype=u'step', label='Train:Sig', range=(0,1), color='navy')
+    plt.hist(dBkgPredictTrain, 100, weights=wgtsBkgTrain, density=True, histtype=u'step', label='Train:Bkg', range=(0,1), color='maroon')
+    plt.hist(dSigPredictTest, 100, weights=wgtsSigTest, density=True, alpha=0.4, label='Test:Sig', range=(0,1), color='blue')
+    plt.hist(dBkgPredictTest, 100, weights=wgtsBkgTest, density=True, alpha=0.4, label='Test:Bkg', range=(0,1), color='red')
     plt.grid()
     plt.yscale('log')
     plt.xlim([0,1])

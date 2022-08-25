@@ -36,22 +36,73 @@ dfProducer = zprep.DataframeInitializer(args.det,args.angle)
 dyProcessor = zprep.SampleProcessor(args.dyFile,6077.22)
 df_dyEl, wgts_dyEl = dyProcessor.read(dfProducer)
 
-ttProcessor = zprep.SampleProcessor(args.ttFile,831.76)
+# ttProcessor = zprep.SampleProcessor(args.ttFile,831.76) # FXFX inclusive
+ttProcessor = zprep.SampleProcessor(args.ttFile,54.17) # MLM dilepton
 df_ttEl, wgts_ttEl = ttProcessor.read(dfProducer)
+
+qcdProcessor_1 = zprep.SampleProcessor("QCD_Pt-15to20_fake.root",1324000.0)
+df_qcdEl_1, wgts_qcdEl_1 = qcdProcessor_1.read(dfProducer)
+
+qcdProcessor_2 = zprep.SampleProcessor("QCD_Pt-20to30_fake.root",4896000.0)
+df_qcdEl_2, wgts_qcdEl_2 = qcdProcessor_2.read(dfProducer)
+
+qcdProcessor_3 = zprep.SampleProcessor("QCD_Pt-30to50_fake.root",6447000.0)
+df_qcdEl_3, wgts_qcdEl_3 = qcdProcessor_3.read(dfProducer)
+
+qcdProcessor_4 = zprep.SampleProcessor("QCD_Pt-50to80_fake.root",1988000.0)
+df_qcdEl_4, wgts_qcdEl_4 = qcdProcessor_4.read(dfProducer)
+
+qcdProcessor_5 = zprep.SampleProcessor("QCD_Pt-80to120_fake.root",367500.0)
+df_qcdEl_5, wgts_qcdEl_5 = qcdProcessor_5.read(dfProducer)
+
+qcdProcessor_6 = zprep.SampleProcessor("QCD_Pt-120to170_fake.root",66590.0)
+df_qcdEl_6, wgts_qcdEl_6 = qcdProcessor_6.read(dfProducer)
+
+qcdProcessor_7 = zprep.SampleProcessor("QCD_Pt-170to300_fake.root",16620.0)
+df_qcdEl_7, wgts_qcdEl_7 = qcdProcessor_7.read(dfProducer)
+
+qcdProcessor_8 = zprep.SampleProcessor("QCD_Pt-300toInf_fake.root",1104.0)
+df_qcdEl_8, wgts_qcdEl_8 = qcdProcessor_8.read(dfProducer)
 
 df_mergedEl, wgts_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
 col_names = dfProducer.col_names()
 
 # equalize sumwgt(bkg) to sumwgt(sig) to avoid class imbalance
 sum_sig = np.sum(wgts_mergedEl)
-sum_bkg = np.sum(wgts_dyEl) + np.sum(wgts_ttEl)
+sum_bkg = (np.sum(wgts_dyEl) + np.sum(wgts_ttEl)
+          + np.sum(wgts_qcdEl_1) + np.sum(wgts_qcdEl_2) + np.sum(wgts_qcdEl_3) + np.sum(wgts_qcdEl_4)
+          + np.sum(wgts_qcdEl_5) + np.sum(wgts_qcdEl_6) + np.sum(wgts_qcdEl_7) + np.sum(wgts_qcdEl_8))
 
 wgts_dyEl = wgts_dyEl*(sum_sig/sum_bkg)
 wgts_ttEl = wgts_ttEl*(sum_sig/sum_bkg)
+wgts_qcdEl_1 = wgts_qcdEl_1*(sum_sig/sum_bkg)
+wgts_qcdEl_2 = wgts_qcdEl_2*(sum_sig/sum_bkg)
+wgts_qcdEl_3 = wgts_qcdEl_3*(sum_sig/sum_bkg)
+wgts_qcdEl_4 = wgts_qcdEl_4*(sum_sig/sum_bkg)
+wgts_qcdEl_5 = wgts_qcdEl_5*(sum_sig/sum_bkg)
+wgts_qcdEl_6 = wgts_qcdEl_6*(sum_sig/sum_bkg)
+wgts_qcdEl_7 = wgts_qcdEl_7*(sum_sig/sum_bkg)
+wgts_qcdEl_8 = wgts_qcdEl_8*(sum_sig/sum_bkg)
 
 # concat bkg
-df_bkg = pd.concat([df_dyEl,df_ttEl], axis=0, ignore_index=True)
-wgts_bkg = np.concatenate((wgts_dyEl,wgts_ttEl), axis=0)
+df_bkg = pd.concat([df_dyEl,df_ttEl,
+                    df_qcdEl_1,
+                    df_qcdEl_2,
+                    df_qcdEl_3,
+                    df_qcdEl_4,
+                    df_qcdEl_5,
+                    df_qcdEl_6,
+                    df_qcdEl_7,
+                    df_qcdEl_8], axis=0, ignore_index=True)
+wgts_bkg = np.concatenate((wgts_dyEl,wgts_ttEl,
+                           wgts_qcdEl_1,
+                           wgts_qcdEl_2,
+                           wgts_qcdEl_3,
+                           wgts_qcdEl_4,
+                           wgts_qcdEl_5,
+                           wgts_qcdEl_6,
+                           wgts_qcdEl_7,
+                           wgts_qcdEl_8), axis=0)
 
 # prepare labels
 y_mergedEl = np.ones(shape=(df_mergedEl.shape[0],))
@@ -70,10 +121,6 @@ x_train, x_test, y_train, y_test, wgts_train, wgts_test = sklearn.model_selectio
 
 print('total number of merged objects = %d' % y_mergedEl.shape[0])
 print('total number of bkg objects = %d' % y_bkgEl.shape[0])
-
-print('bkg weights are')
-print(wgts_dyEl)
-print(wgts_ttEl)
 
 dtrain = xgb.DMatrix(x_train, weight=wgts_train, label=y_train, feature_names=col_names)
 dtest = xgb.DMatrix(x_test, weight=wgts_test, label=y_test, feature_names=col_names)
@@ -155,12 +202,24 @@ scoreMerged_train = dTrainPredict[ y_train == 1 ]
 scoreMerged_test = dTestPredict[ y_test == 1 ]
 scoreBkg_train = dTrainPredict[ y_train == 0 ]
 scoreBkg_test = dTestPredict[ y_test == 0 ]
+wgtsMerged_train = wgts_train[ y_train == 1 ]
+wgtsMerged_test = wgts_test[ y_test == 1 ]
+wgtsBkg_train = wgts_train[ y_train == 0 ]
+wgtsBkg_test = wgts_test[ y_test == 0 ]
 
 plotname = args.angle+'_'+args.det
 if args.load=="True" and os.path.splitext(args.model)[1]=='.model':
     plotname += ('_'+os.path.splitext(os.path.basename(args.model))[0])
 
-zvis.drawScoreOverlay(scoreMerged_train,scoreBkg_train,scoreMerged_test,scoreBkg_test,plotname)
+zvis.drawScoreOverlay(scoreMerged_train,
+                      wgtsMerged_train,
+                      scoreBkg_train,
+                      wgtsBkg_train,
+                      scoreMerged_test,
+                      wgtsMerged_test,
+                      scoreBkg_test,
+                      wgtsBkg_test,
+                      plotname)
 
 if args.opt=='True':
     gain = bst.get_score( importance_type='gain')
@@ -173,20 +232,47 @@ transformer.scale_ = np_meanstd[1]
 trans_mergedEl = transformer.transform(df_mergedEl)
 trans_DY = transformer.transform(df_dyEl)
 trans_TT = transformer.transform(df_ttEl)
+trans_QCD1 = transformer.transform(df_qcdEl_1)
+trans_QCD2 = transformer.transform(df_qcdEl_2)
+trans_QCD3 = transformer.transform(df_qcdEl_3)
+trans_QCD4 = transformer.transform(df_qcdEl_4)
+trans_QCD5 = transformer.transform(df_qcdEl_5)
+trans_QCD6 = transformer.transform(df_qcdEl_6)
+trans_QCD7 = transformer.transform(df_qcdEl_7)
+trans_QCD8 = transformer.transform(df_qcdEl_8)
 dSig = xgb.DMatrix(trans_mergedEl, weight=wgts_mergedEl, label=y_mergedEl, feature_names=col_names)
 dDy = xgb.DMatrix(trans_DY, weight=wgts_dyEl, label=np.zeros(shape=(df_dyEl.shape[0],)), feature_names=col_names)
 dTT = xgb.DMatrix(trans_TT, weight=wgts_ttEl, label=np.zeros(shape=(df_ttEl.shape[0],)), feature_names=col_names)
+dQCD1 = xgb.DMatrix(trans_QCD1, weight=wgts_qcdEl_1, label=np.zeros(shape=(df_qcdEl_1.shape[0],)), feature_names=col_names)
+dQCD2 = xgb.DMatrix(trans_QCD2, weight=wgts_qcdEl_2, label=np.zeros(shape=(df_qcdEl_2.shape[0],)), feature_names=col_names)
+dQCD3 = xgb.DMatrix(trans_QCD3, weight=wgts_qcdEl_3, label=np.zeros(shape=(df_qcdEl_3.shape[0],)), feature_names=col_names)
+dQCD4 = xgb.DMatrix(trans_QCD4, weight=wgts_qcdEl_4, label=np.zeros(shape=(df_qcdEl_4.shape[0],)), feature_names=col_names)
+dQCD5 = xgb.DMatrix(trans_QCD5, weight=wgts_qcdEl_5, label=np.zeros(shape=(df_qcdEl_5.shape[0],)), feature_names=col_names)
+dQCD6 = xgb.DMatrix(trans_QCD6, weight=wgts_qcdEl_6, label=np.zeros(shape=(df_qcdEl_6.shape[0],)), feature_names=col_names)
+dQCD7 = xgb.DMatrix(trans_QCD7, weight=wgts_qcdEl_7, label=np.zeros(shape=(df_qcdEl_7.shape[0],)), feature_names=col_names)
+dQCD8 = xgb.DMatrix(trans_QCD8, weight=wgts_qcdEl_8, label=np.zeros(shape=(df_qcdEl_8.shape[0],)), feature_names=col_names)
 
 dSigPredict = bst.predict(dSig)
 dDyPredict = bst.predict(dDy)
 dTTPredict = bst.predict(dTT)
+dQCD1Predict = bst.predict(dQCD1)
+dQCD2Predict = bst.predict(dQCD2)
+dQCD3Predict = bst.predict(dQCD3)
+dQCD4Predict = bst.predict(dQCD4)
+dQCD5Predict = bst.predict(dQCD5)
+dQCD6Predict = bst.predict(dQCD6)
+dQCD7Predict = bst.predict(dQCD7)
+dQCD8Predict = bst.predict(dQCD8)
 
 zvis.drawScoreByProcess(
     dSigPredict,
     wgts_mergedEl,
-    list(np.array([dTTPredict,dDyPredict],dtype=object)),
-    list(np.array([wgts_ttEl,wgts_dyEl],dtype=object)),
-    ['TT','DY'],
-    ['tomato','wheat'],
+    list(np.array([dTTPredict,dDyPredict,
+    dQCD1Predict,dQCD2Predict,dQCD3Predict,dQCD4Predict,dQCD5Predict,dQCD6Predict,dQCD7Predict,dQCD8Predict],dtype=object)),
+    list(np.array([wgts_ttEl,wgts_dyEl,
+    wgts_qcdEl_1,wgts_qcdEl_2,wgts_qcdEl_3,wgts_qcdEl_4,wgts_qcdEl_5,wgts_qcdEl_6,wgts_qcdEl_7,wgts_qcdEl_8],dtype=object)),
+    ['TT','DY','QCD_Pt-15to20','QCD_Pt-20to30','QCD_Pt-30to50','QCD_Pt-50to80','QCD_Pt-80to120'
+    'QCD_Pt-120to170','QCD_Pt-170to300','QCD_Pt-300toInf'],
+    ['tomato','wheat','lightcyan','paleturquoise','turquoise','cyan','darkturquoise','darkcyan','cadetblue','steelblue'],
     args.angle+'_'+args.det+'_scoreProcess'
 )
