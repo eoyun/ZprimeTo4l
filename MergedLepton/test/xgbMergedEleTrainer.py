@@ -271,7 +271,7 @@ zvis.drawScoreByProcess(
     dQCD1Predict,dQCD2Predict,dQCD3Predict,dQCD4Predict,dQCD5Predict,dQCD6Predict,dQCD7Predict,dQCD8Predict],dtype=object)),
     list(np.array([wgts_ttEl,wgts_dyEl,
     wgts_qcdEl_1,wgts_qcdEl_2,wgts_qcdEl_3,wgts_qcdEl_4,wgts_qcdEl_5,wgts_qcdEl_6,wgts_qcdEl_7,wgts_qcdEl_8],dtype=object)),
-    ['TT','DY','QCD_Pt-15to20','QCD_Pt-20to30','QCD_Pt-30to50','QCD_Pt-50to80','QCD_Pt-80to120'
+    ['TT','DY','QCD_Pt-15to20','QCD_Pt-20to30','QCD_Pt-30to50','QCD_Pt-50to80','QCD_Pt-80to120',
     'QCD_Pt-120to170','QCD_Pt-170to300','QCD_Pt-300toInf'],
     ['tomato','wheat','lightcyan','paleturquoise','turquoise','cyan','darkturquoise','darkcyan','cadetblue','steelblue'],
     args.angle+'_'+args.det+'_scoreProcess'

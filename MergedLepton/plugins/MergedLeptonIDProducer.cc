@@ -253,27 +253,45 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
 
           switch ( aopenangle_mergedElectron ) {
             case MergedLeptonIDs::openingAngle::DR1EB:
-              amvascore_mergedElectron = xgbEstimatorDR1EB_->computeMva(aEle,primaryVertex);
+              amvascore_mergedElectron = xgbEstimatorDR1EB_->computeMva(aEle,
+                                                                        primaryVertex,
+                                                                        (*trkIsoMapHandle)[aEle],
+                                                                        (*ecalIsoMapHandle)[aEle]);
               passedMVA = amvascore_mergedElectron > cutDR1EB_;
               break;
             case MergedLeptonIDs::openingAngle::DR2EB:
-              amvascore_mergedElectron = xgbEstimatorDR2EB_->computeMva(aEle,primaryVertex);
+              amvascore_mergedElectron = xgbEstimatorDR2EB_->computeMva(aEle,
+                                                                        primaryVertex,
+                                                                        (*trkIsoMapHandle)[aEle],
+                                                                        (*ecalIsoMapHandle)[aEle]);
               passedMVA = amvascore_mergedElectron > cutDR2EB_;
               break;
             case MergedLeptonIDs::openingAngle::DR3EB:
-              amvascore_mergedElectron = xgbEstimatorDR3EB_->computeMva(aEle,primaryVertex);
+              amvascore_mergedElectron = xgbEstimatorDR3EB_->computeMva(aEle,
+                                                                        primaryVertex,
+                                                                        (*trkIsoMapHandle)[aEle],
+                                                                        (*ecalIsoMapHandle)[aEle]);
               passedMVA = amvascore_mergedElectron > cutDR3EB_;
               break;
             case MergedLeptonIDs::openingAngle::DR1EE:
-              amvascore_mergedElectron = xgbEstimatorDR1EE_->computeMva(aEle,primaryVertex);
+              amvascore_mergedElectron = xgbEstimatorDR1EE_->computeMva(aEle,
+                                                                        primaryVertex,
+                                                                        (*trkIsoMapHandle)[aEle],
+                                                                        (*ecalIsoMapHandle)[aEle]);
               passedMVA = amvascore_mergedElectron > cutDR1EE_;
               break;
             case MergedLeptonIDs::openingAngle::DR2EE:
-              amvascore_mergedElectron = xgbEstimatorDR2EE_->computeMva(aEle,primaryVertex);
+              amvascore_mergedElectron = xgbEstimatorDR2EE_->computeMva(aEle,
+                                                                        primaryVertex,
+                                                                        (*trkIsoMapHandle)[aEle],
+                                                                        (*ecalIsoMapHandle)[aEle]);
               passedMVA = amvascore_mergedElectron > cutDR2EE_;
               break;
             case MergedLeptonIDs::openingAngle::DR3EE:
-              amvascore_mergedElectron = xgbEstimatorDR3EE_->computeMva(aEle,primaryVertex);
+              amvascore_mergedElectron = xgbEstimatorDR3EE_->computeMva(aEle,
+                                                                        primaryVertex,
+                                                                        (*trkIsoMapHandle)[aEle],
+                                                                        (*ecalIsoMapHandle)[aEle]);
               passedMVA = amvascore_mergedElectron > cutDR3EE_;
               break;
             default:

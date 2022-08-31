@@ -32,13 +32,18 @@ public:
     EOverP,
     dxy,
     dz,
-    fbrem
+    fbrem,
+    relModTrkIso,
+    relModEcalHcalD1Iso
   };
 
   MergedMvaEstimator(const edm::FileInPath& weightsfile, const edm::FileInPath& meanstdfile);
   ~MergedMvaEstimator() {}
 
-  double computeMva(const edm::Ptr<pat::Electron>& el, const reco::Vertex& pv);
+  double computeMva(const edm::Ptr<pat::Electron>& el,
+                    const reco::Vertex& pv,
+                    const float& trkIso,
+                    const float& ecalIso);
 
 private:
   std::unique_ptr<const GBRForest> gbrForest_;

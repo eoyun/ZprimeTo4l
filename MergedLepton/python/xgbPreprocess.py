@@ -40,7 +40,9 @@ class DataframeInitializer(object):
         'EOverP',
         'dxy',
         'dz',
-        'fbrem'
+        'fbrem',
+        'relModTrkIso',
+        'relModEcalHcalD1Iso'
         ]
 
     def col_names(self):
@@ -114,6 +116,8 @@ class DataframeInitializer(object):
             anArr[idx,16] = el.dxy
             anArr[idx,17] = el.dz
             anArr[idx,18] = el.fbrem
+            anArr[idx,19] = (el.modTrkIso)/el.pt
+            anArr[idx,20] = (el.modEcalIso+el.dr03HcalDepth1TowerSumEt)/el.pt
 
         # remove rows with only zeros
         mask = ~np.all(anArr==0.0,axis=1)

@@ -26,7 +26,10 @@ MergedMvaEstimator::MergedMvaEstimator(const edm::FileInPath& weightsfile, const
 
 }
 
-double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el, const reco::Vertex& pv) {
+double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el,
+                                      const reco::Vertex& pv,
+                                      const float& trkIso,
+                                      const float& ecalIso) {
   const unsigned int nvar = scale_mean_.size();
   float var[nvar];
 
@@ -49,6 +52,8 @@ double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el, const r
   var[mergedElectronVar::dxy] = el->gsfTrack()->dxy(pv.position());
   var[mergedElectronVar::dz] = el->gsfTrack()->dz(pv.position());
   var[mergedElectronVar::fbrem] = el->fbrem();
+  var[mergedElectronVar::relModTrkIso] = trkIso/el->pt();
+  var[mergedElectronVar::relModEcalHcalD1Iso] = ( ecalIso + el->dr03HcalDepth1TowerSumEt() ) / el->pt();
 
   for (unsigned int idx = 0; idx < nvar; idx++)
     var[idx] = ( var[idx]-scale_mean_.at(idx) ) / scale_std_.at(idx);
