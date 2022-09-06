@@ -91,6 +91,7 @@ void MergedFakeAnalyzer::beginJob() {
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
 
   aHelper_.initElectronTree("ElectronStruct","fake","el");
+  aHelper_.initElectronTree("ElectronStruct","bkg","el");
   aHelper_.initAddGsfTree("AddGsfStruct","fakeGsf","addGsf");
 }
 
@@ -194,11 +195,12 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     histo1d_["cutflow"]->Fill(static_cast<float>(static_cast<int>(cutflow))+0.5,aWeight);
 
     MergedLeptonIDs::cutflowElectron cutflow_HEEP = MergedLeptonIDs::cutflowElectron::baseline;
-    MergedLeptonIDs::hasPassedHEEP(*aEle,
-                                   *primaryVertex,
-                                   (*nrSatCrysHandle)[aEle],
-                                   *rhoHandle,
-                                   cutflow_HEEP);
+    bool passHEEP =
+      MergedLeptonIDs::hasPassedHEEP(*aEle,
+                                     *primaryVertex,
+                                     (*nrSatCrysHandle)[aEle],
+                                     *rhoHandle,
+                                     cutflow_HEEP);
     histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(static_cast<int>(cutflow_HEEP))+0.5,aWeight);
 
     if ( !passModifiedHEEP )
@@ -208,42 +210,42 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     auto addGsfTrk = (*addGsfTrkHandle)[aEle];
     auto orgGsfTrk = aEle->gsfTrack();
 
-    if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) )
-      continue;
+    std::string treename = "";
 
-    // find whether add GSF track has a corresponding electron
-    bool notMerged = false;
+    if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
+      treename = "bkg";
 
-    for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
-      auto secEle = eleHandle->ptrAt(jdx);
-
-      double dr2 = reco::deltaR2(aEle->eta(),aEle->phi(),secEle->eta(),secEle->phi());
-
-      if (dr2 > drThres2)
+      if ( !passHEEP )
         continue;
 
-      const auto secGsfTrk = secEle->gsfTrack();
+    } else {
+      // find whether add GSF track has a corresponding electron
+      treename = "fake";
+      bool notMerged = false;
 
-      if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,secGsfTrk) ) {
-        MergedLeptonIDs::cutflowElectron cutflow2nd = MergedLeptonIDs::cutflowElectron::baseline;
-        bool passModifiedHEEP2nd =
-          MergedLeptonIDs::isModifiedHEEP(*secEle,
-                                          *primaryVertex,
-                                          (*trkIsoMapHandle)[secEle],
-                                          (*ecalIsoMapHandle)[secEle],
-                                          (*nrSatCrysHandle)[secEle],
-                                          *rhoHandle,
-                                          cutflow2nd);
+      for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
+        auto secEle = eleHandle->ptrAt(jdx);
 
-        if ( passModifiedHEEP2nd ) {
+        double dr2 = reco::deltaR2(aEle->eta(),aEle->phi(),secEle->eta(),secEle->phi());
+
+        if (dr2 > drThres2)
+          continue;
+
+        const auto secGsfTrk = secEle->gsfTrack();
+
+        if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,secGsfTrk) ) {
           notMerged = true;
           break;
         }
       }
-    }
 
-    if ( notMerged )
-      continue;
+      if ( notMerged )
+        continue;
+
+      aHelper_.fillGsfTracks((*addGsfTrkHandle)[aEle],
+                             aEle->gsfTrack(),
+                             "fakeGsf");
+    }
 
     aHelper_.fillElectrons(aEle,
                            (*trkIsoMapHandle)[aEle],
@@ -252,10 +254,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                            conversionsHandle,
                            beamSpotHandle,
                            matched ? promptLeptons.at(igen)->pt() : -1.,
-                           "fake");
-    aHelper_.fillGsfTracks((*addGsfTrkHandle)[aEle],
-                           aEle->gsfTrack(),
-                           "fakeGsf");
+                           treename);
   }
 }
 

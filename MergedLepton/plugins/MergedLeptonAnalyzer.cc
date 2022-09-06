@@ -65,7 +65,9 @@ private:
                       const edm::Handle<edm::ValueMap<float>>& ecalIsoMapHandle,
                       const edm::Handle<edm::ValueMap<int>>& nrSatCrysHandle,
                       const edm::Handle<std::vector<reco::Conversion>>& conversions,
+                      const edm::Handle<edm::View<reco::Vertex>>& pvHandle,
                       const edm::Handle<reco::BeamSpot>& beamSpotHandle,
+                      const double rho,
                       const edm::Handle<edm::ValueMap<reco::GsfTrackRef>>& addGsfTrkHandle);
 
   edm::EDGetTokenT<edm::View<reco::Muon>> srcMuon_;
@@ -398,7 +400,9 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                    ecalIsoMapHandle,
                    nrSatCrysHandle,
                    conversionsHandle,
+                   pvHandle,
                    beamSpotHandle,
+                   *rhoHandle,
                    addGsfTrkHandle);
     fillByGsfTrack(heeps2,
                    std::next(promptLeptons.begin(),2),
@@ -406,7 +410,9 @@ void MergedLeptonAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                    ecalIsoMapHandle,
                    nrSatCrysHandle,
                    conversionsHandle,
+                   pvHandle,
                    beamSpotHandle,
+                   *rhoHandle,
                    addGsfTrkHandle);
   }
 
@@ -552,13 +558,26 @@ void MergedLeptonAnalyzer::fillByGsfTrack(std::vector<edm::Ptr<reco::GsfElectron
                                           const edm::Handle<edm::ValueMap<float>>& ecalIsoMapHandle,
                                           const edm::Handle<edm::ValueMap<int>>& nrSatCrysHandle,
                                           const edm::Handle<std::vector<reco::Conversion>>& conversions,
+                                          const edm::Handle<edm::View<reco::Vertex>>& pvHandle,
                                           const edm::Handle<reco::BeamSpot>& beamSpotHandle,
+                                          const double rho,
                                           const edm::Handle<edm::ValueMap<reco::GsfTrackRef>>& addGsfTrkHandle) {
   if ( eles.size()==1 ) {
     auto addGsfTrk = (*addGsfTrkHandle)[eles.front()];
     auto orgGsfTrk = eles.front()->gsfTrack();
 
     if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
+      MergedLeptonIDs::cutflowElectron cutflow_HEEP = MergedLeptonIDs::cutflowElectron::baseline;
+      bool passHEEP =
+        MergedLeptonIDs::hasPassedHEEP(*(eles.front()),
+                                       pvHandle->at(0),
+                                       (*nrSatCrysHandle)[eles.front()],
+                                       rho,
+                                       cutflow_HEEP);
+
+      if ( !passHEEP )
+        return;
+
       aHelper_.fillElectrons(eles.front(),
                              (*trkIsoMapHandle)[eles.front()],
                              (*ecalIsoMapHandle)[eles.front()],
@@ -567,6 +586,8 @@ void MergedLeptonAnalyzer::fillByGsfTrack(std::vector<edm::Ptr<reco::GsfElectron
                              beamSpotHandle,
                              (*eleItr)->pt()+(*std::next(eleItr,1))->pt(),
                              "mergedEl2");
+
+      return;
     } else {
       aHelper_.fillElectrons(eles.front(),
                              (*trkIsoMapHandle)[eles.front()],
