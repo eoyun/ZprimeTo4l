@@ -9,7 +9,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
@@ -38,7 +38,7 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override {}
 
-  edm::EDGetTokenT<edm::View<reco::GsfElectron>> srcEle_;
+  edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
   edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
   edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
@@ -63,7 +63,7 @@ private:
 };
 
 MergedFakeAnalyzer::MergedFakeAnalyzer(const edm::ParameterSet& iConfig) :
-srcEle_(consumes<edm::View<reco::GsfElectron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
+srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
 srcGenPtc_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("srcGenPtc"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
@@ -96,7 +96,7 @@ void MergedFakeAnalyzer::beginJob() {
 }
 
 void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  edm::Handle<edm::View<reco::GsfElectron>> eleHandle;
+  edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(srcEle_, eleHandle);
 
   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
@@ -162,7 +162,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
       promptLeptons.push_back(genptc);
   }
 
-  std::vector<edm::Ptr<reco::GsfElectron>> fakecand;
+  std::vector<edm::Ptr<pat::Electron>> fakecand;
 
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
     auto aEle = eleHandle->ptrAt(idx);
@@ -215,7 +215,7 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
       treename = "bkg";
 
-      if ( !passHEEP )
+      if ( !aEle->electronID("heepElectronID-HEEPV70") )
         continue;
 
     } else {

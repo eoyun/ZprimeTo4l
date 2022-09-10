@@ -41,7 +41,7 @@ public:
     float dEtaIn, dPhiIn, dPhiSeed, dEtaEle, dPhiEle, dEtaSeed;
     float EseedOverP, EOverP;
     float ecalEn, ecalErr, trkErr, combErr, PFcombErr;
-    float dr03EcalRecHitSumEt, dr03HcalDepth1TowerSumEt;
+    float dr03TkSumPtHEEP, dr03EcalRecHitSumEt, dr03HcalDepth1TowerSumEt;
     int nrSatCrys;
     float modTrkIso, modEcalIso;
     int lostHits, nValidHits, nValidPixelHits, GsfHits;
@@ -62,7 +62,7 @@ public:
     float vtx_dx, vtx_dy, vtx_dz, vtx_chi2, vtx_xErr, vtx_yErr, vtx_zErr;
     float vtx_pt, vtx_rapidity, vtx_phi, vtx_M;
   } AddGsfStruct;
-  
+
   typedef struct {
     float weight, prefiringweight;
     int numberOfValidTrackerHits, numberOfValidPixelHits, numberOfValidStripHits,
@@ -111,7 +111,7 @@ public:
   void fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,
                      const reco::GsfTrackRef& orgGsfTrk,
                      const std::string& prefix);
-                     
+
   void fillMuons(const edm::Ptr<reco::Muon>&,
                  const edm::Ptr<reco::GenParticle>&,
                  const edm::Ptr<reco::GenParticle>&,

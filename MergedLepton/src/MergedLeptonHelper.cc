@@ -11,7 +11,7 @@ vtxFitterPset_(vtxFitterPset) {
   + "dEtaIn:dPhiIn:dPhiSeed:dEtaEle:dPhiEle:dEtaSeed:"
   + "EseedOverP:EOverP:"
   + "ecalEn:ecalErr:trkErr:combErr:PFcombErr:"
-  + "dr03EcalRecHitSumEt:dr03HcalDepth1TowerSumEt:"
+  + "dr03TkSumPtHEEP:dr03EcalRecHitSumEt:dr03HcalDepth1TowerSumEt:"
   + "nrSatCrys/I:"
   + "modTrkIso/F:modEcalIso:"
   + "lostHits/I:nValidHits:nValidPixelHits:GsfHits:"
@@ -21,14 +21,14 @@ vtxFitterPset_(vtxFitterPset) {
   + "convVtxFitProb/F:convVtxChi2:convDist:convDcot:convRadius:"
   + "passConversionVeto/I:nbrem:"
   + "fbrem/F:fbremSC";
-  
+
   addgsfstr_ = TString("weight/F:prefiringweight:Gsfpt:Gsfeta:Gsfphi:")
   + "lostHits/I:nValidHits:nValidPixelHits:"
   + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:"
   + "vtxValid/I:"
   + "vtx_dx/F:vtx_dy:vtx_dz:vtx_chi2:vtx_xErr:vtx_yErr:vtx_zErr:"
   + "vtx_pt:vtx_rapidity:vtx_phi:vtx_M";
-  
+
   mustr_ = TString("numberOfValidTrackerHits/I:numberOfValidPixelHits:numberOfValidStripHits:")
   + "trackerLayersWithMeasurement:pixelLayersWithMeasurement:stripLayersWithMeasurement:"
   + "trackerLayersWithoutMeasurement:pixelLayersWithoutMeasurement:stripLayersWithoutMeasurement:"
@@ -37,7 +37,7 @@ vtxFitterPset_(vtxFitterPset) {
   + "trackerVoM/F:pixelVoM:stripVoM:pfPt:tunepPt:genPt:genEta:genPhi:PFoGen:TPoGen:trackerPt:TRKoGen:"
   + "pairPt:pairEta:pairPhi:"
   + "globalChi2:globalNormChi2:trackerChi2:trackerNormChi2:tunepChi2:tunepNormChi2";
-  
+
   metstr_ = TString("PFphi/F:PFdPhi:PFpt:PFoGen:PFoMu:MuEta:PFSumEt:")
   + "TPphi:TPdPhi:TPpt:TPoGen:TPoMu:TPSumEt:dSumEt:sumEtRatio:sumEtRatioTP:nLepton/I:"
   + "bitmask/i";
@@ -134,6 +134,7 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
   elvalues_[prefix+"_el"].combErr = el->p4Error(reco::GsfElectron::P4_COMBINATION);
   elvalues_[prefix+"_el"].PFcombErr = el->p4Error(reco::GsfElectron::P4_PFLOW_COMBINATION);
 
+  elvalues_[prefix+"_el"].dr03TkSumPtHEEP = el->dr03TkSumPtHEEP();
   elvalues_[prefix+"_el"].dr03EcalRecHitSumEt = el->dr03EcalRecHitSumEt();
   elvalues_[prefix+"_el"].dr03HcalDepth1TowerSumEt = el->dr03HcalDepth1TowerSumEt();
   elvalues_[prefix+"_el"].nrSatCrys = nrSatCrys;

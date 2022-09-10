@@ -18,7 +18,6 @@ parser.add_argument("-s","--sig",dest="sigFile",type=str,help="signal sample")
 parser.add_argument("--dy",dest="dyFile",type=str,help="DY sample")
 parser.add_argument("--tt",dest="ttFile",type=str,help="ttbar sample")
 parser.add_argument("--det",dest="det",type=str,help="detector (EB/EE)")
-parser.add_argument("--ang",dest="angle",type=str,help="opening angle (dr1/dr2/dr3)")
 parser.add_argument("--opt",dest="opt",type=str,help="perform training")
 parser.add_argument("--load",dest="load",type=str,help="load model",default="False")
 parser.add_argument("--model",dest="model",type=str,help="path to model",default="")
@@ -26,48 +25,47 @@ parser.add_argument("--model",dest="model",type=str,help="path to model",default
 args = parser.parse_args()
 
 aFile = ROOT.TFile.Open(args.sigFile)
-mergedTree = aFile.Get("mergedLeptonAnalyzer/mergedEl1_elTree")
-mergedGsfTree = aFile.Get("mergedLeptonAnalyzer/mergedEl1Gsf_addGsfTree")
+mergedTree = aFile.Get("mergedLeptonAnalyzer/mergedEl2_elTree")
 mergedWgtHist= aFile.Get("mergedLeptonAnalyzer/totWeightedSum")
 mergedTotWgtSum = mergedWgtHist.GetBinContent(1)
 
-dfProducer = zprep.DataframeInitializer(args.det,args.angle)
+dfProducer = zprep.DataframeInitializer(args.det,"dr1")
 
 dyProcessor = zprep.SampleProcessor(args.dyFile,6077.22)
-df_dyEl, wgts_dyEl = dyProcessor.read(dfProducer)
+df_dyEl, wgts_dyEl = dyProcessor.read_bkg(dfProducer)
 
 # ttProcessor = zprep.SampleProcessor(args.ttFile,831.76) # FXFX inclusive
 ttProcessor = zprep.SampleProcessor(args.ttFile,54.17) # MLM dilepton
-df_ttEl, wgts_ttEl = ttProcessor.read(dfProducer)
+df_ttEl, wgts_ttEl = ttProcessor.read_bkg(dfProducer)
 
 wjetsProcessor = zprep.SampleProcessor("WJets_bkg.root",53870.0)
-df_wjetsEl, wgts_wjetsEl = wjetsProcessor.read(dfProducer)
+df_wjetsEl, wgts_wjetsEl = wjetsProcessor.read_bkg(dfProducer)
 
 qcdProcessor_1 = zprep.SampleProcessor("QCD_Pt-15to20_bkg.root",1324000.0)
-df_qcdEl_1, wgts_qcdEl_1 = qcdProcessor_1.read(dfProducer)
+df_qcdEl_1, wgts_qcdEl_1 = qcdProcessor_1.read_bkg(dfProducer)
 
 qcdProcessor_2 = zprep.SampleProcessor("QCD_Pt-20to30_bkg.root",4896000.0)
-df_qcdEl_2, wgts_qcdEl_2 = qcdProcessor_2.read(dfProducer)
+df_qcdEl_2, wgts_qcdEl_2 = qcdProcessor_2.read_bkg(dfProducer)
 
 qcdProcessor_3 = zprep.SampleProcessor("QCD_Pt-30to50_bkg.root",6447000.0)
-df_qcdEl_3, wgts_qcdEl_3 = qcdProcessor_3.read(dfProducer)
+df_qcdEl_3, wgts_qcdEl_3 = qcdProcessor_3.read_bkg(dfProducer)
 
 qcdProcessor_4 = zprep.SampleProcessor("QCD_Pt-50to80_bkg.root",1988000.0)
-df_qcdEl_4, wgts_qcdEl_4 = qcdProcessor_4.read(dfProducer)
+df_qcdEl_4, wgts_qcdEl_4 = qcdProcessor_4.read_bkg(dfProducer)
 
 qcdProcessor_5 = zprep.SampleProcessor("QCD_Pt-80to120_bkg.root",367500.0)
-df_qcdEl_5, wgts_qcdEl_5 = qcdProcessor_5.read(dfProducer)
+df_qcdEl_5, wgts_qcdEl_5 = qcdProcessor_5.read_bkg(dfProducer)
 
 qcdProcessor_6 = zprep.SampleProcessor("QCD_Pt-120to170_bkg.root",66590.0)
-df_qcdEl_6, wgts_qcdEl_6 = qcdProcessor_6.read(dfProducer)
+df_qcdEl_6, wgts_qcdEl_6 = qcdProcessor_6.read_bkg(dfProducer)
 
 qcdProcessor_7 = zprep.SampleProcessor("QCD_Pt-170to300_bkg.root",16620.0)
-df_qcdEl_7, wgts_qcdEl_7 = qcdProcessor_7.read(dfProducer)
+df_qcdEl_7, wgts_qcdEl_7 = qcdProcessor_7.read_bkg(dfProducer)
 
 qcdProcessor_8 = zprep.SampleProcessor("QCD_Pt-300toInf_bkg.root",1104.0)
-df_qcdEl_8, wgts_qcdEl_8 = qcdProcessor_8.read(dfProducer)
+df_qcdEl_8, wgts_qcdEl_8 = qcdProcessor_8.read_bkg(dfProducer)
 
-df_mergedEl, wgts_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
+df_mergedEl, wgts_mergedEl = dfProducer.fill_bkg(mergedTree)
 col_names = dfProducer.col_names()
 
 # equalize sumwgt(bkg) to sumwgt(sig) to avoid class imbalance
@@ -161,19 +159,19 @@ if args.opt=="True": # hyper-optimization
 
     trials = hyperopt.Trials()
     objec = lambda x: objective(x, dtotal)
-    best = hyperopt.fmin(fn=objec, space=param_space, max_evals=256, algo=hyperopt.tpe.suggest, trials=trials)
+    best = hyperopt.fmin(fn=objec, space=param_space, max_evals=64, algo=hyperopt.tpe.suggest, trials=trials)
 
     print('the best params are')
     print(best)
 
-    np.savez('npz/'+args.angle+'_'+args.det+'.npz', meanstd=np_meanstd, bestparams=np.array(best))
+    np.savez('npz/'+'bkg'+'_'+args.det+'.npz', meanstd=np_meanstd, bestparams=np.array(best))
 
 npz_params = np.array([])
 
 if args.load=="True" and os.path.splitext(args.model)[1]=='.model':
    npz_params = np.load('npz/'+os.path.splitext(os.path.basename(args.model))[0]+'.npz',allow_pickle=True)
 else:
-   npz_params = np.load('npz/'+args.angle+'_'+args.det+'.npz',allow_pickle=True)
+   npz_params = np.load('npz/'+'bkg'+'_'+args.det+'.npz',allow_pickle=True)
 
 param = npz_params['bestparams'][()] # numpy stores dict as 0-d array
 param['max_depth'] = int(param['max_depth'])
@@ -191,13 +189,13 @@ early_stop = xgb.callback.EarlyStopping(rounds=20,metric_name='logloss',data_nam
 
 if args.opt=='True':
     bst = xgb.train(param, dtrain, num_round, evallist, callbacks=[early_stop])
-    bst.save_model('model/'+args.angle+'_'+args.det+'.model')
+    bst.save_model('model/'+'bkg'+'_'+args.det+'.model')
 else:
     if args.load=="True" and os.path.splitext(args.model)[1]=='.model':
         print('load model %s' % args.model)
         bst.load_model(args.model)
     else:
-        bst.load_model('model/'+args.angle+'_'+args.det+'.model')
+        bst.load_model('model/'+'bkg'+'_'+args.det+'.model')
 
 dTrainPredict    = bst.predict(dtrain)
 dTestPredict     = bst.predict(dtest)
@@ -211,7 +209,7 @@ wgtsMerged_test = wgts_test[ y_test == 1 ]
 wgtsBkg_train = wgts_train[ y_train == 0 ]
 wgtsBkg_test = wgts_test[ y_test == 0 ]
 
-plotname = args.angle+'_'+args.det
+plotname = 'bkg'+'_'+args.det
 if args.load=="True" and os.path.splitext(args.model)[1]=='.model':
     plotname += ('_'+os.path.splitext(os.path.basename(args.model))[0])
 
@@ -228,7 +226,7 @@ zvis.drawScoreOverlay(scoreMerged_train,
 if args.opt=='True':
     gain = bst.get_score( importance_type='gain')
     cover = bst.get_score(importance_type='cover')
-    zvis.drawImportance(gain,cover,col_names,args.angle+'_'+args.det+'_importance')
+    zvis.drawImportance(gain,cover,col_names,'bkg'+'_'+args.det+'_importance')
 
 np_meanstd = npz_params['meanstd'][()]
 transformer.mean_ = np_meanstd[0]
@@ -281,5 +279,5 @@ zvis.drawScoreByProcess(
     ['TT','DY','WJets','QCD_Pt-15to20','QCD_Pt-20to30','QCD_Pt-30to50','QCD_Pt-50to80','QCD_Pt-80to120',
     'QCD_Pt-120to170','QCD_Pt-170to300','QCD_Pt-300toInf'],
     ['tomato','wheat','green','lightcyan','paleturquoise','turquoise','cyan','darkturquoise','darkcyan','cadetblue','steelblue'],
-    args.angle+'_'+args.det+'_scoreProcess'
+    'bkg'+'_'+args.det+'_scoreProcess'
 )

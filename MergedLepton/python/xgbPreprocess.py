@@ -132,6 +132,60 @@ class DataframeInitializer(object):
 
         return aDf, wgts
 
+    def fill_bkg(self,aTree):
+        anArr = np.zeros(shape=(aTree.GetEntries(),len(self.col_)))
+        wgts = np.zeros(shape=(aTree.GetEntries(),))
+
+        for iEl, el in enumerate(aTree):
+            if self.det_=='EB':
+                if abs(el.eta) > 1.5:
+                    continue
+            elif self.det_=='EE':
+                if abs(el.eta) < 1.5:
+                    continue
+            else:
+                raise NameError('Please check EB/EE argument, the current argument is %s' % self.det_)
+
+            if float(el.passConversionVeto) < 0.5: # veto conversions
+                continue
+
+            idx = iEl
+            wgts[idx] = el.prefiringweight # xgb does not support negative weights
+            anArr[idx,0] = float(el.charge)
+            anArr[idx,1] = el.etaSCWidth
+            anArr[idx,2] = el.phiSCWidth
+            anArr[idx,3] = el.full5x5_sigmaIetaIeta
+            anArr[idx,4] = el.full5x5_sigmaIphiIphi
+            anArr[idx,5] = el.full5x5_E1x5/el.full5x5_E5x5
+            anArr[idx,6] = el.full5x5_E2x5/el.full5x5_E5x5
+            anArr[idx,7] = el.full5x5_r9
+            anArr[idx,8] = el.dEtaIn
+            anArr[idx,9] = el.dPhiIn
+            anArr[idx,10] = el.dPhiSeed
+            anArr[idx,11] = el.dEtaEle
+            anArr[idx,12] = el.dPhiEle
+            anArr[idx,13] = el.dEtaSeed
+            anArr[idx,14] = el.EseedOverP
+            anArr[idx,15] = el.EOverP
+            anArr[idx,16] = el.dxy
+            anArr[idx,17] = el.dz
+            anArr[idx,18] = el.fbrem
+            anArr[idx,19] = (el.modTrkIso)/el.pt
+            anArr[idx,20] = (el.dr03EcalRecHitSumEt+el.dr03HcalDepth1TowerSumEt)/el.pt
+
+        # remove rows with only zeros
+        mask = ~np.all(anArr==0.0,axis=1)
+        anArr = anArr[mask]
+        wgts = wgts[mask]
+
+        # sanity check
+        if anArr.shape[0] != wgts.shape[0]:
+            raise IndexError("Index of the array and the weight does not match!")
+
+        aDf = pd.DataFrame(anArr,columns=self.col_)
+
+        return aDf, wgts
+
 class SampleProcessor(object):
     """docstring for SampleProcessor."""
     def __init__(self, filename, xsec):
@@ -147,6 +201,17 @@ class SampleProcessor(object):
         totWgtSum = aWgtHist.GetBinContent(1)
 
         df, wgts = dfProducer.fill_arr(atree,aGsfTree)
+        wgts = wgts*(self.xsec_*1000./totWgtSum)
+
+        return df, wgts
+
+    def read_bkg(self,dfProducer):
+        afile = ROOT.TFile.Open(self.filename_)
+        atree = afile.Get("mergedFakeAnalyzer/bkg_elTree")
+        aWgtHist = afile.Get("mergedFakeAnalyzer/totWeightedSum")
+        totWgtSum = aWgtHist.GetBinContent(1)
+
+        df, wgts = dfProducer.fill_bkg(atree)
         wgts = wgts*(self.xsec_*1000./totWgtSum)
 
         return df, wgts
