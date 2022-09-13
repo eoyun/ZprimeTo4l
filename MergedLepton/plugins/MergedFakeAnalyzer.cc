@@ -215,7 +215,8 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
       treename = "bkg";
 
-      if ( !aEle->electronID("heepElectronID-HEEPV70") )
+      // if ( !aEle->electronID("heepElectronID-HEEPV70") )
+      if ( !passHEEP )
         continue;
 
     } else {

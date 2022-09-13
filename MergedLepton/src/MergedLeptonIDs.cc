@@ -92,7 +92,7 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
   double etSC = (el.superCluster()->energy())*(Rt/R);
   double etaSC = el.superCluster()->eta();
   double caloIsoVal = ecalIso + el.dr03HcalDepth1TowerSumEt();
-  if ( etSC < 20. )
+  if ( etSC < 25. )
     return false;
   cutflow = cutflowElectron::minEnergy;
   if ( !el.ecalDriven() )
@@ -154,7 +154,7 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
   double etSC = (el.superCluster()->energy())*(Rt/R);
   double etaSC = el.superCluster()->eta();
   double caloIsoVal = el.dr03EcalRecHitSumEt() + el.dr03HcalDepth1TowerSumEt();
-  if ( etSC < 20. )
+  if ( etSC < 25. )
     return false;
   cutflow = cutflowElectron::minEnergy;
   if ( !el.ecalDriven() )

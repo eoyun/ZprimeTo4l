@@ -10,6 +10,7 @@ mergedLeptonCutflow = cms.EDAnalyzer("MergedLeptonCutflow",
   cutflow_HEEP = cms.InputTag("mergedLeptonIDProducer","cutflowHEEP"),
   status_mergedElectron = cms.InputTag("mergedLeptonIDProducer","statusMergedElectron"),
   mva_mergedElectron = cms.InputTag("mergedLeptonIDProducer","mvaMergedElectron"),
+  mva_mergedElectronNoGsf = cms.InputTag("mergedLeptonIDProducer","mvaMergedElectronNoGsf"),
   openingAngle_mergedElectron = cms.InputTag("mergedLeptonIDProducer","openingAngleMergedElectron"),
   nresolvedElectron = cms.InputTag("mergedLeptonIDProducer","nresolvedElectron"),
   nmergedElectron = cms.InputTag("mergedLeptonIDProducer","nmergedElectron")

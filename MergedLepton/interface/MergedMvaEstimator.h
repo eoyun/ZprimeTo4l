@@ -40,12 +40,15 @@ public:
   MergedMvaEstimator(const edm::FileInPath& weightsfile, const edm::FileInPath& meanstdfile);
   ~MergedMvaEstimator() {}
 
+  void setHas2ndGsf(const bool flag) { has2ndGsf_ = flag; }
+
   double computeMva(const edm::Ptr<pat::Electron>& el,
                     const reco::Vertex& pv,
                     const float& trkIso,
                     const float& ecalIso);
 
 private:
+  bool has2ndGsf_;
   std::unique_ptr<const GBRForest> gbrForest_;
   std::vector<double> scale_mean_;
   std::vector<double> scale_std_;

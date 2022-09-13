@@ -35,7 +35,9 @@ namespace MergedLeptonIDs {
     failConvVeto,
     hasMatchedElectron, // has 2nd GSF track but it's from another electron
     passedMVA1, // merged electron MVA selection when there exists 2nd GSF track
-    passedMVA2  // merged electron MVA selection when there is no 2nd GSF track
+    nonisolated, // has no selected GSF track but there is an electron within dR < 0.3
+    passedMVA2, // merged electron MVA selection when there is no 2nd GSF track
+    passedAllMVA // passed both MVA2 & MVA1
   };
 
   enum openingAngle {

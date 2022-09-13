@@ -46,6 +46,7 @@ private:
   edm::EDGetTokenT<edm::ValueMap<int>> cutflow_HEEPToken_;
   edm::EDGetTokenT<edm::ValueMap<int>> status_mergedElectronToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> mva_mergedElectronToken_;
+  edm::EDGetTokenT<edm::ValueMap<float>> mva_mergedElectronNoGsfToken_;
   edm::EDGetTokenT<edm::ValueMap<int>> openingAngle_mergedElectronToken_;
   edm::EDGetTokenT<int> nresolvedElectronToken_;
   edm::EDGetTokenT<int> nmergedElectronToken_;
@@ -64,6 +65,7 @@ cutflow_modifiedHEEPToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm
 cutflow_HEEPToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("cutflow_HEEP"))),
 status_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("status_mergedElectron"))),
 mva_mergedElectronToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mva_mergedElectron"))),
+mva_mergedElectronNoGsfToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mva_mergedElectronNoGsf"))),
 openingAngle_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("openingAngle_mergedElectron"))),
 nresolvedElectronToken_(consumes<int>(iConfig.getParameter<edm::InputTag>("nresolvedElectron"))),
 nmergedElectronToken_(consumes<int>(iConfig.getParameter<edm::InputTag>("nmergedElectron"))) {
@@ -84,27 +86,45 @@ void MergedLeptonCutflow::beginJob() {
   histo1d_["status_mergedElectron_DR1EE"] = fs->make<TH1D>("status_mergedElectron_DR1EE","status",30,-1.,29.);
   histo1d_["status_mergedElectron_DR2EE"] = fs->make<TH1D>("status_mergedElectron_DR2EE","status",30,-1.,29.);
   histo1d_["status_mergedElectron_DR3EE"] = fs->make<TH1D>("status_mergedElectron_DR3EE","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_bkgEB"] = fs->make<TH1D>("status_mergedElectron_bkgEB","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_bkgEE"] = fs->make<TH1D>("status_mergedElectron_bkgEE","status",30,-1.,29.);
   histo1d_["mva1_DR1EB"] = fs->make<TH1D>("mva1_DR1EB","MVA score",200,-1.,1.);
   histo1d_["mva1_DR2EB"] = fs->make<TH1D>("mva1_DR2EB","MVA score",200,-1.,1.);
   histo1d_["mva1_DR3EB"] = fs->make<TH1D>("mva1_DR3EB","MVA score",200,-1.,1.);
   histo1d_["mva1_DR1EE"] = fs->make<TH1D>("mva1_DR1EE","MVA score",200,-1.,1.);
   histo1d_["mva1_DR2EE"] = fs->make<TH1D>("mva1_DR2EE","MVA score",200,-1.,1.);
   histo1d_["mva1_DR3EE"] = fs->make<TH1D>("mva1_DR3EE","MVA score",200,-1.,1.);
+  histo1d_["mva1_bkgEB"] = fs->make<TH1D>("mva1_bkgEB","MVA score",200,-1.,1.);
+  histo1d_["mva1_bkgEE"] = fs->make<TH1D>("mva1_bkgEE","MVA score",200,-1.,1.);
+  histo1d_["mva2_bkgEB"] = fs->make<TH1D>("mva2_bkgEB","MVA score",200,-1.,1.);
+  histo1d_["mva2_bkgEE"] = fs->make<TH1D>("mva2_bkgEE","MVA score",200,-1.,1.);
   histo1d_["cutflow_4E"] = fs->make<TH1D>("cutflow_4E","cutflow",10,0.,10.);
   histo1d_["cutflow_3E"] = fs->make<TH1D>("cutflow_3E","cutflow",10,0.,10.);
   histo1d_["cutflow_2E"] = fs->make<TH1D>("cutflow_2E","cutflow",10,0.,10.);
 
   histo1d_["pt_3E_ME"] = fs->make<TH1D>("pt_3E_ME","Pt",200,0.,500.);
   histo1d_["eta_3E_ME"] = fs->make<TH1D>("eta_3E_ME","3Eta",200,-2.5,2.5);
-  histo1d_["phi_3E_ME"] = fs->make<TH1D>("phi_3E_ME","Phi",115,-3.3,3.3);
+  histo1d_["phi_3E_ME"] = fs->make<TH1D>("phi_3E_ME","Phi",128,-3.2,3.2);
 
   histo1d_["pt_2E_ME1"] = fs->make<TH1D>("pt_2E_ME1","Pt",200,0.,500.);
   histo1d_["eta_2E_ME1"] = fs->make<TH1D>("eta_2E_ME1","Eta",200,-2.5,2.5);
-  histo1d_["phi_2E_ME1"] = fs->make<TH1D>("phi_2E_ME1","Phi",115,-3.3,3.3);
+  histo1d_["phi_2E_ME1"] = fs->make<TH1D>("phi_2E_ME1","Phi",128,-3.2,3.2);
 
-  histo1d_["pt_2E_ME2"] = fs->make<TH1D>("pt_2E_ME2","Pt",500,0.,500.);
+  histo1d_["pt_2E_ME2"] = fs->make<TH1D>("pt_2E_ME2","Pt",200,0.,500.);
   histo1d_["eta_2E_ME2"] = fs->make<TH1D>("eta_2E_ME2","Eta",200,-2.5,2.5);
-  histo1d_["phi_2E_ME2"] = fs->make<TH1D>("phi_2E_ME2","Phi",115,-3.3,3.3);
+  histo1d_["phi_2E_ME2"] = fs->make<TH1D>("phi_2E_ME2","Phi",128,-3.2,3.2);
+
+  histo1d_["pt_3E_ME_noGsf"] = fs->make<TH1D>("pt_3E_ME_noGsf","Pt",200,0.,500.);
+  histo1d_["eta_3E_ME_noGsf"] = fs->make<TH1D>("eta_3E_ME_noGsf","3Eta",200,-2.5,2.5);
+  histo1d_["phi_3E_ME"] = fs->make<TH1D>("phi_3E_ME_noGsf","Phi",128,-3.2,3.2);
+
+  histo1d_["pt_2E_ME1_noGsf"] = fs->make<TH1D>("pt_2E_ME1_noGsf","Pt",200,0.,500.);
+  histo1d_["eta_2E_ME1_noGsf"] = fs->make<TH1D>("eta_2E_ME1_noGsf","Eta",200,-2.5,2.5);
+  histo1d_["phi_2E_ME1_noGsf"] = fs->make<TH1D>("phi_2E_ME1_noGsf","Phi",128,-3.2,3.2);
+
+  histo1d_["pt_2E_ME2_noGsf"] = fs->make<TH1D>("pt_2E_ME2_noGsf","Pt",200,0.,500.);
+  histo1d_["eta_2E_ME2_noGsf"] = fs->make<TH1D>("eta_2E_ME2_noGsf","Eta",200,-2.5,2.5);
+  histo1d_["phi_2E_ME2_noGsf"] = fs->make<TH1D>("phi_2E_ME2_noGsf","Phi",128,-3.2,3.2);
 }
 
 void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -164,6 +184,10 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
   if (!isFired)
     return;
 
+  histo1d_["cutflow_4E"]->Fill( 1.5, aWeight );
+  histo1d_["cutflow_3E"]->Fill( 1.5, aWeight );
+  histo1d_["cutflow_2E"]->Fill( 1.5, aWeight );
+
   edm::Ptr<reco::Vertex> primaryVertex;
 
   if (pvHandle.isValid() && !pvHandle->empty())
@@ -183,6 +207,9 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::ValueMap<float>> mva_mergedElectronHandle;
   iEvent.getByToken(mva_mergedElectronToken_, mva_mergedElectronHandle);
 
+  edm::Handle<edm::ValueMap<float>> mva_mergedElectronNoGsfHandle;
+  iEvent.getByToken(mva_mergedElectronNoGsfToken_, mva_mergedElectronNoGsfHandle);
+
   edm::Handle<edm::ValueMap<int>> openingAngle_mergedElectronHandle;
   iEvent.getByToken(openingAngle_mergedElectronToken_, openingAngle_mergedElectronHandle);
 
@@ -191,6 +218,32 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   edm::Handle<int> nmergedElectronHandle;
   iEvent.getByToken(nmergedElectronToken_, nmergedElectronHandle);
+
+  // first two (modified)HEEP electrons should be Et > 35 GeV
+  std::vector<edm::Ptr<reco::GsfElectron>> acceptEles;
+
+  auto sortByPt = [](const edm::Ptr<reco::GsfElectron> a, const edm::Ptr<reco::GsfElectron> b) {
+    return a->pt() > b->pt();
+  };
+
+  for (unsigned int idx = 0; idx < eleHandle->size(); idx++) {
+    auto aEle = eleHandle->ptrAt(idx);
+
+    if ( (*cutflow_modifiedHEEPHandle)[aEle] == static_cast<int>(MergedLeptonIDs::cutflowElectron::dxy) )
+      acceptEles.push_back(aEle);
+  }
+
+  std::sort(acceptEles.begin(),acceptEles.end(),sortByPt);
+
+  bool accepted = false;
+
+  if ( acceptEles.size() > 1 ) {
+    if ( acceptEles.at(1)->pt() > 35. )
+      accepted = true;
+  }
+
+  if (!accepted)
+    return;
 
   int npassed_modHEEP = 0;
   std::vector<edm::Ptr<reco::GsfElectron>> mergedEls;
@@ -217,55 +270,58 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     auto aopenangle = static_cast<MergedLeptonIDs::openingAngle>((*openingAngle_mergedElectronHandle)[aEle]);
 
-    if (aopenangle==MergedLeptonIDs::openingAngle::nullAngle)
-      continue; // no additional GSF track or has matched electron
+    std::string postfix = "";
 
-    std::string strOpenangle = "";
+    if (aopenangle==MergedLeptonIDs::openingAngle::nullAngle) {
+      // no 2nd GSF
+      if ( std::abs(aEle->eta()) < 1.5 )
+        postfix = "_bkgEB";
+      else
+        postfix = "_bkgEE";
 
-    switch (aopenangle) { // better way to do this?
-      case MergedLeptonIDs::openingAngle::DR1EB:
-        strOpenangle = "_DR1EB";
-        break;
-      case MergedLeptonIDs::openingAngle::DR2EB:
-        strOpenangle = "_DR2EB";
-        break;
-      case MergedLeptonIDs::openingAngle::DR3EB:
-        strOpenangle = "_DR3EB";
-        break;
-      case MergedLeptonIDs::openingAngle::DR1EE:
-        strOpenangle = "_DR1EE";
-        break;
-      case MergedLeptonIDs::openingAngle::DR2EE:
-        strOpenangle = "_DR2EE";
-        break;
-      case MergedLeptonIDs::openingAngle::DR3EE:
-        strOpenangle = "_DR3EE";
-        break;
-      default:
-        throw cms::Exception("LogicError") << "opening angle between the original and additional GSF track does not fit into any of MergedLeptonIDs::openingAngle categories" << std::endl;
-        break;
+      histo1d_[static_cast<std::string>("mva2")+postfix]
+        ->Fill( (*mva_mergedElectronNoGsfHandle)[aEle] , aWeight );
+
+    } else {
+      // has 2nd GSF
+      switch (aopenangle) { // better way to do this?
+        case MergedLeptonIDs::openingAngle::DR1EB:
+          postfix = "_DR1EB";
+          break;
+        case MergedLeptonIDs::openingAngle::DR2EB:
+          postfix = "_DR2EB";
+          break;
+        case MergedLeptonIDs::openingAngle::DR3EB:
+          postfix = "_DR3EB";
+          break;
+        case MergedLeptonIDs::openingAngle::DR1EE:
+          postfix = "_DR1EE";
+          break;
+        case MergedLeptonIDs::openingAngle::DR2EE:
+          postfix = "_DR2EE";
+          break;
+        case MergedLeptonIDs::openingAngle::DR3EE:
+          postfix = "_DR3EE";
+          break;
+        default:
+          throw cms::Exception("LogicError") << "opening angle between the original and additional GSF track does not fit into any of MergedLeptonIDs::openingAngle categories" << std::endl;
+          break;
+      }
     }
 
-    histo1d_[static_cast<std::string>("status_mergedElectron")+strOpenangle]
+    histo1d_[static_cast<std::string>("status_mergedElectron")+postfix]
       ->Fill( static_cast<float>( (*status_mergedElectronHandle)[aEle] ) + 0.5 , aWeight );
 
-    histo1d_[static_cast<std::string>("mva1")+strOpenangle]
+    histo1d_[static_cast<std::string>("mva1")+postfix]
       ->Fill( (*mva_mergedElectronHandle)[aEle] , aWeight );
 
-    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) )
+    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedAllMVA) )
       mergedEls.push_back(aEle);
 
   } // electron loop
 
-  auto sortByPt = [](const edm::Ptr<reco::GsfElectron> a, const edm::Ptr<reco::GsfElectron> b) {
-    return a->pt() > b->pt();
-  };
-
   std::sort(mergedEls.begin(),mergedEls.end(),sortByPt);
-
-  histo1d_["cutflow_4E"]->Fill( 1.5, aWeight );
-  histo1d_["cutflow_3E"]->Fill( 1.5, aWeight );
-  histo1d_["cutflow_2E"]->Fill( 1.5, aWeight );
 
   switch (npassed_modHEEP) {
     case 4:
@@ -278,9 +334,16 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       if ( *nmergedElectronHandle==1 ) {
         histo1d_["cutflow_3E"]->Fill( 3.5, aWeight );
-        histo1d_["pt_3E_ME"]->Fill( mergedEls.front()->pt(), aWeight );
-        histo1d_["eta_3E_ME"]->Fill( mergedEls.front()->eta(), aWeight );
-        histo1d_["phi_3E_ME"]->Fill( mergedEls.front()->phi(), aWeight );
+
+        if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
+          histo1d_["pt_3E_ME"]->Fill( mergedEls.front()->pt(), aWeight );
+          histo1d_["eta_3E_ME"]->Fill( mergedEls.front()->eta(), aWeight );
+          histo1d_["phi_3E_ME"]->Fill( mergedEls.front()->phi(), aWeight );
+        } else if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedAllMVA) ) {
+          histo1d_["pt_3E_ME_noGsf"]->Fill( mergedEls.front()->pt(), aWeight );
+          histo1d_["eta_3E_ME_noGsf"]->Fill( mergedEls.front()->eta(), aWeight );
+          histo1d_["phi_3E_ME_noGsf"]->Fill( mergedEls.front()->phi(), aWeight );
+        } else {}
       }
 
       break;
@@ -290,12 +353,26 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
         histo1d_["cutflow_2E"]->Fill( 3.5, aWeight );
       if ( *nmergedElectronHandle==2 ) {
         histo1d_["cutflow_2E"]->Fill( 4.5, aWeight );
-        histo1d_["pt_2E_ME1"]->Fill( mergedEls.front()->pt(), aWeight );
-        histo1d_["eta_2E_ME1"]->Fill( mergedEls.front()->eta(), aWeight );
-        histo1d_["phi_2E_ME1"]->Fill( mergedEls.front()->phi(), aWeight );
-        histo1d_["pt_2E_ME2"]->Fill( mergedEls.at(1)->pt(), aWeight );
-        histo1d_["eta_2E_ME2"]->Fill( mergedEls.at(1)->eta(), aWeight );
-        histo1d_["phi_2E_ME2"]->Fill( mergedEls.at(1)->phi(), aWeight );
+
+        if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
+          histo1d_["pt_2E_ME1"]->Fill( mergedEls.front()->pt(), aWeight );
+          histo1d_["eta_2E_ME1"]->Fill( mergedEls.front()->eta(), aWeight );
+          histo1d_["phi_2E_ME1"]->Fill( mergedEls.front()->phi(), aWeight );
+        } else if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedAllMVA) ) {
+          histo1d_["pt_2E_ME1_noGsf"]->Fill( mergedEls.front()->pt(), aWeight );
+          histo1d_["eta_2E_ME1_noGsf"]->Fill( mergedEls.front()->eta(), aWeight );
+          histo1d_["phi_2E_ME1_noGsf"]->Fill( mergedEls.front()->phi(), aWeight );
+        } else {}
+
+        if ( (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
+          histo1d_["pt_2E_ME2"]->Fill( mergedEls.at(1)->pt(), aWeight );
+          histo1d_["eta_2E_ME2"]->Fill( mergedEls.at(1)->eta(), aWeight );
+          histo1d_["phi_2E_ME2"]->Fill( mergedEls.at(1)->phi(), aWeight );
+        } else if ( (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedAllMVA) ) {
+          histo1d_["pt_2E_ME2_noGsf"]->Fill( mergedEls.at(1)->pt(), aWeight );
+          histo1d_["eta_2E_ME2_noGsf"]->Fill( mergedEls.at(1)->eta(), aWeight );
+          histo1d_["phi_2E_ME2_noGsf"]->Fill( mergedEls.at(1)->phi(), aWeight );
+        } else {}
       }
 
       break;

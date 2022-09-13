@@ -26,5 +26,11 @@ mergedLeptonIDProducer = cms.EDProducer("MergedLeptonIDProducer",
   cutDR2EE=cms.double(0.9),
   xgbPathDR3EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/dr3_EE.xml"),
   meanstdPathDR3EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/dr3_EE.csv"),
-  cutDR3EE=cms.double(0.9)
+  cutDR3EE=cms.double(0.9),
+  xgbPathBkgEB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/bkg_EB.xml"),
+  meanstdPathBkgEB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/bkg_EB.csv"),
+  cutBkgEB=cms.double(0.9),
+  xgbPathBkgEE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/bkg_EE.xml"),
+  meanstdPathBkgEE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/bkg_EE.csv"),
+  cutBkgEE=cms.double(0.9)
 )

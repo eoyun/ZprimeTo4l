@@ -170,7 +170,7 @@ class DataframeInitializer(object):
             anArr[idx,16] = el.dxy
             anArr[idx,17] = el.dz
             anArr[idx,18] = el.fbrem
-            anArr[idx,19] = (el.modTrkIso)/el.pt
+            anArr[idx,19] = (el.dr03TkSumPtHEEP)/el.pt
             anArr[idx,20] = (el.dr03EcalRecHitSumEt+el.dr03HcalDepth1TowerSumEt)/el.pt
 
         # remove rows with only zeros
