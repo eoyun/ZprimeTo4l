@@ -31,13 +31,13 @@ MergedLeptonIDs::typeElectron MergedLeptonIDs::checkTypeElectron(const cutflowEl
   if ( acutflow_modifiedHEEP==cutflowElectron::dxy &&
        acutflow_mergedElectron!=cutflowElectron::failedHEEP ) {
     if ( acutflow_mergedElectron==cutflowElectron::passedMVA1 ||
-         acutflow_mergedElectron==cutflowElectron::passedMVA2 )
+         acutflow_mergedElectron==cutflowElectron::passedAllMVA )
       return typeElectron::merged;
     if ( acutflow_HEEP!=cutflowElectron::showerShape &&
          acutflow_mergedElectron!=cutflowElectron::passedMVA1 )
       return typeElectron::resolved;
     if ( acutflow_HEEP==cutflowElectron::showerShape &&
-         acutflow_mergedElectron!=cutflowElectron::passedMVA2 )
+         acutflow_mergedElectron!=cutflowElectron::passedAllMVA )
       return typeElectron::resolved;
   }
 

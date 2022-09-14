@@ -116,7 +116,7 @@ void MergedLeptonCutflow::beginJob() {
 
   histo1d_["pt_3E_ME_noGsf"] = fs->make<TH1D>("pt_3E_ME_noGsf","Pt",200,0.,500.);
   histo1d_["eta_3E_ME_noGsf"] = fs->make<TH1D>("eta_3E_ME_noGsf","3Eta",200,-2.5,2.5);
-  histo1d_["phi_3E_ME"] = fs->make<TH1D>("phi_3E_ME_noGsf","Phi",128,-3.2,3.2);
+  histo1d_["phi_3E_ME_noGsf"] = fs->make<TH1D>("phi_3E_ME_noGsf","Phi",128,-3.2,3.2);
 
   histo1d_["pt_2E_ME1_noGsf"] = fs->make<TH1D>("pt_2E_ME1_noGsf","Pt",200,0.,500.);
   histo1d_["eta_2E_ME1_noGsf"] = fs->make<TH1D>("eta_2E_ME1_noGsf","Eta",200,-2.5,2.5);
@@ -326,13 +326,13 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
   switch (npassed_modHEEP) {
     case 4:
       histo1d_["cutflow_4E"]->Fill( 2.5, aWeight );
-      if ( *nmergedElectronHandle==0 )
+      if ( mergedEls.size()==0 )
         histo1d_["cutflow_4E"]->Fill( 3.5, aWeight );
       break;
     case 3:
       histo1d_["cutflow_3E"]->Fill( 2.5, aWeight );
 
-      if ( *nmergedElectronHandle==1 ) {
+      if ( mergedEls.size()==1 ) {
         histo1d_["cutflow_3E"]->Fill( 3.5, aWeight );
 
         if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
@@ -349,9 +349,9 @@ void MergedLeptonCutflow::analyze(const edm::Event& iEvent, const edm::EventSetu
       break;
     case 2:
       histo1d_["cutflow_2E"]->Fill( 2.5, aWeight );
-      if ( *nmergedElectronHandle > 0 )
+      if ( mergedEls.size() > 0 )
         histo1d_["cutflow_2E"]->Fill( 3.5, aWeight );
-      if ( *nmergedElectronHandle==2 ) {
+      if ( mergedEls.size()==2 ) {
         histo1d_["cutflow_2E"]->Fill( 4.5, aWeight );
 
         if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
