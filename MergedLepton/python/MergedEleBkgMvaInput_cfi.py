@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-mergedFakeAnalyzer = cms.EDAnalyzer("MergedFakeAnalyzer",
+mergedEleBkgMvaInput = cms.EDAnalyzer("MergedEleBkgMvaInput",
   srcEle=cms.InputTag("slimmedElectrons"),
   srcGenPtc=cms.InputTag("prunedGenParticles"),
   srcPv=cms.InputTag("offlineSlimmedPrimaryVertices"),
@@ -16,6 +16,6 @@ mergedFakeAnalyzer = cms.EDAnalyzer("MergedFakeAnalyzer",
         maxDistance = cms.double(0.01),
         maxNbrOfIterations = cms.int32(10)
   ),
-  ptThres=cms.double(20.),
+  ptThres=cms.double(25.),
   drThres=cms.double(0.3)
 )

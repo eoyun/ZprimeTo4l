@@ -28,10 +28,10 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
 
-class MergedFakeAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class MergedEleBkgMvaInput : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit MergedFakeAnalyzer(const edm::ParameterSet&);
-  virtual ~MergedFakeAnalyzer() {}
+  explicit MergedEleBkgMvaInput(const edm::ParameterSet&);
+  virtual ~MergedEleBkgMvaInput() {}
 
 private:
   virtual void beginJob() override;
@@ -62,7 +62,7 @@ private:
   std::map<std::string,TH1*> histo1d_;
 };
 
-MergedFakeAnalyzer::MergedFakeAnalyzer(const edm::ParameterSet& iConfig) :
+MergedEleBkgMvaInput::MergedEleBkgMvaInput(const edm::ParameterSet& iConfig) :
 srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
 srcGenPtc_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("srcGenPtc"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
@@ -82,12 +82,10 @@ aHelper_(vtxFitterPset_) {
   usesResource("TFileService");
 }
 
-void MergedFakeAnalyzer::beginJob() {
+void MergedEleBkgMvaInput::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
   aHelper_.SetFileService(&fs);
-  histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
-  histo1d_["cutflow_HEEP"] = fs->make<TH1D>("cutflow_HEEP","cutflow_HEEP",15,0.,15.);
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
 
   aHelper_.initElectronTree("ElectronStruct","fake","el");
@@ -95,7 +93,7 @@ void MergedFakeAnalyzer::beginJob() {
   aHelper_.initAddGsfTree("AddGsfStruct","fakeGsf","addGsf");
 }
 
-void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(srcEle_, eleHandle);
 
@@ -192,7 +190,6 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                                       (*nrSatCrysHandle)[aEle],
                                       *rhoHandle,
                                       cutflow);
-    histo1d_["cutflow"]->Fill(static_cast<float>(static_cast<int>(cutflow))+0.5,aWeight);
 
     MergedLeptonIDs::cutflowElectron cutflow_HEEP = MergedLeptonIDs::cutflowElectron::baseline;
     bool passHEEP =
@@ -201,7 +198,6 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                                      (*nrSatCrysHandle)[aEle],
                                      *rhoHandle,
                                      cutflow_HEEP);
-    histo1d_["cutflow_HEEP"]->Fill(static_cast<float>(static_cast<int>(cutflow_HEEP))+0.5,aWeight);
 
     if ( !passModifiedHEEP )
       continue;
@@ -215,7 +211,6 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
       treename = "bkg";
 
-      // if ( !aEle->electronID("heepElectronID-HEEPV70") )
       if ( !passHEEP )
         continue;
 
@@ -259,4 +254,4 @@ void MergedFakeAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   }
 }
 
-DEFINE_FWK_MODULE(MergedFakeAnalyzer);
+DEFINE_FWK_MODULE(MergedEleBkgMvaInput);
