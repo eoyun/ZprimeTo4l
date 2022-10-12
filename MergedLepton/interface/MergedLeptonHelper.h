@@ -18,11 +18,6 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
-#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
-#include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
-#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
-#include "TrackingTools/Records/interface/TransientTrackRecord.h"
-
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 
 #include "TTree.h"
@@ -33,7 +28,7 @@ class MergedLeptonHelper {
 public:
   typedef struct {
     float weight, prefiringweight;
-    float pt, eta, phi, en, genPt;
+    float pt, eta, phi, en;
     int charge;
     float enSC, etSC, etaSC, phiSC, etaSCWidth, phiSCWidth;
     float full5x5_sigmaIetaIeta, full5x5_sigmaIphiIphi;
@@ -58,9 +53,6 @@ public:
     float Gsfpt, Gsfeta, Gsfphi;
     int lostHits, nValidHits, nValidPixelHits;
     float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz;
-    int vtxValid;
-    float vtx_dx, vtx_dy, vtx_dz, vtx_chi2, vtx_xErr, vtx_yErr, vtx_zErr;
-    float vtx_pt, vtx_rapidity, vtx_phi, vtx_M;
   } AddGsfStruct;
 
   typedef struct {
@@ -82,7 +74,7 @@ public:
     unsigned int bitmask;
   } METstruct;
 
-  MergedLeptonHelper(edm::ParameterSet& vtxFitterPset);
+  MergedLeptonHelper();
   virtual ~MergedLeptonHelper() {}
 
 public:
@@ -105,7 +97,6 @@ public:
                      const int& nrSatCrys,
                      const edm::Handle<reco::ConversionCollection>& conversions,
                      const edm::Handle<reco::BeamSpot>& beamSpotHandle,
-                     const double& genPt,
                      const std::string& prefix);
 
   void fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,
@@ -131,7 +122,6 @@ public:
 
   // non of these are owned by the helper
   void SetFileService(edm::Service<TFileService>* fs) { pFS_ = fs; }
-  void SetTTBuilder(edm::ESHandle<TransientTrackBuilder>* ttbuilder) { pTTBuilder_ = ttbuilder; }
   void SetPV(edm::Ptr<reco::Vertex> pv) { pPV_ = pv; }
   void SetMCweight(double mcweight) { mcweight_ = mcweight; }
   void SetPrefiringWeight(double prefiringweight) { prefiringweight_ = prefiringweight; }
@@ -145,9 +135,6 @@ private:
   std::map<std::string,METstruct> metvalues_;
 
   edm::Service<TFileService>* pFS_;
-  edm::ESHandle<TransientTrackBuilder>* pTTBuilder_;
-  edm::ParameterSet vtxFitterPset_;
-
   edm::Ptr<reco::Vertex> pPV_;
 
   double mcweight_;

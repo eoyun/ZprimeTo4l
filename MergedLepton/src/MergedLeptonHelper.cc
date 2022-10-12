@@ -1,10 +1,8 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
 
-MergedLeptonHelper::MergedLeptonHelper(edm::ParameterSet& vtxFitterPset) :
-pFS_(nullptr),
-pTTBuilder_(nullptr),
-vtxFitterPset_(vtxFitterPset) {
-  elstr_ = TString("weight/F:prefiringweight:pt:eta:phi:en:genPt:charge/I:")
+MergedLeptonHelper::MergedLeptonHelper() :
+pFS_(nullptr) {
+  elstr_ = TString("weight/F:prefiringweight:pt:eta:phi:en:charge/I:")
   + "enSC/F:etSC:etaSC:phiSC:etaSCWidth:phiSCWidth:"
   + "full5x5_sigmaIetaIeta:full5x5_sigmaIphiIphi:"
   + "full5x5_E1x5:full5x5_E2x5:full5x5_E5x5:full5x5_hOverE:full5x5_r9:"
@@ -24,10 +22,7 @@ vtxFitterPset_(vtxFitterPset) {
 
   addgsfstr_ = TString("weight/F:prefiringweight:Gsfpt:Gsfeta:Gsfphi:")
   + "lostHits/I:nValidHits:nValidPixelHits:"
-  + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:"
-  + "vtxValid/I:"
-  + "vtx_dx/F:vtx_dy:vtx_dz:vtx_chi2:vtx_xErr:vtx_yErr:vtx_zErr:"
-  + "vtx_pt:vtx_rapidity:vtx_phi:vtx_M";
+  + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:";
 
   mustr_ = TString("numberOfValidTrackerHits/I:numberOfValidPixelHits:numberOfValidStripHits:")
   + "trackerLayersWithMeasurement:pixelLayersWithMeasurement:stripLayersWithMeasurement:"
@@ -88,7 +83,6 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
                                        const int& nrSatCrys,
                                        const edm::Handle<reco::ConversionCollection>& conversions,
                                        const edm::Handle<reco::BeamSpot>& beamSpotHandle,
-                                       const double& genPt,
                                        const std::string& prefix) {
   auto sq = [](const double& val) { return val*val; };
   double R = std::sqrt(sq(el->superCluster()->x()) + sq(el->superCluster()->y()) + sq(el->superCluster()->z()));
@@ -101,7 +95,6 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
   elvalues_[prefix+"_el"].eta = el->eta();
   elvalues_[prefix+"_el"].phi = el->phi();
   elvalues_[prefix+"_el"].en = el->energy();
-  elvalues_[prefix+"_el"].genPt = genPt;
   elvalues_[prefix+"_el"].charge = el->charge();
 
   elvalues_[prefix+"_el"].enSC = el->superCluster()->energy();
@@ -208,50 +201,6 @@ void MergedLeptonHelper::fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,
 
   gsfvalues_[prefix+"_addGsf"].dxy = addGsfTrk->dxy(pPV_->position());
   gsfvalues_[prefix+"_addGsf"].dz = addGsfTrk->dz(pPV_->position());
-
-  KalmanVertexFitter fitter(vtxFitterPset_);
-  TransientVertex theVertex;
-  std::vector<reco::TransientTrack> Gsf12TT;
-
-  if ( orgGsfTrk->pt()!=addGsfTrk->pt() || orgGsfTrk->eta()!=addGsfTrk->eta() ) {
-    Gsf12TT.push_back((*pTTBuilder_)->build(orgGsfTrk));
-    Gsf12TT.push_back((*pTTBuilder_)->build(addGsfTrk));
-    theVertex = fitter.vertex(Gsf12TT);
-  }
-
-  gsfvalues_[prefix+"_addGsf"].vtxValid = theVertex.isValid();
-  gsfvalues_[prefix+"_addGsf"].vtx_dx = 0.;
-  gsfvalues_[prefix+"_addGsf"].vtx_dy = 0.;
-  gsfvalues_[prefix+"_addGsf"].vtx_dz = 0.;
-
-  gsfvalues_[prefix+"_addGsf"].vtx_chi2 = -1.;
-  gsfvalues_[prefix+"_addGsf"].vtx_xErr = -1.;
-  gsfvalues_[prefix+"_addGsf"].vtx_yErr = -1.;
-  gsfvalues_[prefix+"_addGsf"].vtx_zErr = -1.;
-
-  gsfvalues_[prefix+"_addGsf"].vtx_pt = -1.;
-  gsfvalues_[prefix+"_addGsf"].vtx_rapidity = 0.;
-  gsfvalues_[prefix+"_addGsf"].vtx_phi = 0.;
-  gsfvalues_[prefix+"_addGsf"].vtx_M = -1.;
-
-  if (theVertex.isValid()) {
-    reco::Vertex theRecoVtx = theVertex;
-
-    gsfvalues_[prefix+"_addGsf"].vtx_dx = theRecoVtx.x() - pPV_->position().x();
-    gsfvalues_[prefix+"_addGsf"].vtx_dy = theRecoVtx.y() - pPV_->position().y();
-    gsfvalues_[prefix+"_addGsf"].vtx_dz = theRecoVtx.z() - pPV_->position().z();
-
-    gsfvalues_[prefix+"_addGsf"].vtx_chi2 = theRecoVtx.normalizedChi2();
-    gsfvalues_[prefix+"_addGsf"].vtx_xErr = theRecoVtx.xError();
-    gsfvalues_[prefix+"_addGsf"].vtx_yErr = theRecoVtx.yError();
-    gsfvalues_[prefix+"_addGsf"].vtx_zErr = theRecoVtx.zError();
-
-    auto momentumSum = theRecoVtx.p4(0.0005109990615);
-    gsfvalues_[prefix+"_addGsf"].vtx_pt = momentumSum.Pt();
-    gsfvalues_[prefix+"_addGsf"].vtx_rapidity = momentumSum.Rapidity();
-    gsfvalues_[prefix+"_addGsf"].vtx_phi = momentumSum.Phi();
-    gsfvalues_[prefix+"_addGsf"].vtx_M = momentumSum.M();
-  }
 
   tree_[prefix+"_addGsfTree"]->Fill();
 }
