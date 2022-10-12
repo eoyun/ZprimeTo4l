@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process('MergedLeptonCutflow')
+process = cms.Process('MergedEleCRanalysis')
 
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -42,22 +42,22 @@ process.prefiringweight = l1PrefiringWeightProducer.clone(
     PrefiringRateSystematicUnctyMuon = cms.double(0.2)
 )
 
-from ZprimeTo4l.MergedLepton.MergedLeptonCutflow_cfi import mergedLeptonCutflow
-process.mergedLeptonCutflowData = mergedLeptonCutflow.clone(
+from ZprimeTo4l.Analysis.MergedEleCRanalyzer_cfi import mergedEleCRanalyzer
+process.mergedEleCRanalyzerData = mergedEleCRanalyzer.clone(
     isMC = cms.untracked.bool(False)
 )
 
-process.mergedcutflow_step = cms.Path(
+process.analyzer_step = cms.Path(
     process.prefiringweight*
     process.ModifiedHEEPIDVarValueMaps*
     process.ModifiedEcalRecHitIsolationScone*
     process.mergedLeptonIDProducer*
-    process.mergedLeptonCutflowData
+    process.mergedEleCRanalyzerData
 )
 
 process.endjob_step = cms.EndPath(process.endOfProcess)
 
-process.schedule = cms.Schedule(process.mergedcutflow_step,process.endjob_step)
+process.schedule = cms.Schedule(process.analyzer_step,process.endjob_step)
 
 # Automatic addition of the customisation function from Configuration.DataProcessing.Utils
 from Configuration.DataProcessing.Utils import addMonitoring
