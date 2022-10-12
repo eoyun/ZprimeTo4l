@@ -35,7 +35,7 @@ namespace MergedLeptonIDs {
     failConvVeto,
     hasMatchedElectron, // has 2nd GSF track but it's from another electron
     passedMVA1, // merged electron MVA selection when there exists 2nd GSF track
-    nonisolated, // has no selected GSF track but there is an electron within dR < 0.3
+    outsideDef, // outside Et or dR of interest
     passedMVA2 // merged electron MVA selection when there is no 2nd GSF track
   };
 
@@ -55,7 +55,7 @@ namespace MergedLeptonIDs {
              aTrk->phi()==bTrk->phi() );
   }
 
-  inline double Et( const edm::Ptr<pat::Electron>&aEle ) {
+  inline double Et( const edm::Ptr<reco::GsfElectron>&aEle ) {
     auto sq = [](double input) { return input*input; };
     double rad = std::sqrt(sq(aEle->superCluster()->x()) + sq(aEle->superCluster()->y()) + sq(aEle->superCluster()->z()));
     double trans = std::sqrt(sq(aEle->superCluster()->x()) + sq(aEle->superCluster()->y()));

@@ -232,34 +232,16 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
       else {
         acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::no2ndGsf;
 
-        // there should be no electron within dR < 0.3
-        bool nonisolated = false;
+        bool passedMVA = false;
 
-        for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
-          auto secEle = eleHandle->ptrAt(jdx);
+        if ( std::abs(aEle->eta()) < 1.5 && et > etThresEB_ ) {
+          amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(aEle);
+          passedMVA = amvascore_mergedElectron > cutBkgEt2EB_;
+        } else
+          acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;
 
-          if ( aEle==secEle )
-            continue;
-
-          if ( reco::deltaR2(aEle->eta(),aEle->phi(),secEle->eta(),secEle->phi()) < 0.09 ) {
-            nonisolated = true;
-            break;
-          }
-        }
-
-        if ( nonisolated )
-          acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::nonisolated;
-        else {
-          bool passedMVA = false;
-
-          if ( std::abs(aEle->eta()) < 1.5 && et > etThresEB_ ) {
-            amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(aEle);
-            passedMVA = amvascore_mergedElectron > cutBkgEt2EB_;
-          }
-
-          if (passedMVA)
-            acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::passedMVA2;
-        } // MVA2
+        if (passedMVA)
+          acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::passedMVA2;
       } // end hasPassedHEEP
     } else {
       // has additional GSF track
@@ -316,7 +298,7 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
               passedMVA = amvascore_mergedElectron > cutDR2Et2EE_;
               break;
             default:
-              throw cms::Exception("LogicError") << "opening angle between the original and additional GSF track does not fit into any of MergedLeptonIDs::GSFtype categories" << std::endl;
+              acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;
               break;
           } // switch
 
@@ -328,7 +310,6 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
 
     status_mergedElectron.emplace_back( static_cast<int>(acutflow_mergedElectron) );
     mvas_mergedElectron.emplace_back(amvascore_mergedElectron);
-    mvas_mergedElectronNoGsf.emplace_back(amvascore_mergedElectronNoGsf);
     GSFtype_mergedElectron.emplace_back( static_cast<int>(aGSFtype_mergedElectron) );
   } // electron loop
 
@@ -336,8 +317,7 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
   writeValueMap(iEvent,eleHandle,cutflows_HEEP,"cutflowHEEP");
   writeValueMap(iEvent,eleHandle,status_mergedElectron,"statusMergedElectron");
   writeValueMap(iEvent,eleHandle,mvas_mergedElectron,"mvaMergedElectron");
-  writeValueMap(iEvent,eleHandle,mvas_mergedElectronNoGsf,"mvaMergedElectronNoGsf");
-  writeValueMap(iEvent,eleHandle,openingAngles_mergedElectron,"GSFtypeMergedElectron");
+  writeValueMap(iEvent,eleHandle,GSFtype_mergedElectron,"GSFtypeMergedElectron");
 }
 
 DEFINE_FWK_MODULE(MergedLeptonIDProducer);

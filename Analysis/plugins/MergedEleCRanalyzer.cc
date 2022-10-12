@@ -79,13 +79,8 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["cutflow_modifiedHEEP_EE"] = fs->make<TH1D>("cutflow_modifiedHEEP_EE","cutflow",11,-1.,10.);
   histo1d_["cutflow_HEEP_EB"] = fs->make<TH1D>("cutflow_HEEP_EB","cutflow",16,-1.,15.);
   histo1d_["cutflow_HEEP_EE"] = fs->make<TH1D>("cutflow_HEEP_EE","cutflow",16,-1.,15.);
-  histo1d_["status_mergedElectron_DR1Et2EB"] = fs->make<TH1D>("status_mergedElectron_DR1Et2EB","status",30,-1.,29.);
-  histo1d_["status_mergedElectron_DR2Et1EB"] = fs->make<TH1D>("status_mergedElectron_DR2Et1EB","status",30,-1.,29.);
-  histo1d_["status_mergedElectron_DR2Et2EB"] = fs->make<TH1D>("status_mergedElectron_DR2Et2EB","status",30,-1.,29.);
-  histo1d_["status_mergedElectron_DR1Et2EE"] = fs->make<TH1D>("status_mergedElectron_DR1Et2EE","status",30,-1.,29.);
-  histo1d_["status_mergedElectron_DR2Et1EE"] = fs->make<TH1D>("status_mergedElectron_DR2Et1EE","status",30,-1.,29.);
-  histo1d_["status_mergedElectron_DR2Et2EE"] = fs->make<TH1D>("status_mergedElectron_DR2Et2EE","status",30,-1.,29.);
-  histo1d_["status_mergedElectron_bkgEt2EB"] = fs->make<TH1D>("status_mergedElectron_bkgEt2EB","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_EB"] = fs->make<TH1D>("status_mergedElectron_EB","status",30,-1.,29.);
+  histo1d_["status_mergedElectron_EE"] = fs->make<TH1D>("status_mergedElectron_EE","status",30,-1.,29.);
   histo1d_["mva_DR1Et2EB"] = fs->make<TH1D>("mva_DR1Et2EB","MVA score",200,-1.,1.);
   histo1d_["mva_DR2Et1EB"] = fs->make<TH1D>("mva_DR2Et1EB","MVA score",200,-1.,1.);
   histo1d_["mva_DR2Et2EB"] = fs->make<TH1D>("mva_DR2Et2EB","MVA score",200,-1.,1.);
@@ -301,6 +296,15 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
                                            (*addGsfTrkMap)[aEle]->phi()));
 
     std::string postfix = "";
+    std::string strEBEE = "";
+
+    if (aEle->isEB())
+      strEBEE = "_EB";
+    else
+      strEBEE = "_EE";
+
+    if ( et < 50. )
+      continue;
 
     if ( aStatus==MergedLeptonIDs::cutflowElectron::no2ndGsf ||
          aStatus==MergedLeptonIDs::cutflowElectron::passedMVA2 ) {
@@ -310,8 +314,9 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       if ( std::abs(aEle->eta()) < 1.5 ) {
         postfix = "_bkgEt2EB";
         histo1d_[static_cast<std::string>("mva")+postfix]
-          ->Fill( (*mva_mergedElectronNoGsfHandle)[aEle] , aWeight );
-      }
+          ->Fill( (*mva_mergedElectronHandle)[aEle] , aWeight );
+      } else
+        continue;
     } else if ( aStatus==MergedLeptonIDs::cutflowElectron::has2ndGsf ||
                 aStatus==MergedLeptonIDs::cutflowElectron::passedMVA1 ) {
       // has 2nd GSF
@@ -345,7 +350,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         ->Fill( (*mva_mergedElectronHandle)[aEle] , aWeight );
     } else {}
 
-    histo1d_[static_cast<std::string>("status_mergedElectron")+postfix]
+    histo1d_[static_cast<std::string>("status_mergedElectron")+strEBEE]
       ->Fill( static_cast<float>( (*status_mergedElectronHandle)[aEle] ) + 0.5 , aWeight );
 
     if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
@@ -438,10 +443,10 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           histo2d_["invM_dr_noGsf"]->Fill( lvecll.M(), std::sqrt(dr2ll), aWeight );
         }
 
-        if ( ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedAllMVA) &&
+        if ( ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) &&
                (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) ||
              ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) &&
-               (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedAllMVA) ) ) {
+               (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ) ) {
           histo1d_["invM_2E_ll_mixed"]->Fill( lvecll.M(), aWeight );
           histo1d_["rap_2E_ll_mixed"]->Fill( lvecll.Rapidity(), aWeight );
           histo1d_["pt_2E_ll_mixed"]->Fill( lvecll.pt(), aWeight );

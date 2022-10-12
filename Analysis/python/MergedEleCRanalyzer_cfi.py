@@ -11,5 +11,5 @@ mergedEleCRanalyzer = cms.EDAnalyzer("MergedEleCRanalyzer",
   cutflow_HEEP = cms.InputTag("mergedLeptonIDProducer","cutflowHEEP"),
   status_mergedElectron = cms.InputTag("mergedLeptonIDProducer","statusMergedElectron"),
   mva_mergedElectron = cms.InputTag("mergedLeptonIDProducer","mvaMergedElectron"),
-  openingAngle_mergedElectron = cms.InputTag("mergedLeptonIDProducer","GSFtypeMergedElectron")
+  GSFtype_mergedElectron = cms.InputTag("mergedLeptonIDProducer","GSFtypeMergedElectron")
 )
