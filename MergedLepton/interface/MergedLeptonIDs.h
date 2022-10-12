@@ -36,24 +36,17 @@ namespace MergedLeptonIDs {
     hasMatchedElectron, // has 2nd GSF track but it's from another electron
     passedMVA1, // merged electron MVA selection when there exists 2nd GSF track
     nonisolated, // has no selected GSF track but there is an electron within dR < 0.3
-    passedMVA2, // merged electron MVA selection when there is no 2nd GSF track
-    passedAllMVA // passed both MVA2 & MVA1
+    passedMVA2 // merged electron MVA selection when there is no 2nd GSF track
   };
 
-  enum openingAngle {
-    nullAngle = -1,
-    DR1EB,
-    DR1EE,
-    DR2EB,
-    DR2EE,
-    DR3EB,
-    DR3EE
-  };
-
-  enum typeElectron {
-    failed = -1,
-    resolved,
-    merged
+  enum GSFtype {
+    nulltype = -1,
+    DR1Et2EB,
+    DR2Et1EB,
+    DR2Et2EB,
+    DR1Et2EE,
+    DR2Et1EE,
+    DR2Et2EE
   };
 
   inline bool isSameGsfTrack(const reco::GsfTrackRef& aTrk, const reco::GsfTrackRef& bTrk) {
@@ -62,11 +55,19 @@ namespace MergedLeptonIDs {
              aTrk->phi()==bTrk->phi() );
   }
 
-  openingAngle checkElectronOpeningAngle( edm::Ptr<pat::Electron>& aEle,
-                                          reco::GsfTrackRef& orgGsfTrk,
-                                          reco::GsfTrackRef& addGsfTrk );
+  inline double Et( const edm::Ptr<pat::Electron>&aEle ) {
+    auto sq = [](double input) { return input*input; };
+    double rad = std::sqrt(sq(aEle->superCluster()->x()) + sq(aEle->superCluster()->y()) + sq(aEle->superCluster()->z()));
+    double trans = std::sqrt(sq(aEle->superCluster()->x()) + sq(aEle->superCluster()->y()));
+    return (aEle->superCluster()->energy())*(trans/rad);
+  }
 
-  typeElectron checkTypeElectron(const cutflowElectron&, const cutflowElectron&, const cutflowElectron&);
+  GSFtype checkElectronGSFtype( edm::Ptr<pat::Electron>& aEle,
+                                reco::GsfTrackRef& orgGsfTrk,
+                                reco::GsfTrackRef& addGsfTrk,
+                                const double etThresEB,
+                                const double etThresEE,
+                                const double minEt );
 
   void fillCutflow(TH1* ahist, const int acutflow, const double aWeight);
 

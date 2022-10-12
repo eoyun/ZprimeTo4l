@@ -1,47 +1,39 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 
-MergedLeptonIDs::openingAngle MergedLeptonIDs::checkElectronOpeningAngle( edm::Ptr<pat::Electron>& aEle,
-                                                                          reco::GsfTrackRef& orgGsfTrk,
-                                                                          reco::GsfTrackRef& addGsfTrk ) {
+MergedLeptonIDs::GSFtype MergedLeptonIDs::checkElectronGSFtype( edm::Ptr<pat::Electron>& aEle,
+                                                                reco::GsfTrackRef& orgGsfTrk,
+                                                                reco::GsfTrackRef& addGsfTrk,
+                                                                const double etThresEB,
+                                                                const double etThresEE,
+                                                                const double minEt ) {
   double dr2 = reco::deltaR2(orgGsfTrk->eta(),orgGsfTrk->phi(),addGsfTrk->eta(),addGsfTrk->phi());
   auto square = [](double input) { return input*input; };
+  double et = Et(aEle);
+
+  if ( et < minEt )
+    return GSFtype::nulltype;
 
   if ( aEle->isEB() ) {
-    if ( dr2 < square(0.0174) )
-      return openingAngle::DR1EB;
-    else if ( dr2 > square(0.0174) && dr2 < square(2.*0.0174) )
-      return openingAngle::DR2EB;
-    else
-      return openingAngle::DR3EB;
+    if ( dr2 < square(0.0174) && et > etThresEB )
+      return GSFtype::DR1Et2EB;
+    else if ( dr2 > square(0.0174) ) {
+      if ( et > etThresEB )
+        return GSFtype::DR2Et2EB;
+      else
+        return GSFtype::DR2Et1EB;
+    }
   } else {
-    if ( dr2 < square( 0.00864*std::abs(std::sinh(aEle->eta())) ) )
-      return openingAngle::DR1EE;
-    else if ( dr2 > square( 0.00864*std::abs(std::sinh(aEle->eta())) ) && dr2 < square( 2.*0.00864*std::abs(std::sinh(aEle->eta())) ) )
-      return openingAngle::DR2EE;
-    else
-      return openingAngle::DR3EE;
+    if ( dr2 < square( 0.00864*std::abs(std::sinh(aEle->eta())) ) && et > etThresEE )
+      return GSFtype::DR1Et2EE;
+    else if ( dr2 > square( 0.00864*std::abs(std::sinh(aEle->eta())) ) ) {
+      if ( et > etThresEE )
+        return GSFtype::DR2Et2EE;
+      else
+        return GSFtype::DR2Et1EE;
+    }
   }
 
-  return openingAngle::nullAngle;
-}
-
-MergedLeptonIDs::typeElectron MergedLeptonIDs::checkTypeElectron(const cutflowElectron& acutflow_modifiedHEEP,
-                                                                 const cutflowElectron& acutflow_HEEP,
-                                                                 const cutflowElectron& acutflow_mergedElectron) {
-  if ( acutflow_modifiedHEEP==cutflowElectron::dxy &&
-       acutflow_mergedElectron!=cutflowElectron::failedHEEP ) {
-    if ( acutflow_mergedElectron==cutflowElectron::passedMVA1 ||
-         acutflow_mergedElectron==cutflowElectron::passedAllMVA )
-      return typeElectron::merged;
-    if ( acutflow_HEEP!=cutflowElectron::showerShape &&
-         acutflow_mergedElectron!=cutflowElectron::passedMVA1 )
-      return typeElectron::resolved;
-    if ( acutflow_HEEP==cutflowElectron::showerShape &&
-         acutflow_mergedElectron!=cutflowElectron::passedAllMVA )
-      return typeElectron::resolved;
-  }
-
-  return typeElectron::failed;
+  return GSFtype::nulltype;
 }
 
 void MergedLeptonIDs::fillCutflow(TH1* ahist, const int acutflow, const double aWeight) {
