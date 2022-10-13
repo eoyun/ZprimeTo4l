@@ -6,8 +6,7 @@
 #include <sstream>
 #include <vector>
 
-MergedMvaEstimator::MergedMvaEstimator(const edm::FileInPath& weightsfile, const edm::FileInPath& meanstdfile)
-: has2ndGsf_(true) {
+MergedMvaEstimator::MergedMvaEstimator(const edm::FileInPath& weightsfile, const edm::FileInPath& meanstdfile) {
   gbrForest_ = createGBRForest(weightsfile);
   std::ifstream fstr(meanstdfile.fullPath());
 
@@ -27,40 +26,18 @@ MergedMvaEstimator::MergedMvaEstimator(const edm::FileInPath& weightsfile, const
 
 }
 
-double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el,
-                                      const reco::Vertex& pv,
-                                      const float& trkIso,
-                                      const float& ecalIso) {
+double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el) {
   const unsigned int nvar = scale_mean_.size();
   float var[nvar];
 
-  var[mergedElectronVar::charge] = static_cast<float>(el->charge());
   var[mergedElectronVar::etaSCWidth] = el->superCluster()->etaWidth();
   var[mergedElectronVar::phiSCWidth] = el->superCluster()->phiWidth();
-  var[mergedElectronVar::full5x5_sigmaIetaIeta] = el->full5x5_sigmaIetaIeta();
-  var[mergedElectronVar::full5x5_sigmaIphiIphi] = el->full5x5_sigmaIphiIphi();
   var[mergedElectronVar::full5x5_E1x5oE5x5] = el->full5x5_e1x5()/el->full5x5_e5x5();
-  var[mergedElectronVar::full5x5_E2x5oE5x5] = el->full5x5_e2x5Max()/el->full5x5_e5x5();
   var[mergedElectronVar::full5x5_r9] = el->full5x5_r9();
-  var[mergedElectronVar::dEtaIn] = el->deltaEtaSuperClusterTrackAtVtx();
-  var[mergedElectronVar::dPhiIn] = el->deltaPhiSuperClusterTrackAtVtx();
-  var[mergedElectronVar::dPhiSeed] = el->deltaPhiSeedClusterTrackAtCalo();
-  var[mergedElectronVar::dEtaEle] = el->deltaEtaEleClusterTrackAtCalo();
-  var[mergedElectronVar::dPhiEle] = el->deltaPhiEleClusterTrackAtCalo();
-  var[mergedElectronVar::dEtaSeed] = el->deltaEtaSeedClusterTrackAtVtx();
+  var[mergedElectronVar::dEtaIn] = std::abs(el->deltaEtaSuperClusterTrackAtVtx());
+  var[mergedElectronVar::dPhiIn] = std::abs(el->deltaPhiSuperClusterTrackAtVtx());
   var[mergedElectronVar::EseedOverP] = el->eSeedClusterOverP();
-  var[mergedElectronVar::EOverP] = el->eSuperClusterOverP();
-  var[mergedElectronVar::dxy] = el->gsfTrack()->dxy(pv.position());
-  var[mergedElectronVar::dz] = el->gsfTrack()->dz(pv.position());
   var[mergedElectronVar::fbrem] = el->fbrem();
-
-  if (has2ndGsf_) {
-    var[mergedElectronVar::relModTrkIso] = trkIso/el->pt();
-    var[mergedElectronVar::relModEcalHcalD1Iso] = ( ecalIso + el->dr03HcalDepth1TowerSumEt() ) / el->pt();
-  } else {
-    var[mergedElectronVar::relModTrkIso] = el->dr03TkSumPtHEEP()/el->pt();
-    var[mergedElectronVar::relModEcalHcalD1Iso] = ( el->dr03EcalRecHitSumEt() + el->dr03HcalDepth1TowerSumEt() ) / el->pt();
-  }
 
   for (unsigned int idx = 0; idx < nvar; idx++)
     var[idx] = ( var[idx]-scale_mean_.at(idx) ) / scale_std_.at(idx);
