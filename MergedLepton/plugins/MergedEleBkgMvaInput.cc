@@ -20,13 +20,10 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
-#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
-#include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
-#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
-#include "TrackingTools/Records/interface/TransientTrackRecord.h"
-
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
+
+// produce TTree for merged electron training with bkg MC (QCD, WJets, DY, TT)
 
 class MergedEleBkgMvaInput : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
@@ -39,7 +36,6 @@ private:
   virtual void endJob() override {}
 
   edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
-  edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
   edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
@@ -48,11 +44,7 @@ private:
   edm::EDGetTokenT<double> rhoToken_;
   edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
   edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
-  edm::EDGetTokenT<double> prefweight_token;
   edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
-  edm::ESHandle<TransientTrackBuilder> TTBuilder_;
-  edm::ESHandle<MagneticField> magField_;
-  edm::ParameterSet vtxFitterPset_;
 
   const double ptThres_;
   const double drThres_;
@@ -64,7 +56,6 @@ private:
 
 MergedEleBkgMvaInput::MergedEleBkgMvaInput(const edm::ParameterSet& iConfig) :
 srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
-srcGenPtc_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("srcGenPtc"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
 ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ecalIsoMap"))),
@@ -73,12 +64,10 @@ addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<
 rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
 conversionsToken_(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("conversions"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
-prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
-vtxFitterPset_(iConfig.getParameter<edm::ParameterSet>("KFParameters")),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 drThres_(iConfig.getParameter<double>("drThres")),
-aHelper_(vtxFitterPset_) {
+aHelper_() {
   usesResource("TFileService");
 }
 
@@ -96,9 +85,6 @@ void MergedEleBkgMvaInput::beginJob() {
 void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(srcEle_, eleHandle);
-
-  edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-  iEvent.getByToken(srcGenPtc_, genptcHandle);
 
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
@@ -124,23 +110,14 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
-  edm::Handle<double> theprefweight;
-  iEvent.getByToken(prefweight_token, theprefweight);
-  double prefiringweight = *theprefweight;
-
   edm::Handle<GenEventInfoProduct> genInfo;
   iEvent.getByToken(generatorToken_, genInfo);
   double mcweight = genInfo->weight();
 
-  double aWeight = prefiringweight*mcweight/std::abs(mcweight);
+  double aWeight = mcweight/std::abs(mcweight);
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
 
   aHelper_.SetMCweight(mcweight);
-  aHelper_.SetPrefiringWeight(prefiringweight);
-
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTBuilder_);
-  iSetup.get<IdealMagneticFieldRecord>().get(magField_);
-  aHelper_.SetTTBuilder(&TTBuilder_);
 
   edm::Ptr<reco::Vertex> primaryVertex;
 
@@ -150,37 +127,14 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   } else
     return;
 
-  std::vector<edm::Ptr<reco::GenParticle>> promptLeptons;
   double drThres2 = drThres_*drThres_;
 
-  for (unsigned int idx = 0; idx < genptcHandle->size(); ++idx) {
-    auto genptc = genptcHandle->ptrAt(idx);
-
-    if ( ( std::abs(genptc->pdgId())==11 || std::abs(genptc->pdgId())==13 ) && genptc->isPromptFinalState() && genptc->pt() > ptThres_ )
-      promptLeptons.push_back(genptc);
-  }
-
-  std::vector<edm::Ptr<pat::Electron>> fakecand;
-
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
-    auto aEle = eleHandle->ptrAt(idx);
+    const auto& aEle = eleHandle->ptrAt(idx);
     MergedLeptonIDs::cutflowElectron cutflow = MergedLeptonIDs::cutflowElectron::baseline;
 
-    if ( !(aEle->pt() > ptThres_) )
+    if ( aEle->et() < ptThres_ )
       continue;
-
-    bool matched = false;
-    size_t igen = 0;
-
-    for (; igen < promptLeptons.size(); ++igen) {
-      auto genptc = promptLeptons.at(igen);
-      double dr2 = reco::deltaR2(aEle->eta(),aEle->phi(),genptc->eta(),genptc->phi());
-
-      if (dr2 < drThres2) {
-        matched = true;
-        break;
-      }
-    }
 
     bool passModifiedHEEP =
       MergedLeptonIDs::isModifiedHEEP(*aEle,
@@ -203,8 +157,8 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
       continue;
 
     // requirement for add GSF track
-    auto addGsfTrk = (*addGsfTrkHandle)[aEle];
-    auto orgGsfTrk = aEle->gsfTrack();
+    const auto& addGsfTrk = (*addGsfTrkHandle)[aEle];
+    const auto& orgGsfTrk = aEle->gsfTrack();
 
     std::string treename = "";
 
@@ -220,14 +174,14 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
       bool notMerged = false;
 
       for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
-        auto secEle = eleHandle->ptrAt(jdx);
+        const auto& secEle = eleHandle->refAt(jdx);
 
         double dr2 = reco::deltaR2(aEle->eta(),aEle->phi(),secEle->eta(),secEle->phi());
 
         if (dr2 > drThres2)
           continue;
 
-        const auto secGsfTrk = secEle->gsfTrack();
+        const auto& secGsfTrk = secEle->gsfTrack();
 
         if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,secGsfTrk) ) {
           notMerged = true;
@@ -249,7 +203,6 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
                            (*nrSatCrysHandle)[aEle],
                            conversionsHandle,
                            beamSpotHandle,
-                           matched ? promptLeptons.at(igen)->pt() : -1.,
                            treename);
   }
 }

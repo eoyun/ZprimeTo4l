@@ -2,7 +2,7 @@
 
 MergedLeptonHelper::MergedLeptonHelper() :
 pFS_(nullptr) {
-  elstr_ = TString("weight/F:prefiringweight:pt:eta:phi:en:charge/I:")
+  elstr_ = TString("weight/F:pt:eta:phi:en:et:charge/I:")
   + "enSC/F:etSC:etaSC:phiSC:etaSCWidth:phiSCWidth:"
   + "full5x5_sigmaIetaIeta:full5x5_sigmaIphiIphi:"
   + "full5x5_E1x5:full5x5_E2x5:full5x5_E5x5:full5x5_hOverE:full5x5_r9:"
@@ -20,11 +20,11 @@ pFS_(nullptr) {
   + "passConversionVeto/I:nbrem:"
   + "fbrem/F:fbremSC";
 
-  addgsfstr_ = TString("weight/F:prefiringweight:Gsfpt:Gsfeta:Gsfphi:")
+  addgsfstr_ = TString("weight/F:Gsfpt:Gsfeta:Gsfphi:")
   + "lostHits/I:nValidHits:nValidPixelHits:"
-  + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:";
+  + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:ptErr";
 
-  mustr_ = TString("numberOfValidTrackerHits/I:numberOfValidPixelHits:numberOfValidStripHits:")
+  mustr_ = TString("weight/F:numberOfValidTrackerHits/I:numberOfValidPixelHits:numberOfValidStripHits:")
   + "trackerLayersWithMeasurement:pixelLayersWithMeasurement:stripLayersWithMeasurement:"
   + "trackerLayersWithoutMeasurement:pixelLayersWithoutMeasurement:stripLayersWithoutMeasurement:"
   + "isHighPt:isTrackerHighPt:isPFloose:isPFmedium:isPFtight:"
@@ -33,7 +33,7 @@ pFS_(nullptr) {
   + "pairPt:pairEta:pairPhi:"
   + "globalChi2:globalNormChi2:trackerChi2:trackerNormChi2:tunepChi2:tunepNormChi2";
 
-  metstr_ = TString("PFphi/F:PFdPhi:PFpt:PFoGen:PFoMu:MuEta:PFSumEt:")
+  metstr_ = TString("weight/F:PFphi:PFdPhi:PFpt:PFoGen:PFoMu:MuEta:PFSumEt:")
   + "TPphi:TPdPhi:TPpt:TPoGen:TPoMu:TPSumEt:dSumEt:sumEtRatio:sumEtRatioTP:nLepton/I:"
   + "bitmask/i";
 }
@@ -84,21 +84,21 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
                                        const edm::Handle<reco::ConversionCollection>& conversions,
                                        const edm::Handle<reco::BeamSpot>& beamSpotHandle,
                                        const std::string& prefix) {
-  auto sq = [](const double& val) { return val*val; };
-  double R = std::sqrt(sq(el->superCluster()->x()) + sq(el->superCluster()->y()) + sq(el->superCluster()->z()));
-  double Rt = std::sqrt(sq(el->superCluster()->x()) + sq(el->superCluster()->y()));
+  auto square = [](const double& val) { return val*val; };
+  double rad = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()) + square(el->superCluster()->z()));
+  double radTrans = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()));
 
   elvalues_[prefix+"_el"].weight = mcweight_;
-  elvalues_[prefix+"_el"].prefiringweight = prefiringweight_;
 
   elvalues_[prefix+"_el"].pt = el->pt();
   elvalues_[prefix+"_el"].eta = el->eta();
   elvalues_[prefix+"_el"].phi = el->phi();
   elvalues_[prefix+"_el"].en = el->energy();
+  elvalues_[prefix+"_el"].et = el->et();
   elvalues_[prefix+"_el"].charge = el->charge();
 
   elvalues_[prefix+"_el"].enSC = el->superCluster()->energy();
-  elvalues_[prefix+"_el"].etSC = (el->superCluster()->energy())*(Rt/R);
+  elvalues_[prefix+"_el"].etSC = (el->superCluster()->energy())*(radTrans/rad);
   elvalues_[prefix+"_el"].etaSC = el->superCluster()->eta();
   elvalues_[prefix+"_el"].phiSC = el->superCluster()->phi();
   elvalues_[prefix+"_el"].etaSCWidth = el->superCluster()->etaWidth();
@@ -184,7 +184,6 @@ void MergedLeptonHelper::fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,
                                        const reco::GsfTrackRef& orgGsfTrk,
                                        const std::string& prefix) {
   gsfvalues_[prefix+"_addGsf"].weight = mcweight_;
-  gsfvalues_[prefix+"_addGsf"].prefiringweight = prefiringweight_;
 
   gsfvalues_[prefix+"_addGsf"].Gsfpt = addGsfTrk->pt();
   gsfvalues_[prefix+"_addGsf"].Gsfeta = addGsfTrk->eta();
@@ -201,6 +200,7 @@ void MergedLeptonHelper::fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,
 
   gsfvalues_[prefix+"_addGsf"].dxy = addGsfTrk->dxy(pPV_->position());
   gsfvalues_[prefix+"_addGsf"].dz = addGsfTrk->dz(pPV_->position());
+  gsfvalues_[prefix+"_addGsf"].ptErr = addGsfTrk->ptError();
 
   tree_[prefix+"_addGsfTree"]->Fill();
 }
@@ -227,8 +227,7 @@ void MergedLeptonHelper::fillMuons(const edm::Ptr<reco::Muon>& aMuon,
   if (muon::isTightMuon(*aMuon,*pPV_))
     histo1d_[prefix+"_passIDs"]->Fill(4.5);
 
-  muonvalues_[prefix+"_el"].weight = mcweight_;
-  muonvalues_[prefix+"_el"].prefiringweight = prefiringweight_;
+  muonvalues_[prefix+"_muon"].weight = mcweight_;
 
   muonvalues_[prefix+"_muon"].isHighPt = muon::isHighPtMuon(*aMuon,*pPV_);
   muonvalues_[prefix+"_muon"].isTrackerHighPt = MergedLeptonIDs::isHighPtTrackerMuon(*aMuon,*pPV_);
@@ -317,8 +316,7 @@ void MergedLeptonHelper::fillMETs(const edm::Ptr<reco::Muon>& aMuon,
                                   const std::vector<edm::Ptr<reco::Muon>>& finalMuons,
                                   const unsigned int& bitmask,
                                   const std::string& prefix) {
-  metvalues_[prefix+"_el"].weight = mcweight_;
-  metvalues_[prefix+"_el"].prefiringweight = prefiringweight_;
+  metvalues_[prefix+"_MET"].weight = mcweight_;
   metvalues_[prefix+"_MET"].PFphi = met.phi();
   metvalues_[prefix+"_MET"].PFdPhi = reco::deltaPhi(met.phi(),matched->phi());
   metvalues_[prefix+"_MET"].PFpt = met.pt();
@@ -359,8 +357,7 @@ void MergedLeptonHelper::fillMETs(const edm::Ptr<reco::Candidate>& aLepton,
                                   const std::vector<edm::Ptr<reco::Candidate>>& finalLeptons,
                                   const unsigned int& bitmask,
                                   const std::string& prefix) {
-  metvalues_[prefix+"_el"].weight = mcweight_;
-  metvalues_[prefix+"_el"].prefiringweight = prefiringweight_;
+  metvalues_[prefix+"_MET"].weight = mcweight_;
   metvalues_[prefix+"_MET"].PFphi = met.phi();
   metvalues_[prefix+"_MET"].PFdPhi = reco::deltaPhi(met.phi(),aLepton->phi());
   metvalues_[prefix+"_MET"].PFpt = met.pt();

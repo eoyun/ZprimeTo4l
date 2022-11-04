@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process('mergedEleBkgMvaInput')
+process = cms.Process('mergedEleSigMvaInput')
 
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -30,12 +30,12 @@ process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
-process.load("ZprimeTo4l.MergedLepton.MergedEleBkgMvaInput_cfi")
+process.load("ZprimeTo4l.MergedLepton.MergedEleSigMvaInput_cfi")
 
 process.analyzer_step = cms.Path(
     process.ModifiedHEEPIDVarValueMaps*
     process.ModifiedEcalRecHitIsolationScone*
-    process.mergedEleBkgMvaInput
+    process.mergedEleSigMvaInput
 )
 
 process.endjob_step = cms.EndPath(process.endOfProcess)

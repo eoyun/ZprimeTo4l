@@ -27,8 +27,8 @@
 class MergedLeptonHelper {
 public:
   typedef struct {
-    float weight, prefiringweight;
-    float pt, eta, phi, en;
+    float weight;
+    float pt, eta, phi, en, et;
     int charge;
     float enSC, etSC, etaSC, phiSC, etaSCWidth, phiSCWidth;
     float full5x5_sigmaIetaIeta, full5x5_sigmaIphiIphi;
@@ -49,14 +49,14 @@ public:
   } ElectronStruct;
 
   typedef struct {
-    float weight, prefiringweight;
+    float weight;
     float Gsfpt, Gsfeta, Gsfphi;
     int lostHits, nValidHits, nValidPixelHits;
-    float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz;
+    float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz, ptErr;
   } AddGsfStruct;
 
   typedef struct {
-    float weight, prefiringweight;
+    float weight;
     int numberOfValidTrackerHits, numberOfValidPixelHits, numberOfValidStripHits,
     trackerLayersWithMeasurement, pixelLayersWithMeasurement, stripLayersWithMeasurement,
     trackerLayersWithoutMeasurement, pixelLayersWithoutMeasurement, stripLayersWithoutMeasurement;
@@ -68,7 +68,7 @@ public:
   } MuonStruct;
 
   typedef struct {
-    float weight, prefiringweight;
+    float weight;
     float PFphi, PFdPhi, PFpt, PFoGen, PFoMu, MuEta, PFSumEt, TPphi, TPdPhi, TPpt, TPoGen, TPoMu, TPSumEt, dSumEt, sumEtRatio, sumEtRatioTP;
     int nLepton;
     unsigned int bitmask;
@@ -124,7 +124,6 @@ public:
   void SetFileService(edm::Service<TFileService>* fs) { pFS_ = fs; }
   void SetPV(edm::Ptr<reco::Vertex> pv) { pPV_ = pv; }
   void SetMCweight(double mcweight) { mcweight_ = mcweight; }
-  void SetPrefiringWeight(double prefiringweight) { prefiringweight_ = prefiringweight; }
 
 private:
   std::map<std::string,TTree*> tree_;
@@ -138,7 +137,6 @@ private:
   edm::Ptr<reco::Vertex> pPV_;
 
   double mcweight_;
-  double prefiringweight_;
 
   TString elstr_;
   TString addgsfstr_;

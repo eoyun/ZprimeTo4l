@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
-mergedEleBkgMvaInput = cms.EDAnalyzer("MergedEleBkgMvaInput",
+mergedEleSigMvaInput = cms.EDAnalyzer("MergedEleSigMvaInput",
   srcEle=cms.InputTag("slimmedElectrons"),
+  srcGenPtc=cms.InputTag("prunedGenParticles"),
   srcPv=cms.InputTag("offlineSlimmedPrimaryVertices"),
   trkIsoMap=cms.InputTag("ModifiedHEEPIDVarValueMaps","eleTrkPtIso"),
   ecalIsoMap=cms.InputTag("ModifiedEcalRecHitIsolationScone","EcalRecHitIso"),
@@ -9,8 +10,8 @@ mergedEleBkgMvaInput = cms.EDAnalyzer("MergedEleBkgMvaInput",
   addGsfTrkMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
   rho=cms.InputTag("fixedGridRhoFastjetAll"),
   conversions = cms.InputTag("reducedEgamma:reducedConversions"),
-  generator = cms.InputTag("generator"),
   beamSpot = cms.InputTag("offlineBeamSpot"),
+  generator = cms.InputTag("generator"),
   ptThres=cms.double(20.),
   drThres=cms.double(0.3)
 )
