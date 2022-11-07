@@ -10,103 +10,81 @@ import math
 import argparse
 import os
 
-import ZprimeTo4l.MergedLepton.xgbPreprocess as zprep
-import ZprimeTo4l.MergedLepton.xgbVis as zvis
+import xgbPreprocess as zprep
+import xgbVis as zvis
 
 parser = argparse.ArgumentParser(description="BDT training for merged electrons")
-parser.add_argument("-s","--sig",dest="sigFile",type=str,help="signal sample")
-parser.add_argument("--dy",dest="dyFile",type=str,help="DY sample")
-parser.add_argument("--tt",dest="ttFile",type=str,help="ttbar sample")
 parser.add_argument("--det",dest="det",type=str,help="detector (EB/EE)")
-parser.add_argument("--ang",dest="angle",type=str,help="opening angle (dr1/dr2/dr3)")
+parser.add_argument("--ang",dest="angle",type=str,help="opening angle (DR1/DR2/None)")
+parser.add_argument("--et",dest="et",type=str,help="Et range (Et1/Et2)")
 parser.add_argument("--opt",dest="opt",type=str,help="perform training")
-parser.add_argument("--load",dest="load",type=str,help="load model",default="False")
+parser.add_argument("--era",dest="era",type=str,help="era (20UL16APV/20UL16/20UL17/20UL18)")
 parser.add_argument("--model",dest="model",type=str,help="path to model",default="")
 
 args = parser.parse_args()
 
-aFile = ROOT.TFile.Open(args.sigFile)
-mergedTree = aFile.Get("mergedLeptonAnalyzer/mergedEl1_elTree")
-mergedGsfTree = aFile.Get("mergedLeptonAnalyzer/mergedEl1Gsf_addGsfTree")
-mergedWgtHist= aFile.Get("mergedLeptonAnalyzer/totWeightedSum")
+# choose the right signal model for relevant phase spaces
+aFile = None
+mergedTree = None
+mergedGsfTree = None
+
+if args.angle=="DR2" and args.et=="Et1":
+    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H200A1.root")
+elif args.angle=="DR2" and args.et=="Et2":
+    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H800A10.root")
+elif args.angle=="DR1" and args.et=="Et2":
+    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H800A1.root")
+elif args.angle=="None" and args.et=="Et2":
+    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H800A1.root")
+else:
+    raise NameError('check dr/Et argument [DR1/DR2/None][Et1/Et2]')
+
+if args.angle=="None":
+    mergedTree = aFile.Get("mergedEleSigMvaInput/mergedEl2_elTree")
+else:
+    mergedTree = aFile.Get("mergedEleSigMvaInput/mergedEl1_elTree")
+    mergedGsfTree = aFile.Get("mergedEleSigMvaInput/mergedEl1Gsf_addGsfTree")
+
+mergedWgtHist= aFile.Get("mergedEleSigMvaInput/totWeightedSum")
 mergedTotWgtSum = mergedWgtHist.GetBinContent(1)
 
-dfProducer = zprep.DataframeInitializer(args.det,args.angle)
+workflowname = args.angle+args.et+'_'+args.det+'_'+args.era
+dfProducer = zprep.DataframeInitializer(args.det,args.angle,args.et)
 
-dyProcessor = zprep.SampleProcessor(args.dyFile,6077.22)
-df_dyEl, wgts_dyEl = dyProcessor.read(dfProducer)
+bkglist = [
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-15to20_EM.root",1324000.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-20to30_EM.root",4896000.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-30to50_EM.root",6447000.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-50to80_EM.root",1988000.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-80to120_EM.root",367500.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-120to170_EM.root",66590.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-170to300_EM.root",16620.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-300toInf_EM.root",1104.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets.root",53870.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY.root",6077.22),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_TT.root",831.76)
+]
 
-# ttProcessor = zprep.SampleProcessor(args.ttFile,831.76) # FXFX inclusive
-ttProcessor = zprep.SampleProcessor(args.ttFile,54.17) # MLM dilepton
-df_ttEl, wgts_ttEl = ttProcessor.read(dfProducer)
+for aproc in bkglist:
+    aproc.read(dfProducer)
 
-wjetsProcessor = zprep.SampleProcessor("WJets_bkg.root",53870.0)
-df_wjetsEl, wgts_wjetsEl = wjetsProcessor.read(dfProducer)
-
-qcdProcessor_1 = zprep.SampleProcessor("QCD_Pt-15to20_bkg.root",1324000.0)
-df_qcdEl_1, wgts_qcdEl_1 = qcdProcessor_1.read(dfProducer)
-
-qcdProcessor_2 = zprep.SampleProcessor("QCD_Pt-20to30_bkg.root",4896000.0)
-df_qcdEl_2, wgts_qcdEl_2 = qcdProcessor_2.read(dfProducer)
-
-qcdProcessor_3 = zprep.SampleProcessor("QCD_Pt-30to50_bkg.root",6447000.0)
-df_qcdEl_3, wgts_qcdEl_3 = qcdProcessor_3.read(dfProducer)
-
-qcdProcessor_4 = zprep.SampleProcessor("QCD_Pt-50to80_bkg.root",1988000.0)
-df_qcdEl_4, wgts_qcdEl_4 = qcdProcessor_4.read(dfProducer)
-
-qcdProcessor_5 = zprep.SampleProcessor("QCD_Pt-80to120_bkg.root",367500.0)
-df_qcdEl_5, wgts_qcdEl_5 = qcdProcessor_5.read(dfProducer)
-
-qcdProcessor_6 = zprep.SampleProcessor("QCD_Pt-120to170_bkg.root",66590.0)
-df_qcdEl_6, wgts_qcdEl_6 = qcdProcessor_6.read(dfProducer)
-
-qcdProcessor_7 = zprep.SampleProcessor("QCD_Pt-170to300_bkg.root",16620.0)
-df_qcdEl_7, wgts_qcdEl_7 = qcdProcessor_7.read(dfProducer)
-
-qcdProcessor_8 = zprep.SampleProcessor("QCD_Pt-300toInf_bkg.root",1104.0)
-df_qcdEl_8, wgts_qcdEl_8 = qcdProcessor_8.read(dfProducer)
-
-df_mergedEl, wgts_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
+df_mergedEl, wgts_mergedEl, pts_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
 col_names = dfProducer.col_names()
 
 # equalize sumwgt(bkg) to sumwgt(sig) to avoid class imbalance
 sum_sig = np.sum(wgts_mergedEl)
-sum_bkg = (np.sum(wgts_dyEl) + np.sum(wgts_ttEl) + np.sum(wgts_wjetsEl)
-          + np.sum(wgts_qcdEl_1) + np.sum(wgts_qcdEl_2) + np.sum(wgts_qcdEl_3) + np.sum(wgts_qcdEl_4)
-          + np.sum(wgts_qcdEl_5) + np.sum(wgts_qcdEl_6) + np.sum(wgts_qcdEl_7) + np.sum(wgts_qcdEl_8))
+sum_bkg = 0.
 
-wgts_dyEl = wgts_dyEl*(sum_sig/sum_bkg)
-wgts_ttEl = wgts_ttEl*(sum_sig/sum_bkg)
-wgts_wjetsEl = wgts_wjetsEl*(sum_sig/sum_bkg)
-wgts_qcdEl_1 = wgts_qcdEl_1*(sum_sig/sum_bkg)
-wgts_qcdEl_2 = wgts_qcdEl_2*(sum_sig/sum_bkg)
-wgts_qcdEl_3 = wgts_qcdEl_3*(sum_sig/sum_bkg)
-wgts_qcdEl_4 = wgts_qcdEl_4*(sum_sig/sum_bkg)
-wgts_qcdEl_5 = wgts_qcdEl_5*(sum_sig/sum_bkg)
-wgts_qcdEl_6 = wgts_qcdEl_6*(sum_sig/sum_bkg)
-wgts_qcdEl_7 = wgts_qcdEl_7*(sum_sig/sum_bkg)
-wgts_qcdEl_8 = wgts_qcdEl_8*(sum_sig/sum_bkg)
+for aproc in bkglist:
+    sum_bkg += np.sum(aproc.wgts_)
+
+for aproc in bkglist:
+    aproc.wgts_ = aproc.wgts_*(sum_sig/sum_bkg)
 
 # concat bkg
-df_bkg = pd.concat([df_dyEl,df_ttEl,df_wjetsEl,
-                    df_qcdEl_1,
-                    df_qcdEl_2,
-                    df_qcdEl_3,
-                    df_qcdEl_4,
-                    df_qcdEl_5,
-                    df_qcdEl_6,
-                    df_qcdEl_7,
-                    df_qcdEl_8], axis=0, ignore_index=True)
-wgts_bkg = np.concatenate((wgts_dyEl,wgts_ttEl,wgts_wjetsEl,
-                           wgts_qcdEl_1,
-                           wgts_qcdEl_2,
-                           wgts_qcdEl_3,
-                           wgts_qcdEl_4,
-                           wgts_qcdEl_5,
-                           wgts_qcdEl_6,
-                           wgts_qcdEl_7,
-                           wgts_qcdEl_8), axis=0)
+df_bkg = pd.concat([ aproc.df_ for aproc in bkglist ], axis=0, ignore_index=True)
+wgts_bkg = np.concatenate([ aproc.wgts_ for aproc in bkglist ], axis=0)
+pts_bkg = np.concatenate([ aproc.pts_ for aproc in bkglist ], axis=0)
 
 # prepare labels
 y_mergedEl = np.ones(shape=(df_mergedEl.shape[0],))
@@ -121,15 +99,12 @@ transformer = sklearn.preprocessing.StandardScaler()
 x_total = transformer.fit_transform(df_total)
 np_meanstd = np.array([transformer.mean_,transformer.scale_])
 
-x_train, x_test, y_train, y_test, wgts_train, wgts_test = sklearn.model_selection.train_test_split(x_total,y_total,wgts_total,test_size=0.5)
-
 print('total number of merged objects = %d' % y_mergedEl.shape[0])
 print('total number of bkg objects = %d' % y_bkgEl.shape[0])
 
-dtrain = xgb.DMatrix(x_train, weight=wgts_train, label=y_train, feature_names=col_names)
-dtest = xgb.DMatrix(x_test, weight=wgts_test, label=y_test, feature_names=col_names)
 dtotal = xgb.DMatrix(x_total, weight=wgts_total, label=y_total, feature_names=col_names)
 
+# automatic hyper-optimization
 def objective(params,dmat):
     param = {
         'max_depth': int(params['max_depth']),
@@ -156,7 +131,7 @@ if args.opt=="True": # hyper-optimization
         'eta': hyperopt.hp.loguniform('eta',-3.,-1.), # from exp(-3) to exp(1)
         'gamma': hyperopt.hp.uniform('gamma',0.,10.),
         'lambda': hyperopt.hp.uniform('lambda',0.,2.),
-        'min_child_weight': hyperopt.hp.loguniform('min_child_weight',math.log(weightSum/1000.),math.log(weightSum/10.)) # 1/200 for EB dr1 & EE
+        'min_child_weight': hyperopt.hp.loguniform('min_child_weight',math.log(weightSum/1000.),math.log(weightSum/10.))
     }
 
     trials = hyperopt.Trials()
@@ -166,14 +141,18 @@ if args.opt=="True": # hyper-optimization
     print('the best params are')
     print(best)
 
-    np.savez('npz/'+args.angle+'_'+args.det+'.npz', meanstd=np_meanstd, bestparams=np.array(best))
+    # save hyper parameters
+    np.savez('npz/'+workflowname+'.npz', meanstd=np_meanstd, bestparams=np.array(best))
 
+# load hyper parameters
 npz_params = np.array([])
 
-if args.load=="True" and os.path.splitext(args.model)[1]=='.model':
-   npz_params = np.load('npz/'+os.path.splitext(os.path.basename(args.model))[0]+'.npz',allow_pickle=True)
+if args.model is not "" and os.path.splitext(args.model)[1]=='.model':
+    npz_params = np.load('npz/'+os.path.splitext(os.path.basename(args.model))[0]+'.npz',allow_pickle=True)
+elif args.opt=="True":
+    npz_params = np.load('npz/'+workflowname+'.npz',allow_pickle=True)
 else:
-   npz_params = np.load('npz/'+args.angle+'_'+args.det+'.npz',allow_pickle=True)
+    raise NameError('Neither loading existing model nor running the training, please check opt/model arguments')
 
 param = npz_params['bestparams'][()] # numpy stores dict as 0-d array
 param['max_depth'] = int(param['max_depth'])
@@ -183,103 +162,194 @@ param['eval_metric'] = 'logloss'
 param['tree_method'] = 'exact'
 param['nthread'] = 4
 
-evallist = [(dtest, 'eval'), (dtrain, 'train')]
-num_round = 200
+# run k-fold training, then pick the model with the smallest overtraining i.e. minimum |AUC(train)-AUC(test)|
+kf = sklearn.model_selection.KFold(n_splits=5,shuffle=True)
+modelPerforms_list = []
+model_list = []
 
-bst = xgb.Booster(param)
-early_stop = xgb.callback.EarlyStopping(rounds=20,metric_name='logloss',data_name='eval')
+for train, test in kf.split(x_total):
+    x_train = x_total[train]
+    y_train = y_total[train]
+    wgts_train = wgts_total[train]
 
-if args.opt=='True':
-    bst = xgb.train(param, dtrain, num_round, evallist, callbacks=[early_stop])
-    bst.save_model('model/'+args.angle+'_'+args.det+'.model')
-else:
-    if args.load=="True" and os.path.splitext(args.model)[1]=='.model':
-        print('load model %s' % args.model)
-        bst.load_model(args.model)
-    else:
-        bst.load_model('model/'+args.angle+'_'+args.det+'.model')
+    x_test = x_total[test]
+    y_test = y_total[test]
+    wgts_test = wgts_total[test]
 
-dTrainPredict    = bst.predict(dtrain)
-dTestPredict     = bst.predict(dtest)
+    dtrain = xgb.DMatrix(x_train, weight=wgts_train, label=y_train, feature_names=col_names)
+    dtest = xgb.DMatrix(x_test, weight=wgts_test, label=y_test, feature_names=col_names)
 
-scoreMerged_train = dTrainPredict[ y_train == 1 ]
-scoreMerged_test = dTestPredict[ y_test == 1 ]
-scoreBkg_train = dTrainPredict[ y_train == 0 ]
-scoreBkg_test = dTestPredict[ y_test == 0 ]
-wgtsMerged_train = wgts_train[ y_train == 1 ]
-wgtsMerged_test = wgts_test[ y_test == 1 ]
-wgtsBkg_train = wgts_train[ y_train == 0 ]
-wgtsBkg_test = wgts_test[ y_test == 0 ]
+    evallist = [(dtest, 'eval'), (dtrain, 'train')]
+    num_round = 200
 
-plotname = args.angle+'_'+args.det
-if args.load=="True" and os.path.splitext(args.model)[1]=='.model':
+    bst = xgb.Booster(param)
+    early_stop = xgb.callback.EarlyStopping(rounds=20,metric_name='logloss',data_name='eval')
+
+    if args.opt=='True':
+        bst = xgb.train(param, dtrain, num_round, evallist, callbacks=[early_stop])
+        model_list.append(bst)
+
+    dTrainPredict    = bst.predict(dtrain)
+    dTestPredict     = bst.predict(dtest)
+
+    modelPerforms_list.append( zvis.calROC(dTrainPredict,dTestPredict,y_train,y_test) )
+
+plotname = workflowname
+
+if args.model is not "" and os.path.splitext(args.model)[1]=='.model':
     plotname += ('_'+os.path.splitext(os.path.basename(args.model))[0])
 
-zvis.drawScoreOverlay(scoreMerged_train,
-                      wgtsMerged_train,
-                      scoreBkg_train,
-                      wgtsBkg_train,
-                      scoreMerged_test,
-                      wgtsMerged_test,
-                      scoreBkg_test,
-                      wgtsBkg_test,
-                      plotname)
+targetFpr = 0.2
+nbins = 50
 
+# calculate score threshold at a certain FPR, which differs by w/ or w/o GSF scenarios
+if args.angle=="None":
+    targetFpr = 0.1
+    nbins = 100
+elif args.angle=="DR2" and args.et=="Et2" and args.det=="EB":
+    targetFpr = 0.1
+else:
+    pass
+
+idx_max = zvis.drawROC(modelPerforms_list, plotname+'_roc')
+targetThres = zvis.drawThr(modelPerforms_list[idx_max], targetFpr, plotname+'_thr')
+
+# save model & importance plot
 if args.opt=='True':
-    gain = bst.get_score( importance_type='gain')
+    model_list[idx_max].save_model('model/'+workflowname+'.model')
+    gain = bst.get_score(importance_type='gain')
     cover = bst.get_score(importance_type='cover')
-    zvis.drawImportance(gain,cover,col_names,args.angle+'_'+args.det+'_importance')
+    zvis.drawImportance(gain,cover,col_names,plotname+'_importance')
+
+# calculate scores by physics processes
+def bkg_predict(abst,atransformer,adf,awgt,colname):
+    if adf.shape[0]==0:
+        return np.zeros(shape=(adf.shape[0],))
+
+    atrans= atransformer.transform(adf)
+    admat = xgb.DMatrix(atrans, weight=awgt, label=np.zeros(shape=(adf.shape[0],)), feature_names=colname)
+
+    return abst.predict(admat)
+
+bst = model_list[idx_max]
 
 np_meanstd = npz_params['meanstd'][()]
 transformer.mean_ = np_meanstd[0]
 transformer.scale_ = np_meanstd[1]
 trans_mergedEl = transformer.transform(df_mergedEl)
-trans_DY = transformer.transform(df_dyEl)
-trans_TT = transformer.transform(df_ttEl)
-trans_WJ = transformer.transform(df_wjetsEl)
-trans_QCD1 = transformer.transform(df_qcdEl_1)
-trans_QCD2 = transformer.transform(df_qcdEl_2)
-trans_QCD3 = transformer.transform(df_qcdEl_3)
-trans_QCD4 = transformer.transform(df_qcdEl_4)
-trans_QCD5 = transformer.transform(df_qcdEl_5)
-trans_QCD6 = transformer.transform(df_qcdEl_6)
-trans_QCD7 = transformer.transform(df_qcdEl_7)
-trans_QCD8 = transformer.transform(df_qcdEl_8)
 dSig = xgb.DMatrix(trans_mergedEl, weight=wgts_mergedEl, label=y_mergedEl, feature_names=col_names)
-dDy = xgb.DMatrix(trans_DY, weight=wgts_dyEl, label=np.zeros(shape=(df_dyEl.shape[0],)), feature_names=col_names)
-dTT = xgb.DMatrix(trans_TT, weight=wgts_ttEl, label=np.zeros(shape=(df_ttEl.shape[0],)), feature_names=col_names)
-dWJ = xgb.DMatrix(trans_WJ, weight=wgts_wjetsEl, label=np.zeros(shape=(df_wjetsEl.shape[0],)), feature_names=col_names)
-dQCD1 = xgb.DMatrix(trans_QCD1, weight=wgts_qcdEl_1, label=np.zeros(shape=(df_qcdEl_1.shape[0],)), feature_names=col_names)
-dQCD2 = xgb.DMatrix(trans_QCD2, weight=wgts_qcdEl_2, label=np.zeros(shape=(df_qcdEl_2.shape[0],)), feature_names=col_names)
-dQCD3 = xgb.DMatrix(trans_QCD3, weight=wgts_qcdEl_3, label=np.zeros(shape=(df_qcdEl_3.shape[0],)), feature_names=col_names)
-dQCD4 = xgb.DMatrix(trans_QCD4, weight=wgts_qcdEl_4, label=np.zeros(shape=(df_qcdEl_4.shape[0],)), feature_names=col_names)
-dQCD5 = xgb.DMatrix(trans_QCD5, weight=wgts_qcdEl_5, label=np.zeros(shape=(df_qcdEl_5.shape[0],)), feature_names=col_names)
-dQCD6 = xgb.DMatrix(trans_QCD6, weight=wgts_qcdEl_6, label=np.zeros(shape=(df_qcdEl_6.shape[0],)), feature_names=col_names)
-dQCD7 = xgb.DMatrix(trans_QCD7, weight=wgts_qcdEl_7, label=np.zeros(shape=(df_qcdEl_7.shape[0],)), feature_names=col_names)
-dQCD8 = xgb.DMatrix(trans_QCD8, weight=wgts_qcdEl_8, label=np.zeros(shape=(df_qcdEl_8.shape[0],)), feature_names=col_names)
-
 dSigPredict = bst.predict(dSig)
-dDyPredict = bst.predict(dDy)
-dTTPredict = bst.predict(dTT)
-dWJPredict = bst.predict(dWJ)
-dQCD1Predict = bst.predict(dQCD1)
-dQCD2Predict = bst.predict(dQCD2)
-dQCD3Predict = bst.predict(dQCD3)
-dQCD4Predict = bst.predict(dQCD4)
-dQCD5Predict = bst.predict(dQCD5)
-dQCD6Predict = bst.predict(dQCD6)
-dQCD7Predict = bst.predict(dQCD7)
-dQCD8Predict = bst.predict(dQCD8)
+
+score_list = []
+
+for aproc in bkglist:
+    score_list.append( bkg_predict(bst,transformer,aproc.df_,aproc.wgts_,col_names) )
+
+scores_bkg = np.concatenate(score_list, axis=0)
 
 zvis.drawScoreByProcess(
     dSigPredict,
     wgts_mergedEl,
-    list(np.array([dTTPredict,dDyPredict,dWJPredict,
-    dQCD1Predict,dQCD2Predict,dQCD3Predict,dQCD4Predict,dQCD5Predict,dQCD6Predict,dQCD7Predict,dQCD8Predict],dtype=object)),
-    list(np.array([wgts_ttEl,wgts_dyEl,wgts_wjetsEl,
-    wgts_qcdEl_1,wgts_qcdEl_2,wgts_qcdEl_3,wgts_qcdEl_4,wgts_qcdEl_5,wgts_qcdEl_6,wgts_qcdEl_7,wgts_qcdEl_8],dtype=object)),
-    ['TT','DY','WJets','QCD_Pt-15to20','QCD_Pt-20to30','QCD_Pt-30to50','QCD_Pt-50to80','QCD_Pt-80to120',
-    'QCD_Pt-120to170','QCD_Pt-170to300','QCD_Pt-300toInf'],
-    ['tomato','wheat','green','lightcyan','paleturquoise','turquoise','cyan','darkturquoise','darkcyan','cadetblue','steelblue'],
-    args.angle+'_'+args.det+'_scoreProcess'
+    list(np.array([aproc for aproc in reversed(score_list)],dtype=object)),
+    list(np.array([aproc.wgts_ for aproc in reversed(bkglist)],dtype=object)),
+    ['TT','DY','WJets','_','_','_','QCD','_','_','_','_'],
+    ['tomato','wheat','green','steelblue','cadetblue','darkcyan','darkturquoise','cyan','turquoise','paleturquoise','lightcyan'],
+    nbins,
+    plotname+'_scoreProcess'
 )
+
+# efficiency as a function of Et at threshold
+etThresLow = 0.
+etThresHigh = 1000.
+
+if args.et=="Et1":
+    if args.det=="EB":
+        etThresHigh = 200.
+    else:
+        etThresHigh = 150.
+elif args.et=="Et2":
+    if args.det=="EB":
+        etThresLow = 200.
+    else:
+        etThresLow = 150.
+else:
+    raise NameError('check Et argument [Et1/Et2]')
+
+effplot_sig = ROOT.TEfficiency("eff_sig",";GeV;Eff",20,etThresLow,etThresHigh)
+effplot_bkg = ROOT.TEfficiency("eff_bkg",";GeV;Eff",20,etThresLow,etThresHigh)
+
+for idx in range(len(wgts_mergedEl)):
+    effplot_sig.FillWeighted(dSigPredict[idx] > targetThres, wgts_mergedEl[idx], pts_mergedEl[idx])
+
+for idx in range(len(wgts_bkg)):
+    effplot_bkg.FillWeighted(scores_bkg[idx] > targetThres, wgts_bkg[idx], pts_bkg[idx])
+
+# some serious plotting
+import CMS_lumi, tdrstyle
+
+#set the tdr style
+tdrstyle.setTDRStyle()
+
+#change the CMS_lumi variables (see CMS_lumi.py)
+CMS_lumi.writeExtraText = 1
+CMS_lumi.extraText = "Work in progress"
+CMS_lumi.lumi_sqrtS = "13 TeV" # used with iPeriod = 0
+
+iPos = 0
+
+if( iPos==0 ):
+    CMS_lumi.relPosX = 0.12
+
+H_ref = 600;
+W_ref = 800;
+W = W_ref
+H = H_ref
+
+iPeriod = 0
+
+# references for T, B, L, R
+T = 0.08*H_ref
+B = 0.12*H_ref
+L = 0.12*W_ref
+R = 0.04*W_ref
+
+canvas = ROOT.TCanvas("c2","c2",50,50,W,H)
+canvas.SetFillColor(0)
+canvas.SetBorderMode(0)
+canvas.SetFrameFillStyle(0)
+canvas.SetFrameBorderMode(0)
+canvas.SetLeftMargin( L/W )
+canvas.SetRightMargin( R/W )
+canvas.SetTopMargin( T/H )
+canvas.SetBottomMargin( B/H )
+canvas.SetTickx(0)
+canvas.SetTicky(0)
+
+effplot_bkg.SetLineWidth(2)
+effplot_sig.SetLineWidth(2)
+effplot_bkg.SetLineColor(ROOT.kRed)
+effplot_sig.SetLineColor(ROOT.kBlue)
+effplot_bkg.Draw()
+canvas.Update()
+agraph = effplot_bkg.GetPaintedGraph()
+agraph.GetYaxis().SetTitleOffset(1)
+agraph.SetMinimum(0.);
+agraph.SetMaximum(1.2);
+canvas.Update()
+effplot_sig.Draw("sames")
+
+legend = ROOT.TLegend(0.85,0.8,0.98,0.9)
+legend.SetBorderSize(0);
+legend.AddEntry(effplot_sig,"sig")
+legend.AddEntry(effplot_bkg,"bkg")
+legend.Draw()
+
+#draw the lumi text on the canvas
+CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+canvas.cd()
+canvas.Update()
+canvas.RedrawAxis()
+frame = canvas.GetFrame()
+frame.Draw()
+
+canvas.SaveAs("plot/"+plotname+"_eff.png")

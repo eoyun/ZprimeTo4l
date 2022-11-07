@@ -17,40 +17,38 @@ def deltaR2(eta1,phi1,eta2,phi2):
 
 class DataframeInitializer(object):
     """docstring for DataframeInitializer."""
-    def __init__(self, det, ang):
+    def __init__(self, det, ang, etrange):
         super(DataframeInitializer, self).__init__()
         self.det_ = det
         self.ang_ = ang
+        self.et_ = etrange
         self.col_ = [
-        'charge',
         'etaSCWidth',
-        'phiSCWidth',
-        'full5x5_sigmaIetaIeta',
-        'full5x5_sigmaIphiIphi',
-        'full5x5_E1x5/E5x5',
-        'full5x5_E2x5/E5x5',
-        'full5x5_r9',
-        'dEtaIn',
-        'dPhiIn',
-        'dPhiSeed',
-        'dEtaEle',
-        'dPhiEle',
-        'dEtaSeed',
-        'EseedOverP',
-        'EOverP',
-        'dxy',
-        'dz',
-        'fbrem',
-        'relModTrkIso',
-        'relModEcalHcalD1Iso'
+        'phiSCWidth', #
+        'E1x5/E5x5',
+        'R9',
+        '|dEtaIn|',
+        '|dPhiIn|',
+        'Eseed/p',
+        'fbrem'
         ]
 
     def col_names(self):
         return self.col_
 
-    def fill_arr(self,aTree,aGsfTree):
+    def fill_arr(self,aTree,aGsfTree=None):
         anArr = np.zeros(shape=(aTree.GetEntries(),len(self.col_)))
         wgts = np.zeros(shape=(aTree.GetEntries(),))
+        pts = np.zeros(shape=(aTree.GetEntries(),))
+
+        etThres = 50.
+
+        if self.det_=='EB':
+            etThres = 200.
+        elif self.det_=='EE':
+            etThres = 150.
+        else:
+            raise NameError('Please check EB/EE argument, the current argument is %s' % self.det_)
 
         for iEl, el in enumerate(aTree):
             if self.det_=='EB':
@@ -62,67 +60,57 @@ class DataframeInitializer(object):
             else:
                 raise NameError('Please check EB/EE argument, the current argument is %s' % self.det_)
 
-            aGsfTree.GetEntry(iEl)
+            if aGsfTree is not None:
+                aGsfTree.GetEntry(iEl)
 
-            if self.ang_=='dr1':
-                if self.det_=='EB':
-                    if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < 0.0174**2:
-                        continue
+                if self.ang_=='DR1':
+                    if self.det_=='EB':
+                        if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.Gsfeta,el.Gsfphi) < 0.0174**2:
+                            continue
+                    else:
+                        if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.Gsfeta,el.Gsfphi) < (0.00864*abs(math.sinh(el.eta)))**2:
+                            continue
+                elif self.ang_=='DR2':
+                    if self.det_=='EB':
+                        if not ( deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.Gsfeta,el.Gsfphi) > 0.0174**2 ):
+                            continue
+                    else:
+                        if not ( deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.Gsfeta,el.Gsfphi) > (0.00864*abs(math.sinh(el.eta)))**2 ):
+                            continue
+                elif self.ang_=='None':
+                    pass
                 else:
-                    if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < (0.00864*abs(math.sinh(el.eta)))**2:
-                        continue
-            elif self.ang_=='dr2':
-                if self.det_=='EB':
-                    if not ( deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > 0.0174**2 and
-                             deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < (2*0.0174)**2 ):
-                        continue
-                else:
-                    if not ( deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > (0.00864*abs(math.sinh(el.eta)))**2 and
-                             deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) < (2*0.00864*abs(math.sinh(el.eta)))**2 ):
-                        continue
-            elif self.ang_=='dr3':
-                if self.det_=='EB':
-                    if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > (2*0.0174)**2:
-                        continue
-                else:
-                    if not deltaR2(aGsfTree.Gsfeta,aGsfTree.Gsfphi,el.eta,el.phi) > (2*0.00864*abs(math.sinh(el.eta)))**2:
-                        continue
-            elif self.ang_=='all':
-                pass
+                    raise NameError('Please check dR(DR1/DR2) argument, the current argument is %s' % self.ang_)
+
+            if self.et_=='Et1':
+                if not ( el.et > 50. and el.et < etThres ):
+                    continue
+            elif self.et_=='Et2':
+                if not ( el.et >= etThres ):
+                    continue
             else:
-                raise NameError('Please check dR(dr1/dr2/dr3) argument, the current argument is %s' % self.ang_)
+                raise NameError('check Et argument (Et1/Et2)')
 
             if float(el.passConversionVeto) < 0.5: # veto conversions
                 continue
 
             idx = iEl
-            wgts[idx] = el.prefiringweight # xgb does not support negative weights
-            anArr[idx,0] = float(el.charge)
-            anArr[idx,1] = el.etaSCWidth
-            anArr[idx,2] = el.phiSCWidth
-            anArr[idx,3] = el.full5x5_sigmaIetaIeta
-            anArr[idx,4] = el.full5x5_sigmaIphiIphi
-            anArr[idx,5] = el.full5x5_E1x5/el.full5x5_E5x5
-            anArr[idx,6] = el.full5x5_E2x5/el.full5x5_E5x5
-            anArr[idx,7] = el.full5x5_r9
-            anArr[idx,8] = el.dEtaIn
-            anArr[idx,9] = el.dPhiIn
-            anArr[idx,10] = el.dPhiSeed
-            anArr[idx,11] = el.dEtaEle
-            anArr[idx,12] = el.dPhiEle
-            anArr[idx,13] = el.dEtaSeed
-            anArr[idx,14] = el.EseedOverP
-            anArr[idx,15] = el.EOverP
-            anArr[idx,16] = el.dxy
-            anArr[idx,17] = el.dz
-            anArr[idx,18] = el.fbrem
-            anArr[idx,19] = (el.modTrkIso)/el.pt
-            anArr[idx,20] = (el.modEcalIso+el.dr03HcalDepth1TowerSumEt)/el.pt
+            wgts[idx] = el.weight/abs(el.weight)
+            pts[idx] = el.et
+            anArr[idx,0] = el.etaSCWidth
+            anArr[idx,1] = el.phiSCWidth
+            anArr[idx,2] = el.full5x5_E1x5/el.full5x5_E5x5
+            anArr[idx,3] = el.full5x5_r9
+            anArr[idx,4] = abs(el.dEtaIn)
+            anArr[idx,5] = abs(el.dPhiIn)
+            anArr[idx,6] = el.EseedOverP
+            anArr[idx,7] = el.fbrem
 
         # remove rows with only zeros
         mask = ~np.all(anArr==0.0,axis=1)
         anArr = anArr[mask]
         wgts = wgts[mask]
+        pts = pts[mask]
 
         # sanity check
         if anArr.shape[0] != wgts.shape[0]:
@@ -130,61 +118,7 @@ class DataframeInitializer(object):
 
         aDf = pd.DataFrame(anArr,columns=self.col_)
 
-        return aDf, wgts
-
-    def fill_bkg(self,aTree):
-        anArr = np.zeros(shape=(aTree.GetEntries(),len(self.col_)))
-        wgts = np.zeros(shape=(aTree.GetEntries(),))
-
-        for iEl, el in enumerate(aTree):
-            if self.det_=='EB':
-                if abs(el.eta) > 1.5:
-                    continue
-            elif self.det_=='EE':
-                if abs(el.eta) < 1.5:
-                    continue
-            else:
-                raise NameError('Please check EB/EE argument, the current argument is %s' % self.det_)
-
-            if float(el.passConversionVeto) < 0.5: # veto conversions
-                continue
-
-            idx = iEl
-            wgts[idx] = el.prefiringweight # xgb does not support negative weights
-            anArr[idx,0] = float(el.charge)
-            anArr[idx,1] = el.etaSCWidth
-            anArr[idx,2] = el.phiSCWidth
-            anArr[idx,3] = el.full5x5_sigmaIetaIeta
-            anArr[idx,4] = el.full5x5_sigmaIphiIphi
-            anArr[idx,5] = el.full5x5_E1x5/el.full5x5_E5x5
-            anArr[idx,6] = el.full5x5_E2x5/el.full5x5_E5x5
-            anArr[idx,7] = el.full5x5_r9
-            anArr[idx,8] = el.dEtaIn
-            anArr[idx,9] = el.dPhiIn
-            anArr[idx,10] = el.dPhiSeed
-            anArr[idx,11] = el.dEtaEle
-            anArr[idx,12] = el.dPhiEle
-            anArr[idx,13] = el.dEtaSeed
-            anArr[idx,14] = el.EseedOverP
-            anArr[idx,15] = el.EOverP
-            anArr[idx,16] = el.dxy
-            anArr[idx,17] = el.dz
-            anArr[idx,18] = el.fbrem
-            anArr[idx,19] = (el.dr03TkSumPtHEEP)/el.pt
-            anArr[idx,20] = (el.dr03EcalRecHitSumEt+el.dr03HcalDepth1TowerSumEt)/el.pt
-
-        # remove rows with only zeros
-        mask = ~np.all(anArr==0.0,axis=1)
-        anArr = anArr[mask]
-        wgts = wgts[mask]
-
-        # sanity check
-        if anArr.shape[0] != wgts.shape[0]:
-            raise IndexError("Index of the array and the weight does not match!")
-
-        aDf = pd.DataFrame(anArr,columns=self.col_)
-
-        return aDf, wgts
+        return aDf, wgts, pts
 
 class SampleProcessor(object):
     """docstring for SampleProcessor."""
@@ -192,26 +126,29 @@ class SampleProcessor(object):
         super(SampleProcessor, self).__init__()
         self.filename_ = filename
         self.xsec_ = xsec
+        self.df_ = None   # dataframe that contains ID variables
+        self.wgts_ = None # np array of wgts for each electron
+        self.pts = None   # np array of Et of each electron
 
     def read(self,dfProducer):
         afile = ROOT.TFile.Open(self.filename_)
-        atree = afile.Get("mergedFakeAnalyzer/fake_elTree")
-        aGsfTree = afile.Get("mergedFakeAnalyzer/fakeGsf_addGsfTree")
-        aWgtHist = afile.Get("mergedFakeAnalyzer/totWeightedSum")
+        atree = None
+        aGsfTree = None
+
+        if dfProducer.ang_=="None":
+            atree = afile.Get("mergedEleBkgMvaInput/bkg_elTree")
+        else:
+            atree = afile.Get("mergedEleBkgMvaInput/fake_elTree")
+            aGsfTree = afile.Get("mergedEleBkgMvaInput/fakeGsf_addGsfTree")
+
+        aWgtHist = afile.Get("mergedEleBkgMvaInput/totWeightedSum")
         totWgtSum = aWgtHist.GetBinContent(1)
 
-        df, wgts = dfProducer.fill_arr(atree,aGsfTree)
+        df, wgts, pts = dfProducer.fill_arr(atree,aGsfTree)
         wgts = wgts*(self.xsec_*1000./totWgtSum)
 
-        return df, wgts
+        self.df_ = df
+        self.wgts_ = wgts
+        self.pts_ = pts
 
-    def read_bkg(self,dfProducer):
-        afile = ROOT.TFile.Open(self.filename_)
-        atree = afile.Get("mergedFakeAnalyzer/bkg_elTree")
-        aWgtHist = afile.Get("mergedFakeAnalyzer/totWeightedSum")
-        totWgtSum = aWgtHist.GetBinContent(1)
-
-        df, wgts = dfProducer.fill_bkg(atree)
-        wgts = wgts*(self.xsec_*1000./totWgtSum)
-
-        return df, wgts
+        return
