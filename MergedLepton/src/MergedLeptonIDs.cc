@@ -1,32 +1,33 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 
-MergedLeptonIDs::GSFtype MergedLeptonIDs::checkElectronGSFtype( edm::Ptr<pat::Electron>& aEle,
-                                                                reco::GsfTrackRef& orgGsfTrk,
-                                                                reco::GsfTrackRef& addGsfTrk,
+MergedLeptonIDs::GSFtype MergedLeptonIDs::checkElectronGSFtype( const pat::ElectronRef& aEle,
+                                                                const reco::GsfTrackRef& orgGsfTrk,
+                                                                const reco::GsfTrackRef& addGsfTrk,
                                                                 const double etThresEB,
                                                                 const double etThresEE,
                                                                 const double minEt ) {
   double dr2 = reco::deltaR2(orgGsfTrk->eta(),orgGsfTrk->phi(),addGsfTrk->eta(),addGsfTrk->phi());
   auto square = [](double input) { return input*input; };
-  double et = Et(aEle);
 
-  if ( et < minEt )
+  if ( aEle->et() < minEt )
     return GSFtype::nulltype;
 
   if ( aEle->isEB() ) {
-    if ( dr2 < square(0.0174) && et > etThresEB )
+    if ( dr2 < square(0.0174) && aEle->et() > etThresEB )
       return GSFtype::DR1Et2EB;
+    else if ( dr2 < square(0.0174) )
+      return GSFtype::extendedCR;
     else if ( dr2 > square(0.0174) ) {
-      if ( et > etThresEB )
+      if ( aEle->et() > etThresEB )
         return GSFtype::DR2Et2EB;
       else
         return GSFtype::DR2Et1EB;
     }
   } else {
-    if ( dr2 < square( 0.00864*std::abs(std::sinh(aEle->eta())) ) && et > etThresEE )
+    if ( dr2 < square( 0.00864*std::abs(std::sinh(aEle->eta())) ) && aEle->et() > etThresEE )
       return GSFtype::DR1Et2EE;
     else if ( dr2 > square( 0.00864*std::abs(std::sinh(aEle->eta())) ) ) {
-      if ( et > etThresEE )
+      if ( aEle->et() > etThresEE )
         return GSFtype::DR2Et2EE;
       else
         return GSFtype::DR2Et1EE;

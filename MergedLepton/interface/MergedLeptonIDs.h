@@ -36,7 +36,11 @@ namespace MergedLeptonIDs {
     hasMatchedElectron, // has 2nd GSF track but it's from another electron
     passedMVA1, // merged electron MVA selection when there exists 2nd GSF track
     outsideDef, // outside Et or dR of interest
-    passedMVA2 // merged electron MVA selection when there is no 2nd GSF track
+    passedMVA2, // merged electron MVA selection when there is no 2nd GSF track
+    has2ndGsfCRpass, // CR with minEt < Et < etThresEB && pass MVA
+    has2ndGsfCRfail, // CR with minEt < Et < etThresEB && fail MVA
+    no2ndGsfCRpass, // CR with minEt < Et < etThresEB && pass MVA
+    no2ndGsfCRfail  // CR with minEt < Et < etThresEB && fail MVA
   };
 
   enum GSFtype {
@@ -46,7 +50,8 @@ namespace MergedLeptonIDs {
     DR2Et2EB,
     DR1Et2EE,
     DR2Et1EE,
-    DR2Et2EE
+    DR2Et2EE,
+    extendedCR
   };
 
   inline bool isSameGsfTrack(const reco::GsfTrackRef& aTrk, const reco::GsfTrackRef& bTrk) {
@@ -55,16 +60,9 @@ namespace MergedLeptonIDs {
              aTrk->phi()==bTrk->phi() );
   }
 
-  inline double Et( const edm::Ptr<reco::GsfElectron>&aEle ) {
-    auto sq = [](double input) { return input*input; };
-    double rad = std::sqrt(sq(aEle->superCluster()->x()) + sq(aEle->superCluster()->y()) + sq(aEle->superCluster()->z()));
-    double trans = std::sqrt(sq(aEle->superCluster()->x()) + sq(aEle->superCluster()->y()));
-    return (aEle->superCluster()->energy())*(trans/rad);
-  }
-
-  GSFtype checkElectronGSFtype( edm::Ptr<pat::Electron>& aEle,
-                                reco::GsfTrackRef& orgGsfTrk,
-                                reco::GsfTrackRef& addGsfTrk,
+  GSFtype checkElectronGSFtype( const pat::ElectronRef& aEle,
+                                const reco::GsfTrackRef& orgGsfTrk,
+                                const reco::GsfTrackRef& addGsfTrk,
                                 const double etThresEB,
                                 const double etThresEE,
                                 const double minEt );

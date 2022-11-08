@@ -26,7 +26,7 @@ MergedMvaEstimator::MergedMvaEstimator(const edm::FileInPath& weightsfile, const
 
 }
 
-double MergedMvaEstimator::computeMva(const edm::Ptr<pat::Electron>& el) {
+double MergedMvaEstimator::computeMva(const pat::ElectronRef& el) {
   const unsigned int nvar = scale_mean_.size();
   float var[nvar];
 

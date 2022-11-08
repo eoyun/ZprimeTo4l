@@ -48,14 +48,12 @@ private:
   const edm::FileInPath xgbPathDR1Et2EB_;
   const edm::FileInPath xgbPathDR2Et1EB_;
   const edm::FileInPath xgbPathDR2Et2EB_;
-  const edm::FileInPath xgbPathDR1Et2EE_;
   const edm::FileInPath xgbPathDR2Et1EE_;
   const edm::FileInPath xgbPathDR2Et2EE_;
   const edm::FileInPath xgbPathBkgEt2EB_;
   const edm::FileInPath meanstdPathDR1Et2EB_;
   const edm::FileInPath meanstdPathDR2Et1EB_;
   const edm::FileInPath meanstdPathDR2Et2EB_;
-  const edm::FileInPath meanstdPathDR1Et2EE_;
   const edm::FileInPath meanstdPathDR2Et1EE_;
   const edm::FileInPath meanstdPathDR2Et2EE_;
   const edm::FileInPath meanstdPathBkgEt2EB_;
@@ -63,7 +61,6 @@ private:
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR1Et2EB_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et1EB_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et2EB_;
-  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR1Et2EE_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et1EE_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et2EE_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorBkgEt2EB_;
@@ -71,7 +68,6 @@ private:
   const double cutDR1Et2EB_;
   const double cutDR2Et1EB_;
   const double cutDR2Et2EB_;
-  const double cutDR1Et2EE_;
   const double cutDR2Et1EE_;
   const double cutDR2Et2EE_;
   const double cutBkgEt2EB_;
@@ -94,28 +90,24 @@ MergedLeptonIDProducer::MergedLeptonIDProducer(const edm::ParameterSet& iConfig)
   xgbPathDR1Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR1Et2EB")),
   xgbPathDR2Et1EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et1EB")),
   xgbPathDR2Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et2EB")),
-  xgbPathDR1Et2EE_(iConfig.getParameter<edm::FileInPath>("xgbPathDR1Et2EE")),
   xgbPathDR2Et1EE_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et1EE")),
   xgbPathDR2Et2EE_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et2EE")),
   xgbPathBkgEt2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathBkgEt2EB")),
   meanstdPathDR1Et2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR1Et2EB")),
   meanstdPathDR2Et1EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et1EB")),
   meanstdPathDR2Et2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et2EB")),
-  meanstdPathDR1Et2EE_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR1Et2EE")),
   meanstdPathDR2Et1EE_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et1EE")),
   meanstdPathDR2Et2EE_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et2EE")),
   meanstdPathBkgEt2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathBkgEt2EB")),
   xgbEstimatorDR1Et2EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR1Et2EB_,meanstdPathDR1Et2EB_)),
   xgbEstimatorDR2Et1EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et1EB_,meanstdPathDR2Et1EB_)),
   xgbEstimatorDR2Et2EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et2EB_,meanstdPathDR2Et2EB_)),
-  xgbEstimatorDR1Et2EE_(std::make_unique<MergedMvaEstimator>(xgbPathDR1Et2EE_,meanstdPathDR1Et2EE_)),
   xgbEstimatorDR2Et1EE_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et1EE_,meanstdPathDR2Et1EE_)),
   xgbEstimatorDR2Et2EE_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et2EE_,meanstdPathDR2Et2EE_)),
   xgbEstimatorBkgEt2EB_(std::make_unique<MergedMvaEstimator>(xgbPathBkgEt2EB_,meanstdPathBkgEt2EB_)),
   cutDR1Et2EB_(iConfig.getParameter<double>("cutDR1Et2EB")),
   cutDR2Et1EB_(iConfig.getParameter<double>("cutDR2Et1EB")),
   cutDR2Et2EB_(iConfig.getParameter<double>("cutDR2Et2EB")),
-  cutDR1Et2EE_(iConfig.getParameter<double>("cutDR1Et2EE")),
   cutDR2Et1EE_(iConfig.getParameter<double>("cutDR2Et1EE")),
   cutDR2Et2EE_(iConfig.getParameter<double>("cutDR2Et2EE")),
   cutBkgEt2EB_(iConfig.getParameter<double>("cutBkgEt2EB")),
@@ -194,10 +186,9 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
   GSFtype_mergedElectron.reserve(nEle);
 
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
-    auto aEle = eleHandle->ptrAt(idx);
-    auto orgGsfTrk = aEle->gsfTrack();
-    auto addGsfTrk = (*addGsfTrkMap)[aEle];
-    double et = MergedLeptonIDs::Et(aEle);
+    const auto& aEle = eleHandle->refAt(idx);
+    const auto& orgGsfTrk = aEle->gsfTrack();
+    const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
 
     MergedLeptonIDs::cutflowElectron acutflow_modifiedHEEP = MergedLeptonIDs::cutflowElectron::baseline;
 
@@ -233,10 +224,19 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
         acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::no2ndGsf;
 
         bool passedMVA = false;
+        const auto castEle = aEle.castTo<pat::ElectronRef>();
 
-        if ( std::abs(aEle->eta()) < 1.5 && et > etThresEB_ ) {
-          amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(aEle);
+        if ( std::abs(aEle->eta()) < 1.5 && aEle->et() > etThresEB_ ) {
+          amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(castEle);
           passedMVA = amvascore_mergedElectron > cutBkgEt2EB_;
+        } else if ( std::abs(aEle->eta()) < 1.5 && aEle->et() > minEt_ ) {
+          // bkg enriched CR with low Et region
+          amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(castEle);
+
+          if ( amvascore_mergedElectron > cutBkgEt2EB_ )
+            acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass;
+          else
+            acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail;
         } else
           acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;
 
@@ -256,8 +256,8 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
         bool notMerged = false;
 
         for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
-          auto secEle = eleHandle->ptrAt(jdx);
-          const auto secGsfTrk = secEle->gsfTrack();
+          const auto& secEle = eleHandle->refAt(jdx);
+          const auto& secGsfTrk = secEle->gsfTrack();
 
           if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,secGsfTrk) ) {
             notMerged = true;
@@ -270,32 +270,41 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
         else {
           bool passedMVA = false;
           // apply BDT to further reject bkg contributions (e.g. brem)
-          aGSFtype_mergedElectron = MergedLeptonIDs::checkElectronGSFtype(aEle,orgGsfTrk,addGsfTrk,etThresEB_,etThresEE_,minEt_);
+          const auto castEle = aEle.castTo<pat::ElectronRef>();
+          aGSFtype_mergedElectron = MergedLeptonIDs::checkElectronGSFtype(castEle,orgGsfTrk,addGsfTrk,etThresEB_,etThresEE_,minEt_);
 
           switch ( aGSFtype_mergedElectron ) {
             case MergedLeptonIDs::GSFtype::DR1Et2EB:
-              amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(aEle);
+              amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle);
               passedMVA = amvascore_mergedElectron > cutDR1Et2EB_;
               break;
             case MergedLeptonIDs::GSFtype::DR2Et1EB:
-              amvascore_mergedElectron = xgbEstimatorDR2Et1EB_->computeMva(aEle);
+              amvascore_mergedElectron = xgbEstimatorDR2Et1EB_->computeMva(castEle);
               passedMVA = amvascore_mergedElectron > cutDR2Et1EB_;
               break;
             case MergedLeptonIDs::GSFtype::DR2Et2EB:
-              amvascore_mergedElectron = xgbEstimatorDR2Et2EB_->computeMva(aEle);
+              amvascore_mergedElectron = xgbEstimatorDR2Et2EB_->computeMva(castEle);
               passedMVA = amvascore_mergedElectron > cutDR2Et2EB_;
               break;
             case MergedLeptonIDs::GSFtype::DR1Et2EE:
-              amvascore_mergedElectron = xgbEstimatorDR1Et2EE_->computeMva(aEle);
-              passedMVA = amvascore_mergedElectron > cutDR1Et2EE_;
+              acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;
               break;
             case MergedLeptonIDs::GSFtype::DR2Et1EE:
-              amvascore_mergedElectron = xgbEstimatorDR2Et1EE_->computeMva(aEle);
+              amvascore_mergedElectron = xgbEstimatorDR2Et1EE_->computeMva(castEle);
               passedMVA = amvascore_mergedElectron > cutDR2Et1EE_;
               break;
             case MergedLeptonIDs::GSFtype::DR2Et2EE:
-              amvascore_mergedElectron = xgbEstimatorDR2Et2EE_->computeMva(aEle);
+              amvascore_mergedElectron = xgbEstimatorDR2Et2EE_->computeMva(castEle);
               passedMVA = amvascore_mergedElectron > cutDR2Et2EE_;
+              break;
+            case MergedLeptonIDs::GSFtype::extendedCR:
+              amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle);
+
+              if ( amvascore_mergedElectron > cutDR1Et2EB_ )
+                acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass;
+              else
+                acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::has2ndGsfCRfail;
+
               break;
             default:
               acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;

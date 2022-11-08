@@ -27,7 +27,7 @@ public:
   MergedMvaEstimator(const edm::FileInPath& weightsfile, const edm::FileInPath& meanstdfile);
   ~MergedMvaEstimator() {}
 
-  double computeMva(const edm::Ptr<pat::Electron>& el);
+  double computeMva(const pat::ElectronRef& el);
 
 private:
   std::unique_ptr<const GBRForest> gbrForest_;
