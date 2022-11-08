@@ -9,7 +9,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -24,6 +24,7 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
 
 #include "TH2D.h"
+#include "TFile.h"
 
 class MergedEleCRanalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
@@ -33,11 +34,11 @@ public:
 private:
   virtual void beginJob() override;
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
-  virtual void endJob() override {}
+  virtual void endJob() override;
 
   bool isMC_;
 
-  const edm::EDGetTokenT<edm::View<reco::GsfElectron>> srcEle_;
+  const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<double> prefweight_token;
@@ -51,13 +52,20 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<float>> mva_mergedElectronToken_;
   const edm::EDGetTokenT<edm::ValueMap<int>> GSFtype_mergedElectronToken_;
 
+  const edm::FileInPath recoSFpath_;
+  const std::vector<std::string> trigList_;
+  const double etThres1_;
+
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,TH2*> histo2d_;
+
+  std::unique_ptr<TFile> recoSFfile_;
+  TH2D* recoSF_;
 };
 
 MergedEleCRanalyzer::MergedEleCRanalyzer(const edm::ParameterSet& iConfig) :
 isMC_(iConfig.getUntrackedParameter<bool>("isMC")),
-srcEle_(consumes<edm::View<reco::GsfElectron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
+srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
@@ -67,89 +75,169 @@ cutflow_modifiedHEEPToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm
 cutflow_HEEPToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("cutflow_HEEP"))),
 status_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("status_mergedElectron"))),
 mva_mergedElectronToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mva_mergedElectron"))),
-GSFtype_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("GSFtype_mergedElectron"))) {
+GSFtype_mergedElectronToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("GSFtype_mergedElectron"))),
+recoSFpath_(iConfig.getParameter<edm::FileInPath>("recoSFpath")),
+trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
+etThres1_(iConfig.getParameter<double>("etThres1")) {
   usesResource("TFileService");
 }
 
 void MergedEleCRanalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
+
+  recoSFfile_ = std::make_unique<TFile>(recoSFpath_.fullPath().c_str(),"READ");
+  recoSF_ = static_cast<TH2D*>(recoSFfile_->Get("EGamma_SF2D"));
+
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
-  histo1d_["cutflow_modifiedHEEP_EB"] = fs->make<TH1D>("cutflow_modifiedHEEP_EB","cutflow",11,-1.,10.);
-  histo1d_["cutflow_modifiedHEEP_EE"] = fs->make<TH1D>("cutflow_modifiedHEEP_EE","cutflow",11,-1.,10.);
-  histo1d_["cutflow_HEEP_EB"] = fs->make<TH1D>("cutflow_HEEP_EB","cutflow",16,-1.,15.);
-  histo1d_["cutflow_HEEP_EE"] = fs->make<TH1D>("cutflow_HEEP_EE","cutflow",16,-1.,15.);
-  histo1d_["status_mergedElectron_EB"] = fs->make<TH1D>("status_mergedElectron_EB","status",30,-1.,29.);
-  histo1d_["status_mergedElectron_EE"] = fs->make<TH1D>("status_mergedElectron_EE","status",30,-1.,29.);
-  histo1d_["mva_DR1Et2EB"] = fs->make<TH1D>("mva_DR1Et2EB","MVA score",200,-1.,1.);
-  histo1d_["mva_DR2Et1EB"] = fs->make<TH1D>("mva_DR2Et1EB","MVA score",200,-1.,1.);
-  histo1d_["mva_DR2Et2EB"] = fs->make<TH1D>("mva_DR2Et2EB","MVA score",200,-1.,1.);
-  histo1d_["mva_DR1Et2EE"] = fs->make<TH1D>("mva_DR1Et2EE","MVA score",200,-1.,1.);
-  histo1d_["mva_DR2Et1EE"] = fs->make<TH1D>("mva_DR2Et1EE","MVA score",200,-1.,1.);
-  histo1d_["mva_DR2Et2EE"] = fs->make<TH1D>("mva_DR2Et2EE","MVA score",200,-1.,1.);
-  histo1d_["mva_bkgEt2EB"] = fs->make<TH1D>("mva_bkgEt2EB","MVA score",200,-1.,1.);
-  histo1d_["cutflow_4E"] = fs->make<TH1D>("cutflow_4E","cutflow",10,0.,10.);
-  histo1d_["cutflow_3E"] = fs->make<TH1D>("cutflow_3E","cutflow",10,0.,10.);
-  histo1d_["cutflow_2E"] = fs->make<TH1D>("cutflow_2E","cutflow",10,0.,10.);
+  histo1d_["cutflow_modifiedHEEP_EB"] = fs->make<TH1D>("cutflow_modifiedHEEP_EB","cutflow (modified HEEP EB)",11,-1.,10.);
+  histo1d_["cutflow_modifiedHEEP_EE"] = fs->make<TH1D>("cutflow_modifiedHEEP_EE","cutflow (modified HEEP EE)",11,-1.,10.);
+  histo1d_["cutflow_HEEP_EB"] = fs->make<TH1D>("cutflow_HEEP_EB","cutflow (HEEP EB)",16,-1.,15.);
+  histo1d_["cutflow_HEEP_EE"] = fs->make<TH1D>("cutflow_HEEP_EE","cutflow (HEEP EE)",16,-1.,15.);
+  histo1d_["status_mergedElectron_EB"] = fs->make<TH1D>("status_mergedElectron_EB","ME status (EB)",40,-1.,39.);
+  histo1d_["status_mergedElectron_EE"] = fs->make<TH1D>("status_mergedElectron_EE","ME status (EE)",40,-1.,39.);
+  histo1d_["mva_DR1Et2EB"] = fs->make<TH1D>("mva_DR1Et2EB","MVA score",100,0.,1.);
+  histo1d_["mva_DR2Et1EB"] = fs->make<TH1D>("mva_DR2Et1EB","MVA score",100,0.,1.);
+  histo1d_["mva_DR2Et2EB"] = fs->make<TH1D>("mva_DR2Et2EB","MVA score",100,0.,1.);
+  histo1d_["mva_DR2Et1EE"] = fs->make<TH1D>("mva_DR2Et1EE","MVA score",100,0.,1.);
+  histo1d_["mva_DR2Et2EE"] = fs->make<TH1D>("mva_DR2Et2EE","MVA score",100,0.,1.);
+  histo1d_["mva_bkgEt2EB"] = fs->make<TH1D>("mva_bkgEt2EB","MVA score",100,0.,1.);
+  histo1d_["mva_DR1Et1EB_extended"] = fs->make<TH1D>("mva_DR1Et1EB_extended","MVA score",100,0.,1.);
+  histo1d_["mva_bkgEt1EB_extended"] = fs->make<TH1D>("mva_bkgEt1EB_extended","MVA score",100,0.,1.);
+  histo1d_["cutflow_4E"] = fs->make<TH1D>("cutflow_4E","cutflow (4E)",10,0.,10.);
+  histo1d_["cutflow_3E"] = fs->make<TH1D>("cutflow_3E","cutflow (3E)",10,0.,10.);
+  histo1d_["cutflow_2E"] = fs->make<TH1D>("cutflow_2E","cutflow (2E)",10,0.,10.);
 
-  histo1d_["pt_3E_ME"] = fs->make<TH1D>("pt_3E_ME","Pt",200,0.,500.);
-  histo1d_["eta_3E_ME"] = fs->make<TH1D>("eta_3E_ME","3Eta",200,-2.5,2.5);
-  histo1d_["phi_3E_ME"] = fs->make<TH1D>("phi_3E_ME","Phi",128,-3.2,3.2);
+  histo2d_["invM_dr"] = fs->make<TH2D>("invM_dr","M(ll) vs dR(ll)",200,0.,1000.,128,0.,6.4);
+  histo2d_["invM_dr_noGsf"] = fs->make<TH2D>("invM_dr_noGsf","M(ll) vs dR(ll)",200,0.,1000.,128,0.,6.4);
+  histo2d_["invM_dr_mixed"] = fs->make<TH2D>("invM_dr_mixed","M(ll) vs dR(ll)",200,0.,1000.,128,0.,6.4);
 
-  histo1d_["pt_2E_ME1"] = fs->make<TH1D>("pt_2E_ME1","Pt",200,0.,500.);
-  histo1d_["eta_2E_ME1"] = fs->make<TH1D>("eta_2E_ME1","Eta",200,-2.5,2.5);
-  histo1d_["phi_2E_ME1"] = fs->make<TH1D>("phi_2E_ME1","Phi",128,-3.2,3.2);
+  histo2d_["et_dr_final"] = fs->make<TH2D>("et_dr_final","Et vs dR(l,GSF)",200,0.,2000.,100,0.,0.5);
+  histo2d_["et_dr_HEEP"] = fs->make<TH2D>("et_dr_HEEP","Et vs dR(l,GSF)",200,0.,2000.,100,0.,0.5);
 
-  histo1d_["pt_2E_ME2"] = fs->make<TH1D>("pt_2E_ME2","Pt",200,0.,500.);
-  histo1d_["eta_2E_ME2"] = fs->make<TH1D>("eta_2E_ME2","Eta",200,-2.5,2.5);
-  histo1d_["phi_2E_ME2"] = fs->make<TH1D>("phi_2E_ME2","Phi",128,-3.2,3.2);
+  histo1d_["et_noGsf_final"] = fs->make<TH1D>("et_noGsf_final","Et (CR);E_{T} [GeV];",200,0.,2000.);
+  histo1d_["et_noGsf_HEEP"] = fs->make<TH1D>("et_noGsf_HEEP","Et (pass HEEP);E_{T} [GeV];",200,0.,2000.);
 
-  histo1d_["invM_2E_ll"] = fs->make<TH1D>("invM_2E_ll","M(ll)",200,0.,500.);
-  histo1d_["rap_2E_ll"] = fs->make<TH1D>("rap_2E_ll","rapidity",200,-2.5,2.5);
-  histo1d_["pt_2E_ll"] = fs->make<TH1D>("pt_2E_ll","Pt(ll)",200,0.,500.);
-  histo1d_["dr_2E_ll"] = fs->make<TH1D>("dr_2E_ll","dR(ll)",128,0.,6.4);
-  histo1d_["deta_2E_ll"] = fs->make<TH1D>("deta_2E_ll","dEta(ll)",200,-2.5,2.5);
-  histo1d_["dphi_2E_ll"] = fs->make<TH1D>("dphi_2E_ll","dPhi(ll)",128,-3.2,3.2);
+  histo1d_["2E_CRME1_Et"] = fs->make<TH1D>("2E_CRME1_Et","CR ME1 E_{T};GeV;",100,0.,500.);
+  histo1d_["2E_CRME1_eta"] = fs->make<TH1D>("2E_CRME1_eta","CR ME1 #eta",50,-2.5,2.5);
+  histo1d_["2E_CRME1_phi"] = fs->make<TH1D>("2E_CRME1_phi","CR ME1 #phi",64,-3.2,3.2);
 
-  histo1d_["pt_3E_ME_noGsf"] = fs->make<TH1D>("pt_3E_ME_noGsf","Pt",200,0.,500.);
-  histo1d_["eta_3E_ME_noGsf"] = fs->make<TH1D>("eta_3E_ME_noGsf","3Eta",200,-2.5,2.5);
-  histo1d_["phi_3E_ME_noGsf"] = fs->make<TH1D>("phi_3E_ME_noGsf","Phi",128,-3.2,3.2);
+  histo1d_["2E_CRME1_noGsf_Et"] = fs->make<TH1D>("2E_CRME1_noGsf_Et","CR ME1 (w/o GSF) E_{T};GeV;",100,0.,500.);
+  histo1d_["2E_CRME1_noGsf_eta"] = fs->make<TH1D>("2E_CRME1_noGsf_eta","CR ME1 (w/o GSF) #eta",50,-2.5,2.5);
+  histo1d_["2E_CRME1_noGsf_phi"] = fs->make<TH1D>("2E_CRME1_noGsf_phi","CR ME1 (w/o GSF) #phi",64,-3.2,3.2);
 
-  histo1d_["pt_2E_ME1_noGsf"] = fs->make<TH1D>("pt_2E_ME1_noGsf","Pt",200,0.,500.);
-  histo1d_["eta_2E_ME1_noGsf"] = fs->make<TH1D>("eta_2E_ME1_noGsf","Eta",200,-2.5,2.5);
-  histo1d_["phi_2E_ME1_noGsf"] = fs->make<TH1D>("phi_2E_ME1_noGsf","Phi",128,-3.2,3.2);
+  histo1d_["2E_CRME2_Et"] = fs->make<TH1D>("2E_CRME2_Et","CR ME2 E_{T};GeV;",100,0.,500.);
+  histo1d_["2E_CRME2_eta"] = fs->make<TH1D>("2E_CRME2_eta","CR ME2 #eta",50,-2.5,2.5);
+  histo1d_["2E_CRME2_phi"] = fs->make<TH1D>("2E_CRME2_phi","CR ME2 #phi",64,-3.2,3.2);
 
-  histo1d_["pt_2E_ME2_noGsf"] = fs->make<TH1D>("pt_2E_ME2_noGsf","Pt",200,0.,500.);
-  histo1d_["eta_2E_ME2_noGsf"] = fs->make<TH1D>("eta_2E_ME2_noGsf","Eta",200,-2.5,2.5);
-  histo1d_["phi_2E_ME2_noGsf"] = fs->make<TH1D>("phi_2E_ME2_noGsf","Phi",128,-3.2,3.2);
+  histo1d_["2E_CRME2_noGsf_Et"] = fs->make<TH1D>("2E_CRME2_noGsf_Et","CR ME2 (w/o GSF) E_{T};GeV;",100,0.,500.);
+  histo1d_["2E_CRME2_noGsf_eta"] = fs->make<TH1D>("2E_CRME2_noGsf_eta","CR ME2 (w/o GSF) #eta",50,-2.5,2.5);
+  histo1d_["2E_CRME2_noGsf_phi"] = fs->make<TH1D>("2E_CRME2_noGsf_phi","CR ME2 (w/o GSF) #phi",64,-3.2,3.2);
 
-  histo1d_["invM_2E_ll_noGsf"] = fs->make<TH1D>("invM_2E_ll_noGsf","M(ll)",200,0.,500.);
-  histo1d_["rap_2E_ll_noGsf"] = fs->make<TH1D>("rap_2E_ll_noGsf","rapidity",200,-2.5,2.5);
-  histo1d_["pt_2E_ll_noGsf"] = fs->make<TH1D>("pt_2E_ll_noGsf","Pt(ll)",200,0.,500.);
-  histo1d_["dr_2E_ll_noGsf"] = fs->make<TH1D>("dr_2E_ll_noGsf","dR(ll)",128,0.,6.4);
-  histo1d_["deta_2E_ll_noGsf"] = fs->make<TH1D>("deta_2E_ll_noGsf","dEta(ll)",200,-2.5,2.5);
-  histo1d_["dphi_2E_ll_noGsf"] = fs->make<TH1D>("dphi_2E_ll_noGsf","dPhi(ll)",128,-3.2,3.2);
+  histo1d_["2E_CRME_ll_invM"] = fs->make<TH1D>("2E_CRME_ll_invM","CR M(ll);GeV;",40,0.,200.);
+  histo1d_["2E_CRME_ll_pt"] = fs->make<TH1D>("2E_CRME_ll_pt","p_{T}(ll);GeV;",100,0.,500.);
+  histo1d_["2E_CRME_ll_dr"] = fs->make<TH1D>("2E_CRME_ll_dr","dR(ll)",64,0.,6.4);
 
-  histo1d_["invM_2E_ll_mixed"] = fs->make<TH1D>("invM_2E_ll_mixed","M(ll)",200,0.,500.);
-  histo1d_["rap_2E_ll_mixed"] = fs->make<TH1D>("rap_2E_ll_mixed","rapidity",200,-2.5,2.5);
-  histo1d_["pt_2E_ll_mixed"] = fs->make<TH1D>("pt_2E_ll_mixed","Pt(ll)",200,0.,500.);
-  histo1d_["dr_2E_ll_mixed"] = fs->make<TH1D>("dr_2E_ll_mixed","dR(ll)",128,0.,6.4);
-  histo1d_["deta_2E_ll_mixed"] = fs->make<TH1D>("deta_2E_ll_mixed","dEta(ll)",200,-2.5,2.5);
-  histo1d_["dphi_2E_ll_mixed"] = fs->make<TH1D>("dphi_2E_ll_mixed","dPhi(ll)",128,-3.2,3.2);
+  histo1d_["2E_CRME_SSll_invM"] = fs->make<TH1D>("2E_CRME_SSll_invM","SS CR M(ll);GeV;",40,0.,200.);
+  histo1d_["2E_CRME_SSll_pt"] = fs->make<TH1D>("2E_CRME_SSll_pt","SS p_{T}(ll);GeV;",100,0.,500.);
+  histo1d_["2E_CRME_SSll_dr"] = fs->make<TH1D>("2E_CRME_SSll_dr","SS dR(ll)",64,0.,6.4);
 
-  histo2d_["invM_dr"] = fs->make<TH2D>("invM_dr","M(ll) vs dR(ll)",200,0.,500.,128,0.,6.4);
-  histo2d_["invM_dr_noGsf"] = fs->make<TH2D>("invM_dr_noGsf","M(ll) vs dR(ll)",200,0.,500.,128,0.,6.4);
-  histo2d_["invM_dr_mixed"] = fs->make<TH2D>("invM_dr_mixed","M(ll) vs dR(ll)",200,0.,500.,128,0.,6.4);
+  histo1d_["2E_CRME_OSll_invM"] = fs->make<TH1D>("2E_CRME_OSll_invM","OS CR M(ll);GeV;",40,0.,200.);
+  histo1d_["2E_CRME_OSll_pt"] = fs->make<TH1D>("2E_CRME_OSll_pt","OS p_{T}(ll);GeV;",100,0.,500.);
+  histo1d_["2E_CRME_OSll_dr"] = fs->make<TH1D>("2E_CRME_OSll_dr","OS dR(ll)",64,0.,6.4);
 
-  histo2d_["et_dr_final"] = fs->make<TH2D>("et_dr_final","Et vs dR(l,GSF)",200,0.,1000.,128,0.,6.4);
-  histo2d_["et_dr_HEEP"] = fs->make<TH2D>("et_dr_HEEP","Et vs dR(l,GSF)",200,0.,1000.,128,0.,6.4);
+  histo1d_["2E_antiME1_Et"] = fs->make<TH1D>("2E_antiME1_Et","anti ME1 E_{T};GeV;",200,0.,500.);
+  histo1d_["2E_antiME1_eta"] = fs->make<TH1D>("2E_antiME1_eta","anti ME1 #eta",200,-2.5,2.5);
+  histo1d_["2E_antiME1_phi"] = fs->make<TH1D>("2E_antiME1_phi","anti ME1 #phi",128,-3.2,3.2);
 
-  histo1d_["et_noGsf_final"] = fs->make<TH1D>("et_noGsf_final","Et",200,0.,1000.);
-  histo1d_["et_noGsf_HEEP"] = fs->make<TH1D>("et_noGsf_HEEP","Et",200,0.,1000.);
+  histo1d_["2E_antiME1_noGsf_Et"] = fs->make<TH1D>("2E_antiME1_noGsf_Et","anti ME1 (w/o GSF) E_{T};GeV;",200,0.,500.);
+  histo1d_["2E_antiME1_noGsf_eta"] = fs->make<TH1D>("2E_antiME1_noGsf_eta","anti ME1 (w/o GSF) #eta",200,-2.5,2.5);
+  histo1d_["2E_antiME1_noGsf_phi"] = fs->make<TH1D>("2E_antiME1_noGsf_phi","anti ME1 (w/o GSF) #phi",128,-3.2,3.2);
+
+  histo1d_["2E_antiME2_Et"] = fs->make<TH1D>("2E_antiME2_Et","anti ME2 E_{T};GeV;",200,0.,500.);
+  histo1d_["2E_antiME2_eta"] = fs->make<TH1D>("2E_antiME2_eta","anti ME2 #eta",200,-2.5,2.5);
+  histo1d_["2E_antiME2_phi"] = fs->make<TH1D>("2E_antiME2_phi","anti ME2 #phi",128,-3.2,3.2);
+
+  histo1d_["2E_antiME2_noGsf_Et"] = fs->make<TH1D>("2E_antiME2_noGsf_Et","anti ME2 (w/o GSF) E_{T};GeV;",200,0.,500.);
+  histo1d_["2E_antiME2_noGsf_eta"] = fs->make<TH1D>("2E_antiME2_noGsf_eta","anti ME2 (w/o GSF) #eta",200,-2.5,2.5);
+  histo1d_["2E_antiME2_noGsf_phi"] = fs->make<TH1D>("2E_antiME2_noGsf_phi","anti ME2 (w/o GSF) #phi",128,-3.2,3.2);
+
+  histo1d_["2E_antiME_ll_invM"] = fs->make<TH1D>("2E_antiME_ll_invM","anti M(ll);GeV;",200,0.,1000.);
+  histo1d_["2E_antiME_ll_invM_CR"] = fs->make<TH1D>("2E_antiME_ll_invM_CR","anti M(ll);GeV;",200,0.,200.);
+  histo1d_["2E_antiME_ll_pt"] = fs->make<TH1D>("2E_antiME_ll_pt","p_{T}(ll);GeV;",200,0.,1000.);
+  histo1d_["2E_antiME_ll_dr"] = fs->make<TH1D>("2E_antiME_ll_dr","dR(ll)",128,0.,6.4);
+
+  histo1d_["2E_antiME_SSll_invM"] = fs->make<TH1D>("2E_antiME_SSll_invM","SS anti M(ll);GeV;",200,0.,1000.);
+  histo1d_["2E_antiME_SSll_invM_CR"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR","SS anti M(ll);GeV;",200,0.,200.);
+  histo1d_["2E_antiME_SSll_pt"] = fs->make<TH1D>("2E_antiME_SSll_pt","SS p_{T}(ll);GeV;",200,0.,1000.);
+  histo1d_["2E_antiME_SSll_dr"] = fs->make<TH1D>("2E_antiME_SSll_dr","SS dR(ll)",128,0.,6.4);
+
+  histo1d_["2E_antiME_OSll_invM"] = fs->make<TH1D>("2E_antiME_OSll_invM","OS anti M(ll);GeV;",200,0.,1000.);
+  histo1d_["2E_antiME_OSll_invM_CR"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR","OS anti M(ll);GeV;",200,0.,200.);
+  histo1d_["2E_antiME_OSll_pt"] = fs->make<TH1D>("2E_antiME_OSll_pt","OS p_{T}(ll);GeV;",200,0.,1000.);
+  histo1d_["2E_antiME_OSll_dr"] = fs->make<TH1D>("2E_antiME_OSll_dr","OS dR(ll)",128,0.,6.4);
+
+  histo1d_["2E_Et_SSCR_antiME"] = fs->make<TH1D>("2E_Et_SSCR_antiME","SSCR denominator E_{T};GeV;",200,0.,1000.);
+  histo1d_["2E_Et_SSCR_CRME"] = fs->make<TH1D>("2E_Et_SSCR_CRME","SSCR numerator E_{T};GeV;",200,0.,1000.);
+
+  histo1d_["2E_Et_OSCR_antiME"] = fs->make<TH1D>("2E_Et_OSCR_antiME","OSCR denominator E_{T};GeV;",200,0.,1000.);
+  histo1d_["2E_Et_OSCR_CRME"] = fs->make<TH1D>("2E_Et_OSCR_CRME","OSCR numerator E_{T};GeV;",200,0.,1000.);
+
+  histo1d_["3E_CRME_Et"] = fs->make<TH1D>("3E_CRME_Et","CR ME E_{T};GeV;",40,0.,200.);
+  histo1d_["3E_CRME_eta"] = fs->make<TH1D>("3E_CRME_eta","CR ME #eta",50,-2.5,2.5);
+  histo1d_["3E_CRME_phi"] = fs->make<TH1D>("3E_CRME_phi","CR ME #phi",64,-3.2,3.2);
+
+  histo1d_["3E_CRME_noGsf_Et"] = fs->make<TH1D>("3E_CRME_noGsf_Et","CR ME (w/o GSF) E_{T};GeV;",40,0.,200.);
+  histo1d_["3E_CRME_noGsf_eta"] = fs->make<TH1D>("3E_CRME_noGsf_eta","CR ME (w/o GSF) #eta",50,-2.5,2.5);
+  histo1d_["3E_CRME_noGsf_phi"] = fs->make<TH1D>("3E_CRME_noGsf_phi","CR ME (w/o GSF) #phi",64,-3.2,3.2);
+
+  histo1d_["3E_CR_NME1_Et"] = fs->make<TH1D>("3E_CR_NME1_Et","CR nonME1 E_{T};GeV;",40,0.,200.);
+  histo1d_["3E_CR_NME1_eta"] = fs->make<TH1D>("3E_CR_NME1_eta","CR nonME1 #eta",50,-2.5,2.5);
+  histo1d_["3E_CR_NME1_phi"] = fs->make<TH1D>("3E_CR_NME1_phi","CR nonME1 #phi",64,-3.2,3.2);
+
+  histo1d_["3E_CR_NME2_Et"] = fs->make<TH1D>("3E_CR_NME2_Et","CR nonME2 E_{T};GeV;",40,0.,200.);
+  histo1d_["3E_CR_NME2_eta"] = fs->make<TH1D>("3E_CR_NME2_eta","CR nonME2 #eta",50,-2.5,2.5);
+  histo1d_["3E_CR_NME2_phi"] = fs->make<TH1D>("3E_CR_NME2_phi","CR nonME2 #phi",64,-3.2,3.2);
+
+  histo1d_["3E_CRME_lll_invM"] = fs->make<TH1D>("3E_CRME_lll_invM","CR M(lll);GeV;",40,0.,200.);
+  histo1d_["3E_CRME_lll_pt"] = fs->make<TH1D>("3E_CRME_lll_pt","p_{T}(lll);GeV;",100,0.,500.);
+  histo1d_["3E_CRME_lll_dr_l1ME"] = fs->make<TH1D>("3E_CRME_lll_dr_l1ME","dR(l1ME)",64,0.,6.4);
+  histo1d_["3E_CRME_lll_dr_l2ME"] = fs->make<TH1D>("3E_CRME_lll_dr_l2ME","dR(l2ME)",64,0.,6.4);
+  histo1d_["3E_CRME_lll_dr_l1l2"] = fs->make<TH1D>("3E_CRME_lll_dr_l1l2","dR(l1l2)",64,0.,6.4);
+
+  histo1d_["3E_antiME_Et"] = fs->make<TH1D>("3E_antiME_Et","anti ME E_{T};GeV;",200,0.,500.);
+  histo1d_["3E_antiME_eta"] = fs->make<TH1D>("3E_antiME_eta","anti ME #eta",200,-2.5,2.5);
+  histo1d_["3E_antiME_phi"] = fs->make<TH1D>("3E_antiME_phi","anti ME #phi",128,-3.2,3.2);
+
+  histo1d_["3E_antiME_noGsf_Et"] = fs->make<TH1D>("3E_antiME_noGsf_Et","anti ME (w/o GSF) E_{T};GeV;",200,0.,500.);
+  histo1d_["3E_antiME_noGsf_eta"] = fs->make<TH1D>("3E_antiME_noGsf_eta","anti ME (w/o GSF) #eta",200,-2.5,2.5);
+  histo1d_["3E_antiME_noGsf_phi"] = fs->make<TH1D>("3E_antiME_noGsf_phi","anti ME (w/o GSF) #phi",128,-3.2,3.2);
+
+  histo1d_["3E_antiME_NME1_Et"] = fs->make<TH1D>("3E_antiME_NME1_Et","anti nonME1 E_{T};GeV;",200,0.,500.);
+  histo1d_["3E_antiME_NME1_eta"] = fs->make<TH1D>("3E_antiME_NME1_eta","anti nonME1 #eta",200,-2.5,2.5);
+  histo1d_["3E_antiME_NME1_phi"] = fs->make<TH1D>("3E_antiME_NME1_phi","anti nonME1 #phi",128,-3.2,3.2);
+
+  histo1d_["3E_antiME_NME2_Et"] = fs->make<TH1D>("3E_antiME_NME2_Et","anti nonME2 E_{T};GeV;",200,0.,500.);
+  histo1d_["3E_antiME_NME2_eta"] = fs->make<TH1D>("3E_antiME_NME2_eta","anti nonME2 #eta",200,-2.5,2.5);
+  histo1d_["3E_antiME_NME2_phi"] = fs->make<TH1D>("3E_antiME_NME2_phi","anti nonME2 #phi",128,-3.2,3.2);
+
+  histo1d_["3E_antiME_lll_invM"] = fs->make<TH1D>("3E_antiME_lll_invM","CR M(lll);GeV;",200,0.,1000.);
+  histo1d_["3E_antiME_lll_invM_CR"] = fs->make<TH1D>("3E_antiME_lll_invM_CR","CR M(lll);GeV;",200,0,200.);
+  histo1d_["3E_antiME_lll_pt"] = fs->make<TH1D>("3E_antiME_lll_pt","p_{T}(lll);GeV;",200,0.,1000.);
+  histo1d_["3E_antiME_lll_dr_l1ME"] = fs->make<TH1D>("3E_antiME_lll_dr_l1ME","dR(l1ME)",128,0.,6.4);
+  histo1d_["3E_antiME_lll_dr_l2ME"] = fs->make<TH1D>("3E_antiME_lll_dr_l2ME","dR(l2ME)",128,0.,6.4);
+  histo1d_["3E_antiME_lll_dr_l1l2"] = fs->make<TH1D>("3E_antiME_lll_dr_l1l2","dR(l1l2)",128,0.,6.4);
+
+  histo1d_["3E_Et_CR_antiME"] = fs->make<TH1D>("3E_Et_CR_antiME","3EVR denominator E_{T};GeV;",200,0.,1000.);
+  histo1d_["3E_Et_CR_CRME"] = fs->make<TH1D>("3E_Et_CR_CRME","3EVR numerator E_{T};GeV;",200,0.,1000.);
+}
+
+void MergedEleCRanalyzer::endJob() {
+  recoSFfile_->Close();
 }
 
 void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  edm::Handle<edm::View<reco::GsfElectron>> eleHandle;
+  edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(srcEle_, eleHandle);
 
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
@@ -174,14 +262,6 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::TriggerResults> trigResultHandle;
   iEvent.getByToken(triggerToken_,trigResultHandle);
 
-  std::string trigs[] = {
-    // https://docs.google.com/spreadsheets/d/1Yy1VYIp-__pVUDFUs6JDNUh4XGlL2SlOsqXjdCsNiGU/edit#gid=663660886
-    // https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary
-    "HLT_DoubleEle33_CaloIdL_MW_v*",
-    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*"
-  };
-
-  const unsigned int nTrigs = sizeof(trigs)/sizeof(*trigs);
   const unsigned int nTrig = trigResultHandle.product()->size();
   std::vector<std::pair<std::string, int>> indices;
   edm::TriggerNames trigList = iEvent.triggerNames(*trigResultHandle);
@@ -190,8 +270,8 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   for (unsigned int iTrig = 0; iTrig != nTrig; iTrig++) {
     std::string trigName = trigList.triggerName(iTrig);
-    for (unsigned int jTrig = 0; jTrig != nTrigs; jTrig++) {
-      if (trigName.find(trigs[jTrig].substr(0, trigs[jTrig].find("*"))) != std::string::npos) {
+    for (unsigned int jTrig = 0; jTrig != trigList_.size(); jTrig++) {
+      if (trigName.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos) {
         if (trigResultHandle.product()->accept(iTrig))
           isFired = true;
       }
@@ -235,16 +315,23 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(GSFtype_mergedElectronToken_, GSFtype_mergedElectronHandle);
 
   // first two (modified)HEEP electrons should be Et > 35 GeV
-  std::vector<edm::Ptr<reco::GsfElectron>> acceptEles;
+  std::vector<pat::ElectronRef> acceptEles;
 
-  auto sortByPt = [](const edm::Ptr<reco::GsfElectron> a, const edm::Ptr<reco::GsfElectron> b) {
-    return a->pt() > b->pt();
+  auto sortByEt = [](const pat::ElectronRef& a, const pat::ElectronRef& b) {
+    return a->et() > b->et();
   };
 
   for (unsigned int idx = 0; idx < eleHandle->size(); idx++) {
-    auto aEle = eleHandle->ptrAt(idx);
-    auto orgGsfTrk = aEle->gsfTrack();
-    auto addGsfTrk = (*addGsfTrkMap)[aEle];
+    const auto& aEle = eleHandle->refAt(idx);
+    const auto& orgGsfTrk = aEle->gsfTrack();
+    const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
+
+    if ( std::abs(aEle->eta()) > 2.5 )
+      continue;
+
+    // veto EBEE gap
+    if ( std::abs(aEle->eta()) > 1.44 && std::abs(aEle->eta()) < 1.57 )
+      continue;
 
     std::string strModHEEP = "cutflow_modifiedHEEP";
     std::string strHEEP = "cutflow_HEEP";
@@ -261,27 +348,33 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     MergedLeptonIDs::fillCutflow( histo1d_[strHEEP], (*cutflow_HEEPHandle)[aEle] , aWeight );
 
     if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
-      if ( (*cutflow_HEEPHandle)[aEle] == static_cast<int>(MergedLeptonIDs::cutflowElectron::showerShape) )
-        acceptEles.push_back(aEle);
+      if ( (*cutflow_HEEPHandle)[aEle] == static_cast<int>(MergedLeptonIDs::cutflowElectron::showerShape) ) {
+        auto castEle = aEle.castTo<pat::ElectronRef>();
+        acceptEles.push_back(castEle);
+      }
     } else {
-      if ( (*cutflow_modifiedHEEPHandle)[aEle] == static_cast<int>(MergedLeptonIDs::cutflowElectron::dxy) )
-        acceptEles.push_back(aEle);
+      if ( (*cutflow_modifiedHEEPHandle)[aEle] == static_cast<int>(MergedLeptonIDs::cutflowElectron::dxy) ) {
+        auto castEle = aEle.castTo<pat::ElectronRef>();
+        acceptEles.push_back(castEle);
+      }
     }
   }
 
-  std::sort(acceptEles.begin(),acceptEles.end(),sortByPt);
+  std::sort(acceptEles.begin(),acceptEles.end(),sortByEt);
 
   bool accepted = false;
 
   if ( acceptEles.size() > 1 ) {
-    if ( acceptEles.at(1)->pt() > 35. )
+    if ( acceptEles.at(1)->et() > etThres1_ )
       accepted = true;
   }
 
   if (!accepted)
     return;
 
-  std::vector<edm::Ptr<reco::GsfElectron>> mergedEls;
+  std::vector<pat::ElectronRef> mergedEls;
+  std::vector<pat::ElectronRef> CRMEs;
+  std::vector<pat::ElectronRef> antiMEs;
 
   for (unsigned int idx = 0; idx < acceptEles.size(); ++idx) {
     auto aEle = acceptEles.at(idx);
@@ -289,7 +382,6 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     auto aGSFtype = static_cast<MergedLeptonIDs::GSFtype>((*GSFtype_mergedElectronHandle)[aEle]);
     auto aStatus = static_cast<MergedLeptonIDs::cutflowElectron>((*status_mergedElectronHandle)[aEle]);
 
-    double et = MergedLeptonIDs::Et(aEle);
     double drGSF = std::sqrt(reco::deltaR2(aEle->gsfTrack()->eta(),
                                            aEle->gsfTrack()->phi(),
                                            (*addGsfTrkMap)[aEle]->eta(),
@@ -303,24 +395,30 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     else
       strEBEE = "_EE";
 
-    if ( et < 50. )
+    if ( aEle->et() < 50. )
       continue;
 
     if ( aStatus==MergedLeptonIDs::cutflowElectron::no2ndGsf ||
-         aStatus==MergedLeptonIDs::cutflowElectron::passedMVA2 ) {
+         aStatus==MergedLeptonIDs::cutflowElectron::passedMVA2 ||
+         aStatus==MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail ||
+         aStatus==MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass ) {
       // no 2nd GSF
-      histo1d_["et_noGsf_HEEP"]->Fill( et, aWeight );
+      postfix = "_bkgEt2EB";
 
-      if ( std::abs(aEle->eta()) < 1.5 ) {
-        postfix = "_bkgEt2EB";
-        histo1d_[static_cast<std::string>("mva")+postfix]
-          ->Fill( (*mva_mergedElectronHandle)[aEle] , aWeight );
-      } else
-        continue;
+      if ( aStatus==MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail ||
+           aStatus==MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass )
+        postfix = "_bkgEt1EB_extended";
+
+      histo1d_["et_noGsf_HEEP"]->Fill( aEle->et(), aWeight );
+      histo1d_[static_cast<std::string>("mva")+postfix]
+        ->Fill( (*mva_mergedElectronHandle)[aEle] , aWeight );
+
     } else if ( aStatus==MergedLeptonIDs::cutflowElectron::has2ndGsf ||
-                aStatus==MergedLeptonIDs::cutflowElectron::passedMVA1 ) {
+                aStatus==MergedLeptonIDs::cutflowElectron::passedMVA1 ||
+                aStatus==MergedLeptonIDs::cutflowElectron::has2ndGsfCRfail ||
+                aStatus==MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass ) {
       // has 2nd GSF
-      histo2d_["et_dr_HEEP"]->Fill( et, drGSF, aWeight );
+      histo2d_["et_dr_HEEP"]->Fill( aEle->et(), drGSF, aWeight );
 
       switch (aGSFtype) { // better way to do this?
         case MergedLeptonIDs::GSFtype::DR1Et2EB:
@@ -332,14 +430,14 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         case MergedLeptonIDs::GSFtype::DR2Et2EB:
           postfix = "_DR2Et2EB";
           break;
-        case MergedLeptonIDs::GSFtype::DR1Et2EE:
-          postfix = "_DR1Et2EE";
-          break;
         case MergedLeptonIDs::GSFtype::DR2Et1EE:
           postfix = "_DR2Et1EE";
           break;
         case MergedLeptonIDs::GSFtype::DR2Et2EE:
           postfix = "_DR2Et2EE";
+          break;
+        case MergedLeptonIDs::GSFtype::extendedCR:
+          postfix = "_DR1Et1EB_extended";
           break;
         default:
           throw cms::Exception("LogicError") << "opening angle between the original and additional GSF track does not fit into any of MergedLeptonIDs::openingAngle categories" << std::endl;
@@ -353,17 +451,46 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     histo1d_[static_cast<std::string>("status_mergedElectron")+strEBEE]
       ->Fill( static_cast<float>( (*status_mergedElectronHandle)[aEle] ) + 0.5 , aWeight );
 
-    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
+    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) )
       mergedEls.push_back(aEle);
-      histo2d_["et_dr_final"]->Fill( et, drGSF, aWeight );
-    } else if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ) {
-      mergedEls.push_back(aEle);
-      histo1d_["et_noGsf_final"]->Fill( et, aWeight );
-    } else {}
+
+    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass) )
+      histo2d_["et_dr_final"]->Fill( aEle->et(), drGSF, aWeight );
+
+    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass) )
+      histo1d_["et_noGsf_final"]->Fill( aEle->et(), aWeight );
+
+    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass) )
+      CRMEs.push_back(aEle);
+
+    if ( (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsf) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsf) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRfail) ||
+         (*status_mergedElectronHandle)[aEle]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail) )
+      antiMEs.push_back(aEle);
 
   } // electron loop
 
-  std::sort(mergedEls.begin(),mergedEls.end(),sortByPt);
+  std::sort(mergedEls.begin(),mergedEls.end(),sortByEt);
+  std::sort(CRMEs.begin(),CRMEs.end(),sortByEt);
+  std::sort(antiMEs.begin(),antiMEs.end(),sortByEt);
+
+  double objwgt = 1.;
+
+  if (isMC_) {
+    for (const auto& aEle : acceptEles) {
+      double apt = aEle->pt() >= 500. ? 499.999 : aEle->pt();
+      objwgt *= recoSF_->GetBinContent( recoSF_->FindBin(aEle->eta(), apt ) );
+    }
+  }
+
+  aWeight *= objwgt;
 
   switch (acceptEles.size()) {
     case 4:
@@ -374,91 +501,233 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     case 3:
       histo1d_["cutflow_3E"]->Fill( 2.5, aWeight );
 
-      if ( mergedEls.size()==1 ) {
+      if ( mergedEls.size()==1 )
         histo1d_["cutflow_3E"]->Fill( 3.5, aWeight );
 
-        if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
-          histo1d_["pt_3E_ME"]->Fill( mergedEls.front()->pt(), aWeight );
-          histo1d_["eta_3E_ME"]->Fill( mergedEls.front()->eta(), aWeight );
-          histo1d_["phi_3E_ME"]->Fill( mergedEls.front()->phi(), aWeight );
-        } else if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ) {
-          histo1d_["pt_3E_ME_noGsf"]->Fill( mergedEls.front()->pt(), aWeight );
-          histo1d_["eta_3E_ME_noGsf"]->Fill( mergedEls.front()->eta(), aWeight );
-          histo1d_["phi_3E_ME_noGsf"]->Fill( mergedEls.front()->phi(), aWeight );
+      if ( CRMEs.size()==1 ) {
+        std::vector<pat::ElectronRef> nonMEs;
+
+        for (const auto& aEle : acceptEles) {
+          if ( aEle!=CRMEs.front() )
+            nonMEs.push_back(aEle);
+        }
+
+        const auto lvecCRME = CRMEs.front()->polarP4()*CRMEs.front()->userFloat("ecalTrkEnergyPostCorr")/CRMEs.front()->energy();
+        const auto lvecNME1 = nonMEs.front()->polarP4()*nonMEs.front()->userFloat("ecalTrkEnergyPostCorr")/nonMEs.front()->energy();
+        const auto lvecNME2 = nonMEs.at(1)->polarP4()*nonMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/nonMEs.at(1)->energy();
+        const auto lvecCRllME = lvecCRME + lvecNME1 + lvecNME2;
+        const double dr2l1ME = reco::deltaR2(CRMEs.front()->eta(),CRMEs.front()->phi(),nonMEs.front()->eta(),nonMEs.front()->phi());
+        const double dr2l2ME = reco::deltaR2(CRMEs.front()->eta(),CRMEs.front()->phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
+        const double dr2l1l2 = reco::deltaR2(nonMEs.front()->eta(),nonMEs.front()->phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
+
+        if ( lvecCRllME.M() > 50. && lvecCRllME.M() < 200. ) {
+          if ( (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ||
+               (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass) ) {
+            histo1d_["3E_CRME_Et"]->Fill(CRMEs.front()->et(),aWeight);
+            histo1d_["3E_CRME_eta"]->Fill(CRMEs.front()->eta(),aWeight);
+            histo1d_["3E_CRME_phi"]->Fill(CRMEs.front()->phi(),aWeight);
+          } else if ( (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ||
+                      (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass) ) {
+            histo1d_["3E_CRME_noGsf_Et"]->Fill(CRMEs.front()->et(),aWeight);
+            histo1d_["3E_CRME_noGsf_eta"]->Fill(CRMEs.front()->eta(),aWeight);
+            histo1d_["3E_CRME_noGsf_phi"]->Fill(CRMEs.front()->phi(),aWeight);
+          } else {}
+
+          histo1d_["3E_CR_NME1_Et"]->Fill(nonMEs.front()->et(),aWeight);
+          histo1d_["3E_CR_NME1_eta"]->Fill(nonMEs.front()->eta(),aWeight);
+          histo1d_["3E_CR_NME1_phi"]->Fill(nonMEs.front()->phi(),aWeight);
+
+          histo1d_["3E_CR_NME2_Et"]->Fill(nonMEs.at(1)->et(),aWeight);
+          histo1d_["3E_CR_NME2_eta"]->Fill(nonMEs.at(1)->eta(),aWeight);
+          histo1d_["3E_CR_NME2_phi"]->Fill(nonMEs.at(1)->phi(),aWeight);
+
+          histo1d_["3E_CRME_lll_invM"]->Fill(lvecCRllME.M(),aWeight);
+          histo1d_["3E_CRME_lll_pt"]->Fill(lvecCRllME.pt(),aWeight);
+          histo1d_["3E_CRME_lll_dr_l1ME"]->Fill(std::sqrt(dr2l1ME),aWeight);
+          histo1d_["3E_CRME_lll_dr_l2ME"]->Fill(std::sqrt(dr2l2ME),aWeight);
+          histo1d_["3E_CRME_lll_dr_l1l2"]->Fill(std::sqrt(dr2l1l2),aWeight);
+
+          histo1d_["3E_Et_CR_CRME"]->Fill( CRMEs.front()->et(), aWeight );
+        }
+      } // CRMEs.size()==1
+
+      if ( antiMEs.size()==1 ) {
+        std::vector<pat::ElectronRef> nonMEs;
+
+        for (const auto& aEle : acceptEles) {
+          if ( aEle!=antiMEs.front() )
+            nonMEs.push_back(aEle);
+        }
+
+        if ( (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsf) ||
+             (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRfail) ) {
+          histo1d_["3E_antiME_Et"]->Fill(antiMEs.front()->et(),aWeight);
+          histo1d_["3E_antiME_eta"]->Fill(antiMEs.front()->eta(),aWeight);
+          histo1d_["3E_antiME_phi"]->Fill(antiMEs.front()->phi(),aWeight);
+        } else if ( (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsf) ||
+                    (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail) ) {
+          histo1d_["3E_antiME_noGsf_Et"]->Fill(antiMEs.front()->et(),aWeight);
+          histo1d_["3E_antiME_noGsf_eta"]->Fill(antiMEs.front()->eta(),aWeight);
+          histo1d_["3E_antiME_noGsf_phi"]->Fill(antiMEs.front()->phi(),aWeight);
         } else {}
-      }
+
+        histo1d_["3E_antiME_NME1_Et"]->Fill(nonMEs.front()->et(),aWeight);
+        histo1d_["3E_antiME_NME1_eta"]->Fill(nonMEs.front()->eta(),aWeight);
+        histo1d_["3E_antiME_NME1_phi"]->Fill(nonMEs.front()->phi(),aWeight);
+
+        histo1d_["3E_antiME_NME2_Et"]->Fill(nonMEs.at(1)->et(),aWeight);
+        histo1d_["3E_antiME_NME2_eta"]->Fill(nonMEs.at(1)->eta(),aWeight);
+        histo1d_["3E_antiME_NME2_phi"]->Fill(nonMEs.at(1)->phi(),aWeight);
+
+        const auto lvecAME = antiMEs.front()->polarP4()*antiMEs.front()->userFloat("ecalTrkEnergyPostCorr")/antiMEs.front()->energy();
+        const auto lvecNME1 = nonMEs.front()->polarP4()*nonMEs.front()->userFloat("ecalTrkEnergyPostCorr")/nonMEs.front()->energy();
+        const auto lvecNME2 = nonMEs.at(1)->polarP4()*nonMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/nonMEs.at(1)->energy();
+        const auto lvecAllME = lvecAME + lvecNME1 + lvecNME2;
+        const double dr2l1ME = reco::deltaR2(antiMEs.front()->eta(),antiMEs.front()->phi(),nonMEs.front()->eta(),nonMEs.front()->phi());
+        const double dr2l2ME = reco::deltaR2(antiMEs.front()->eta(),antiMEs.front()->phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
+        const double dr2l1l2 = reco::deltaR2(nonMEs.front()->eta(),nonMEs.front()->phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
+        const double mll = lvecAllME.M();
+
+        histo1d_["3E_antiME_lll_invM"]->Fill(mll,aWeight);
+        histo1d_["3E_antiME_lll_pt"]->Fill(lvecAllME.pt(),aWeight);
+        histo1d_["3E_antiME_lll_dr_l1ME"]->Fill(std::sqrt(dr2l1ME),aWeight);
+        histo1d_["3E_antiME_lll_dr_l2ME"]->Fill(std::sqrt(dr2l2ME),aWeight);
+        histo1d_["3E_antiME_lll_dr_l1l2"]->Fill(std::sqrt(dr2l1l2),aWeight);
+
+        if ( mll > 50. && mll < 200. ) {
+          histo1d_["3E_antiME_lll_invM_CR"]->Fill(mll,aWeight);
+          histo1d_["3E_Et_CR_antiME"]->Fill( antiMEs.front()->et(), aWeight );
+        } // CR
+      } // antiMEs.size()==1
 
       break;
     case 2:
       histo1d_["cutflow_2E"]->Fill( 2.5, aWeight );
       if ( mergedEls.size() > 0 )
         histo1d_["cutflow_2E"]->Fill( 3.5, aWeight );
-      if ( mergedEls.size()==2 ) {
+      if ( mergedEls.size()==2 )
         histo1d_["cutflow_2E"]->Fill( 4.5, aWeight );
 
-        if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
-          histo1d_["pt_2E_ME1"]->Fill( mergedEls.front()->pt(), aWeight );
-          histo1d_["eta_2E_ME1"]->Fill( mergedEls.front()->eta(), aWeight );
-          histo1d_["phi_2E_ME1"]->Fill( mergedEls.front()->phi(), aWeight );
-        } else if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ) {
-          histo1d_["pt_2E_ME1_noGsf"]->Fill( mergedEls.front()->pt(), aWeight );
-          histo1d_["eta_2E_ME1_noGsf"]->Fill( mergedEls.front()->eta(), aWeight );
-          histo1d_["phi_2E_ME1_noGsf"]->Fill( mergedEls.front()->phi(), aWeight );
+      if (CRMEs.size()==2) {
+        const auto lvecCRME1 = CRMEs.front()->polarP4()*CRMEs.front()->userFloat("ecalTrkEnergyPostCorr")/CRMEs.front()->energy();
+        const auto lvecCRME2 = CRMEs.at(1)->polarP4()*CRMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/CRMEs.at(1)->energy();
+        const auto lvecCRll = lvecCRME1 + lvecCRME2;
+        const double dr2CRll = reco::deltaR2(lvecCRME1.eta(),lvecCRME1.phi(),lvecCRME2.eta(),lvecCRME2.phi());
+
+        if ( lvecCRll.M() > 50. && lvecCRll.M() < 200. ) {
+          if ( (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ||
+               (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass) ) {
+            histo1d_["2E_CRME1_Et"]->Fill( CRMEs.front()->et()*CRMEs.front()->userFloat("ecalTrkEnergyPostCorr")/CRMEs.front()->energy(), aWeight );
+            histo1d_["2E_CRME1_eta"]->Fill( CRMEs.front()->eta(), aWeight );
+            histo1d_["2E_CRME1_phi"]->Fill( CRMEs.front()->phi(), aWeight );
+          } else if ( (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ||
+                      (*status_mergedElectronHandle)[CRMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass) ) {
+            histo1d_["2E_CRME1_noGsf_Et"]->Fill( CRMEs.front()->et()*CRMEs.front()->userFloat("ecalTrkEnergyPostCorr")/CRMEs.front()->energy(), aWeight );
+            histo1d_["2E_CRME1_noGsf_eta"]->Fill( CRMEs.front()->eta(), aWeight );
+            histo1d_["2E_CRME1_noGsf_phi"]->Fill( CRMEs.front()->phi(), aWeight );
+          } else {}
+
+          if ( (*status_mergedElectronHandle)[CRMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ||
+               (*status_mergedElectronHandle)[CRMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass) ) {
+            histo1d_["2E_CRME2_Et"]->Fill( CRMEs.at(1)->et()*CRMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/CRMEs.at(1)->energy(), aWeight );
+            histo1d_["2E_CRME2_eta"]->Fill( CRMEs.at(1)->eta(), aWeight );
+            histo1d_["2E_CRME2_phi"]->Fill( CRMEs.at(1)->phi(), aWeight );
+          } else if ( (*status_mergedElectronHandle)[CRMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ||
+                      (*status_mergedElectronHandle)[CRMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass) ) {
+            histo1d_["2E_CRME2_noGsf_Et"]->Fill( CRMEs.at(1)->et()*CRMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/CRMEs.at(1)->energy(), aWeight );
+            histo1d_["2E_CRME2_noGsf_eta"]->Fill( CRMEs.at(1)->eta(), aWeight );
+            histo1d_["2E_CRME2_noGsf_phi"]->Fill( CRMEs.at(1)->phi(), aWeight );
+          } else {}
+
+          histo1d_["2E_CRME_ll_invM"]->Fill( lvecCRll.M(), aWeight );
+          histo1d_["2E_CRME_ll_pt"]->Fill( lvecCRll.pt(), aWeight );
+          histo1d_["2E_CRME_ll_dr"]->Fill( std::sqrt(dr2CRll), aWeight );
+
+          if ( CRMEs.front()->charge()*CRMEs.at(1)->charge() < 0. ) { // OS
+            histo1d_["2E_CRME_OSll_invM"]->Fill( lvecCRll.M(), aWeight );
+            histo1d_["2E_CRME_OSll_pt"]->Fill( lvecCRll.pt(), aWeight );
+            histo1d_["2E_CRME_OSll_dr"]->Fill( std::sqrt(dr2CRll), aWeight );
+
+            for (const auto& aME : CRMEs)
+              histo1d_["2E_Et_OSCR_CRME"]->Fill( aME->et(), aWeight );
+          } else if ( CRMEs.front()->charge()*CRMEs.at(1)->charge() > 0. ) { // SS
+            histo1d_["2E_CRME_SSll_invM"]->Fill( lvecCRll.M(), aWeight );
+            histo1d_["2E_CRME_SSll_pt"]->Fill( lvecCRll.pt(), aWeight );
+            histo1d_["2E_CRME_SSll_dr"]->Fill( std::sqrt(dr2CRll), aWeight );
+
+            for (const auto& aME : CRMEs)
+              histo1d_["2E_Et_SSCR_CRME"]->Fill( aME->et(), aWeight );
+          }
+        } // CR
+      } // CRMEs.size()==2
+
+      if (antiMEs.size()==2) {
+        if ( (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsf) ||
+             (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRfail) ) {
+          histo1d_["2E_antiME1_Et"]->Fill( antiMEs.front()->et()*antiMEs.front()->userFloat("ecalTrkEnergyPostCorr")/antiMEs.front()->energy(), aWeight );
+          histo1d_["2E_antiME1_eta"]->Fill( antiMEs.front()->eta(), aWeight );
+          histo1d_["2E_antiME1_phi"]->Fill( antiMEs.front()->phi(), aWeight );
+        } else if ( (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsf) ||
+                    (*status_mergedElectronHandle)[antiMEs.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail) ) {
+          histo1d_["2E_antiME1_noGsf_Et"]->Fill( antiMEs.front()->et()*antiMEs.front()->userFloat("ecalTrkEnergyPostCorr")/antiMEs.front()->energy(), aWeight );
+          histo1d_["2E_antiME1_noGsf_eta"]->Fill( antiMEs.front()->eta(), aWeight );
+          histo1d_["2E_antiME1_noGsf_phi"]->Fill( antiMEs.front()->phi(), aWeight );
         } else {}
 
-        if ( (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
-          histo1d_["pt_2E_ME2"]->Fill( mergedEls.at(1)->pt(), aWeight );
-          histo1d_["eta_2E_ME2"]->Fill( mergedEls.at(1)->eta(), aWeight );
-          histo1d_["phi_2E_ME2"]->Fill( mergedEls.at(1)->phi(), aWeight );
-        } else if ( (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ) {
-          histo1d_["pt_2E_ME2_noGsf"]->Fill( mergedEls.at(1)->pt(), aWeight );
-          histo1d_["eta_2E_ME2_noGsf"]->Fill( mergedEls.at(1)->eta(), aWeight );
-          histo1d_["phi_2E_ME2_noGsf"]->Fill( mergedEls.at(1)->phi(), aWeight );
+        if ( (*status_mergedElectronHandle)[antiMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsf) ||
+             (*status_mergedElectronHandle)[antiMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::has2ndGsfCRfail) ) {
+          histo1d_["2E_antiME2_Et"]->Fill( antiMEs.at(1)->et()*antiMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/antiMEs.at(1)->energy(), aWeight );
+          histo1d_["2E_antiME2_eta"]->Fill( antiMEs.at(1)->eta(), aWeight );
+          histo1d_["2E_antiME2_phi"]->Fill( antiMEs.at(1)->phi(), aWeight );
+        } else if ( (*status_mergedElectronHandle)[antiMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsf) ||
+                    (*status_mergedElectronHandle)[antiMEs.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail) ) {
+          histo1d_["2E_antiME2_noGsf_Et"]->Fill( antiMEs.at(1)->et()*antiMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/antiMEs.at(1)->energy(), aWeight );
+          histo1d_["2E_antiME2_noGsf_eta"]->Fill( antiMEs.at(1)->eta(), aWeight );
+          histo1d_["2E_antiME2_noGsf_phi"]->Fill( antiMEs.at(1)->phi(), aWeight );
         } else {}
 
-        const auto lvecME1 = mergedEls.front()->polarP4();
-        const auto lvecME2 = mergedEls.at(1)->polarP4();
-        const auto lvecll = lvecME1 + lvecME2;
-        const double dr2ll = reco::deltaR2(lvecME1.eta(),lvecME1.phi(),lvecME2.eta(),lvecME2.phi());
+        const auto lvecAME1 = antiMEs.front()->polarP4()*antiMEs.front()->userFloat("ecalTrkEnergyPostCorr")/antiMEs.front()->energy();
+        const auto lvecAME2 = antiMEs.at(1)->polarP4()*antiMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/antiMEs.at(1)->energy();
+        const auto lvecAll = lvecAME1 + lvecAME2;
+        const double dr2All = reco::deltaR2(lvecAME1.eta(),lvecAME1.phi(),lvecAME2.eta(),lvecAME2.phi());
+        const double mll = lvecAll.M();
 
-        if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) &&
-             (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) {
-          histo1d_["invM_2E_ll"]->Fill( lvecll.M(), aWeight );
-          histo1d_["rap_2E_ll"]->Fill( lvecll.Rapidity(), aWeight );
-          histo1d_["pt_2E_ll"]->Fill( lvecll.pt(), aWeight );
-          histo1d_["dr_2E_ll"]->Fill( std::sqrt(dr2ll), aWeight );
-          histo1d_["deta_2E_ll"]->Fill( lvecME1.eta()-lvecME2.eta(), aWeight );
-          histo1d_["dphi_2E_ll"]->Fill( reco::deltaPhi(lvecME1.phi(),lvecME2.phi()), aWeight );
-          histo2d_["invM_dr"]->Fill( lvecll.M(), std::sqrt(dr2ll), aWeight );
+        histo1d_["2E_antiME_ll_invM"]->Fill( mll, aWeight );
+        histo1d_["2E_antiME_ll_pt"]->Fill( lvecAll.pt(), aWeight );
+        histo1d_["2E_antiME_ll_dr"]->Fill( std::sqrt(dr2All), aWeight );
+
+        if (mll > 50. && mll < 200.)
+          histo1d_["2E_antiME_ll_invM_CR"]->Fill( lvecAll.M(), aWeight );
+
+        if ( antiMEs.front()->charge()*antiMEs.at(1)->charge() < 0. ) { // OS
+          histo1d_["2E_antiME_OSll_invM"]->Fill( mll, aWeight );
+          histo1d_["2E_antiME_OSll_pt"]->Fill( lvecAll.pt(), aWeight );
+          histo1d_["2E_antiME_OSll_dr"]->Fill( std::sqrt(dr2All), aWeight );
+
+          if (mll > 50. && mll < 200.)
+            histo1d_["2E_antiME_OSll_invM_CR"]->Fill( mll, aWeight );
+        } else if ( antiMEs.front()->charge()*antiMEs.at(1)->charge() > 0. ) { // SS
+          histo1d_["2E_antiME_SSll_invM"]->Fill( mll, aWeight );
+          histo1d_["2E_antiME_SSll_pt"]->Fill( lvecAll.pt(), aWeight );
+          histo1d_["2E_antiME_SSll_dr"]->Fill( std::sqrt(dr2All), aWeight );
+
+          if (mll > 50. && mll < 200.)
+            histo1d_["2E_antiME_SSll_invM_CR"]->Fill( mll, aWeight );
         }
 
-        if ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) &&
-             (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ) {
-          histo1d_["invM_2E_ll_noGsf"]->Fill( lvecll.M(), aWeight );
-          histo1d_["rap_2E_ll_noGsf"]->Fill( lvecll.Rapidity(), aWeight );
-          histo1d_["pt_2E_ll_noGsf"]->Fill( lvecll.pt(), aWeight );
-          histo1d_["dr_2E_ll_noGsf"]->Fill( std::sqrt(dr2ll), aWeight );
-          histo1d_["deta_2E_ll_noGsf"]->Fill( lvecME1.eta()-lvecME2.eta(), aWeight );
-          histo1d_["dphi_2E_ll_noGsf"]->Fill( reco::deltaPhi(lvecME1.phi(),lvecME2.phi()), aWeight );
-          histo2d_["invM_dr_noGsf"]->Fill( lvecll.M(), std::sqrt(dr2ll), aWeight );
-        }
-
-        if ( ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) &&
-               (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) ) ||
-             ( (*status_mergedElectronHandle)[mergedEls.front()]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA1) &&
-               (*status_mergedElectronHandle)[mergedEls.at(1)]==static_cast<int>(MergedLeptonIDs::cutflowElectron::passedMVA2) ) ) {
-          histo1d_["invM_2E_ll_mixed"]->Fill( lvecll.M(), aWeight );
-          histo1d_["rap_2E_ll_mixed"]->Fill( lvecll.Rapidity(), aWeight );
-          histo1d_["pt_2E_ll_mixed"]->Fill( lvecll.pt(), aWeight );
-          histo1d_["dr_2E_ll_mixed"]->Fill( std::sqrt(dr2ll), aWeight );
-          histo1d_["deta_2E_ll_mixed"]->Fill( lvecME1.eta()-lvecME2.eta(), aWeight );
-          histo1d_["dphi_2E_ll_mixed"]->Fill( reco::deltaPhi(lvecME1.phi(),lvecME2.phi()), aWeight );
-          histo2d_["invM_dr_mixed"]->Fill( lvecll.M(), std::sqrt(dr2ll), aWeight );
-        }
-      }
+        if ( lvecAll.M() > 50. && lvecAll.M() < 200. ) {
+          if ( antiMEs.front()->charge()*antiMEs.at(1)->charge() < 0. ) { // OS
+            for (const auto& aME : antiMEs)
+              histo1d_["2E_Et_OSCR_antiME"]->Fill( aME->et(), aWeight );
+          } else if ( antiMEs.front()->charge()*antiMEs.at(1)->charge() > 0. ) { // SS
+            for (const auto& aME : antiMEs)
+              histo1d_["2E_Et_SSCR_antiME"]->Fill( aME->et(), aWeight );
+          }
+        } // CR
+      } // antiME.size()==2
 
       break;
-  }
+  } // switch acceptEles.size()
 }
 
 DEFINE_FWK_MODULE(MergedEleCRanalyzer);

@@ -24,7 +24,13 @@ process.TFileService = cms.Service("TFileService",
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-process.GlobalTag.globaltag = cms.string("106X_mcRun2_asymptotic_v13")
+process.GlobalTag.globaltag = cms.string("106X_mcRun2_asymptotic_v17")
+
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,
+                       runEnergyCorrections=True,
+                       runVID=False,
+                       era='2016postVFP-UL')
 
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
@@ -33,18 +39,8 @@ process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
 process.load("ZprimeTo4l.MergedLepton.MergedLeptonIDProducer_cfi")
 process.load("ZprimeTo4l.Analysis.MergedEleCRanalyzer_cfi")
 
-from PhysicsTools.PatUtils.l1PrefiringWeightProducer_cfi import l1PrefiringWeightProducer
-process.prefiringweight = l1PrefiringWeightProducer.clone(
-    TheJets = cms.InputTag("slimmedJets"), #this should be the slimmedJets collection with up to date JECs !
-    DataEraECAL = cms.string("UL2016postVFP"),
-    DataEraMuon = cms.string("2016postVFP"),
-    UseJetEMPt = cms.bool(False),
-    PrefiringRateSystematicUnctyECAL = cms.double(0.2),
-    PrefiringRateSystematicUnctyMuon = cms.double(0.2)
-)
-
 process.analyzer_step = cms.Path(
-    process.prefiringweight*
+    process.egammaPostRecoSeq*
     process.ModifiedHEEPIDVarValueMaps*
     process.ModifiedEcalRecHitIsolationScone*
     process.mergedLeptonIDProducer*
