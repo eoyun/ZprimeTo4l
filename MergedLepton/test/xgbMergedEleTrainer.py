@@ -204,15 +204,25 @@ nbins = 50
 
 # calculate score threshold at a certain FPR, which differs by w/ or w/o GSF scenarios
 if args.angle=="None":
-    targetFpr = 0.1
+    targetFpr = 0.05
     nbins = 100
 elif args.angle=="DR2" and args.et=="Et2" and args.det=="EB":
+    targetFpr = 0.1
+elif args.angle=="DR2" and args.et=="Et2" and args.det=="EE":
     targetFpr = 0.1
 else:
     pass
 
 idx_max = zvis.drawROC(modelPerforms_list, plotname+'_roc')
-targetThres = zvis.drawThr(modelPerforms_list[idx_max], targetFpr, plotname+'_thr')
+targetThres, trainThres = zvis.drawThr(modelPerforms_list[idx_max], targetFpr, plotname+'_thr')
+
+# use train threshold instead when test set lacks of statistics
+if args.angle=="DR2" and args.et=="Et2" and args.det=="EB":
+    targetThres = trainThres
+elif args.angle=="DR2" and args.et=="Et2" and args.det=="EE":
+    targetThres = trainThres
+else:
+    pass
 
 # save model & importance plot
 if args.opt=='True':

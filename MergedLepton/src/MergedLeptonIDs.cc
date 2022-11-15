@@ -79,13 +79,9 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
                                      const double& rho,
                                      cutflowElectron& cutflow) {
   cutflow = cutflowElectron::baseline;
-  auto sq = [](const double& val) { return val*val; };
-  double R = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()) + sq(el.superCluster()->z()));
-  double Rt = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()));
-  double etSC = (el.superCluster()->energy())*(Rt/R);
   double etaSC = el.superCluster()->eta();
   double caloIsoVal = ecalIso + el.dr03HcalDepth1TowerSumEt();
-  if ( etSC < 20. )
+  if ( el.et() < 20. )
     return false;
   cutflow = cutflowElectron::minEnergy;
   if ( !el.ecalDriven() )
@@ -105,7 +101,7 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
   cutflow = cutflowElectron::trackIso;
   if ( std::abs(etaSC) < 1.4442 ) {
     bool HoEcut = ( el.full5x5_hcalOverEcal() < (1./el.energy() + 0.05) );
-    bool caloIso = ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho );
+    bool caloIso = ( caloIsoVal < 2 + 0.03*el.et() + 0.28*rho );
     bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.02;
 
     if (HoEcut)
@@ -118,8 +114,8 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
     return ( caloIso && HoEcut && dxycut );
   } else if ( std::abs(etaSC) > 1.566 && std::abs(etaSC) < 2.5 ) {
     bool HoEcut = ( el.full5x5_hcalOverEcal() < (5./el.energy() + 0.05) );
-    bool caloIso = ( etSC < 50. ) ? ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho )
-                                  : ( caloIsoVal < 2 + 0.03*(etSC-50.) + 0.28*rho );
+    bool caloIso = ( el.et() < 50. ) ? ( caloIsoVal < 2 + 0.03*el.et() + 0.28*rho )
+                                  : ( caloIsoVal < 2 + 0.03*(el.et()-50.) + 0.28*rho );
     bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.05;
 
     if (HoEcut)
@@ -141,13 +137,9 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
                                     const double& rho,
                                     cutflowElectron& cutflow) {
   cutflow = cutflowElectron::baseline;
-  auto sq = [](const double& val) { return val*val; };
-  double R = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()) + sq(el.superCluster()->z()));
-  double Rt = std::sqrt(sq(el.superCluster()->x()) + sq(el.superCluster()->y()));
-  double etSC = (el.superCluster()->energy())*(Rt/R);
   double etaSC = el.superCluster()->eta();
   double caloIsoVal = el.dr03EcalRecHitSumEt() + el.dr03HcalDepth1TowerSumEt();
-  if ( etSC < 20. )
+  if ( el.et() < 20. )
     return false;
   cutflow = cutflowElectron::minEnergy;
   if ( !el.ecalDriven() )
@@ -167,7 +159,7 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
   cutflow = cutflowElectron::trackIso;
   if ( std::abs(etaSC) < 1.4442 ) {
     bool HoEcut = ( el.full5x5_hcalOverEcal() < (1./el.energy() + 0.05) );
-    bool caloIso = ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho );
+    bool caloIso = ( caloIsoVal < 2 + 0.03*el.et() + 0.28*rho );
     bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.02;
     bool dEtaInCut = std::abs( el.deltaEtaSeedClusterTrackAtVtx() ) < 0.004;
     bool ssCut = ( el.full5x5_e2x5Max()/el.full5x5_e5x5() > 0.94 ||
@@ -187,8 +179,8 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
     return ( caloIso && HoEcut && dxycut && dEtaInCut && ssCut );
   } else if ( std::abs(etaSC) > 1.566 && std::abs(etaSC) < 2.5 ) {
     bool HoEcut = ( el.full5x5_hcalOverEcal() < (5./el.energy() + 0.05) );
-    bool caloIso = ( etSC < 50. ) ? ( caloIsoVal < 2 + 0.03*etSC + 0.28*rho )
-                                  : ( caloIsoVal < 2 + 0.03*(etSC-50.) + 0.28*rho );
+    bool caloIso = ( el.et() < 50. ) ? ( caloIsoVal < 2 + 0.03*el.et() + 0.28*rho )
+                                  : ( caloIsoVal < 2 + 0.03*(el.et()-50.) + 0.28*rho );
     bool dxycut = std::abs( el.gsfTrack()->dxy(primaryVertex.position()) ) < 0.05;
     bool dEtaInCut = std::abs( el.deltaEtaSeedClusterTrackAtVtx() ) < 0.006;
     bool ssCut = ( el.full5x5_sigmaIetaIeta() < 0.03 );

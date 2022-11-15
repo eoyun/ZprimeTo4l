@@ -93,9 +93,10 @@ def drawROC(modelPerforms_list, plotname, dirname="plot"):
 
 def drawThr(amodelperform, targetFpr, plotname, dirname="plot"):
     targetThres = np.interp(targetFpr,amodelperform.fprTest_,amodelperform.thrTest_)
+    trainThres = np.interp(targetFpr,amodelperform.fprTrain_,amodelperform.thrTrain_)
 
     plt.figure(figsize=(6,4))
-    plt.plot(amodelperform.thrTrain_, amodelperform.fprTrain_, color='r', label='Train thr')
+    plt.plot(amodelperform.thrTrain_, amodelperform.fprTrain_, color='r', label='Train thr (%.3f at FPR=%.2f)' % (trainThres,targetFpr))
     plt.plot(amodelperform.thrTest_,  amodelperform.fprTest_,  color='b', label='Test thr (%.3f at FPR=%.2f)' % (targetThres,targetFpr))
     plt.title(r"$\bf{CMS}$"+"$\it{\;Simulation,\;work\;in\;progress}$", loc='left')
     plt.xlabel('Threshold')
@@ -107,4 +108,4 @@ def drawThr(amodelperform, targetFpr, plotname, dirname="plot"):
     plt.savefig(dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
 
-    return targetThres
+    return targetThres, trainThres
