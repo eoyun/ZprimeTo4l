@@ -5,11 +5,6 @@ from ZprimeTo4l.ModifiedHEEP.ModifiedElectronTrackIsolations_cfi import trkIsol0
 stdGsfEle = gedGsfEle.gedGsfElectronsTmp
 
 ModifiedEcalRecHitIsolationScone = cms.EDProducer("ModifiedEcalRecHitIsolationProducer",
-
-    # ecalBarrelRecHitProducer = cms.InputTag("ecalRecHit"),
-    # ecalBarrelRecHitCollection = cms.InputTag("reducedEcalRecHitsEB"),
-    # ecalEndcapRecHitProducer = cms.InputTag("ecalRecHit"),
-    # ecalEndcapRecHitCollection = cms.InputTag("reducedEcalRecHitsEE"),
     ecalBarrelRecHitCollection = cms.InputTag("reducedEgamma","reducedEBRecHits"),
     ecalEndcapRecHitCollection = cms.InputTag("reducedEgamma","reducedEERecHits"),
 
@@ -28,8 +23,7 @@ ModifiedEcalRecHitIsolationScone = cms.EDProducer("ModifiedEcalRecHitIsolationPr
     subtract  = cms.bool(False),
     vetoClustered  = cms.bool(False),
 
-    # emObjectProducer = cms.InputTag("gedGsfElectrons"),
-    emObjectProducer = cms.InputTag("slimmedElectrons"),
+    emObjectProducer = cms.InputTag("slimmedElectrons","","PAT"),
 
     recHitFlagsExclBarrel = stdGsfEle.recHitFlagsToBeExcludedBarrel,
     recHitFlagsExclEndcaps = stdGsfEle.recHitFlagsToBeExcludedEndcaps,
