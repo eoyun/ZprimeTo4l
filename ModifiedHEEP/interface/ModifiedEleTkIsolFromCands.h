@@ -1,5 +1,8 @@
-#ifndef ANALYSIS_MODIFIEDHEEP_MODIFIEDELETKISOLFROMCANDS_H
-#define ANALYSIS_MODIFIEDHEEP_MODIFIEDELETKISOLFROMCANDS_H
+#ifndef ZprimeTo4l_ModifiedHEEP_ModifiedEleTkIsoFromCands_H
+#define ZprimeTo4l_ModifiedHEEP_ModifiedEleTkIsoFromCands_H 1
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
 
 #include "DataFormats/TrackReco/interface/TrackBase.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
@@ -7,8 +10,6 @@
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
 
 //author S. Harper (RAL)
 //this class does a simple calculation of the track isolation for a track with eta,
@@ -43,7 +44,6 @@
 //      Note in all this, I'm not concerned about the electron in questions track, that will be rejected,
 //      I'm concerned about near by fake electrons which have been recoed by PF
 //      This is handled by the PIDVeto, which obviously is only used/required when using PFCandidates
-
 
 class ModifiedEleTkIsolFromCands {
 public:
@@ -81,47 +81,48 @@ public:
 
   static edm::ParameterSetDescription pSetDescript();
 
-  std::pair<int,double> calIsol(const reco::TrackBase& trk,const pat::PackedCandidateCollection& cands,
-        const reco::TrackBase& addTrk,
-        const PIDVeto=PIDVeto::NONE)const;
-  std::pair<int,double> calIsol(const double eleEta,const double elePhi,const double eleVZ,
-				const pat::PackedCandidateCollection& cands,
-        const reco::TrackBase& addTrk,
-        const PIDVeto=PIDVeto::NONE)const;
+  std::pair<int,double> calIsol(const reco::TrackBase& trk,
+                                const pat::PackedCandidateCollection& cands,
+                                const reco::TrackBase& addTrk,
+                                const PIDVeto=PIDVeto::NONE) const;
+  std::pair<int,double> calIsol(const double eleEta,
+                                const double elePhi,
+                                const double eleVZ,
+                                const pat::PackedCandidateCollection& cands,
+                                const reco::TrackBase& addTrk,
+                                const PIDVeto=PIDVeto::NONE)const;
 
-
-  std::pair<int,double> calIsol(const reco::TrackBase& trk,const reco::TrackCollection& tracks, const reco::TrackBase& addTrk)const;
-  std::pair<int,double> calIsol(const double eleEta,const double elePhi,const double eleVZ,
-				const reco::TrackCollection& tracks,
-        const reco::TrackBase& addTrk) const;
+  std::pair<int,double> calIsol(const reco::TrackBase& trk, const reco::TrackCollection& tracks, const reco::TrackBase& addTrk) const;
+  std::pair<int,double> calIsol(const double eleEta,
+                                const double elePhi,
+                                const double eleVZ,
+                                const reco::TrackCollection& tracks,
+                                const reco::TrackBase& addTrk) const;
 
   //little helper function for the four calIsol functions for it to directly return the pt
   template<typename ...Args>
-  double calIsolPt(Args && ...args)const{return calIsol(std::forward<Args>(args)...).second;}
+  double calIsolPt(Args && ...args) const { return calIsol(std::forward<Args>(args)...).second; }
 
   static PIDVeto pidVetoFromStr(const std::string& vetoStr);
-  static bool passPIDVeto(const int pdgId,const ModifiedEleTkIsolFromCands::PIDVeto pidVeto);
+  static bool passPIDVeto(const int pdgId, const ModifiedEleTkIsolFromCands::PIDVeto pidVeto);
 
-  static bool additionalGsfTrkSel(const reco::TrackBase& trk,
-			 const double trkPt,
-			 const TrkCuts& cuts,
-			 const double eleEta,const double elePhi,
-			 const double eleVZ);
+  bool additionalTrkSel(const reco::TrackBase& addTrk,
+                        const reco::TrackBase& eleTrk,
+                        const TrkCuts& cuts);
 
-  const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele, edm::Handle<reco::GsfTrackCollection> gsfTrks, int& numSelectedGsfTrk);
+  const reco::GsfTrackRef additionalTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks);
 
 private:
   static bool passTrkSel(const reco::TrackBase& trk,
-			 const double trkPt,
-			 const TrkCuts& cuts,
-			 const double eleEta,const double elePhi,
-			 const double eleVZ);
+                         const double trkPt,
+                         const TrkCuts& cuts,
+                         const double eleEta,
+                         const double elePhi,
+                         const double eleVZ);
   //no qualities specified, accept all, ORed
 
-  static bool passQual(const reco::TrackBase& trk,
-		       const std::vector<reco::TrackBase::TrackQuality>& quals);
-  static bool passAlgo(const reco::TrackBase& trk,
-		       const std::vector<reco::TrackBase::TrackAlgorithm>& algosToRej);
+  static bool passQual(const reco::TrackBase& trk, const std::vector<reco::TrackBase::TrackQuality>& quals);
+  static bool passAlgo(const reco::TrackBase& trk, const std::vector<reco::TrackBase::TrackAlgorithm>& algosToRej);
 };
 
 
