@@ -65,54 +65,53 @@ edm::ParameterSetDescription ModifiedEleTkIsolFromCands::pSetDescript() {
   return desc;
 }
 
-std::pair<int,double> ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
-                                                          const pat::PackedCandidateCollection& cands,
-                                                          const reco::TrackBase& addTrk,
-                                                          const PIDVeto pidVeto) const {
+double ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
+                                           const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
+                                           const reco::TrackBase& addTrk,
+                                           const PIDVeto pidVeto) const {
   return calIsol(eleTrk.eta(),eleTrk.phi(),eleTrk.vz(),cands,addTrk,pidVeto);
 }
 
-std::pair<int,double> ModifiedEleTkIsolFromCands::calIsol(const double eleEta,
-                                                          const double elePhi,
-                                                          const double eleVZ,
-                                                          const pat::PackedCandidateCollection& cands,
-                                                          const reco::TrackBase& addTrk,
-                                                          const PIDVeto pidVeto) const {
+double ModifiedEleTkIsolFromCands::calIsol(const double eleEta,
+                                           const double elePhi,
+                                           const double eleVZ,
+                                           const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
+                                           const reco::TrackBase& addTrk,
+                                           const PIDVeto pidVeto) const {
   double ptSum=0.;
-  int nrTrks=0;
 
   const TrkCuts& cuts = std::abs(eleEta)<1.5 ? barrelCuts_ : endcapCuts_;
 
-  for (auto& cand : cands) {
-    if ( cand.hasTrackDetails() && cand.charge()!=0 && passPIDVeto(cand.pdgId(),pidVeto) ) { // 94X
-      const reco::Track& trk = cand.pseudoTrack();
+  for (unsigned idx = 0; idx < cands->size(); ++idx) {
+    const auto& cand = cands->refAt(idx);
+
+    if ( cand->hasTrackDetails() && cand->charge()!=0 && passPIDVeto(cand->pdgId(),pidVeto) ) { // 94X
+      const reco::Track& trk = cand->pseudoTrack();
 
       if ( passTrkSel(trk,trk.pt(),cuts,eleEta,elePhi,eleVZ) ) {
         if( std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd )
           continue;
 
       	ptSum += trk.pt();
-      	nrTrks++;
       }
     }
   }
 
-  return {nrTrks,ptSum};
+  return ptSum;
 }
 
-std::pair<int,double> ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
-                                                          const reco::TrackCollection& tracks,
-                                                          const reco::TrackBase& addTrk) const {
+double ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
+                                           const reco::TrackCollection& tracks,
+                                           const reco::TrackBase& addTrk) const {
   return calIsol(eleTrk.eta(),eleTrk.phi(),eleTrk.vz(),tracks,addTrk);
 }
 
-std::pair<int,double> ModifiedEleTkIsolFromCands::calIsol(const double eleEta,
-                                                          const double elePhi,
-                                                          const double eleVZ,
-                                                          const reco::TrackCollection& tracks,
-                                                          const reco::TrackBase& addTrk) const {
+double ModifiedEleTkIsolFromCands::calIsol(const double eleEta,
+                                           const double elePhi,
+                                           const double eleVZ,
+                                           const reco::TrackCollection& tracks,
+                                           const reco::TrackBase& addTrk) const {
   double ptSum=0.;
-  int nrTrks=0;
 
   const TrkCuts& cuts = std::abs(eleEta)<1.5 ? barrelCuts_ : endcapCuts_;
 
@@ -121,12 +120,11 @@ std::pair<int,double> ModifiedEleTkIsolFromCands::calIsol(const double eleEta,
       if ( std::abs(addTrk.eta()-trk.eta()) < cuts.dEta2nd && std::abs( reco::deltaPhi(addTrk.phi(),trk.phi()) ) < cuts.dPhi2nd )
         continue;
 
-      ptSum+=trk.pt();
-      nrTrks++;
+      ptSum += trk.pt();
     }
   }
 
-  return {nrTrks,ptSum};
+  return ptSum;
 }
 
 bool ModifiedEleTkIsolFromCands::passPIDVeto(const int pdgId, const ModifiedEleTkIsolFromCands::PIDVeto veto) {
@@ -200,7 +198,7 @@ bool ModifiedEleTkIsolFromCands::additionalTrkSel(const reco::TrackBase& addTrk,
     addTrk.pt() > cuts.addGsfminPt;
 }
 
-const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks) {
+const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks) {
   std::vector<reco::GsfTrackRef> additionalGsfTrks;
   const reco::GsfTrackRef eleTrk = ele.gsfTrack();
 
@@ -218,7 +216,7 @@ const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalTrkSelector(const 
       additionalGsfTrks.push_back(trkRef);
   }
 
-  std::sort(additionalGsfTrks.begin(), additionalGsfTrks.end(), [](reco::GsfTrackRef a, reco::GsfTrackRef b) {return a->pt() > b->pt();} );
+  std::sort(additionalGsfTrks.begin(), additionalGsfTrks.end(), [](const reco::GsfTrackRef& a, const reco::GsfTrackRef& b) {return a->pt() > b->pt();} );
 
   if (additionalGsfTrks.empty())
     return eleTrk;

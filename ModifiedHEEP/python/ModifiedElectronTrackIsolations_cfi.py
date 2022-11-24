@@ -9,13 +9,11 @@ _defaultCuts = cms.PSet(
     dEta2nd=cms.double(0.005),
     dPhi2nd=cms.double(0.05),
     maxDZ=cms.double(0.1),
-    # maxDPtPt=cms.double(-1.), # AOD
-    maxDPtPt=cms.double(0.1), # MiniAOD
+    maxDPtPt=cms.double(0.1),
     addGsfminPt=cms.double(20.0),
     minHits=cms.int32(8),
     minPixelHits=cms.int32(1),
-    # allowedQualities=cms.vstring("highPurity"), # AOD
-    allowedQualities=cms.vstring(), # MiniAOD
+    allowedQualities=cms.vstring(),
     algosToReject=cms.vstring("jetCoreRegionalStep")
 )
 

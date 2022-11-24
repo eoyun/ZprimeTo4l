@@ -53,14 +53,14 @@ private:
 
   template<typename T>
   static void writeValueMap(edm::Event &iEvent,
-                            const edm::Handle<edm::View<reco::GsfElectron>> & handle,
+                            const edm::Handle<edm::View<reco::GsfElectron>>& handle,
                             const std::vector<T> & values,
                             const std::string& label);
 
   static float calTrkIso(const reco::GsfElectron& ele,
                          const edm::View<reco::GsfElectron>& eles,
-                         const std::vector<edm::Handle<pat::PackedCandidateCollection> >& handles,
-                         const reco::GsfTrack& gsfTrk,
+                         const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& handles,
+                         const reco::TrackBase& gsfTrk,
                          const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
                          const ModifiedEleTkIsolFromCands& trkIsoCalc);
 
@@ -159,7 +159,7 @@ private:
   }
 
   DualToken<edm::View<reco::GsfElectron>> eleToken_;
-  std::vector<DualToken<pat::PackedCandidateCollection>> candTokens_;
+  std::vector<DualToken<edm::View<pat::PackedCandidate>>> candTokens_;
   DualToken<edm::View<reco::GsfTrack>> gsfTrkToken_;
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
 
@@ -223,12 +223,12 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
   std::vector<reco::GsfTrackRef> eleAddGsfTrk;
 
   for (const auto& ele : *eleHandle) {
-    auto additionalGsfTrk = trkIsoCalc_.additionalTrkSelector(ele,gsfTrkHandle);
-    eleTrkPtIso.push_back(calTrkIso(ele,*eleHandle,candHandles,*(additionalGsfTrk.get()),candVetos,trkIsoCalc_));
+    const auto& additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(ele,gsfTrkHandle);
 
-    if (makeTrkIso04_) {
-      eleTrkPtIso04.push_back(calTrkIso(ele,*eleHandle,candHandles,*(additionalGsfTrk.get()),candVetos,trkIso04Calc_));
-    }
+    eleTrkPtIso.push_back(calTrkIso(ele,*eleHandle,candHandles,*additionalGsfTrk,candVetos,trkIsoCalc_));
+
+    if (makeTrkIso04_)
+      eleTrkPtIso04.push_back(calTrkIso(ele,*eleHandle,candHandles,*additionalGsfTrk,candVetos,trkIso04Calc_));
 
     eleAddGsfTrk.push_back(additionalGsfTrk);
   }
@@ -243,8 +243,8 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
 
 float ModifiedHEEPIDValueMapProducer::calTrkIso(const reco::GsfElectron& ele,
                                                 const edm::View<reco::GsfElectron>& eles,
-                                                const std::vector<edm::Handle<pat::PackedCandidateCollection>>& handles,
-                                                const reco::GsfTrack& gsfTrk,
+                                                const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& handles,
+                                                const reco::TrackBase& addTrk,
                                                 const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
                                                 const ModifiedEleTkIsolFromCands& trkIsoCalc) {
   if (ele.gsfTrack().isNull())
@@ -253,11 +253,11 @@ float ModifiedHEEPIDValueMapProducer::calTrkIso(const reco::GsfElectron& ele,
     float trkIso=0.;
 
     for (size_t handleNr=0; handleNr < handles.size(); handleNr++) {
-      auto& handle = handles[handleNr];
+      const auto& handle = handles[handleNr];
 
       if (handle.isValid()) {
         if (handleNr < pidVetos.size())
-          trkIso += trkIsoCalc.calIsolPt(*ele.gsfTrack(),*handle,gsfTrk,pidVetos[handleNr]);
+          trkIso += trkIsoCalc.calIsolPt(*ele.gsfTrack(),handle,addTrk,pidVetos[handleNr]);
         else
           throw cms::Exception("LogicError") << " somehow the pidVetos and handles do not much, given this is checked at construction time, something has gone wrong in the code handle nr " << handleNr << " size of vetos " << pidVetos.size();
       }

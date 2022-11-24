@@ -81,27 +81,27 @@ public:
 
   static edm::ParameterSetDescription pSetDescript();
 
-  std::pair<int,double> calIsol(const reco::TrackBase& trk,
-                                const pat::PackedCandidateCollection& cands,
-                                const reco::TrackBase& addTrk,
-                                const PIDVeto=PIDVeto::NONE) const;
-  std::pair<int,double> calIsol(const double eleEta,
-                                const double elePhi,
-                                const double eleVZ,
-                                const pat::PackedCandidateCollection& cands,
-                                const reco::TrackBase& addTrk,
-                                const PIDVeto=PIDVeto::NONE)const;
+  double calIsol(const reco::TrackBase& trk,
+                 const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
+                 const reco::TrackBase& addTrk,
+                 const PIDVeto=PIDVeto::NONE) const;
+  double calIsol(const double eleEta,
+                 const double elePhi,
+                 const double eleVZ,
+                 const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
+                 const reco::TrackBase& addTrk,
+                 const PIDVeto=PIDVeto::NONE)const;
 
-  std::pair<int,double> calIsol(const reco::TrackBase& trk, const reco::TrackCollection& tracks, const reco::TrackBase& addTrk) const;
-  std::pair<int,double> calIsol(const double eleEta,
-                                const double elePhi,
-                                const double eleVZ,
-                                const reco::TrackCollection& tracks,
-                                const reco::TrackBase& addTrk) const;
+  double calIsol(const reco::TrackBase& trk, const reco::TrackCollection& tracks, const reco::TrackBase& addTrk) const;
+  double calIsol(const double eleEta,
+                 const double elePhi,
+                 const double eleVZ,
+                 const reco::TrackCollection& tracks,
+                 const reco::TrackBase& addTrk) const;
 
   //little helper function for the four calIsol functions for it to directly return the pt
   template<typename ...Args>
-  double calIsolPt(Args && ...args) const { return calIsol(std::forward<Args>(args)...).second; }
+  double calIsolPt(Args && ...args) const { return calIsol(std::forward<Args>(args)...); }
 
   static PIDVeto pidVetoFromStr(const std::string& vetoStr);
   static bool passPIDVeto(const int pdgId, const ModifiedEleTkIsolFromCands::PIDVeto pidVeto);
@@ -110,7 +110,7 @@ public:
                         const reco::TrackBase& eleTrk,
                         const TrkCuts& cuts);
 
-  const reco::GsfTrackRef additionalTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks);
+  const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks);
 
 private:
   static bool passTrkSel(const reco::TrackBase& trk,
