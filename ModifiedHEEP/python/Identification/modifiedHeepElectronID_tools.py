@@ -46,7 +46,7 @@ def configureModifiedHEEPElectronID(idName, wpEB, wpEE):
     parameterSet = cms.PSet(
         idName = cms.string(idName),
         cutFlow = cms.VPSet(
-            psetMinPtCut(cutValue=20.),                   #0
+            psetMinPtCut(cutValue=12.),                   #0
             psetGsfEleSCEtaMultiRangeCut(),               #1
             psetGsfEleDPhiInCut(wpEB,wpEE),               #2
             psetGsfEleHadronicOverEMLinearCut(wpEB,wpEE), #3
@@ -58,4 +58,24 @@ def configureModifiedHEEPElectronID(idName, wpEB, wpEE):
             )
         )
 
+    return parameterSet
+
+def configureHEEPElectronID_V70PtX(idName, wpEB, wpEE):
+    parameterSet = cms.PSet(
+        idName = cms.string(idName),
+        cutFlow = cms.VPSet(
+            psetMinPtCut(cutValue=12.),                   #0
+            psetGsfEleSCEtaMultiRangeCut(),               #1
+            psetGsfEleDEtaInSeedCut(wpEB,wpEE),           #2
+            psetGsfEleDPhiInCut(wpEB,wpEE),               #3
+            psetGsfEleFull5x5SigmaIEtaIEtaWithSatCut(wpEB,wpEE), #4
+            psetGsfEleFull5x5E2x5OverE5x5WithSatCut(wpEB,wpEE),  #5
+            psetGsfEleHadronicOverEMLinearCut(wpEB,wpEE), #6
+            psetGsfEleTrkPtIsoCut(wpEB,wpEE,useHEEPIso=True),#7
+            psetGsfEleEmHadD1IsoRhoCut(wpEB,wpEE),        #8
+            psetGsfEleDxyCut(wpEB,wpEE),                  #9
+            psetGsfEleMissingHitsCut(wpEB,wpEE),          #10,
+            psetGsfEleEcalDrivenCut(wpEB,wpEE)            #11
+            )
+        )
     return parameterSet
