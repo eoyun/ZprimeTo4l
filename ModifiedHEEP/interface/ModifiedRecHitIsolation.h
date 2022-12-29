@@ -31,32 +31,30 @@
 
 class ModifiedRecHitIsolation {
  public:
-
   //constructors
-  ModifiedRecHitIsolation (double extRadius,
-                         double intRadius,
-                         double etaSlice,
-                         double etLow,
-                         double eLow,
-                         edm::ESHandle<CaloGeometry> ,
-                         const EcalRecHitCollection&,
-                         const EcalSeverityLevelAlgo*,
-                         DetId::Detector detector,
-                         std::vector<int> recHitFlags,
-                         std::vector<int> recHitSeverity,
-                         double etaSlice2nd,
-                         double intRadius2nd);
+  ModifiedRecHitIsolation(double extRadius,
+                          double intRadius,
+                          double etaSlice,
+                          double etLow,
+                          double eLow,
+                          edm::ESHandle<CaloGeometry> ,
+                          const EcalRecHitCollection&,
+                          const EcalSeverityLevelAlgo*,
+                          DetId::Detector detector,
+                          std::vector<int> recHitFlags,
+                          std::vector<int> recHitSeverity,
+                          double etaSlice2nd,
+                          double intRadius2nd);
 
-  float getEtSum(const reco::GsfElectron * emObject, const reco::TrackBase& addTrk, float& invIsoValue) const {return getSum_(emObject, addTrk, invIsoValue, true);}
-  float getEnergySum(const reco::GsfElectron * emObject, const reco::TrackBase& addTrk, float& invIsoValue) const{ return  getSum_(emObject, addTrk, invIsoValue, false);}
+  float getEtSum(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const { return getSum_(emObject, addTrk, invIsoValue, true); }
+  float getEnergySum(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const{ return getSum_(emObject, addTrk, invIsoValue, false); }
 
-  float getEtSum(const reco::SuperCluster* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const {return getSum_(emObject, addTrk, invIsoValue, true);}
-  float getEnergySum(const reco::SuperCluster * emObject, const reco::TrackBase& addTrk, float& invIsoValue) const{ return  getSum_(emObject, addTrk, invIsoValue, false);}
+  float getEtSum(const reco::SuperCluster* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const { return getSum_(emObject, addTrk, invIsoValue, true); }
+  float getEnergySum(const reco::SuperCluster* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const{ return getSum_(emObject, addTrk, invIsoValue, false); }
 
   void setUseNumCrystals(bool b=true) { useNumCrystals_ = b; }
   void setVetoClustered(bool b=true) { vetoClustered_ = b; }
-  void doSeverityChecks(const EcalRecHitCollection *const recHits,
-			const std::vector<int>& v) {
+  void doSeverityChecks(const EcalRecHitCollection* recHits, const std::vector<int>& v) {
     ecalBarHits_ = recHits;
     severitiesexcl_.clear();
     severitiesexcl_.insert(severitiesexcl_.begin(), v.begin(), v.end());
@@ -73,8 +71,8 @@ class ModifiedRecHitIsolation {
   ~ModifiedRecHitIsolation() ;
 
  private:
-  float getSum_(const reco::GsfElectron *, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt ) const;
-  float getSum_(const reco::SuperCluster *, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt ) const;
+  float getSum_(const reco::GsfElectron*, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt) const;
+  float getSum_(const reco::SuperCluster*, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt) const;
 
   double extRadius_;
   double intRadius_;
@@ -84,8 +82,8 @@ class ModifiedRecHitIsolation {
   double etaSlice2nd_;
   double intRadius2nd_;
 
-  edm::ESHandle<CaloGeometry>  theCaloGeom_;
-  const EcalRecHitCollection&  caloHits_;
+  edm::ESHandle<CaloGeometry> theCaloGeom_;
+  const EcalRecHitCollection& caloHits_;
   const EcalSeverityLevelAlgo* sevLevel_;
 
   bool useNumCrystals_;
