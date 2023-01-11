@@ -28,7 +28,6 @@ public:
 
 private:
   void produce(edm::Event&, const edm::EventSetup&) override;
-  void produceElectrons(edm::Event&, const reco::Vertex&, const double& rho);
 
   template<typename T>
   void writeValueMap( edm::Event& iEvent,
@@ -38,12 +37,8 @@ private:
 
   const edm::EDGetTokenT<edm::View<pat::Electron>> eleToken_;
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
-  const edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
-  const edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
-  const edm::EDGetTokenT<edm::ValueMap<int>> nrSatCrysMapToken_;
-  const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
-  const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
-  const edm::EDGetTokenT<double> rhoToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EBrecHitToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EErecHitToken_;
 
   const edm::FileInPath xgbPathDR1Et2EB_;
   const edm::FileInPath xgbPathDR2Et1EB_;
@@ -65,28 +60,16 @@ private:
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et2EE_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorBkgEt2EB_;
 
-  const double cutDR1Et2EB_;
-  const double cutDR2Et1EB_;
-  const double cutDR2Et2EB_;
-  const double cutDR2Et1EE_;
-  const double cutDR2Et2EE_;
-  const double cutBkgEt2EB_;
   const double etThresEB_;
   const double etThresEE_;
   const double minEt_;
-
-  bool vetoConv_;
 };
 
 MergedLeptonIDProducer::MergedLeptonIDProducer(const edm::ParameterSet& iConfig)
 : eleToken_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
   addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
-  trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
-  ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ecalIsoMap"))),
-  nrSatCrysMapToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("nrSatCrysMap"))),
-  pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
-  beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
-  rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
+  EBrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EBrecHits"))),
+  EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
   xgbPathDR1Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR1Et2EB")),
   xgbPathDR2Et1EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et1EB")),
   xgbPathDR2Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et2EB")),
@@ -105,21 +88,11 @@ MergedLeptonIDProducer::MergedLeptonIDProducer(const edm::ParameterSet& iConfig)
   xgbEstimatorDR2Et1EE_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et1EE_,meanstdPathDR2Et1EE_)),
   xgbEstimatorDR2Et2EE_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et2EE_,meanstdPathDR2Et2EE_)),
   xgbEstimatorBkgEt2EB_(std::make_unique<MergedMvaEstimator>(xgbPathBkgEt2EB_,meanstdPathBkgEt2EB_)),
-  cutDR1Et2EB_(iConfig.getParameter<double>("cutDR1Et2EB")),
-  cutDR2Et1EB_(iConfig.getParameter<double>("cutDR2Et1EB")),
-  cutDR2Et2EB_(iConfig.getParameter<double>("cutDR2Et2EB")),
-  cutDR2Et1EE_(iConfig.getParameter<double>("cutDR2Et1EE")),
-  cutDR2Et2EE_(iConfig.getParameter<double>("cutDR2Et2EE")),
-  cutBkgEt2EB_(iConfig.getParameter<double>("cutBkgEt2EB")),
   etThresEB_(iConfig.getParameter<double>("etThresEB")),
   etThresEE_(iConfig.getParameter<double>("etThresEE")),
-  minEt_(iConfig.getParameter<double>("minEt")),
-  vetoConv_(iConfig.getParameter<bool>("vetoConv")) {
-  produces<edm::ValueMap<int>>("cutflowModifiedHEEP");
-  produces<edm::ValueMap<int>>("cutflowHEEP");
-  produces<edm::ValueMap<int>>("statusMergedElectron");
-  produces<edm::ValueMap<float>>("mvaMergedElectron");
-  produces<edm::ValueMap<int>>("GSFtypeMergedElectron");
+  minEt_(iConfig.getParameter<double>("minEt")) {
+  produces<edm::ValueMap<float>>("mvaMergedElectronValues");
+  produces<edm::ValueMap<int>>("mvaMergedElectronCategories");
 }
 
 template<typename T>
@@ -135,51 +108,20 @@ void MergedLeptonIDProducer::writeValueMap( edm::Event& iEvent,
 }
 
 void MergedLeptonIDProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  edm::Handle<edm::View<reco::Vertex>> pvHandle;
-  iEvent.getByToken(pvToken_, pvHandle);
-
-  edm::Handle<double> rhoHandle;
-  iEvent.getByToken(rhoToken_,rhoHandle);
-
-  edm::Handle<reco::BeamSpot> beamSpotHandle;
-  iEvent.getByToken(beamspotToken_, beamSpotHandle);
-
-  reco::Vertex primaryVertex;
-
-  if (pvHandle.isValid() && !pvHandle->empty())
-    primaryVertex = pvHandle->at(0);
-  else
-    primaryVertex = reco::Vertex(beamSpotHandle->position(),reco::Vertex::Error());
-
-  produceElectrons(iEvent,primaryVertex,*rhoHandle);
-
-  return;
-}
-
-void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Vertex& primaryVertex, const double& rho) {
   edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(eleToken_, eleHandle);
 
   edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkMap;
   iEvent.getByToken(addGsfTrkToken_, addGsfTrkMap);
 
-  edm::Handle<edm::ValueMap<float>> trkIsoMapHandle;
-  iEvent.getByToken(trkIsoMapToken_, trkIsoMapHandle);
+  edm::Handle<EcalRecHitCollection> EBrecHitHandle;
+  iEvent.getByToken(EBrecHitToken_, EBrecHitHandle);
 
-  edm::Handle<edm::ValueMap<float>> ecalIsoMapHandle;
-  iEvent.getByToken(ecalIsoToken_, ecalIsoMapHandle);
-
-  edm::Handle<edm::ValueMap<int>> nrSatCrysHandle;
-  iEvent.getByToken(nrSatCrysMapToken_, nrSatCrysHandle);
+  edm::Handle<EcalRecHitCollection> EErecHitHandle;
+  iEvent.getByToken(EErecHitToken_, EErecHitHandle);
 
   unsigned int nEle = eleHandle->size();
 
-  std::vector<int> cutflows_modifiedHEEP;
-  cutflows_modifiedHEEP.reserve(nEle);
-  std::vector<int> cutflows_HEEP;
-  cutflows_HEEP.reserve(nEle);
-  std::vector<int> status_mergedElectron;
-  status_mergedElectron.reserve(nEle);
   std::vector<float> mvas_mergedElectron;
   mvas_mergedElectron.reserve(nEle);
   std::vector<int> GSFtype_mergedElectron;
@@ -190,143 +132,83 @@ void MergedLeptonIDProducer::produceElectrons(edm::Event& iEvent, const reco::Ve
     const auto& orgGsfTrk = aEle->gsfTrack();
     const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
 
-    MergedLeptonIDs::cutflowElectron acutflow_modifiedHEEP = MergedLeptonIDs::cutflowElectron::baseline;
-
-    MergedLeptonIDs::isModifiedHEEP(*aEle,
-                                    primaryVertex,
-                                    (*trkIsoMapHandle)[aEle],
-                                    (*ecalIsoMapHandle)[aEle],
-                                    (*nrSatCrysHandle)[aEle],
-                                    rho,
-                                    acutflow_modifiedHEEP);
-
-    MergedLeptonIDs::cutflowElectron acutflow_HEEP = MergedLeptonIDs::cutflowElectron::baseline;
-    MergedLeptonIDs::hasPassedHEEP(*aEle,
-                                   primaryVertex,
-                                   (*nrSatCrysHandle)[aEle],
-                                   rho,
-                                   acutflow_HEEP);
-
-    cutflows_modifiedHEEP.emplace_back( static_cast<int>(acutflow_modifiedHEEP) );
-    cutflows_HEEP.emplace_back( static_cast<int>(acutflow_HEEP) );
-
-    MergedLeptonIDs::cutflowElectron acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::baseline;
-    MergedLeptonIDs::GSFtype aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::nulltype;
+    // default category is bkgEt2EB (no 2nd GSF)
+    MergedLeptonIDs::GSFtype aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::bkgEt2EB;
     double amvascore_mergedElectron = -1.;
 
-    if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
+    if ( addGsfTrk==orgGsfTrk ) {
       // no additional GSF track
-      if ( acutflow_HEEP!=MergedLeptonIDs::cutflowElectron::showerShape )
-        acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::failedHEEP;
-      else if ( vetoConv_ && !aEle->passConversionVeto() )
-        acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::failConvVeto;
-      else {
-        acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::no2ndGsf;
+      const auto castEle = aEle.castTo<pat::ElectronRef>();
 
-        bool passedMVA = false;
-        const auto castEle = aEle.castTo<pat::ElectronRef>();
-
-        if ( std::abs(aEle->eta()) < 1.5 && aEle->et() > etThresEB_ ) {
-          amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(castEle);
-          passedMVA = amvascore_mergedElectron > cutBkgEt2EB_;
-        } else if ( std::abs(aEle->eta()) < 1.5 && aEle->et() > minEt_ ) {
-          // bkg enriched CR with low Et region
-          amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(castEle);
-
-          if ( amvascore_mergedElectron > cutBkgEt2EB_ )
-            acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::no2ndGsfCRpass;
-          else
-            acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::no2ndGsfCRfail;
-        } else
-          acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;
-
-        if (passedMVA)
-          acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::passedMVA2;
-      } // end hasPassedHEEP
+      // require HEEPV70 (assume MiniAOD)
+      if ( castEle->electronID("heepElectronID-HEEPV70") ) {
+        // apply lower Et cut for the bkg enriched CR
+        // need to apply an additional offline Et cut afterwards
+        if ( std::abs(aEle->eta()) < 1.5 && aEle->et() > minEt_ ) {
+          amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(castEle,EBrecHitHandle,EErecHitHandle,addGsfTrk,true);
+        }
+      } // HEEPV70
     } else {
       // has additional GSF track
-      if ( acutflow_modifiedHEEP!=MergedLeptonIDs::cutflowElectron::dxy )
-        acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::failedHEEP;
-      else if ( vetoConv_ && !aEle->passConversionVeto() )
-        acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::failConvVeto;
-      else {
-        acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::has2ndGsf;
+      // assume modified HEEP apriori
+      // default category is DR1Et2EB
+      aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::DR1Et2EB;
 
-        // additional GSF track must not be an electron
-        bool notMerged = false;
+      // additional GSF track must not be an electron
+      bool notMerged = false;
 
-        for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
-          const auto& secEle = eleHandle->refAt(jdx);
-          const auto& secGsfTrk = secEle->gsfTrack();
+      for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
+        const auto& secEle = eleHandle->refAt(jdx);
+        const auto& secGsfTrk = secEle->gsfTrack();
 
-          if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,secGsfTrk) ) {
-            notMerged = true;
-            break;
-          }
+        if ( addGsfTrk==secGsfTrk ) {
+          notMerged = true;
+          break;
         }
+      }
 
-        if ( notMerged )
-          acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::hasMatchedElectron;
-        else {
-          bool passedMVA = false;
-          // apply BDT to further reject bkg contributions (e.g. brem)
-          const auto castEle = aEle.castTo<pat::ElectronRef>();
-          aGSFtype_mergedElectron = MergedLeptonIDs::checkElectronGSFtype(castEle,orgGsfTrk,addGsfTrk,etThresEB_,etThresEE_,minEt_);
+      if ( !notMerged ) {
+        const auto castEle = aEle.castTo<pat::ElectronRef>();
+        aGSFtype_mergedElectron = MergedLeptonIDs::checkElectronGSFtype(castEle,orgGsfTrk,addGsfTrk,etThresEB_,etThresEE_,minEt_);
 
-          switch ( aGSFtype_mergedElectron ) {
-            case MergedLeptonIDs::GSFtype::DR1Et2EB:
-              amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle);
-              passedMVA = amvascore_mergedElectron > cutDR1Et2EB_;
-              break;
-            case MergedLeptonIDs::GSFtype::DR2Et1EB:
-              amvascore_mergedElectron = xgbEstimatorDR2Et1EB_->computeMva(castEle);
-              passedMVA = amvascore_mergedElectron > cutDR2Et1EB_;
-              break;
-            case MergedLeptonIDs::GSFtype::DR2Et2EB:
-              amvascore_mergedElectron = xgbEstimatorDR2Et2EB_->computeMva(castEle);
-              passedMVA = amvascore_mergedElectron > cutDR2Et2EB_;
-              break;
-            case MergedLeptonIDs::GSFtype::DR1Et2EE:
-              acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;
-              break;
-            case MergedLeptonIDs::GSFtype::DR2Et1EE:
-              amvascore_mergedElectron = xgbEstimatorDR2Et1EE_->computeMva(castEle);
-              passedMVA = amvascore_mergedElectron > cutDR2Et1EE_;
-              break;
-            case MergedLeptonIDs::GSFtype::DR2Et2EE:
-              amvascore_mergedElectron = xgbEstimatorDR2Et2EE_->computeMva(castEle);
-              passedMVA = amvascore_mergedElectron > cutDR2Et2EE_;
-              break;
-            case MergedLeptonIDs::GSFtype::extendedCR:
-              amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle);
-
-              if ( amvascore_mergedElectron > cutDR1Et2EB_ )
-                acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::has2ndGsfCRpass;
-              else
-                acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::has2ndGsfCRfail;
-
-              break;
-            default:
-              acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::outsideDef;
-              break;
-          } // switch
-
-          if (passedMVA)
-            acutflow_mergedElectron = MergedLeptonIDs::cutflowElectron::passedMVA1;
-        } // end hasMatchedElectron
-      } // end isModifiedHEEP
+        switch ( aGSFtype_mergedElectron ) {
+          case MergedLeptonIDs::GSFtype::DR1Et2EB:
+            amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle,EBrecHitHandle,EErecHitHandle,addGsfTrk);
+            break;
+          case MergedLeptonIDs::GSFtype::DR2Et1EB:
+            amvascore_mergedElectron = xgbEstimatorDR2Et1EB_->computeMva(castEle,EBrecHitHandle,EErecHitHandle,addGsfTrk);
+            break;
+          case MergedLeptonIDs::GSFtype::DR2Et2EB:
+            amvascore_mergedElectron = xgbEstimatorDR2Et2EB_->computeMva(castEle,EBrecHitHandle,EErecHitHandle,addGsfTrk);
+            break;
+          case MergedLeptonIDs::GSFtype::DR2Et1EE:
+            amvascore_mergedElectron = xgbEstimatorDR2Et1EE_->computeMva(castEle,EBrecHitHandle,EErecHitHandle,addGsfTrk);
+            break;
+          case MergedLeptonIDs::GSFtype::DR2Et2EE:
+            amvascore_mergedElectron = xgbEstimatorDR2Et2EE_->computeMva(castEle,EBrecHitHandle,EErecHitHandle,addGsfTrk);
+            break;
+          case MergedLeptonIDs::GSFtype::extendedCR:
+            // TODO add DR1Et1EX category
+            // need to apply an additional offline Et cut afterwards
+            aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::DR1Et2EB;
+            amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle,EBrecHitHandle,EErecHitHandle,addGsfTrk);
+            break;
+          default:
+            aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::DR1Et2EB;
+            amvascore_mergedElectron = -1.;
+            break;
+        } // switch
+      } // !notMerged
     } // end isSameGsfTrack
 
-    status_mergedElectron.emplace_back( static_cast<int>(acutflow_mergedElectron) );
     mvas_mergedElectron.emplace_back(amvascore_mergedElectron);
     GSFtype_mergedElectron.emplace_back( static_cast<int>(aGSFtype_mergedElectron) );
   } // electron loop
 
-  writeValueMap(iEvent,eleHandle,cutflows_modifiedHEEP,"cutflowModifiedHEEP");
-  writeValueMap(iEvent,eleHandle,cutflows_HEEP,"cutflowHEEP");
-  writeValueMap(iEvent,eleHandle,status_mergedElectron,"statusMergedElectron");
-  writeValueMap(iEvent,eleHandle,mvas_mergedElectron,"mvaMergedElectron");
-  writeValueMap(iEvent,eleHandle,GSFtype_mergedElectron,"GSFtypeMergedElectron");
+  writeValueMap(iEvent,eleHandle,mvas_mergedElectron,"mvaMergedElectronValues");
+  writeValueMap(iEvent,eleHandle,GSFtype_mergedElectron,"mvaMergedElectronCategories");
+
+  return;
 }
 
 DEFINE_FWK_MODULE(MergedLeptonIDProducer);

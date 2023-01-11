@@ -30,15 +30,29 @@ def calROC(dTrainPredict, dTestPredict, y_train, y_test):
 def drawScoreByProcess(dSigPredict, sigWgt, dBkgPredicts, bkgWgts, labellist, colorlist, nbins, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.rc('font', size=12)
-    plt.hist(dBkgPredicts, nbins, stacked=True, weights=bkgWgts, label=labellist, range=(0,1), color=colorlist)
-    plt.hist(dSigPredict, nbins, weights=sigWgt, histtype=u'step', range=(0,1), color='navy')
+
+    if dSigPredict is not None:
+        plt.hist(dBkgPredicts, nbins, stacked=True, weights=bkgWgts, label=labellist, range=(0,1), color=colorlist)
+        plt.hist(dSigPredict, nbins, weights=sigWgt, histtype=u'step', range=(0,1), color='navy')
+        plt.xlim([0,1])
+        plt.xlabel('Score')
+    else:
+        if "eta" in plotname:
+            plt.hist(dBkgPredicts, nbins, stacked=True, weights=bkgWgts, label=labellist, range=(-2.5,2.5), color=colorlist)
+            plt.xlim([-2.5,2.5])
+            plt.xlabel(r"$\eta_{SC}$")
+        elif "invM" in plotname:
+            plt.hist(dBkgPredicts, nbins, stacked=True, weights=bkgWgts, label=labellist, range=(0,5), color=colorlist)
+            plt.xlim([0,5])
+            plt.xlabel(r"M(ll)")
+        else:
+            raise NameError('check plotname')
+
     plt.title(r"$\bf{CMS}$"+"$\it{\;Simulation,\;work\;in\;progress}$", loc='left',fontsize=12)
     plt.grid()
     plt.yscale('log')
-    plt.xlim([0,1])
     ymin, ymax = plt.gca().get_ylim()
     plt.ylim([ymin,10.*ymax])
-    plt.xlabel('Score')
     plt.ylabel('a.u.')
     plt.legend(loc=(0.8,0.73), fontsize=8)
 

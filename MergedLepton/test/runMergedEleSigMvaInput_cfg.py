@@ -32,9 +32,33 @@ process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
 process.load("ZprimeTo4l.MergedLepton.MergedEleSigMvaInput_cfi")
 
+runVIDmodules = [
+    'ZprimeTo4l.ModifiedHEEP.Identification.modifiedHeepElectronID_cff',
+]
+
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,
+                       runEnergyCorrections=False,
+                       runVID=True,
+                       eleIDModules=runVIDmodules,
+                       phoIDModules=[],
+                       era='2016postVFP-UL')
+
+process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone(
+    elesMiniAOD=cms.InputTag("slimmedElectrons")
+)
+
+process.modifiedEcalRecHitIsolationScone2nd = process.ModifiedEcalRecHitIsolationScone.clone(
+    emObjectProducer=cms.InputTag("slimmedElectrons"),
+    addGsfTrkMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddGsfTrk")
+)
+
 process.analyzer_step = cms.Path(
     process.ModifiedHEEPIDVarValueMaps*
     process.ModifiedEcalRecHitIsolationScone*
+    process.egammaPostRecoSeq*
+    process.modifiedHEEPIDVarValueMaps2nd*
+    process.modifiedEcalRecHitIsolationScone2nd*
     process.mergedEleSigMvaInput
 )
 

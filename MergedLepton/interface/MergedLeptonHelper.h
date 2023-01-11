@@ -37,7 +37,6 @@ public:
     float EseedOverP, EOverP;
     float ecalEn, ecalErr, trkErr, combErr, PFcombErr;
     float dr03TkSumPtHEEP, dr03EcalRecHitSumEt, dr03HcalDepth1TowerSumEt;
-    int nrSatCrys;
     float modTrkIso, modEcalIso;
     int lostHits, nValidHits, nValidPixelHits, GsfHits;
     float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz;
@@ -46,6 +45,8 @@ public:
     float convVtxFitProb, convVtxChi2, convDist, convDcot, convRadius;
     int passConversionVeto, nbrem;
     float fbrem, fbremSC;
+    float EoverP_1st, EoverP_2nd, dEtaIn_trk1xtal1, dPhiIn_trk1xtal1, dEtaIn_trk2xtal2, dPhiIn_trk2xtal2;
+    float E5x5, E1x1;
   } ElectronStruct;
 
   typedef struct {
@@ -94,9 +95,12 @@ public:
   void fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
                      const float& trkIso,
                      const float& ecalIso,
-                     const int& nrSatCrys,
+                     const reco::GsfTrackRef& addGsfTrk,
                      const edm::Handle<reco::ConversionCollection>& conversions,
                      const edm::Handle<reco::BeamSpot>& beamSpotHandle,
+                     const edm::EventSetup& iSetup,
+                     const edm::Handle<EcalRecHitCollection>& EBrecHitHandle,
+                     const edm::Handle<EcalRecHitCollection>& EErecHitHandle,
                      const std::string& prefix);
 
   void fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,

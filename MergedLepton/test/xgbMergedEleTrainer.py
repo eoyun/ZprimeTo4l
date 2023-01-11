@@ -68,7 +68,7 @@ bkglist = [
 for aproc in bkglist:
     aproc.read(dfProducer)
 
-df_mergedEl, wgts_mergedEl, pts_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
+df_mergedEl, wgts_mergedEl, pts_mergedEl, etas_mergedEl, invMs_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
 col_names = dfProducer.col_names()
 
 # equalize sumwgt(bkg) to sumwgt(sig) to avoid class imbalance
@@ -167,40 +167,41 @@ kf = sklearn.model_selection.KFold(n_splits=5,shuffle=True)
 modelPerforms_list = []
 model_list = []
 
-for train, test in kf.split(x_total):
-    x_train = x_total[train]
-    y_train = y_total[train]
-    wgts_train = wgts_total[train]
+if args.opt=='True':
+    for train, test in kf.split(x_total):
+        x_train = x_total[train]
+        y_train = y_total[train]
+        wgts_train = wgts_total[train]
 
-    x_test = x_total[test]
-    y_test = y_total[test]
-    wgts_test = wgts_total[test]
+        x_test = x_total[test]
+        y_test = y_total[test]
+        wgts_test = wgts_total[test]
 
-    dtrain = xgb.DMatrix(x_train, weight=wgts_train, label=y_train, feature_names=col_names)
-    dtest = xgb.DMatrix(x_test, weight=wgts_test, label=y_test, feature_names=col_names)
+        dtrain = xgb.DMatrix(x_train, weight=wgts_train, label=y_train, feature_names=col_names)
+        dtest = xgb.DMatrix(x_test, weight=wgts_test, label=y_test, feature_names=col_names)
 
-    evallist = [(dtest, 'eval'), (dtrain, 'train')]
-    num_round = 200
+        evallist = [(dtest, 'eval'), (dtrain, 'train')]
+        num_round = 200
 
-    bst = xgb.Booster(param)
-    early_stop = xgb.callback.EarlyStopping(rounds=20,metric_name='logloss',data_name='eval')
+        bst = xgb.Booster(param)
+        early_stop = xgb.callback.EarlyStopping(rounds=20,metric_name='logloss',data_name='eval')
 
-    if args.opt=='True':
-        bst = xgb.train(param, dtrain, num_round, evallist, callbacks=[early_stop])
-        model_list.append(bst)
+        if args.opt=='True':
+            bst = xgb.train(param, dtrain, num_round, evallist, callbacks=[early_stop])
+            model_list.append(bst)
 
-    dTrainPredict    = bst.predict(dtrain)
-    dTestPredict     = bst.predict(dtest)
+        dTrainPredict    = bst.predict(dtrain)
+        dTestPredict     = bst.predict(dtest)
 
-    modelPerforms_list.append( zvis.calROC(dTrainPredict,dTestPredict,y_train,y_test) )
-
-plotname = workflowname
-
-if args.model is not "" and os.path.splitext(args.model)[1]=='.model':
-    plotname += ('_'+os.path.splitext(os.path.basename(args.model))[0])
+        modelPerforms_list.append( zvis.calROC(dTrainPredict,dTestPredict,y_train,y_test) )
 
 targetFpr = 0.2
 nbins = 50
+idx_max = -1
+targetThres = -1
+trainThres = -1
+bst = None
+plotname = workflowname
 
 # calculate score threshold at a certain FPR, which differs by w/ or w/o GSF scenarios
 if args.angle=="None":
@@ -213,23 +214,33 @@ elif args.angle=="DR2" and args.et=="Et2" and args.det=="EE":
 else:
     pass
 
-idx_max = zvis.drawROC(modelPerforms_list, plotname+'_roc')
-targetThres, trainThres = zvis.drawThr(modelPerforms_list[idx_max], targetFpr, plotname+'_thr')
+# append the model name when not training
+if args.model is not "" and os.path.splitext(args.model)[1]=='.model':
+    plotname += ('_'+os.path.splitext(os.path.basename(args.model))[0])
 
-# use train threshold instead when test set lacks of statistics
-if args.angle=="DR2" and args.et=="Et2" and args.det=="EB":
-    targetThres = trainThres
-elif args.angle=="DR2" and args.et=="Et2" and args.det=="EE":
-    targetThres = trainThres
-else:
-    pass
-
-# save model & importance plot
 if args.opt=='True':
-    model_list[idx_max].save_model('model/'+workflowname+'.model')
+    # draw ROC curve and calculate score threshold
+    idx_max = zvis.drawROC(modelPerforms_list, plotname+'_roc')
+    targetThres, trainThres = zvis.drawThr(modelPerforms_list[idx_max], targetFpr, plotname+'_thr')
+
+    # use train threshold instead when test set lacks of statistics
+    if args.angle=="DR2" and args.et=="Et2" and args.det=="EB":
+        targetThres = trainThres
+    elif args.angle=="DR2" and args.et=="Et2" and args.det=="EE":
+        targetThres = trainThres
+    else:
+        pass
+
+    # save model & importance plot
+    bst = model_list[idx_max]
+    bst.save_model('model/'+workflowname+'.model')
     gain = bst.get_score(importance_type='gain')
     cover = bst.get_score(importance_type='cover')
     zvis.drawImportance(gain,cover,col_names,plotname+'_importance')
+else:
+    bst = xgb.Booster(param)
+    targetThres = 0.791 # set manually for now
+    bst.load_model('model/'+workflowname+'.model')
 
 # calculate scores by physics processes
 def bkg_predict(abst,atransformer,adf,awgt,colname):
@@ -240,8 +251,6 @@ def bkg_predict(abst,atransformer,adf,awgt,colname):
     admat = xgb.DMatrix(atrans, weight=awgt, label=np.zeros(shape=(adf.shape[0],)), feature_names=colname)
 
     return abst.predict(admat)
-
-bst = model_list[idx_max]
 
 np_meanstd = npz_params['meanstd'][()]
 transformer.mean_ = np_meanstd[0]
@@ -267,6 +276,30 @@ zvis.drawScoreByProcess(
     nbins,
     plotname+'_scoreProcess'
 )
+
+zvis.drawScoreByProcess(
+    None,
+    None,
+    # hail python
+    list(np.array([aproc.etas_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
+    list(np.array([aproc.wgts_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
+    ['TT','DY','WJets','_','_','_','QCD','_','_','_','_'],
+    ['tomato','wheat','green','steelblue','cadetblue','darkcyan','darkturquoise','cyan','turquoise','paleturquoise','lightcyan'],
+    100,
+    plotname+'_etaSC'
+)
+
+if args.angle!="None":
+    zvis.drawScoreByProcess(
+        None,
+        None,
+        list(np.array([aproc.invMs_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
+        list(np.array([aproc.wgts_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
+        ['TT','DY','WJets','_','_','_','QCD','_','_','_','_'],
+        ['tomato','wheat','green','steelblue','cadetblue','darkcyan','darkturquoise','cyan','turquoise','paleturquoise','lightcyan'],
+        100,
+        plotname+'_invM'
+    )
 
 # efficiency as a function of Et at threshold
 etThresLow = 0.

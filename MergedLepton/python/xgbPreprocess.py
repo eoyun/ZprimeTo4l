@@ -23,15 +23,18 @@ class DataframeInitializer(object):
         self.ang_ = ang
         self.et_ = etrange
         self.col_ = [
-        'etaSCWidth',
-        'phiSCWidth', #
-        'E1x5/E5x5',
-        'R9',
-        '|dEtaIn|',
-        '|dPhiIn|',
-        'Eseed/p',
-        'fbrem'
+            'HcalD1iso',
+            'E1x5/E5x5',
+            'R9',
+            'R1 (E1x1/E5x5)',
+            '|dEtaIn|',
+            '|dPhiIn|',
+            'E/p',
+            'E(1st xtal)/p'
         ]
+
+        if self.ang_!="None":
+            self.col_.append('E(2nd xtal)/p')
 
     def col_names(self):
         return self.col_
@@ -40,6 +43,8 @@ class DataframeInitializer(object):
         anArr = np.zeros(shape=(aTree.GetEntries(),len(self.col_)))
         wgts = np.zeros(shape=(aTree.GetEntries(),))
         pts = np.zeros(shape=(aTree.GetEntries(),))
+        etas = np.zeros(shape=(aTree.GetEntries(),))
+        invMs = np.zeros(shape=(aTree.GetEntries(),))
 
         etThres = 50.
 
@@ -97,20 +102,34 @@ class DataframeInitializer(object):
             idx = iEl
             wgts[idx] = el.weight/abs(el.weight)
             pts[idx] = el.et
-            anArr[idx,0] = el.etaSCWidth
-            anArr[idx,1] = el.phiSCWidth
-            anArr[idx,2] = el.full5x5_E1x5/el.full5x5_E5x5
-            anArr[idx,3] = el.full5x5_r9
+            etas[idx] = el.etaSC
+            anArr[idx,0] = el.dr03HcalDepth1TowerSumEt
+            anArr[idx,1] = el.full5x5_E1x5/el.full5x5_E5x5
+            anArr[idx,2] = el.full5x5_r9
+            anArr[idx,3] = el.E1x1/el.E5x5
             anArr[idx,4] = abs(el.dEtaIn)
             anArr[idx,5] = abs(el.dPhiIn)
-            anArr[idx,6] = el.EseedOverP
-            anArr[idx,7] = el.fbrem
+            anArr[idx,6] = el.EOverP
+            anArr[idx,7] = el.EoverP_1st
+
+            if self.ang_!="None":
+                anArr[idx,8] = el.EoverP_2nd
+
+            if aGsfTree is not None:
+                lvec1 = ROOT.Math.PtEtaPhiMVector(el.Gsfpt,el.Gsfeta,el.Gsfphi,0.000511)
+                lvec2 = ROOT.Math.PtEtaPhiMVector(aGsfTree.Gsfpt,aGsfTree.Gsfeta,aGsfTree.Gsfphi,0.000511)
+                lvecA = lvec1 + lvec2
+                invMs[idx] = lvecA.M()*el.enSC/el.en
 
         # remove rows with only zeros
         mask = ~np.all(anArr==0.0,axis=1)
         anArr = anArr[mask]
         wgts = wgts[mask]
         pts = pts[mask]
+        etas = etas[mask]
+
+        if aGsfTree is not None:
+            invMs = invMs[mask]
 
         # sanity check
         if anArr.shape[0] != wgts.shape[0]:
@@ -118,7 +137,7 @@ class DataframeInitializer(object):
 
         aDf = pd.DataFrame(anArr,columns=self.col_)
 
-        return aDf, wgts, pts
+        return aDf, wgts, pts, etas, invMs
 
 class SampleProcessor(object):
     """docstring for SampleProcessor."""
@@ -128,7 +147,9 @@ class SampleProcessor(object):
         self.xsec_ = xsec
         self.df_ = None   # dataframe that contains ID variables
         self.wgts_ = None # np array of wgts for each electron
-        self.pts = None   # np array of Et of each electron
+        self.pts_ = None   # np array of Et of each electron
+        self.etas_ = None
+        self.invMs_ = None
 
     def read(self,dfProducer):
         afile = ROOT.TFile.Open(self.filename_)
@@ -144,11 +165,13 @@ class SampleProcessor(object):
         aWgtHist = afile.Get("mergedEleBkgMvaInput/totWeightedSum")
         totWgtSum = aWgtHist.GetBinContent(1)
 
-        df, wgts, pts = dfProducer.fill_arr(atree,aGsfTree)
+        df, wgts, pts, etas, invMs = dfProducer.fill_arr(atree,aGsfTree)
         wgts = wgts*(self.xsec_*1000./totWgtSum)
 
         self.df_ = df
         self.wgts_ = wgts
         self.pts_ = pts
+        self.etas_ = etas
+        self.invMs_ = invMs
 
         return

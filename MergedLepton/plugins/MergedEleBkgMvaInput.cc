@@ -35,16 +35,16 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override {}
 
-  edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
-  edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
-  edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
-  edm::EDGetTokenT<edm::ValueMap<int>> nrSatCrysMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
-  edm::EDGetTokenT<double> rhoToken_;
-  edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
-  edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
-  edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
+  const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
+  const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
+  const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
+  const edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
+  const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
+  const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EBrecHitToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EErecHitToken_;
 
   const double ptThres_;
   const double drThres_;
@@ -59,12 +59,12 @@ srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
 ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ecalIsoMap"))),
-nrSatCrysMapToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("nrSatCrysMap"))),
 addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
-rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
 conversionsToken_(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("conversions"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
+EBrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EBrecHits"))),
+EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 drThres_(iConfig.getParameter<double>("drThres")),
 aHelper_() {
@@ -95,20 +95,20 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   edm::Handle<edm::ValueMap<float>> ecalIsoMapHandle;
   iEvent.getByToken(ecalIsoToken_, ecalIsoMapHandle);
 
-  edm::Handle<edm::ValueMap<int>> nrSatCrysHandle;
-  iEvent.getByToken(nrSatCrysMapToken_, nrSatCrysHandle);
-
   edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkHandle;
   iEvent.getByToken(addGsfTrkToken_, addGsfTrkHandle);
-
-  edm::Handle<double> rhoHandle;
-  iEvent.getByToken(rhoToken_,rhoHandle);
 
   edm::Handle<reco::ConversionCollection> conversionsHandle;
   iEvent.getByToken(conversionsToken_, conversionsHandle);
 
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
+
+  edm::Handle<EcalRecHitCollection> EBrecHitHandle;
+  iEvent.getByToken(EBrecHitToken_, EBrecHitHandle);
+
+  edm::Handle<EcalRecHitCollection> EErecHitHandle;
+  iEvent.getByToken(EErecHitToken_, EErecHitHandle);
 
   edm::Handle<GenEventInfoProduct> genInfo;
   iEvent.getByToken(generatorToken_, genInfo);
@@ -131,29 +131,11 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
     const auto& aEle = eleHandle->ptrAt(idx);
-    MergedLeptonIDs::cutflowElectron cutflow = MergedLeptonIDs::cutflowElectron::baseline;
 
     if ( aEle->et() < ptThres_ )
       continue;
 
-    bool passModifiedHEEP =
-      MergedLeptonIDs::isModifiedHEEP(*aEle,
-                                      *primaryVertex,
-                                      (*trkIsoMapHandle)[aEle],
-                                      (*ecalIsoMapHandle)[aEle],
-                                      (*nrSatCrysHandle)[aEle],
-                                      *rhoHandle,
-                                      cutflow);
-
-    MergedLeptonIDs::cutflowElectron cutflow_HEEP = MergedLeptonIDs::cutflowElectron::baseline;
-    bool passHEEP =
-      MergedLeptonIDs::hasPassedHEEP(*aEle,
-                                     *primaryVertex,
-                                     (*nrSatCrysHandle)[aEle],
-                                     *rhoHandle,
-                                     cutflow_HEEP);
-
-    if ( !passModifiedHEEP )
+    if ( !aEle->electronID("modifiedHeepElectronID") )
       continue;
 
     // requirement for add GSF track
@@ -162,11 +144,8 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
     std::string treename = "";
 
-    if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,orgGsfTrk) ) {
+    if ( addGsfTrk==orgGsfTrk ) {
       treename = "bkg";
-
-      if ( !passHEEP )
-        continue;
 
     } else {
       // find whether add GSF track has a corresponding electron
@@ -183,7 +162,7 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
         const auto& secGsfTrk = secEle->gsfTrack();
 
-        if ( MergedLeptonIDs::isSameGsfTrack(addGsfTrk,secGsfTrk) ) {
+        if ( addGsfTrk==secGsfTrk ) {
           notMerged = true;
           break;
         }
@@ -200,9 +179,12 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
     aHelper_.fillElectrons(aEle,
                            (*trkIsoMapHandle)[aEle],
                            (*ecalIsoMapHandle)[aEle],
-                           (*nrSatCrysHandle)[aEle],
+                           addGsfTrk,
                            conversionsHandle,
                            beamSpotHandle,
+                           iSetup,
+                           EBrecHitHandle,
+                           EErecHitHandle,
                            treename);
   }
 }

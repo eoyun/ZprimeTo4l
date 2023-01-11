@@ -1,97 +1,68 @@
 import FWCore.ParameterSet.Config as cms
 
 mergedLeptonIDProducer = cms.EDProducer("MergedLeptonIDProducer", # 20UL16
-  srcEle=cms.InputTag("slimmedElectrons"),
-  srcPv=cms.InputTag("offlineSlimmedPrimaryVertices"),
-  beamSpot = cms.InputTag("offlineBeamSpot"),
-  trkIsoMap=cms.InputTag("ModifiedHEEPIDVarValueMaps","eleTrkPtIso"),
-  ecalIsoMap=cms.InputTag("ModifiedEcalRecHitIsolationScone","EcalRecHitIso"),
-  nrSatCrysMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleNrSaturateIn5x5"),
+  srcEle=cms.InputTag("slimmedElectrons",processName=cms.InputTag.skipCurrentProcess()),
   addGsfTrkMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
-  rho=cms.InputTag("fixedGridRhoFastjetAll"),
-  vetoConv = cms.bool(True),
   etThresEB = cms.double(200.),
   etThresEE = cms.double(150.),
   minEt = cms.double(50.),
+  EBrecHits = cms.InputTag("reducedEgamma","reducedEBRecHits"),
+  EErecHits = cms.InputTag("reducedEgamma","reducedEERecHits"),
   xgbPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL16.xml"),
   meanstdPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL16.csv"),
-  cutDR1Et2EB=cms.double(0.866),
   xgbPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL16.xml"),
   meanstdPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL16.csv"),
-  cutDR2Et1EB=cms.double(0.840),
   xgbPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL16.xml"),
   meanstdPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL16.csv"),
-  cutDR2Et2EB=cms.double(0.861),
   xgbPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL16.xml"),
   meanstdPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL16.csv"),
-  cutDR2Et1EE=cms.double(0.762),
   xgbPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL16.xml"),
   meanstdPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL16.csv"),
-  cutDR2Et2EE=cms.double(0.775),
   xgbPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL16.xml"),
-  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL16.csv"),
-  cutBkgEt2EB=cms.double(0.792)
+  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL16.csv")
 )
 
 mergedLeptonIDProducer20UL16APV = mergedLeptonIDProducer.clone(
   xgbPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL16APV.xml"),
   meanstdPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL16APV.csv"),
-  cutDR1Et2EB=cms.double(0.777),
   xgbPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL16APV.xml"),
   meanstdPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL16APV.csv"),
-  cutDR2Et1EB=cms.double(0.730),
   xgbPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL16APV.xml"),
   meanstdPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL16APV.csv"),
-  cutDR2Et2EB=cms.double(0.565),
   xgbPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL16APV.xml"),
   meanstdPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL16APV.csv"),
-  cutDR2Et1EE=cms.double(0.869),
   xgbPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL16APV.xml"),
   meanstdPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL16APV.csv"),
-  cutDR2Et2EE=cms.double(0.811),
   xgbPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL16APV.xml"),
-  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL16APV.csv"),
-  cutBkgEt2EB=cms.double(0.803)
+  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL16APV.csv")
 )
 
 mergedLeptonIDProducer20UL17 = mergedLeptonIDProducer.clone(
   xgbPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL17.xml"),
   meanstdPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL17.csv"),
-  cutDR1Et2EB=cms.double(0.736),
   xgbPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL17.xml"),
   meanstdPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL17.csv"),
-  cutDR2Et1EB=cms.double(0.679),
   xgbPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL17.xml"),
   meanstdPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL17.csv"),
-  cutDR2Et2EB=cms.double(0.380),
   xgbPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL17.xml"),
   meanstdPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL17.csv"),
-  cutDR2Et1EE=cms.double(0.802),
   xgbPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL17.xml"),
   meanstdPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL17.csv"),
-  cutDR2Et2EE=cms.double(0.762),
   xgbPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL17.xml"),
-  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL17.csv"),
-  cutBkgEt2EB=cms.double(0.766)
+  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL17.csv")
 )
 
 mergedLeptonIDProducer20UL18 = mergedLeptonIDProducer.clone(
   xgbPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL18.xml"),
   meanstdPathDR1Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR1Et2_EB_20UL18.csv"),
-  cutDR1Et2EB=cms.double(0.647),
   xgbPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL18.xml"),
   meanstdPathDR2Et1EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EB_20UL18.csv"),
-  cutDR2Et1EB=cms.double(0.765),
   xgbPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL18.xml"),
   meanstdPathDR2Et2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EB_20UL18.csv"),
-  cutDR2Et2EB=cms.double(0.423),
   xgbPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL18.xml"),
   meanstdPathDR2Et1EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et1_EE_20UL18.csv"),
-  cutDR2Et1EE=cms.double(0.758),
   xgbPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL18.xml"),
   meanstdPathDR2Et2EE=cms.FileInPath("ZprimeTo4l/MergedLepton/data/DR2Et2_EE_20UL18.csv"),
-  cutDR2Et2EE=cms.double(0.711),
   xgbPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL18.xml"),
-  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL18.csv"),
-  cutBkgEt2EB=cms.double(0.788)
+  meanstdPathBkgEt2EB=cms.FileInPath("ZprimeTo4l/MergedLepton/data/NoneEt2_EB_20UL18.csv")
 )
