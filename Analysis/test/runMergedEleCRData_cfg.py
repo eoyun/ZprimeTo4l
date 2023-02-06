@@ -26,10 +26,18 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.GlobalTag.globaltag = cms.string("106X_dataRun2_v35")
 
+runVIDmodules = [
+    'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff',
+    'ZprimeTo4l.ModifiedHEEP.Identification.modifiedHeepElectronID_cff',
+    'ZprimeTo4l.MergedLepton.Identification.mergedElectronID_20UL16_cff'
+]
+
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
                        runEnergyCorrections=True,
-                       runVID=False,
+                       runVID=True,
+                       eleIDModules=runVIDmodules,
+                       phoIDModules=[],
                        era='2016postVFP-UL')
 
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
@@ -43,11 +51,16 @@ process.mergedEleCRanalyzerData = mergedEleCRanalyzer.clone(
     isMC = cms.untracked.bool(False)
 )
 
+process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone(
+    elesMiniAOD=cms.InputTag("slimmedElectrons")
+)
+
 process.analyzer_step = cms.Path(
-    process.egammaPostRecoSeq*
     process.ModifiedHEEPIDVarValueMaps*
     process.ModifiedEcalRecHitIsolationScone*
     process.mergedLeptonIDProducer*
+    process.egammaPostRecoSeq*
+    process.modifiedHEEPIDVarValueMaps2nd* # need to run it again since refs in ValueMap are broken
     process.mergedEleCRanalyzerData
 )
 
