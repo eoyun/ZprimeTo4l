@@ -12,6 +12,6 @@ mergedEleSigMvaInput = cms.EDAnalyzer("MergedEleSigMvaInput",
   generator = cms.InputTag("generator"),
   EBrecHits = cms.InputTag("reducedEgamma","reducedEBRecHits"),
   EErecHits = cms.InputTag("reducedEgamma","reducedEERecHits"),
-  ptThres=cms.double(12.),
+  ptThres=cms.double(20.),
   drThres=cms.double(0.3)
 )

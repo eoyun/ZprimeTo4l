@@ -86,7 +86,7 @@ def configureModifiedHEEPElectronID(idName, wpEB, wpEE):
     parameterSet = cms.PSet(
         idName = cms.string(idName),
         cutFlow = cms.VPSet(
-            psetMinPtCut(cutValue=12.),                   #0
+            psetMinPtCut(cutValue=20.),                   #0
             psetGsfEleSCEtaMultiRangeCut(),               #1
             psetGsfModifiedEleDEtaInSeedCut(wpEB,wpEE),   #2
             psetGsfEleDPhiInCut(wpEB,wpEE),               #3
