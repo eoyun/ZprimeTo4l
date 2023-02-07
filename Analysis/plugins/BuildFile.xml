@@ -17,6 +17,7 @@
 <use name="DataFormats/HepMCCandidate"/>
 <use name="RecoEgamma/EgammaTools"/>
 <use name="ZprimeTo4l/MergedLepton"/>
+<use name="ZprimeTo4l/Analysis"/>
 <use name="root"/>
 <use name="rootmath"/>
 <export>
