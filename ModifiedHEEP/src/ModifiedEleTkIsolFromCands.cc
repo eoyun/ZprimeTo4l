@@ -19,7 +19,7 @@ ModifiedEleTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
   minPixelHits = para.getParameter<int>("minPixelHits");
   maxDPtPt = para.getParameter<double>("maxDPtPt");
   addGsfminPt = para.getParameter<double>("addGsfminPt");
-  addGsfDR2 = sq(para.getParameter<double>("maxDR"));
+  addGsfDR2 = sq(para.getParameter<double>("addGsfDR2"));
 
   auto qualNames = para.getParameter<std::vector<std::string>>("allowedQualities");
   auto algoNames = para.getParameter<std::vector<std::string>>("algosToReject");
@@ -44,6 +44,7 @@ edm::ParameterSetDescription ModifiedEleTkIsolFromCands::TrkCuts::pSetDescript()
   desc.add<double>("maxDZ",0.1);
   desc.add<double>("maxDPtPt",-1);
   desc.add<double>("addGsfminPt",10.0);
+  desc.add<double>("addGsfDR2",0.4);
   desc.add<int>("minHits",8);
   desc.add<int>("minPixelHits",1);
   desc.add<std::vector<std::string> >("allowedQualities");
