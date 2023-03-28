@@ -24,17 +24,13 @@ class DataframeInitializer(object):
         self.et_ = etrange
         self.col_ = [
             'HcalD1iso',
-            'E1x5/E5x5',
             'R9',
-            'R1 (E1x1/E5x5)',
-            '|dEtaIn|',
+            'sigIeIe',
+            '|dEtaInSeed|',
             '|dPhiIn|',
-            'E/p',
-            'E(1st xtal)/p'
+            'fbrem',
+            'E/p'
         ]
-
-        if self.ang_!="None":
-            self.col_.append('E(2nd xtal)/p')
 
     def col_names(self):
         return self.col_
@@ -57,10 +53,10 @@ class DataframeInitializer(object):
 
         for iEl, el in enumerate(aTree):
             if self.det_=='EB':
-                if abs(el.eta) > 1.5:
+                if abs(el.etaSC) > 1.5:
                     continue
             elif self.det_=='EE':
-                if abs(el.eta) < 1.5:
+                if abs(el.etaSC) < 1.5:
                     continue
             else:
                 raise NameError('Please check EB/EE argument, the current argument is %s' % self.det_)
@@ -104,16 +100,12 @@ class DataframeInitializer(object):
             pts[idx] = el.et
             etas[idx] = el.etaSC
             anArr[idx,0] = el.dr03HcalDepth1TowerSumEt
-            anArr[idx,1] = el.full5x5_E1x5/el.full5x5_E5x5
-            anArr[idx,2] = el.full5x5_r9
-            anArr[idx,3] = el.E1x1/el.E5x5
-            anArr[idx,4] = abs(el.dEtaIn)
-            anArr[idx,5] = abs(el.dPhiIn)
+            anArr[idx,1] = el.full5x5_r9
+            anArr[idx,2] = el.full5x5_sigmaIetaIeta
+            anArr[idx,3] = abs(el.dEtaSeed)
+            anArr[idx,4] = abs(el.dPhiIn)
+            anArr[idx,5] = el.fbrem
             anArr[idx,6] = el.EOverP
-            anArr[idx,7] = el.EoverP_1st
-
-            if self.ang_!="None":
-                anArr[idx,8] = el.EoverP_2nd
 
             if aGsfTree is not None:
                 lvec1 = ROOT.Math.PtEtaPhiMVector(el.Gsfpt,el.Gsfeta,el.Gsfphi,0.000511)

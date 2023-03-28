@@ -25,8 +25,8 @@ typedef struct {
   float convVtxFitProb, convVtxChi2, convDist, convDcot, convRadius;
   int passConversionVeto, nbrem;
   float fbrem, fbremSC;
-  float EoverP_1st, EoverP_2nd, dEtaIn_trk1xtal1, dPhiIn_trk1xtal1, dEtaIn_trk2xtal2, dPhiIn_trk2xtal2;
-  float E5x5, E1x1;
+  float full5x5_e2x5Left, full5x5_e2x5Right, full5x5_e2x5Top, full5x5_e2x5Bottom, full5x5_eLeft, full5x5_eRight, full5x5_eTop, full5x5_eBottom;
+  float full5x5_eMax, full5x5_e2nd;
 } ElectronStruct;
 
 typedef struct {
@@ -53,16 +53,16 @@ double deltaR2(double eta1, double phi1,double eta2,double phi2) {
   return std::abs(eta1-eta2)*std::abs(eta1-eta2) + std::abs(deltaPhi(phi1,phi2))*std::abs(deltaPhi(phi1,phi2));
 }
 
-void compareMvaInputs(const std::string ang, const std::string etThres, const std::string EBEE) {
+void compareMvaInputs(const std::string ang, const std::string etThres, const std::string EBEE, const std::string era) {
   TH1::SetDefaultSumw2();
 
   setTDRStyle();
 
-  writeExtraText = true;       // if extra text
+  writeExtraText = true;            // if extra text
   extraText  = "Work in progress";  // default extra text is "Preliminary"
-  lumi_sqrtS = "13 TeV";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+  lumi_sqrtS = "13 TeV";            // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 
-  int iPeriod = 0;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
+  int iPeriod = 0;                  // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
   int iPos = 0;
 
   if( iPos==0 )
@@ -93,25 +93,26 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     }
   };
 
-  // const std::string ang = "DR1";
-  // const std::string etThres = "Et1";
-  // const std::string EBEE = "EB";
-
   TFile* file_sig;
   std::string signame = "";
   int nbins = 50;
 
+  if (era!="20UL16APV" && era!="20UL16" && era!="20UL17" && era!="20UL18") {
+    std::cout << "check params!" << std::endl;
+    throw;
+  }
+
   if (ang=="DR2"&&etThres=="Et1") {
-    file_sig = TFile::Open("MergedEleMva_20UL16_H200A1.root");
+    file_sig = TFile::Open(("MergedEleMva_"+era+"_H200A1.root").c_str());
     signame = "H200A1";
   } else if (ang=="DR2"&&etThres=="Et2") {
-    file_sig = TFile::Open("MergedEleMva_20UL16_H800A10.root");
+    file_sig = TFile::Open(("MergedEleMva_"+era+"_H800A10.root").c_str());
     signame = "H800A10";
   } else if (ang=="DR1"&&etThres=="Et2") {
-    file_sig = TFile::Open("MergedEleMva_20UL16_H800A1.root"); // no EE
+    file_sig = TFile::Open(("MergedEleMva_"+era+"_H800A1.root").c_str()); // no EE
     signame = "H800A1 (w/ GSF)";
   } else if (ang==""&&etThres=="Et2") {
-    file_sig = TFile::Open("MergedEleMva_20UL16_H800A1.root"); // no EE
+    file_sig = TFile::Open(("MergedEleMva_"+era+"_H800A1.root").c_str()); // no EE
     signame = "H800A1 (w/o GSF)";
     nbins = 100;
   } else {
@@ -120,17 +121,36 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
   }
 
   std::vector<sample> bkglist = {
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-15to20_EM.root"),1324000.0,kCyan-10),
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-20to30_EM.root"),4896000.0,kCyan-9),
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-30to50_EM.root"),6447000.0,kCyan-7),
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-50to80_EM.root"),1988000.0,kCyan-6),
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-80to120_EM.root"),367500.0,kCyan-3),
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-120to170_EM.root"),66590.0,kCyan-2),
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-170to300_EM.root"),16620.0,kCyan+2),
-    sample(TFile::Open("MergedEleMva_20UL16_QCD_Pt-300toInf_EM.root"),1104.0,kCyan+3),
-    sample(TFile::Open("MergedEleMva_20UL16_WJets.root"),53870.0,kGreen-2),
-    sample(TFile::Open("MergedEleMva_20UL16_DY.root"),6077.22,kOrange),
-    sample(TFile::Open("MergedEleMva_20UL16_TT.root"),54.17,kRed+1) // 831.76
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT50to100.root"),187700000.0,kCyan-10),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT100to200.root"),23640000.0,kCyan-9),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT200to300.root"),1546000.0,kCyan-7),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT300to500.root"),321600.0,kCyan-6),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT500to700.root"),30980.0,kCyan-3),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT700to1000.root"),6364.0,kCyan-2),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT1000to1500.root"),1117.0,kCyan+2),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT1500to2000.root"),108.4,kCyan+2),
+    // sample(TFile::Open("MergedEleMva_20UL16_QCD_HT2000toInf.root"),22.36,kCyan+4),
+
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-0To70.root").c_str()),53870.0,kGreen),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-70To100.root").c_str()),1283.0,kGreen-7),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-100To200.root").c_str()),1244.0,kGreen+1),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-200To400.root").c_str()),337.8,kGreen-6),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-400To600.root").c_str()),44.93,kGreen-8),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-600To800.root").c_str()),11.19,kGreen-5),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-800To1200.root").c_str()),4.926,kGreen+2),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-1200To2500.root").c_str()),1.152,kGreen+3),
+    sample(TFile::Open(("MergedEleMva_"+era+"_WJets_HT-2500ToInf.root").c_str()),0.02646,kGreen+4),
+
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-0To70.root").c_str()),5379.0,kOrange),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-70To100.root").c_str()),140.0,kOrange-4),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-100To200.root").c_str()),139.2,kOrange+6),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-200To400.root").c_str()),38.4,kOrange-3),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-400To600.root").c_str()),5.174,kOrange+7),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-600To800.root").c_str()),1.258,kOrange-5),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-800To1200.root").c_str()),0.5598,kOrange+5),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-1200To2500.root").c_str()),0.1305,kOrange-6),
+    sample(TFile::Open(("MergedEleMva_"+era+"_DY_HT-2500ToInf.root").c_str()),0.002997,kOrange+4),
+    sample(TFile::Open(("MergedEleMva_"+era+"_TT.root").c_str()),471.7,kRed+1) // 831.76
   };
 
   auto retrieveTrees = [](const TString aname, std::vector<sample> list) {
@@ -167,28 +187,18 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
   }
 
   auto fillElectrons = [&](TTree* tr, TTree* gtr, TString postfix) -> std::vector<std::shared_ptr<TH1D>> {
-    auto h_etaSCwidth = std::make_shared<TH1D>("etaSCWidth_"+postfix,"SC #eta width;#Delta#eta_{SC};nEle",nbins,0.,0.03);
-    auto h_phiSCwidth = std::make_shared<TH1D>("phiSCWidth_"+postfix,"SC #phi width;#Delta#phi_{SC};nEle",nbins,0.,0.1);
-    auto h_1x5o5x5 = std::make_shared<TH1D>("E1x5o5x5_"+postfix,"E1x5/5x5;E1x5/5x5;nEle",nbins,0.,1.);
+    auto h_1x5o5x5 = std::make_shared<TH1D>("E1x5o5x5_"+postfix,"E1x5/5x5;E1x5/5x5;nEle",nbins,0.,1.2);
     auto h_r9 = std::make_shared<TH1D>("R9_"+postfix,"R9;;nEle",nbins,0.,1.);
-    auto h_detaIn = std::make_shared<TH1D>("dEtaIn_"+postfix,"#Delta#eta_{in};#Delta#eta_{in};nEle",nbins,-0.05,0.05);
     auto h_dphiIn = std::make_shared<TH1D>("dPhiIn_"+postfix,"#Delta#phi_{in};#Delta#phi_{in};nEle",nbins,-0.1,0.1);
     auto h_EOP = std::make_shared<TH1D>("EoverP_"+postfix,"E/p;E/p;nEle",nbins,0.,10.);
     auto h_fbrem = std::make_shared<TH1D>("fbrem_"+postfix,"f_{brem};f_{brem};nEle",nbins,-1.,1.);
-
-    auto h_EoP1 = std::make_shared<TH1D>("EoP1st_"+postfix,"E(1st xtal)/p(1st GSF);E/p;nEle",nbins,0.,10.);
-    auto h_EoP2 = std::make_shared<TH1D>("EoP2nd_"+postfix,"E(2nd xtal)/p(2nd GSF);E/p;nEle",nbins,0.,10.);
-    auto h_detaIn_trk1xtal1 = std::make_shared<TH1D>("dEtaIn_trk1xtal1_"+postfix,"#Delta#eta(1st xtal, 1st GSF);#Delta#eta_{in};nEle",nbins,-0.15,0.15);
-    auto h_dphiIn_trk1xtal1 = std::make_shared<TH1D>("dPhiIn_trk1xtal1_"+postfix,"#Delta#phi(1st xtal, 1st GSF);#Delta#phi_{in};nEle",nbins,-0.3,0.3);
-    auto h_detaIn_trk2xtal2 = std::make_shared<TH1D>("dEtaIn_trk2xtal2_"+postfix,"#Delta#eta(2nd xtal, 2nd GSF);#Delta#eta_{in};nEle",nbins,-0.15,0.15);
-    auto h_dphiIn_trk2xtal2 = std::make_shared<TH1D>("dPhiIn_trk2xtal2_"+postfix,"#Delta#phi(2nd xtal, 2nd GSF);#Delta#phi_{in};nEle",nbins,-0.3,0.3);
-    auto h_r1 = std::make_shared<TH1D>("R1_"+postfix,"R1;;nEle",nbins,0.,1.);
-    auto h_E1x1oE3x3 = std::make_shared<TH1D>("E1x1oE3x3_"+postfix,"E1x1/E3x3;;nEle",nbins,0.,1.);
 
     auto h_sigieie = std::make_shared<TH1D>("sigieie_"+postfix,"#sigma_{i#eta i#eta};;nEle",nbins,0.,0.05);
     auto h_sigipip = std::make_shared<TH1D>("sigipip_"+postfix,"#sigma_{i#phi i#phi};;nEle",nbins,0.,0.08);
     auto h_HoE = std::make_shared<TH1D>("HoE_"+postfix,"h/E;;nEle",nbins,0.,0.1);
     auto h_HcalD1iso = std::make_shared<TH1D>("HcalD1iso_"+postfix,"HCAL depth1 iso;;nEle",nbins,0.,20.);
+
+    auto h_detaInSeed = std::make_shared<TH1D>("dEtaInSeed_"+postfix,"#Delta#eta_{in, seed};#Delta#eta_{in, seed};nEle",nbins,-0.05,0.05);
 
     ElectronStruct elstruct;
     tr->SetBranchAddress("ElectronStruct",&elstruct);
@@ -207,14 +217,14 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
       double weight = elstruct.weight/std::abs(elstruct.weight);
 
       if (EBEE=="EB") {
-        if (std::abs(elstruct.eta) > 1.5)
+        if (std::abs(elstruct.etaSC) > 1.5)
           continue;
       } else {
-        if (std::abs(elstruct.eta) < 1.5)
+        if (std::abs(elstruct.etaSC) < 1.5)
           continue;
       }
 
-      bool isEB = (std::abs(elstruct.eta) < 1.5);
+      bool isEB = (std::abs(elstruct.etaSC) < 1.5);
 
       double dr2 = 0.;
 
@@ -268,49 +278,29 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
       //   throw;
       // }
 
-      h_etaSCwidth->Fill(elstruct.etaSCWidth,weight);
-      h_phiSCwidth->Fill(elstruct.phiSCWidth,weight);
       h_1x5o5x5->Fill(elstruct.full5x5_E1x5/elstruct.full5x5_E5x5,weight);
       h_r9->Fill(elstruct.full5x5_r9,weight);
-      h_detaIn->Fill(elstruct.dEtaIn,weight);
       h_dphiIn->Fill(elstruct.dPhiIn,weight);
       h_EOP->Fill(elstruct.EOverP,weight);
       h_fbrem->Fill(elstruct.fbrem,weight);
-      h_EoP1->Fill(elstruct.EoverP_1st,weight);
-      h_EoP2->Fill(elstruct.EoverP_2nd,weight);
-      h_detaIn_trk1xtal1->Fill(elstruct.dEtaIn_trk1xtal1,weight);
-      h_dphiIn_trk1xtal1->Fill(elstruct.dPhiIn_trk1xtal1,weight);
-      h_detaIn_trk2xtal2->Fill(elstruct.dEtaIn_trk2xtal2,weight);
-      h_dphiIn_trk2xtal2->Fill(elstruct.dPhiIn_trk2xtal2,weight);
-      h_r1->Fill(elstruct.E1x1/elstruct.E5x5,weight);
-      h_E1x1oE3x3->Fill(elstruct.E1x1/(elstruct.E5x5*elstruct.full5x5_r9),weight);
       h_sigieie->Fill(elstruct.full5x5_sigmaIetaIeta,weight);
       h_sigipip->Fill(elstruct.full5x5_sigmaIphiIphi,weight);
       h_HoE->Fill(elstruct.full5x5_hOverE,weight);
       h_HcalD1iso->Fill(elstruct.dr03HcalDepth1TowerSumEt,weight);
+      h_detaInSeed->Fill(elstruct.dEtaSeed,weight);
     }
 
     std::vector<std::shared_ptr<TH1D>> hists;
-    hists.push_back(std::move(h_etaSCwidth));
-    hists.push_back(std::move(h_phiSCwidth));
     hists.push_back(std::move(h_1x5o5x5));
     hists.push_back(std::move(h_r9));
-    hists.push_back(std::move(h_detaIn));
     hists.push_back(std::move(h_dphiIn));
     hists.push_back(std::move(h_EOP));
     hists.push_back(std::move(h_fbrem));
-    hists.push_back(std::move(h_EoP1));
-    hists.push_back(std::move(h_EoP2));
-    hists.push_back(std::move(h_detaIn_trk1xtal1));
-    hists.push_back(std::move(h_dphiIn_trk1xtal1));
-    hists.push_back(std::move(h_detaIn_trk2xtal2));
-    hists.push_back(std::move(h_dphiIn_trk2xtal2));
-    hists.push_back(std::move(h_r1));
-    hists.push_back(std::move(h_E1x1oE3x3));
     hists.push_back(std::move(h_sigieie));
     hists.push_back(std::move(h_sigipip));
     hists.push_back(std::move(h_HoE));
     hists.push_back(std::move(h_HcalD1iso));
+    hists.push_back(std::move(h_detaInSeed));
 
     return std::move(hists);
   };
@@ -369,18 +359,41 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
       TString(histowner.front().at(idx)->GetTitle())+";"+TString(histowner.front().at(idx)->GetXaxis()->GetTitle())+";"
     ));
 
+  // set this 0 and uncomment below lines if you want to include QCD MC
+  const int offset = 9;
+
   stacking(stacks,{
-    histowner.at(10),
-    histowner.at(9),
-    histowner.at(8),
-    histowner.at(7),
-    histowner.at(6),
-    histowner.at(5),
-    histowner.at(4),
-    histowner.at(3),
-    histowner.at(2),
-    histowner.at(1),
-    histowner.at(0)
+    histowner.at(27-offset),
+
+    histowner.at(26-offset),
+    histowner.at(25-offset),
+    histowner.at(24-offset),
+    histowner.at(23-offset),
+    histowner.at(22-offset),
+    histowner.at(21-offset),
+    histowner.at(20-offset),
+    histowner.at(19-offset),
+    histowner.at(18-offset),
+
+    histowner.at(17-offset),
+    histowner.at(16-offset),
+    histowner.at(15-offset),
+    histowner.at(14-offset),
+    histowner.at(13-offset),
+    histowner.at(12-offset),
+    histowner.at(11-offset),
+    histowner.at(10-offset),
+    histowner.at(9-offset)
+
+    // histowner.at(8),
+    // histowner.at(7),
+    // histowner.at(6),
+    // histowner.at(5),
+    // histowner.at(4),
+    // histowner.at(3),
+    // histowner.at(2),
+    // histowner.at(1),
+    // histowner.at(0)
   });
 
   auto draw = [&](std::vector<std::shared_ptr<TH1D>>& sigHists,
@@ -403,10 +416,10 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     legend->SetNColumns(2);
     legend->SetBorderSize(0);
     legend->AddEntry(sigHists.at(0).get(),signame.c_str());
-    legend->AddEntry(histowner.at(3).at(0).get(),"QCD");
-    legend->AddEntry(histowner.at(8).at(0).get(),"W");
-    legend->AddEntry(histowner.at(9).at(0).get(),"DY");
-    legend->AddEntry(histowner.at(10).at(0).get(),"TT");
+    // legend->AddEntry(histowner.at(4).at(0).get(),"QCD");
+    legend->AddEntry(histowner.at(13-offset).at(0).get(),"W");
+    legend->AddEntry(histowner.at(22-offset).at(0).get(),"DY");
+    legend->AddEntry(histowner.at(27-offset).at(0).get(),"TT");
 
     for (unsigned idx = 0; idx < sigHists.size(); idx++) {
       double theMax = 0.;

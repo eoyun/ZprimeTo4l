@@ -21,7 +21,6 @@ namespace MergedLeptonIDs {
     minEnergy,
     ecalDriven,
     dPhiIn,
-    saturatedXtal,
     missingInnerHits,
     trackIso,
     HoE,
@@ -45,12 +44,15 @@ namespace MergedLeptonIDs {
 
   enum GSFtype {
     nulltype = -1,
-    DR1Et2EB,
+    // using above in GsfEleMVACut will throw an exception
+    DR1Et2EB, // DR1Et2EB + any non-merged electrons
     DR2Et1EB,
     DR2Et2EB,
-    DR1Et2EE,
     DR2Et1EE,
     DR2Et2EE,
+    bkgEt2EB, // no 2nd GSF Et2EB + any out-of-acceptance electrons
+    // using below in GsfEleMVACut will throw an exception
+    DR1Et2EE,
     extendedCR
   };
 
@@ -73,13 +75,11 @@ namespace MergedLeptonIDs {
                       const reco::Vertex& primaryVertex,
                       const float& trkIso,
                       const float& ecalIso,
-                      const int& nrSatCrys,
                       const double& rho,
                       cutflowElectron& cutflow);
 
   bool hasPassedHEEP(const reco::GsfElectron& el,
                      const reco::Vertex& primaryVertex,
-                     const int& nrSatCrys,
                      const double& rho,
                      cutflowElectron& cutflow);
 

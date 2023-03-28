@@ -10,12 +10,12 @@ WP_modHEEP_EE = copy.deepcopy(WP_HEEP70_EE)
 mvaMergedElectron_20UL16_container = EleMVA_WP(
     idName = "mvaMergedElectron",
     mvaTag = "", # never used since we hacked ValueMap names
-    cutCategory0 = "0.860", # DR1Et2EB
-    cutCategory1 = "0.596", # DR2Et1EB
-    cutCategory2 = "0.254", # DR2Et2EB
-    cutCategory3 = "0.681", # DR2Et1EE
-    cutCategory4 = "0.702", # DR2Et2EE
-    cutCategory5 = "0.799", # bkgEt2EB
+    cutCategory0 = "0.651", # DR1Et2EB
+    cutCategory1 = "0.647", # DR2Et1EB
+    cutCategory2 = "0.625", # DR2Et2EB
+    cutCategory3 = "0.605", # DR2Et1EE
+    cutCategory4 = "0.714", # DR2Et2EE
+    cutCategory5 = "0.817", # bkgEt2EB
 )
 
 # let's make a chimera of cutflow & MVA ID

@@ -7,6 +7,7 @@ import sklearn
 import xgboost as xgb
 import hyperopt
 import math
+from array import array
 import argparse
 import os
 
@@ -52,17 +53,27 @@ workflowname = args.angle+args.et+'_'+args.det+'_'+args.era
 dfProducer = zprep.DataframeInitializer(args.det,args.angle,args.et)
 
 bkglist = [
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-15to20_EM.root",1324000.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-20to30_EM.root",4896000.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-30to50_EM.root",6447000.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-50to80_EM.root",1988000.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-80to120_EM.root",367500.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-120to170_EM.root",66590.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-170to300_EM.root",16620.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_QCD_Pt-300toInf_EM.root",1104.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets.root",53870.0),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY.root",6077.22),
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_TT.root",831.76)
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-0To70.root",53870.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-70To100.root",1283.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-100To200.root",1244.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-200To400.root",337.8),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-400To600.root",44.93),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-600To800.root",11.19),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-800To1200.root",4.926),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-1200To2500.root",1.152),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-2500ToInf.root",0.02646),
+
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-0To70.root",5379.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-70To100.root",140.0),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-100To200.root",139.2),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-200To400.root",38.4),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-400To600.root",5.174),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-600To800.root",1.258),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-800To1200.root",0.5598),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-1200To2500.root",0.1305),
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-2500ToInf.root",0.002997),
+
+    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_TT.root",471.7)
 ]
 
 for aproc in bkglist:
@@ -85,6 +96,7 @@ for aproc in bkglist:
 df_bkg = pd.concat([ aproc.df_ for aproc in bkglist ], axis=0, ignore_index=True)
 wgts_bkg = np.concatenate([ aproc.wgts_ for aproc in bkglist ], axis=0)
 pts_bkg = np.concatenate([ aproc.pts_ for aproc in bkglist ], axis=0)
+etas_bkg = np.concatenate([ aproc.etas_ for aproc in bkglist ], axis=0)
 
 # prepare labels
 y_mergedEl = np.ones(shape=(df_mergedEl.shape[0],))
@@ -119,19 +131,24 @@ def objective(params,dmat):
         'nthread':4
     }
 
-    xgb_cv = xgb.cv(dtrain=dmat,nfold=5,num_boost_round=200,metrics='logloss',early_stopping_rounds=20,params=param)
+    xgb_cv = xgb.cv(dtrain=dmat,nfold=5,num_boost_round=500,metrics='logloss',early_stopping_rounds=20,params=param)
 
     return xgb_cv['test-logloss-mean'].min()
 
 if args.opt=="True": # hyper-optimization
     weightSum = np.sum(wgts_total)
 
+    weightSumFrac = 1000.
+
+    if args.angle=="None" or args.angle=="DR1" or (args.angle=="DR2" and args.et=="Et1" and args.det=="EE"):
+        weightSumFrac = 100.
+
     param_space = {
-        'max_depth': hyperopt.hp.quniform('max_depth',1,5,1), # lower depth, more robust # 4 for EE dr2 dr3
+        'max_depth': hyperopt.hp.quniform('max_depth',1,4,1), # lower depth, more robust # 4 for EE dr2 dr3
         'eta': hyperopt.hp.loguniform('eta',-3.,-1.), # from exp(-3) to exp(1)
         'gamma': hyperopt.hp.uniform('gamma',0.,10.),
         'lambda': hyperopt.hp.uniform('lambda',0.,2.),
-        'min_child_weight': hyperopt.hp.loguniform('min_child_weight',math.log(weightSum/1000.),math.log(weightSum/10.))
+        'min_child_weight': hyperopt.hp.loguniform('min_child_weight',math.log(weightSum/weightSumFrac),math.log(weightSum/10.))
     }
 
     trials = hyperopt.Trials()
@@ -181,7 +198,7 @@ if args.opt=='True':
         dtest = xgb.DMatrix(x_test, weight=wgts_test, label=y_test, feature_names=col_names)
 
         evallist = [(dtest, 'eval'), (dtrain, 'train')]
-        num_round = 200
+        num_round = 500
 
         bst = xgb.Booster(param)
         early_stop = xgb.callback.EarlyStopping(rounds=20,metric_name='logloss',data_name='eval')
@@ -207,10 +224,6 @@ plotname = workflowname
 if args.angle=="None":
     targetFpr = 0.05
     nbins = 100
-elif args.angle=="DR2" and args.et=="Et2" and args.det=="EB":
-    targetFpr = 0.1
-elif args.angle=="DR2" and args.et=="Et2" and args.det=="EE":
-    targetFpr = 0.1
 else:
     pass
 
@@ -223,14 +236,6 @@ if args.opt=='True':
     idx_max = zvis.drawROC(modelPerforms_list, plotname+'_roc')
     targetThres, trainThres = zvis.drawThr(modelPerforms_list[idx_max], targetFpr, plotname+'_thr')
 
-    # use train threshold instead when test set lacks of statistics
-    if args.angle=="DR2" and args.et=="Et2" and args.det=="EB":
-        targetThres = trainThres
-    elif args.angle=="DR2" and args.et=="Et2" and args.det=="EE":
-        targetThres = trainThres
-    else:
-        pass
-
     # save model & importance plot
     bst = model_list[idx_max]
     bst.save_model('model/'+workflowname+'.model')
@@ -239,7 +244,7 @@ if args.opt=='True':
     zvis.drawImportance(gain,cover,col_names,plotname+'_importance')
 else:
     bst = xgb.Booster(param)
-    targetThres = 0.791 # set manually for now
+    targetThres = 0.791 # TODO set manually for now
     bst.load_model('model/'+workflowname+'.model')
 
 # calculate scores by physics processes
@@ -271,8 +276,12 @@ zvis.drawScoreByProcess(
     wgts_mergedEl,
     list(np.array([aproc for aproc in reversed(score_list)],dtype=object)),
     list(np.array([aproc.wgts_ for aproc in reversed(bkglist)],dtype=object)),
-    ['TT','DY','WJets','_','_','_','QCD','_','_','_','_'],
-    ['tomato','wheat','green','steelblue','cadetblue','darkcyan','darkturquoise','cyan','turquoise','paleturquoise','lightcyan'],
+    ['TT',
+    '_','_','_','_','DY','_','_','_','_',
+    '_','_','_','_','WJets','_','_','_','_'],
+    ['tomato',
+    'tan','burlywood','darkorange','orange','wheat','moccasin','navajowhite','blanchedalmond','papayawhip',
+    'darkgreen','green','forestgreen','limegreen','lime','chartreuse','greenyellow','lightgreen','palegreen'],
     nbins,
     plotname+'_scoreProcess'
 )
@@ -283,8 +292,12 @@ zvis.drawScoreByProcess(
     # hail python
     list(np.array([aproc.etas_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
     list(np.array([aproc.wgts_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
-    ['TT','DY','WJets','_','_','_','QCD','_','_','_','_'],
-    ['tomato','wheat','green','steelblue','cadetblue','darkcyan','darkturquoise','cyan','turquoise','paleturquoise','lightcyan'],
+    ['TT',
+    '_','_','_','_','DY','_','_','_','_',
+    '_','_','_','_','WJets','_','_','_','_'],
+    ['tomato',
+    'tan','burlywood','darkorange','orange','wheat','moccasin','navajowhite','blanchedalmond','papayawhip',
+    'darkgreen','green','forestgreen','limegreen','lime','chartreuse','greenyellow','lightgreen','palegreen'],
     100,
     plotname+'_etaSC'
 )
@@ -295,8 +308,12 @@ if args.angle!="None":
         None,
         list(np.array([aproc.invMs_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
         list(np.array([aproc.wgts_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
-        ['TT','DY','WJets','_','_','_','QCD','_','_','_','_'],
-        ['tomato','wheat','green','steelblue','cadetblue','darkcyan','darkturquoise','cyan','turquoise','paleturquoise','lightcyan'],
+        ['TT',
+        '_','_','_','_','DY','_','_','_','_',
+        '_','_','_','_','WJets','_','_','_','_'],
+        ['tomato',
+        'tan','burlywood','darkorange','orange','wheat','moccasin','navajowhite','blanchedalmond','papayawhip',
+        'darkgreen','green','forestgreen','limegreen','lime','chartreuse','greenyellow','lightgreen','palegreen'],
         100,
         plotname+'_invM'
     )
@@ -321,11 +338,17 @@ else:
 effplot_sig = ROOT.TEfficiency("eff_sig",";GeV;Eff",20,etThresLow,etThresHigh)
 effplot_bkg = ROOT.TEfficiency("eff_bkg",";GeV;Eff",20,etThresLow,etThresHigh)
 
+etaBinning = [-2.5,-2.,-1.566,-1.444,-1.2,-0.8,-0.4,0.,0.4,0.8,1.2,1.444,1.566,2.,2.5]
+effplot_etaSC_sig = ROOT.TEfficiency("eff_etaSC_sig",";#eta_{SC};Eff",14,array('d',etaBinning))
+effplot_etaSC_bkg = ROOT.TEfficiency("eff_etaSC_bkg",";#eta_{SC};Eff",14,array('d',etaBinning))
+
 for idx in range(len(wgts_mergedEl)):
     effplot_sig.FillWeighted(dSigPredict[idx] > targetThres, wgts_mergedEl[idx], pts_mergedEl[idx])
+    effplot_etaSC_sig.FillWeighted(dSigPredict[idx] > targetThres, wgts_mergedEl[idx], etas_mergedEl[idx])
 
 for idx in range(len(wgts_bkg)):
     effplot_bkg.FillWeighted(scores_bkg[idx] > targetThres, wgts_bkg[idx], pts_bkg[idx])
+    effplot_etaSC_bkg.FillWeighted(scores_bkg[idx] > targetThres, wgts_bkg[idx], etas_bkg[idx])
 
 # some serious plotting
 import CMS_lumi, tdrstyle
@@ -396,3 +419,32 @@ frame = canvas.GetFrame()
 frame.Draw()
 
 canvas.SaveAs("plot/"+plotname+"_eff.png")
+
+effplot_etaSC_bkg.SetLineWidth(2)
+effplot_etaSC_sig.SetLineWidth(2)
+effplot_etaSC_bkg.SetLineColor(ROOT.kRed)
+effplot_etaSC_sig.SetLineColor(ROOT.kBlue)
+effplot_etaSC_bkg.Draw()
+canvas.Update()
+agraph = effplot_etaSC_bkg.GetPaintedGraph()
+agraph.GetYaxis().SetTitleOffset(1)
+agraph.SetMinimum(0.);
+agraph.SetMaximum(1.2);
+canvas.Update()
+effplot_etaSC_sig.Draw("sames")
+
+legend = ROOT.TLegend(0.85,0.8,0.98,0.9)
+legend.SetBorderSize(0);
+legend.AddEntry(effplot_etaSC_sig,"sig")
+legend.AddEntry(effplot_etaSC_bkg,"bkg")
+legend.Draw()
+
+#draw the lumi text on the canvas
+CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+canvas.cd()
+canvas.Update()
+canvas.RedrawAxis()
+frame = canvas.GetFrame()
+frame.Draw()
+
+canvas.SaveAs("plot/"+plotname+"_etaSC_eff.png")

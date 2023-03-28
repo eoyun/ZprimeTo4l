@@ -75,7 +75,6 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
                                      const reco::Vertex& primaryVertex,
                                      const float& trkIso,
                                      const float& ecalIso,
-                                     const int& nrSatCrys,
                                      const double& rho,
                                      cutflowElectron& cutflow) {
   cutflow = cutflowElectron::baseline;
@@ -90,9 +89,6 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
   if ( !(std::abs(el.deltaPhiSuperClusterTrackAtVtx()) < 0.06) )
     return false;
   cutflow = cutflowElectron::dPhiIn;
-  if ( nrSatCrys > 0 )
-    return false;
-  cutflow = cutflowElectron::saturatedXtal;
   if ( el.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) > 1 )
     return false;
   cutflow = cutflowElectron::missingInnerHits;
@@ -133,7 +129,6 @@ bool MergedLeptonIDs::isModifiedHEEP(const reco::GsfElectron& el,
 
 bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
                                     const reco::Vertex& primaryVertex,
-                                    const int& nrSatCrys,
                                     const double& rho,
                                     cutflowElectron& cutflow) {
   cutflow = cutflowElectron::baseline;
@@ -148,9 +143,6 @@ bool MergedLeptonIDs::hasPassedHEEP(const reco::GsfElectron& el,
   if ( !(std::abs(el.deltaPhiSuperClusterTrackAtVtx()) < 0.06) )
     return false;
   cutflow = cutflowElectron::dPhiIn;
-  if ( nrSatCrys > 0 )
-    return false;
-  cutflow = cutflowElectron::saturatedXtal;
   if ( el.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) > 1 )
     return false;
   cutflow = cutflowElectron::missingInnerHits;

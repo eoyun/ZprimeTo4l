@@ -1,11 +1,5 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
 
-#include "DataFormats/DetId/interface/DetId.h"
-#include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
-#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
-#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
-#include "Geometry/Records/interface/CaloGeometryRecord.h"
-
 MergedLeptonHelper::MergedLeptonHelper() :
 pFS_(nullptr) {
   elstr_ = TString("weight/F:pt:eta:phi:en:et:charge/I:")
@@ -24,8 +18,8 @@ pFS_(nullptr) {
   + "convVtxFitProb/F:convVtxChi2:convDist:convDcot:convRadius:"
   + "passConversionVeto/I:nbrem:"
   + "fbrem/F:fbremSC:"
-  + "EoverP_1st:EoverP_2nd:dEtaIn_trk1xtal1:dPhiIn_trk1xtal1:dEtaIn_trk2xtal2:dPhiIn_trk2xtal2:"
-  + "E5x5:E1x1";
+  + "full5x5_e2x5Left:full5x5_e2x5Right:full5x5_e2x5Top:full5x5_e2x5Bottom:full5x5_eLeft:full5x5_eRight:full5x5_eTop:full5x5_eBottom:"
+  + "full5x5_eMax:full5x5_e2nd";
 
   addgsfstr_ = TString("weight/F:Gsfpt:Gsfeta:Gsfphi:")
   + "lostHits/I:nValidHits:nValidPixelHits:"
@@ -90,9 +84,6 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
                                        const reco::GsfTrackRef& addGsfTrk,
                                        const edm::Handle<reco::ConversionCollection>& conversions,
                                        const edm::Handle<reco::BeamSpot>& beamSpotHandle,
-                                       const edm::EventSetup& iSetup,
-                                       const edm::Handle<EcalRecHitCollection>& EBrecHitHandle,
-                                       const edm::Handle<EcalRecHitCollection>& EErecHitHandle,
                                        const std::string& prefix) {
   auto square = [](const double& val) { return val*val; };
   double rad = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()) + square(el->superCluster()->z()));
@@ -186,43 +177,17 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
   elvalues_[prefix+"_el"].nbrem = el->numberOfBrems();
   elvalues_[prefix+"_el"].fbremSC = el->superClusterFbrem();
 
-  // Get Calo Geometry
-  edm::ESHandle<CaloGeometry> pG;
-  iSetup.get<CaloGeometryRecord>().get(pG);
-  const CaloGeometry* caloGeom = pG.product();
+  elvalues_[prefix+"_el"].full5x5_eMax = el->full5x5_showerShape().eMax;
+  elvalues_[prefix+"_el"].full5x5_e2nd = el->full5x5_showerShape().e2nd;
 
-  std::vector<std::pair<DetId,float>> hitsAndEnergy;
-
-  for (auto cluster = el->basicClustersBegin(); cluster != el->basicClustersEnd(); ++cluster) {
-    for (auto& xtal : (*cluster)->hitsAndFractions()) {
-      if ( xtal.first.subdetId() != EcalBarrel && xtal.first.subdetId() != EcalEndcap )
-        continue;
-
-      const auto* recHits = xtal.first.subdetId() == EcalBarrel ? &(*EBrecHitHandle) : &(*EErecHitHandle);
-      const auto& theHit = recHits->find(xtal.first);
-
-      if ( theHit != recHits->end() )
-        hitsAndEnergy.push_back(std::make_pair( xtal.first, xtal.second*theHit->energy() ));
-    }
-  }
-
-  auto sortByEnergy = [] (const std::pair<DetId,float>& a, const std::pair<DetId,float>& b) {
-    return a.second > b.second;
-  };
-
-  std::sort(hitsAndEnergy.begin(),hitsAndEnergy.end(),sortByEnergy);
-
-  const auto& cell1st = caloGeom->getGeometry(hitsAndEnergy.front().first);
-  const auto& cell2nd = hitsAndEnergy.size() > 1 ? caloGeom->getGeometry(hitsAndEnergy.at(1).first) : std::shared_ptr<const CaloCellGeometry>(nullptr);
-
-  elvalues_[prefix+"_el"].EoverP_1st = hitsAndEnergy.front().second/TrackRef->p();
-  elvalues_[prefix+"_el"].EoverP_2nd = hitsAndEnergy.size() > 1 ? hitsAndEnergy.at(1).second/addGsfTrk->p() : 0.;
-  elvalues_[prefix+"_el"].dEtaIn_trk1xtal1 = cell1st->etaPos() - TrackRef->eta();
-  elvalues_[prefix+"_el"].dPhiIn_trk1xtal1 = reco::deltaPhi(cell1st->phiPos(),TrackRef->phi());
-  elvalues_[prefix+"_el"].dEtaIn_trk2xtal2 = cell2nd.get()!=nullptr ? cell2nd->etaPos() - addGsfTrk->eta() : std::numeric_limits<float>::max();
-  elvalues_[prefix+"_el"].dPhiIn_trk2xtal2 = cell2nd.get()!=nullptr ? reco::deltaPhi(cell2nd->phiPos(),addGsfTrk->phi()) : std::numeric_limits<float>::max();
-  elvalues_[prefix+"_el"].E5x5 = el->full5x5_e5x5();
-  elvalues_[prefix+"_el"].E1x1 = hitsAndEnergy.front().second;
+  elvalues_[prefix+"_el"].full5x5_e2x5Left = el->full5x5_e2x5Left();
+  elvalues_[prefix+"_el"].full5x5_e2x5Right = el->full5x5_e2x5Right();
+  elvalues_[prefix+"_el"].full5x5_e2x5Top = el->full5x5_e2x5Top();
+  elvalues_[prefix+"_el"].full5x5_e2x5Bottom = el->full5x5_e2x5Bottom();
+  elvalues_[prefix+"_el"].full5x5_eLeft = el->full5x5_eLeft();
+  elvalues_[prefix+"_el"].full5x5_eRight = el->full5x5_eRight();
+  elvalues_[prefix+"_el"].full5x5_eTop = el->full5x5_eTop();
+  elvalues_[prefix+"_el"].full5x5_eBottom = el->full5x5_eBottom();
 
   tree_[prefix+"_elTree"]->Fill();
 }

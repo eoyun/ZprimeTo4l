@@ -19,6 +19,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
@@ -43,11 +44,12 @@ private:
   const edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
-  const edm::EDGetTokenT<EcalRecHitCollection> EBrecHitToken_;
-  const edm::EDGetTokenT<EcalRecHitCollection> EErecHitToken_;
+  const edm::EDGetTokenT<LHEEventProduct> lheToken_;
 
   const double ptThres_;
-  const double drThres_;
+  const bool select0J_;
+  const bool selectHT_;
+  const double maxHT_;
 
   MergedLeptonHelper aHelper_;
 
@@ -63,10 +65,11 @@ addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<
 conversionsToken_(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("conversions"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
-EBrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EBrecHits"))),
-EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
+lheToken_(consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lheEvent"))),
 ptThres_(iConfig.getParameter<double>("ptThres")),
-drThres_(iConfig.getParameter<double>("drThres")),
+select0J_(iConfig.getParameter<bool>("select0J")),
+selectHT_(iConfig.getParameter<bool>("selectHT")),
+maxHT_(iConfig.getParameter<double>("maxHT")),
 aHelper_() {
   usesResource("TFileService");
 }
@@ -76,6 +79,10 @@ void MergedEleBkgMvaInput::beginJob() {
   edm::Service<TFileService> fs;
   aHelper_.SetFileService(&fs);
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
+  histo1d_["lheNj"] = fs->make<TH1D>("lheNj","lheNj",5,0.,5.);
+  histo1d_["lheNj_cut"] = fs->make<TH1D>("lheNj_cut","lheNj",5,0.,5.);
+  histo1d_["lheHT"] = fs->make<TH1D>("lheHT","lheHT",400,0.,4000.);
+  histo1d_["lheHT_cut"] = fs->make<TH1D>("lheHT_cut","lheHT",400,0.,4000.);
 
   aHelper_.initElectronTree("ElectronStruct","fake","el");
   aHelper_.initElectronTree("ElectronStruct","bkg","el");
@@ -104,20 +111,52 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
-  edm::Handle<EcalRecHitCollection> EBrecHitHandle;
-  iEvent.getByToken(EBrecHitToken_, EBrecHitHandle);
-
-  edm::Handle<EcalRecHitCollection> EErecHitHandle;
-  iEvent.getByToken(EErecHitToken_, EErecHitHandle);
-
   edm::Handle<GenEventInfoProduct> genInfo;
   iEvent.getByToken(generatorToken_, genInfo);
   double mcweight = genInfo->weight();
 
   double aWeight = mcweight/std::abs(mcweight);
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
-
   aHelper_.SetMCweight(mcweight);
+
+  if (select0J_ || selectHT_) {
+    edm::Handle<LHEEventProduct> lheEventHandle;
+    iEvent.getByToken(lheToken_, lheEventHandle);
+
+    const auto& hepeup = lheEventHandle->hepeup();
+    const auto& pup = hepeup.PUP;
+    unsigned int lheNj = 0;
+    double lheHT = 0.;
+
+    for (unsigned int i = 0, n = pup.size(); i < n; ++i) {
+      int status = hepeup.ISTUP[i];
+      int idabs = std::abs(hepeup.IDUP[i]);
+
+      if ((status == 1) && ((idabs == 21) || (idabs > 0 && idabs < 7))) { //# gluons and quarks
+        lheNj++;
+
+        double pt = std::hypot(pup[i][0], pup[i][1]);  // first entry is px, second py
+        lheHT += pt;
+      }
+    }
+
+    histo1d_["lheNj"]->Fill( static_cast<float>(lheNj)+0.5 );
+    histo1d_["lheHT"]->Fill( lheHT );
+
+    if (select0J_) {
+      if (lheNj > 0)
+        return;
+    }
+
+    histo1d_["lheNj_cut"]->Fill( static_cast<float>(lheNj)+0.5 );
+
+    if (selectHT_) {
+      if (lheHT > maxHT_)
+        return;
+    }
+
+    histo1d_["lheHT_cut"]->Fill( lheHT );
+  }
 
   edm::Ptr<reco::Vertex> primaryVertex;
 
@@ -127,15 +166,24 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   } else
     return;
 
-  double drThres2 = drThres_*drThres_;
+  std::vector<edm::Ptr<pat::Electron>> heepElectrons;
 
-  for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
+  for (unsigned idx = 0; idx < eleHandle->size(); ++idx) {
     const auto& aEle = eleHandle->ptrAt(idx);
 
-    if ( aEle->et() < ptThres_ )
+    if ( !aEle->electronID("modifiedHeepElectronID") )
       continue;
 
-    if ( !aEle->electronID("modifiedHeepElectronID") )
+    heepElectrons.push_back(aEle);
+  }
+
+  if ( heepElectrons.size() < 2 )
+    return;
+
+  for (unsigned int idx = 0; idx < heepElectrons.size(); ++idx) {
+    const auto& aEle = heepElectrons.at(idx);
+
+    if ( aEle->et() < ptThres_ )
       continue;
 
     // requirement for add GSF track
@@ -146,7 +194,6 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
     if ( addGsfTrk==orgGsfTrk ) {
       treename = "bkg";
-
     } else {
       // find whether add GSF track has a corresponding electron
       treename = "fake";
@@ -154,12 +201,6 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
       for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
         const auto& secEle = eleHandle->refAt(jdx);
-
-        double dr2 = reco::deltaR2(aEle->eta(),aEle->phi(),secEle->eta(),secEle->phi());
-
-        if (dr2 > drThres2)
-          continue;
-
         const auto& secGsfTrk = secEle->gsfTrack();
 
         if ( addGsfTrk==secGsfTrk ) {
@@ -182,9 +223,6 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
                            addGsfTrk,
                            conversionsHandle,
                            beamSpotHandle,
-                           iSetup,
-                           EBrecHitHandle,
-                           EErecHitHandle,
                            treename);
   }
 }

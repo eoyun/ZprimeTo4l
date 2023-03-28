@@ -15,24 +15,18 @@ class MergedMvaEstimator {
 public:
   enum mergedElectronVar {
     dr03HcalDepth1TowerSumEt,
-    full5x5_E1x5oE5x5,
     full5x5_r9,
-    full5x5_r1,
-    absDEtaIn,
+    full5x5_sigmaIetaIeta,
+    absDEtaInSeed,
     absDPhiIn,
-    EOverP,
-    EoverP_1st,
-    EoverP_2nd
+    fbrem,
+    EOverP
   };
 
   MergedMvaEstimator(const edm::FileInPath& weightsfile, const edm::FileInPath& meanstdfile);
   ~MergedMvaEstimator() {}
 
-  double computeMva(const pat::ElectronRef& el,
-                    const edm::Handle<EcalRecHitCollection>& EBrecHitHandle,
-                    const edm::Handle<EcalRecHitCollection>& EErecHitHandle,
-                    const reco::GsfTrackRef& addGsfTrk,
-                    bool ignoreEoP2nd=false);
+  double computeMva(const pat::ElectronRef& el);
 
 private:
   std::unique_ptr<const GBRForest> gbrForest_;

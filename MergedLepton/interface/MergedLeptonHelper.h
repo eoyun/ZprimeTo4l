@@ -45,8 +45,8 @@ public:
     float convVtxFitProb, convVtxChi2, convDist, convDcot, convRadius;
     int passConversionVeto, nbrem;
     float fbrem, fbremSC;
-    float EoverP_1st, EoverP_2nd, dEtaIn_trk1xtal1, dPhiIn_trk1xtal1, dEtaIn_trk2xtal2, dPhiIn_trk2xtal2;
-    float E5x5, E1x1;
+    float full5x5_e2x5Left, full5x5_e2x5Right, full5x5_e2x5Top, full5x5_e2x5Bottom, full5x5_eLeft, full5x5_eRight, full5x5_eTop, full5x5_eBottom;
+    float full5x5_eMax, full5x5_e2nd;
   } ElectronStruct;
 
   typedef struct {
@@ -98,9 +98,6 @@ public:
                      const reco::GsfTrackRef& addGsfTrk,
                      const edm::Handle<reco::ConversionCollection>& conversions,
                      const edm::Handle<reco::BeamSpot>& beamSpotHandle,
-                     const edm::EventSetup& iSetup,
-                     const edm::Handle<EcalRecHitCollection>& EBrecHitHandle,
-                     const edm::Handle<EcalRecHitCollection>& EErecHitHandle,
                      const std::string& prefix);
 
   void fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,

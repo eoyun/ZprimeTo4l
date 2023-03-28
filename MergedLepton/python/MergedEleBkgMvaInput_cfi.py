@@ -8,9 +8,10 @@ mergedEleBkgMvaInput = cms.EDAnalyzer("MergedEleBkgMvaInput",
   addGsfTrkMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddGsfTrk"),
   conversions = cms.InputTag("reducedEgamma:reducedConversions"),
   generator = cms.InputTag("generator"),
+  lheEvent = cms.InputTag("externalLHEProducer"),
   beamSpot = cms.InputTag("offlineBeamSpot"),
-  EBrecHits = cms.InputTag("reducedEgamma","reducedEBRecHits"),
-  EErecHits = cms.InputTag("reducedEgamma","reducedEERecHits"),
-  ptThres=cms.double(50.),
-  drThres=cms.double(0.3)
+  ptThres = cms.double(50.),
+  select0J = cms.bool(False),
+  selectHT = cms.bool(False),
+  maxHT = cms.double(70.)
 )
