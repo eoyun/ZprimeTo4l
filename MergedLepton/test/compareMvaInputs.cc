@@ -59,8 +59,22 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
   setTDRStyle();
 
   writeExtraText = true;            // if extra text
-  extraText  = "Work in progress";  // default extra text is "Preliminary"
+  extraText  = "Simulation Work in progress";  // default extra text is "Preliminary"
   lumi_sqrtS = "13 TeV";            // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+
+  if (era!="20UL16APV" && era!="20UL16" && era!="20UL17" && era!="20UL18") {
+    std::cout << "check params!" << std::endl;
+    throw;
+  }
+
+  if (era=="20UL16APV")
+    lumi_sqrtS = "2016preVFP";
+  else if (era=="20UL16")
+    lumi_sqrtS = "2016postVFP";
+  else if (era=="20UL17")
+    lumi_sqrtS = "2017";
+  else if (era=="20UL18")
+    lumi_sqrtS = "2018";
 
   int iPeriod = 0;                  // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
   int iPos = 0;
@@ -96,11 +110,6 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
   TFile* file_sig;
   std::string signame = "";
   int nbins = 50;
-
-  if (era!="20UL16APV" && era!="20UL16" && era!="20UL17" && era!="20UL18") {
-    std::cout << "check params!" << std::endl;
-    throw;
-  }
 
   if (ang=="DR2"&&etThres=="Et1") {
     file_sig = TFile::Open(("MergedEleMva_"+era+"_H200A1.root").c_str());
@@ -188,15 +197,15 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
 
   auto fillElectrons = [&](TTree* tr, TTree* gtr, TString postfix) -> std::vector<std::shared_ptr<TH1D>> {
     auto h_1x5o5x5 = std::make_shared<TH1D>("E1x5o5x5_"+postfix,"E1x5/5x5;E1x5/5x5;nEle",nbins,0.,1.2);
-    auto h_r9 = std::make_shared<TH1D>("R9_"+postfix,"R9;;nEle",nbins,0.,1.);
+    auto h_r9 = std::make_shared<TH1D>("R9_"+postfix,"R9;R9;nEle",nbins,0.,1.);
     auto h_dphiIn = std::make_shared<TH1D>("dPhiIn_"+postfix,"#Delta#phi_{in};#Delta#phi_{in};nEle",nbins,-0.1,0.1);
     auto h_EOP = std::make_shared<TH1D>("EoverP_"+postfix,"E/p;E/p;nEle",nbins,0.,10.);
     auto h_fbrem = std::make_shared<TH1D>("fbrem_"+postfix,"f_{brem};f_{brem};nEle",nbins,-1.,1.);
 
-    auto h_sigieie = std::make_shared<TH1D>("sigieie_"+postfix,"#sigma_{i#eta i#eta};;nEle",nbins,0.,0.05);
-    auto h_sigipip = std::make_shared<TH1D>("sigipip_"+postfix,"#sigma_{i#phi i#phi};;nEle",nbins,0.,0.08);
-    auto h_HoE = std::make_shared<TH1D>("HoE_"+postfix,"h/E;;nEle",nbins,0.,0.1);
-    auto h_HcalD1iso = std::make_shared<TH1D>("HcalD1iso_"+postfix,"HCAL depth1 iso;;nEle",nbins,0.,20.);
+    auto h_sigieie = std::make_shared<TH1D>("sigieie_"+postfix,"#sigma_{i#eta i#eta};#sigma_{i#eta i#eta};nEle",nbins,0.,0.05);
+    auto h_sigipip = std::make_shared<TH1D>("sigipip_"+postfix,"#sigma_{i#phi i#phi};#sigma_{i#phi i#phi};nEle",nbins,0.,0.08);
+    auto h_HoE = std::make_shared<TH1D>("HoE_"+postfix,"H/E;H/E;nEle",nbins,0.,0.1);
+    auto h_HcalD1iso = std::make_shared<TH1D>("HcalD1iso_"+postfix,"HCAL depth1 iso;HcalD1iso;nEle",nbins,0.,20.);
 
     auto h_detaInSeed = std::make_shared<TH1D>("dEtaInSeed_"+postfix,"#Delta#eta_{in, seed};#Delta#eta_{in, seed};nEle",nbins,-0.05,0.05);
 
@@ -412,7 +421,7 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     canvas->SetTickx(0);
     canvas->SetTicky(0);
 
-    auto legend = std::make_unique<TLegend>(0.68,0.75,0.9,0.9);
+    auto legend = std::make_unique<TLegend>(0.73,0.78,0.93,0.9);
     legend->SetNColumns(2);
     legend->SetBorderSize(0);
     legend->AddEntry(sigHists.at(0).get(),signame.c_str());

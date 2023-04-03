@@ -75,6 +75,9 @@ void MergedEleSigAnalyzer::beginJob() {
     histo1d_["id_dEtaInSeed_merged_"+postfix] = fs->make<TH1D>(("id_dEtaInSeed_merged_"+postfix).c_str(),"Merged w/ GSF #Delta#eta_{in}(seed)",200,-0.025,0.025);
     histo1d_["id_dEtaInSeed_resolved_"+postfix] = fs->make<TH1D>(("id_dEtaInSeed_resolved_"+postfix).c_str(),"Resolved #Delta#eta_{in}(seed)",200,-0.025,0.025);
 
+    histo1d_["id_etaSC_merged_"+postfix] = fs->make<TH1D>(("id_etaSC_merged_"+postfix).c_str(),"Merged w/ GSF #eta_{SC}",200,-3.,3.);
+    histo1d_["id_etaSC_merged_noGsf_"+postfix] = fs->make<TH1D>(("id_etaSC_merged_noGsf_"+postfix).c_str(),"Merged w/o GSF #eta_{SC}",200,-3.,3.);
+
     histo1d_["id_dR_merged_noGsf_"+postfix] = fs->make<TH1D>(("id_dR_merged_noGsf_"+postfix).c_str(),"Merged w/o GSF GEN-lv #Delta R",1000,0.,1.);
     histo1d_["id_dR_merged_"+postfix] = fs->make<TH1D>(("id_dR_merged_"+postfix).c_str(),"Merged w/ GSF GEN-lv #Delta R",1000,0.,1.);
     histo1d_["id_dR_resolved_"+postfix] = fs->make<TH1D>(("id_dR_resolved_"+postfix).c_str(),"Resolved GEN-lv #Delta R",1000,0.,1.);
@@ -323,6 +326,7 @@ void MergedEleSigAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
         histo1d_["id_dR_sum_"+postfix]->Fill(drPrompt,aWeight);
         histo1d_["id_dR_merged_noGsf_"+postfix]->Fill(drPrompt,aWeight);
         histo1d_["id_dEtaInSeed_merged_noGsf_"+postfix]->Fill(apair.front()->deltaEtaSeedClusterTrackAtVtx(),aWeight);
+        histo1d_["id_etaSC_merged_noGsf_"+postfix]->Fill(apair.front()->superCluster()->eta(),aWeight);
 
         if ( passVIDbit(apair.front()->userInt("heepElectronID-HEEPV70"),4) &&
              passVIDbit(apair.front()->userInt("heepElectronID-HEEPV70"),5) ) {
@@ -390,6 +394,7 @@ void MergedEleSigAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
         histo1d_["GSF_pt_1st_"+postfix]->Fill(apair.front()->gsfTrack()->pt(),aWeight);
         histo1d_["GSF_pt_2nd_"+postfix]->Fill(addGsfTrk->pt(),aWeight);
         histo1d_["GSF_dPtOverPt_"+postfix]->Fill(addGsfTrk->ptError()/addGsfTrk->pt(),aWeight);
+        histo1d_["id_etaSC_merged_"+postfix]->Fill(apair.front()->superCluster()->eta(),aWeight);
 
         if ( passVIDbit(apair.front()->userInt("heepElectronID-HEEPV70"),4) &&
              passVIDbit(apair.front()->userInt("heepElectronID-HEEPV70"),5) ) {

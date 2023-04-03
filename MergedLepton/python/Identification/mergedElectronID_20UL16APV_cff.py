@@ -13,9 +13,7 @@ mvaMergedElectron_20UL16APV_container = EleMVA_WP(
     cutCategory0 = "0.614", # DR1Et2EB
     cutCategory1 = "0.634", # DR2Et1EB
     cutCategory2 = "0.595", # DR2Et2EB
-    cutCategory3 = "0.586", # DR2Et1EE
-    cutCategory4 = "0.654", # DR2Et2EE
-    cutCategory5 = "0.818", # bkgEt2EB
+    cutCategory3 = "0.818", # bkgEt2EB
 )
 
 # let's make a chimera of cutflow & MVA ID

@@ -38,25 +38,18 @@ private:
   const edm::FileInPath xgbPathDR1Et2EB_;
   const edm::FileInPath xgbPathDR2Et1EB_;
   const edm::FileInPath xgbPathDR2Et2EB_;
-  const edm::FileInPath xgbPathDR2Et1EE_;
-  const edm::FileInPath xgbPathDR2Et2EE_;
   const edm::FileInPath xgbPathBkgEt2EB_;
   const edm::FileInPath meanstdPathDR1Et2EB_;
   const edm::FileInPath meanstdPathDR2Et1EB_;
   const edm::FileInPath meanstdPathDR2Et2EB_;
-  const edm::FileInPath meanstdPathDR2Et1EE_;
-  const edm::FileInPath meanstdPathDR2Et2EE_;
   const edm::FileInPath meanstdPathBkgEt2EB_;
 
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR1Et2EB_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et1EB_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et2EB_;
-  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et1EE_;
-  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et2EE_;
   const std::unique_ptr<MergedMvaEstimator> xgbEstimatorBkgEt2EB_;
 
   const double etThresEB_;
-  const double etThresEE_;
   const double minEt_;
 };
 
@@ -66,23 +59,16 @@ MergedLeptonIDProducer::MergedLeptonIDProducer(const edm::ParameterSet& iConfig)
   xgbPathDR1Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR1Et2EB")),
   xgbPathDR2Et1EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et1EB")),
   xgbPathDR2Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et2EB")),
-  xgbPathDR2Et1EE_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et1EE")),
-  xgbPathDR2Et2EE_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et2EE")),
   xgbPathBkgEt2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathBkgEt2EB")),
   meanstdPathDR1Et2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR1Et2EB")),
   meanstdPathDR2Et1EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et1EB")),
   meanstdPathDR2Et2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et2EB")),
-  meanstdPathDR2Et1EE_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et1EE")),
-  meanstdPathDR2Et2EE_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et2EE")),
   meanstdPathBkgEt2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathBkgEt2EB")),
   xgbEstimatorDR1Et2EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR1Et2EB_,meanstdPathDR1Et2EB_)),
   xgbEstimatorDR2Et1EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et1EB_,meanstdPathDR2Et1EB_)),
   xgbEstimatorDR2Et2EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et2EB_,meanstdPathDR2Et2EB_)),
-  xgbEstimatorDR2Et1EE_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et1EE_,meanstdPathDR2Et1EE_)),
-  xgbEstimatorDR2Et2EE_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et2EE_,meanstdPathDR2Et2EE_)),
   xgbEstimatorBkgEt2EB_(std::make_unique<MergedMvaEstimator>(xgbPathBkgEt2EB_,meanstdPathBkgEt2EB_)),
   etThresEB_(iConfig.getParameter<double>("etThresEB")),
-  etThresEE_(iConfig.getParameter<double>("etThresEE")),
   minEt_(iConfig.getParameter<double>("minEt")) {
   produces<edm::ValueMap<float>>("mvaMergedElectronValues");
   produces<edm::ValueMap<int>>("mvaMergedElectronCategories");
@@ -152,7 +138,7 @@ void MergedLeptonIDProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
 
       if ( !notMerged ) {
         const auto castEle = aEle.castTo<pat::ElectronRef>();
-        aGSFtype_mergedElectron = MergedLeptonIDs::checkElectronGSFtype(castEle,orgGsfTrk,addGsfTrk,etThresEB_,etThresEE_,minEt_);
+        aGSFtype_mergedElectron = MergedLeptonIDs::checkElectronGSFtype(castEle,orgGsfTrk,addGsfTrk,etThresEB_,minEt_);
 
         switch ( aGSFtype_mergedElectron ) {
           case MergedLeptonIDs::GSFtype::DR1Et2EB:
@@ -163,12 +149,6 @@ void MergedLeptonIDProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
             break;
           case MergedLeptonIDs::GSFtype::DR2Et2EB:
             amvascore_mergedElectron = xgbEstimatorDR2Et2EB_->computeMva(castEle);
-            break;
-          case MergedLeptonIDs::GSFtype::DR2Et1EE:
-            amvascore_mergedElectron = xgbEstimatorDR2Et1EE_->computeMva(castEle);
-            break;
-          case MergedLeptonIDs::GSFtype::DR2Et2EE:
-            amvascore_mergedElectron = xgbEstimatorDR2Et2EE_->computeMva(castEle);
             break;
           case MergedLeptonIDs::GSFtype::extendedCR:
             // need to apply an additional offline Et cut afterwards

@@ -48,11 +48,8 @@ namespace MergedLeptonIDs {
     DR1Et2EB, // DR1Et2EB + any non-merged electrons
     DR2Et1EB,
     DR2Et2EB,
-    DR2Et1EE,
-    DR2Et2EE,
     bkgEt2EB, // no 2nd GSF Et2EB + any out-of-acceptance electrons
     // using below in GsfEleMVACut will throw an exception
-    DR1Et2EE,
     extendedCR
   };
 
@@ -66,7 +63,6 @@ namespace MergedLeptonIDs {
                                 const reco::GsfTrackRef& orgGsfTrk,
                                 const reco::GsfTrackRef& addGsfTrk,
                                 const double etThresEB,
-                                const double etThresEE,
                                 const double minEt );
 
   void fillCutflow(TH1* ahist, const int acutflow, const double aWeight);
