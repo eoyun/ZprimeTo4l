@@ -6,13 +6,33 @@
 #include "/home/ko/Desktop/Study/Zprime/ZprimeTo4l/work/tdrstyle.C"
 #include "/home/ko/Desktop/Study/Zprime/ZprimeTo4l/work/CMS_lumi.C"
 
-void runFF() {
+void runFF(TString era) {
   setTDRStyle();
 
   writeExtraText = true;       // if extra text
   extraText  = "Work in progress";  // default extra text is "Preliminary"
   lumi_sqrtS = "13 TeV";       // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
-  lumi_13TeV = "59.83 fb^{-1}";
+
+  double valLumi = 0.;
+  TString postfix = era;
+
+  if (era=="20UL16APV") {
+    lumi_13TeV = "19.5 fb^{-1}";
+    valLumi = 19.5;
+  } else if (era=="20UL16") {
+    lumi_13TeV = "16.8 fb^{-1}";
+    valLumi = 16.8;
+    postfix = "";
+  } else if (era=="20UL17") {
+    lumi_13TeV = "41.48 fb^{-1}";
+    valLumi = 41.48;
+  } else if (era=="20UL18") {
+    lumi_13TeV = "59.83 fb^{-1}";
+    valLumi = 59.83;
+  } else {
+    std::cout << "check params!" << std::endl;
+    throw;
+  }
 
   int iPeriod = 4;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
   int iPos = 0;
@@ -32,28 +52,9 @@ void runFF() {
   float L = 0.12*W_ref;
   float R = 0.04*W_ref;
 
-  TFile* datafile = new TFile("MergedEleCR_20UL18_data.root","READ");
-  TFile* WZfile = new TFile("MergedEleCR_20UL18_WZ.root","READ");
-  TFile* ZZfile = new TFile("MergedEleCR_20UL18_ZZ.root","READ");
-  TFile* FFfile = new TFile("MEFF_20UL18.root","READ");
-
-  TF1* sslow = static_cast<TF1*>(FFfile->FindObjectAny("sslow"));
-  TF1* sshigh = static_cast<TF1*>(FFfile->FindObjectAny("sshigh"));
-  TF1* oslow = static_cast<TF1*>(FFfile->FindObjectAny("oslow"));
-  TF1* oshigh = static_cast<TF1*>(FFfile->FindObjectAny("oshigh"));
-
-  const double ssBoundary = 200.;
-  const double osBoundary = 500.;
-
-  TH1D* SSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_SSCR_CRME")->Clone();
-  TH1D* SSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_SSCR_mixedAntiME")->Clone();
-  TH1D* SSnumAnti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_SSCR_mixedME")->Clone();
-  TH1D* SSanti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_SSCR_antiME")->Clone();
-
-  TH1D* OSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_OSCR_CRME")->Clone();
-  TH1D* OSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_OSCR_mixedAntiME")->Clone();
-  TH1D* OSnumAnti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_OSCR_mixedME")->Clone();
-  TH1D* OSanti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_OSCR_antiME")->Clone();
+  TFile* datafile = new TFile("MergedEleCR_"+era+"_data.root","READ");
+  TFile* WZfile = new TFile("MergedEleCR_"+era+"_WZ.root","READ");
+  TFile* ZZfile = new TFile("MergedEleCR_"+era+"_ZZ.root","READ");
 
   auto* canvas_2 = new TCanvas("canvas_2","canvas_2",50,50,W,H);
   canvas_2->SetFillColor(0);
@@ -101,45 +102,6 @@ void runFF() {
   canvas_1->SetTickx(0);
   canvas_1->SetTicky(0);
 
-  auto compareEt = [] (const TF1* low,
-                       const TF1* high,
-                       TH1D* num,
-                       TH1D* denom,
-                       const double boundary,
-                       const int color,
-                       TPad* pad) -> TH1D* {
-    auto* cloned = (TH1D*)denom->Clone();
-    for (unsigned idx = 0; idx < cloned->GetNbinsX()+2; idx++) {
-      const double con = cloned->GetBinContent(idx);
-
-      if ( con==0. )
-        continue;
-
-      const double cen = cloned->GetBinCenter(idx);
-      const double ff = (cen > boundary) ? high->Eval(cen) : low->Eval(cen);
-
-      cloned->SetBinContent(idx,ff*con);
-      cloned->SetBinError(idx,ff*denom->GetBinError(idx));
-    }
-
-    std::cout << num->Integral() <<" "<< cloned->Integral()<< std::endl;
-
-    cloned->Rebin(2);
-    num->Rebin(2);
-
-    cloned->SetFillColor(color);
-    num->SetLineWidth(2);
-    num->SetLineColor(kBlack);
-    num->GetXaxis()->SetRangeUser(0.,500.);
-    pad->cd();
-    num->Draw("E1");
-    cloned->SetLineWidth(0);
-    cloned->Draw("hist&same");
-    num->Draw("E1&same");
-
-    return cloned;
-  };
-
   auto drawRatio = [] (const TH1D* numer, const TH1D* denom, TPad* pad) {
     TH1D* ratio = (TH1D*)numer->Clone();
     ratio->SetStats(0);
@@ -179,30 +141,10 @@ void runFF() {
     canvas->SaveAs(name.c_str());
   };
 
-  compareEt(sslow,sshigh,SSnum,SSdenom,200.,kCyan+1,canvas_1);
-  SaveAs(canvas_1,"FF_2E_Et_denom_mixedSS.png");
-  compareEt(oslow,oshigh,OSnum,OSdenom,500.,kOrange,canvas_1);
-  SaveAs(canvas_1,"FF_2E_Et_denom_mixedOS.png");
-  auto* denom_EtSS = compareEt(sslow,sshigh,SSnumAnti,SSanti,200.,kCyan+1,p1);
-  drawRatio(SSnumAnti,denom_EtSS,p2);
-  SaveAs(canvas_2,"FF_2E_Et_denom_antiSS.png",p1);
-  auto* denom_EtOS = compareEt(oslow,oshigh,OSnumAnti,OSanti,500.,kOrange,p1);
-  drawRatio(OSnumAnti,denom_EtOS,p2);
-  SaveAs(canvas_2,"FF_2E_Et_denom_antiOS.png",p1);
+  auto compare = [&datafile] (TString numName, TString denomName, const int color, TPad* pad) -> std::pair<TH1D*,TH1D*> {
+    TH1D* num = (TH1D*)datafile->Get(numName)->Clone();
+    TH1D* denom = (TH1D*)datafile->Get(denomName)->Clone();
 
-  TH1D* invM_SSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_CRME_SSll_invM")->Clone();
-  TH1D* invM_SSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_SSll_invM_xFF")->Clone();
-  TH1D* invM_SSmixed = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_SSll_invM")->Clone();
-  TH1D* invM_SSanti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_antiME_SSll_invM_CR_xFF")->Clone();
-
-  TH1D* invM_OSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_CRME_OSll_invM")->Clone();
-  TH1D* invM_OSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_OSll_invM_xFF")->Clone();
-  TH1D* invM_OSmixed = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_OSll_invM")->Clone();
-  TH1D* invM_OSanti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_antiME_OSll_invM_CR_xFF")->Clone();
-
-  std::cout << invM_OSnum->Integral() << " and " << invM_OSdenom->Integral() << std::endl;
-
-  auto compare = [] (TH1D* num, TH1D* denom, const int color, TPad* pad) {
     if ( denom->GetNbinsX() % num->GetNbinsX()!=0 ) {
       // hardcode (rebin to GCD)
       denom->Rebin( 5 );
@@ -220,43 +162,58 @@ void runFF() {
     denom->SetLineWidth(0);
     denom->Draw("hist&same");
     num->Draw("E1&same");
+
+    return std::make_pair(num,denom);
   };
 
-  compare(invM_SSnum,invM_SSdenom,kCyan+1,canvas_1);
+  TString anlyzrMC = "mergedEleCRanalyzer"+postfix;
+  TString anlyzrData = "mergedEleCRanalyzerData";
+
+  TH1D* invM_SSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_CRME_SSll_invM")->Clone();
+  TH1D* invM_SSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_SSll_invM_xFF")->Clone();
+  TH1D* invM_SSmixed = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_SSll_invM")->Clone();
+  TH1D* invM_SSanti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_antiME_SSll_invM_CR_xFF")->Clone();
+
+  TH1D* invM_OSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_CRME_OSll_invM")->Clone();
+  TH1D* invM_OSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_OSll_invM_xFF")->Clone();
+  TH1D* invM_OSmixed = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_OSll_invM")->Clone();
+  TH1D* invM_OSanti = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_antiME_OSll_invM_CR_xFF")->Clone();
+
+  // invM
+  compare(anlyzrData+"/2E_CRME_SSll_invM",anlyzrData+"/2E_mixedME_SSll_invM_xFF",kCyan+1,canvas_1);
   SaveAs(canvas_1,"FF_2E_invM_denom_mixedSS.png");
-  compare(invM_SSmixed,invM_SSanti,kCyan+1,p1);
-  drawRatio(invM_SSmixed,invM_SSanti,p2);
+  auto apair = compare(anlyzrData+"/2E_mixedME_SSll_invM",anlyzrData+"/2E_antiME_SSll_invM_CR_xFF",kCyan+1,p1);
+  drawRatio(apair.first,apair.second,p2);
   SaveAs(canvas_2,"FF_2E_invM_denom_antiSS.png",p1);
-  compare(invM_OSnum,invM_OSdenom,kOrange,canvas_1);
+  compare(anlyzrData+"/2E_CRME_OSll_invM",anlyzrData+"/2E_mixedME_OSll_invM_xFF",kOrange,canvas_1);
   SaveAs(canvas_1,"FF_2E_invM_denom_mixedOS.png");
-  compare(invM_OSmixed,invM_OSanti,kOrange,p1);
-  drawRatio(invM_OSmixed,invM_OSanti,p2);
+  apair = compare(anlyzrData+"/2E_mixedME_OSll_invM",anlyzrData+"/2E_antiME_OSll_invM_CR_xFF",kOrange,p1);
+  drawRatio(apair.first,apair.second,p2);
   SaveAs(canvas_2,"FF_2E_invM_denom_antiOS.png",p1);
 
-  TH1D* invM_3E_denomSS = (TH1D*)datafile->Get("mergedEleCRanalyzerData/3E_antiME_lll_invM_CR_xSSFF")->Clone();
-  TH1D* invM_3E_num = (TH1D*)datafile->Get("mergedEleCRanalyzerData/3E_CRME_lll_invM")->Clone();
-  TH1D* Et_3E_denom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/3E_Et_CR_antiME")->Clone();
-  TH1D* Et_3E_num = (TH1D*)datafile->Get("mergedEleCRanalyzerData/3E_Et_CR_CRME")->Clone();
+  // Et
+  compare(anlyzrData+"/2E_CRME_SSll_Et",anlyzrData+"/2E_mixedAntiME_SSll_Et_xFF",kCyan+1,canvas_1);
+  SaveAs(canvas_1,"FF_2E_Et_denom_mixedSS.png");
+  apair = compare(anlyzrData+"/2E_mixedME_SSll_Et_noCorr",anlyzrData+"/2E_antiME_SSll_Et_xFF",kCyan+1,p1);
+  drawRatio(apair.first,apair.second,p2);
+  SaveAs(canvas_2,"FF_2E_Et_denom_antiSS.png",p1);
+  compare(anlyzrData+"/2E_CRME_OSll_Et",anlyzrData+"/2E_mixedAntiME_OSll_Et_xFF",kOrange,canvas_1);
+  SaveAs(canvas_1,"FF_2E_Et_denom_mixedOS.png");
+  apair = compare(anlyzrData+"/2E_mixedME_OSll_Et_noCorr",anlyzrData+"/2E_antiME_OSll_Et_xFF",kOrange,p1);
+  drawRatio(apair.first,apair.second,p2);
+  SaveAs(canvas_2,"FF_2E_Et_denom_antiOS.png",p1);
 
-  TString MCanalyzerName = "mergedEleCRanalyzer20UL18";
-  double intlumi = 59.83;
-  double WZxsec = 5.213;
-  double ZZxsec = 1.325;
-  double WZsumwgt = ((TH1D*)WZfile->Get(MCanalyzerName+"/totWeightedSum"))->GetBinContent(1);
-  double ZZsumwgt = ((TH1D*)ZZfile->Get(MCanalyzerName+"/totWeightedSum"))->GetBinContent(1);
-
-  TH1D* invM_3E_denomSS_WZ = (TH1D*)WZfile->Get(MCanalyzerName+"/3E_antiME_lll_invM_CR_xSSFF")->Clone();
-  invM_3E_denomSS_WZ->Scale( intlumi*1000.*WZxsec/WZsumwgt );
-  TH1D* invM_3E_denomSS_ZZ = (TH1D*)ZZfile->Get(MCanalyzerName+"/3E_antiME_lll_invM_CR_xSSFF")->Clone();
-  invM_3E_denomSS_ZZ->Scale( intlumi*1000.*ZZxsec/ZZsumwgt );
-  TH1D* invM_3E_denomOS_WZ = (TH1D*)WZfile->Get(MCanalyzerName+"/3E_antiME_lll_invM_CR_xOSFF")->Clone();
-  invM_3E_denomOS_WZ->Scale( intlumi*1000.*WZxsec/WZsumwgt );
-  TH1D* invM_3E_denomOS_ZZ = (TH1D*)ZZfile->Get(MCanalyzerName+"/3E_antiME_lll_invM_CR_xOSFF")->Clone();
-  invM_3E_denomOS_ZZ->Scale( intlumi*1000.*ZZxsec/ZZsumwgt );
-  TH1D* Et_3E_denom_WZ = (TH1D*)WZfile->Get(MCanalyzerName+"/3E_Et_CR_antiME")->Clone();
-  Et_3E_denom_WZ->Scale( intlumi*1000.*WZxsec/WZsumwgt );
-  TH1D* Et_3E_denom_ZZ = (TH1D*)ZZfile->Get(MCanalyzerName+"/3E_Et_CR_antiME")->Clone();
-  Et_3E_denom_ZZ->Scale( intlumi*1000.*ZZxsec/ZZsumwgt );
+  // eta
+  compare(anlyzrData+"/2E_CRME_SSll_eta",anlyzrData+"/2E_mixedAntiME_SSll_eta_xFF",kCyan+1,canvas_1);
+  SaveAs(canvas_1,"FF_2E_eta_denom_mixedSS.png");
+  apair = compare(anlyzrData+"/2E_mixedME_SSll_eta",anlyzrData+"/2E_antiME_SSll_eta_xFF",kCyan+1,p1);
+  drawRatio(apair.first,apair.second,p2);
+  SaveAs(canvas_2,"FF_2E_eta_denom_antiSS.png",p1);
+  compare(anlyzrData+"/2E_CRME_OSll_eta",anlyzrData+"/2E_mixedAntiME_OSll_eta_xFF",kOrange,canvas_1);
+  SaveAs(canvas_1,"FF_2E_eta_denom_mixedOS.png");
+  apair = compare(anlyzrData+"/2E_mixedME_OSll_eta",anlyzrData+"/2E_antiME_OSll_eta_xFF",kOrange,p1);
+  drawRatio(apair.first,apair.second,p2);
+  SaveAs(canvas_2,"FF_2E_eta_denom_antiOS.png",p1);
 
   auto square = [](double x) { return x*x; };
 
@@ -271,84 +228,67 @@ void runFF() {
     return cloned;
   };
 
+  double intlumi = valLumi;
+  double WZxsec = 5.213;
+  double ZZxsec = 1.325;
+  double WZsumwgt = ((TH1D*)WZfile->Get(anlyzrMC+"/totWeightedSum"))->GetBinContent(1);
+  double ZZsumwgt = ((TH1D*)ZZfile->Get(anlyzrMC+"/totWeightedSum"))->GetBinContent(1);
+
+  auto compare3E = [&](TString numName, TString denomName) {
+    TH1D* denomSS = (TH1D*)datafile->Get(anlyzrData+"/"+denomName+"_xSSFF")->Clone();
+    TH1D* numer = (TH1D*)datafile->Get(anlyzrData+"/"+numName)->Clone();
+
+    TH1D* denomSS_WZ = (TH1D*)WZfile->Get(anlyzrMC+"/"+denomName+"_xSSFF")->Clone();
+    denomSS_WZ->Scale( intlumi*1000.*WZxsec/WZsumwgt );
+    TH1D* denomSS_ZZ = (TH1D*)ZZfile->Get(anlyzrMC+"/"+denomName+"_xSSFF")->Clone();
+    denomSS_ZZ->Scale( intlumi*1000.*ZZxsec/ZZsumwgt );
+    TH1D* denomOS_WZ = (TH1D*)WZfile->Get(anlyzrMC+"/"+denomName+"_xOSFF")->Clone();
+    denomOS_WZ->Scale( intlumi*1000.*WZxsec/WZsumwgt );
+    TH1D* denomOS_ZZ = (TH1D*)ZZfile->Get(anlyzrMC+"/"+denomName+"_xOSFF")->Clone();
+    denomOS_ZZ->Scale( intlumi*1000.*ZZxsec/ZZsumwgt );
+
+    TH1D* denomSSfinal = subtractHist( subtractHist(denomSS,denomSS_WZ), denomSS_ZZ);
+    denomSSfinal->SetFillColor(kCyan+1);
+    denomSSfinal->Rebin( denomSSfinal->GetNbinsX()/numer->GetNbinsX() );
+    TH1D* denomOSfinal = (TH1D*)denomOS_WZ->Clone();
+    denomOSfinal->Add(denomOS_ZZ);
+    denomOSfinal->SetFillColor(kOrange);
+    denomOSfinal->Rebin( denomOSfinal->GetNbinsX()/numer->GetNbinsX() );
+
+    THStack* denomFinal = new THStack(numName,";GeV;");
+    denomOSfinal->SetLineWidth(0);
+    denomSSfinal->SetLineWidth(0);
+    denomFinal->Add(denomOSfinal);
+    denomFinal->Add(denomSSfinal);
+
+    numer->SetLineWidth(2);
+    numer->SetLineColor(kBlack);
+    numer->SetMaximum(1.5*numer->GetMaximum());
+
+    numer->Draw("E1");
+    denomFinal->Draw("hist&same");
+    numer->Draw("E1&same");
+
+    if (!numName.Contains("Et")) {
+      TLegend* legend_left = new TLegend(0.15,0.7,0.4,0.9);
+      legend_left->SetBorderSize(0);
+      legend_left->AddEntry(numer,"Data");
+      legend_left->AddEntry(denomSSfinal,"Data-driven (X #rightarrow ME)");
+      legend_left->AddEntry(denomOSfinal,"Data-driven (e #rightarrow ME)");
+      legend_left->Draw();
+    }
+  };
+
   canvas_2->cd();
 
-  TH1D* invM_3E_denomSSfinal = subtractHist( subtractHist(invM_3E_denomSS,invM_3E_denomSS_WZ), invM_3E_denomSS_ZZ);
-  invM_3E_denomSSfinal->SetFillColor(kCyan+1);
-  invM_3E_denomSSfinal->Rebin( invM_3E_denomSSfinal->GetNbinsX()/invM_3E_num->GetNbinsX() );
-  TH1D* invM_3E_denomOSfinal = (TH1D*)invM_3E_denomOS_WZ->Clone();
-  invM_3E_denomOSfinal->Add(invM_3E_denomOS_ZZ);
-  invM_3E_denomOSfinal->SetFillColor(kOrange);
-  invM_3E_denomOSfinal->Rebin( invM_3E_denomOSfinal->GetNbinsX()/invM_3E_num->GetNbinsX() );
-
-  THStack* invM_3E_denomFinal = new THStack("invM_3E","invM_3E;GeV;");
-  invM_3E_denomOSfinal->SetLineWidth(0);
-  invM_3E_denomSSfinal->SetLineWidth(0);
-  invM_3E_denomFinal->Add(invM_3E_denomOSfinal);
-  invM_3E_denomFinal->Add(invM_3E_denomSSfinal);
-
-  invM_3E_num->SetLineWidth(2);
-  invM_3E_num->SetLineColor(kBlack);
-
-  invM_3E_num->Draw("E1");
-  invM_3E_denomFinal->Draw("hist&same");
-  invM_3E_num->Draw("E1&same");
-  std::cout<<invM_3E_num->Integral()<< " " <<invM_3E_denomSSfinal->Integral()<<std::endl;
-
-  TLegend* legend_left = new TLegend(0.15,0.7,0.4,0.9);
-  legend_left->SetBorderSize(0);
-  legend_left->AddEntry(invM_3E_num,"Data");
-  legend_left->AddEntry(invM_3E_denomSSfinal,"Data-driven (X #rightarrow ME)");
-  legend_left->AddEntry(invM_3E_denomOSfinal,"Data-driven (e #rightarrow ME)");
-  legend_left->Draw();
-
+  compare3E("3E_CRME_lll_invM","3E_antiME_lll_invM_CR");
   SaveAs(canvas_2,"FF_3E_invM.png");
 
-  TH1D* Et_3E_denom_OS = (TH1D*)Et_3E_denom_WZ->Clone();
-  Et_3E_denom_OS->Add(Et_3E_denom_ZZ);
-
-  for (unsigned idx = 0; idx < Et_3E_denom->GetNbinsX()+2; idx++) {
-    const double cen = Et_3E_denom->GetBinCenter(idx);
-    const double ssff = (cen > ssBoundary) ? sshigh->Eval(cen) : sslow->Eval(cen);
-    const double osff = (cen > osBoundary) ? oshigh->Eval(cen) : oslow->Eval(cen);
-    Et_3E_denom->SetBinContent( idx, ssff*(Et_3E_denom->GetBinContent(idx) - Et_3E_denom_WZ->GetBinContent(idx) - Et_3E_denom_ZZ->GetBinContent(idx)) );
-    Et_3E_denom->SetBinError( idx, ssff*std::sqrt( square(Et_3E_denom->GetBinError(idx)) + square(Et_3E_denom_WZ->GetBinError(idx)) + square(Et_3E_denom_ZZ->GetBinError(idx)) ) );
-
-    Et_3E_denom_OS->SetBinContent( idx, osff*Et_3E_denom_OS->GetBinContent(idx) );
-    Et_3E_denom_OS->SetBinError( idx, osff*Et_3E_denom_OS->GetBinError(idx) );
-  }
-
-  Et_3E_denom->Rebin(2);
-  Et_3E_denom_OS->Rebin(2);
-  Et_3E_num->Rebin(2);
-
-  THStack* Et_3E_denomFinal = new THStack("Et_3E","Et_3E;E_{T} [GeV];");
-  Et_3E_denom_OS->SetFillColor(kOrange);
-  Et_3E_denom->SetFillColor(kCyan+1);
-  Et_3E_denom_OS->SetLineWidth(0);
-  Et_3E_denom->SetLineWidth(0);
-  Et_3E_denomFinal->Add(Et_3E_denom_OS);
-  Et_3E_denomFinal->Add(Et_3E_denom);
-
-  Et_3E_num->SetLineWidth(2);
-  Et_3E_num->SetLineColor(kBlack);
-  Et_3E_num->GetXaxis()->SetRangeUser(0.,500.);
-  Et_3E_num->SetMaximum(1.2*std::max(Et_3E_num->GetMaximum(),Et_3E_denomFinal->GetMaximum()));
-
-  Et_3E_num->Draw("E1");
-  Et_3E_denomFinal->Draw("hist&same");
-  Et_3E_num->Draw("E1&same");
-
-  std::cout<<Et_3E_num->Integral()<<" "<<Et_3E_denom->Integral()<<std::endl;
-
-  TLegend* legend_right = new TLegend(0.68,0.7,0.93,0.9);
-  legend_right->SetBorderSize(0);
-  legend_right->AddEntry(Et_3E_num,"Data");
-  legend_right->AddEntry(Et_3E_denom,"Data-driven (X #rightarrow ME)");
-  legend_right->AddEntry(Et_3E_denom_OS,"Data-driven (e #rightarrow ME)");
-  legend_right->Draw();
-
+  compare3E("3E_CRME_all_Et","3E_antiME_Et");
   SaveAs(canvas_2,"FF_3E_Et.png");
+
+  compare3E("3E_CRME_all_eta","3E_antiME_eta");
+  SaveAs(canvas_2,"FF_3E_eta.png");
 
   return;
 }
