@@ -39,7 +39,7 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override {}
 
-  void fillByGsfTrack(const edm::Event& iEvent, const edm::EventSetup& iSetup, std::vector<edm::Ptr<pat::Electron>>& eles);
+  void fillByGsfTrack(const edm::Event& iEvent, const edm::EventSetup& iSetup, std::vector<pat::ElectronRef>& eles);
 
   const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
@@ -50,6 +50,11 @@ private:
   const edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EBrecHitToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EErecHitToken_;
+  // Ecal position calculation algorithm
+  PositionCalc posCalcLog_;
+  PositionCalc posCalcLinear_;
 
   const double ptThres_;
   const double ptThres2nd_;
@@ -70,6 +75,10 @@ addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<
 conversionsToken_(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("conversions"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
+EBrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EBrecHits"))),
+EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
+posCalcLog_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
+posCalcLinear_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLinear"))),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 ptThres2nd_(iConfig.getParameter<double>("ptThres2nd")),
 drThres_(iConfig.getParameter<double>("drThres")),
@@ -91,6 +100,9 @@ void MergedEleSigMvaInput::beginJob() {
   aHelper_.initAddGsfTree("AddGsfStruct","heep1Gsf","addGsf");
   aHelper_.initAddGsfTree("AddGsfStruct","heep2Gsf","addGsf");
   aHelper_.initAddGsfTree("AddGsfStruct","mergedEl1Gsf","addGsf");
+
+  aHelper_.SetPositionCalcLog(posCalcLog_);
+  aHelper_.SetPositionCalcLinear(posCalcLinear_);
 }
 
 void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -148,10 +160,10 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
   std::sort(promptLeptons.begin(),promptLeptons.end(),sisterLambda);
 
-  std::vector<edm::Ptr<pat::Electron>> heeps1, heeps2;
+  std::vector<pat::ElectronRef> heeps1, heeps2;
 
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
-    const auto& aEle = eleHandle->ptrAt(idx);
+    const auto& aEle = eleHandle->refAt(idx);
 
     if ( aEle->et() < ptThres2nd_ )
       continue;
@@ -173,7 +185,9 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
     if ( !matched )
       continue;
 
-    (igen < 2) ? heeps1.push_back(aEle) : heeps2.push_back(aEle);
+    auto castEle = aEle.castTo<pat::ElectronRef>();
+
+    (igen < 2) ? heeps1.push_back(castEle) : heeps2.push_back(castEle);
   }
 
   // assume 4e only
@@ -196,7 +210,7 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   fillByGsfTrack(iEvent,iSetup,heeps2);
 }
 
-void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::EventSetup& iSetup, std::vector<edm::Ptr<pat::Electron>>& eles) {
+void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::EventSetup& iSetup, std::vector<pat::ElectronRef>& eles) {
   edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(srcEle_, eleHandle);
 
@@ -218,19 +232,29 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::E
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
+  edm::Handle<EcalRecHitCollection> EBrecHitHandle;
+  iEvent.getByToken(EBrecHitToken_, EBrecHitHandle);
+
+  edm::Handle<EcalRecHitCollection> EErecHitHandle;
+  iEvent.getByToken(EErecHitToken_, EErecHitHandle);
+
   if ( eles.size()==1 ) {
     auto addGsfTrk = (*addGsfTrkHandle)[eles.front()];
     auto orgGsfTrk = eles.front()->gsfTrack();
 
+    const EcalRecHitCollection* ecalRecHits = eles.front()->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle);
+
     if ( addGsfTrk==orgGsfTrk ) { // ME w/o add GSF
       // veto any nearby electron over Et thres
       for (unsigned jdx = 0; jdx < eleHandle->size(); jdx++) {
-        const auto& secEle = eleHandle->ptrAt(jdx);
+        const auto& secEleRef = eleHandle->refAt(jdx);
 
-        if (secEle==eles.front())
+        if (secEleRef->et() < ptThres2nd_)
           continue;
 
-        if (secEle->et() < ptThres2nd_)
+        auto secEle = secEleRef.castTo<pat::ElectronRef>();
+
+        if (secEle==eles.front())
           continue;
 
         double dr2 = reco::deltaR2(eles.front()->eta(),eles.front()->phi(),secEle->eta(),secEle->phi());
@@ -246,8 +270,8 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::E
                              (*trkIsoMapHandle)[eles.front()],
                              (*ecalIsoMapHandle)[eles.front()],
                              addGsfTrk,
-                             conversionsHandle,
-                             beamSpotHandle,
+                             iSetup,
+                             ecalRecHits,
                              "mergedEl2");
     } else { // ME w/ GSF
       // find whether add GSF track has a corresponding electron
@@ -273,17 +297,22 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::E
                              (*trkIsoMapHandle)[eles.front()],
                              (*ecalIsoMapHandle)[eles.front()],
                              addGsfTrk,
-                             conversionsHandle,
-                             beamSpotHandle,
+                             iSetup,
+                             ecalRecHits,
                              "mergedEl1");
-      aHelper_.fillGsfTracks((*addGsfTrkHandle)[eles.front()],eles.front()->gsfTrack(),"mergedEl1Gsf");
+      aHelper_.fillGsfTracks(eles.front(),
+                             (*addGsfTrkHandle)[eles.front()],
+                             iSetup,
+                             beamSpotHandle,
+                             ecalRecHits,
+                             "mergedEl1Gsf");
     }
 
     return;
   }
 
   // default case: eles.size() > 1
-  std::sort(eles.begin(),eles.end(),[](const edm::Ptr<pat::Electron>& a, const edm::Ptr<pat::Electron>& b) { return a->et() > b->et(); });
+  std::sort(eles.begin(),eles.end(),[](const pat::ElectronRef& a, const pat::ElectronRef& b) { return a->et() > b->et(); });
 
   if ( !eles.at(0)->electronID("modifiedHeepElectronID") )
     return;
@@ -295,18 +324,28 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::E
                          (*trkIsoMapHandle)[eles.at(0)],
                          (*ecalIsoMapHandle)[eles.at(0)],
                          (*addGsfTrkHandle)[eles.at(0)],
-                         conversionsHandle,
-                         beamSpotHandle,
+                         iSetup,
+                         eles.at(0)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
                          "heep1");
   aHelper_.fillElectrons(eles.at(1),
                          (*trkIsoMapHandle)[eles.at(1)],
                          (*ecalIsoMapHandle)[eles.at(1)],
                          (*addGsfTrkHandle)[eles.at(1)],
-                         conversionsHandle,
-                         beamSpotHandle,
+                         iSetup,
+                         eles.at(1)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
                          "heep2");
-  aHelper_.fillGsfTracks((*addGsfTrkHandle)[eles.at(0)],eles.at(0)->gsfTrack(),"heep1Gsf");
-  aHelper_.fillGsfTracks((*addGsfTrkHandle)[eles.at(1)],eles.at(1)->gsfTrack(),"heep2Gsf");
+  aHelper_.fillGsfTracks(eles.at(0),
+                         (*addGsfTrkHandle)[eles.at(0)],
+                         iSetup,
+                         beamSpotHandle,
+                         eles.at(0)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
+                        "heep1Gsf");
+  aHelper_.fillGsfTracks(eles.at(1),
+                         (*addGsfTrkHandle)[eles.at(1)],
+                         iSetup,
+                         beamSpotHandle,
+                         eles.at(1)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
+                         "heep2Gsf");
 
   return;
 }

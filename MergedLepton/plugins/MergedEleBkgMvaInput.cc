@@ -43,8 +43,13 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
   const edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EBrecHitToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EErecHitToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
+  // Ecal position calculation algorithm
+  PositionCalc posCalcLog_;
+  PositionCalc posCalcLinear_;
 
   const double ptThres_;
   const bool select0J_;
@@ -64,8 +69,12 @@ ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>
 addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
 conversionsToken_(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("conversions"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
+EBrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EBrecHits"))),
+EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 lheToken_(consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lheEvent"))),
+posCalcLog_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
+posCalcLinear_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLinear"))),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 select0J_(iConfig.getParameter<bool>("select0J")),
 selectHT_(iConfig.getParameter<bool>("selectHT")),
@@ -87,6 +96,9 @@ void MergedEleBkgMvaInput::beginJob() {
   aHelper_.initElectronTree("ElectronStruct","fake","el");
   aHelper_.initElectronTree("ElectronStruct","bkg","el");
   aHelper_.initAddGsfTree("AddGsfStruct","fakeGsf","addGsf");
+
+  aHelper_.SetPositionCalcLog(posCalcLog_);
+  aHelper_.SetPositionCalcLinear(posCalcLinear_);
 }
 
 void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -110,6 +122,12 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
+
+  edm::Handle<EcalRecHitCollection> EBrecHitHandle;
+  iEvent.getByToken(EBrecHitToken_, EBrecHitHandle);
+
+  edm::Handle<EcalRecHitCollection> EErecHitHandle;
+  iEvent.getByToken(EErecHitToken_, EErecHitHandle);
 
   edm::Handle<GenEventInfoProduct> genInfo;
   iEvent.getByToken(generatorToken_, genInfo);
@@ -166,15 +184,17 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   } else
     return;
 
-  std::vector<edm::Ptr<pat::Electron>> heepElectrons;
+  std::vector<pat::ElectronRef> heepElectrons;
 
   for (unsigned idx = 0; idx < eleHandle->size(); ++idx) {
-    const auto& aEle = eleHandle->ptrAt(idx);
+    const auto& aEle = eleHandle->refAt(idx);
 
     if ( !aEle->electronID("modifiedHeepElectronID") )
       continue;
 
-    heepElectrons.push_back(aEle);
+    auto castEle = aEle.castTo<pat::ElectronRef>();
+
+    heepElectrons.push_back(castEle);
   }
 
   if ( heepElectrons.size() < 2 )
@@ -185,6 +205,8 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
     if ( aEle->et() < ptThres_ )
       continue;
+
+    const EcalRecHitCollection* ecalRecHits = aEle->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle);
 
     // requirement for add GSF track
     const auto& addGsfTrk = (*addGsfTrkHandle)[aEle];
@@ -212,8 +234,11 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
       if ( notMerged )
         continue;
 
-      aHelper_.fillGsfTracks((*addGsfTrkHandle)[aEle],
-                             aEle->gsfTrack(),
+      aHelper_.fillGsfTracks(aEle,
+                             (*addGsfTrkHandle)[aEle],
+                             iSetup,
+                             beamSpotHandle,
+                             ecalRecHits,
                              "fakeGsf");
     }
 
@@ -221,8 +246,8 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
                            (*trkIsoMapHandle)[aEle],
                            (*ecalIsoMapHandle)[aEle],
                            addGsfTrk,
-                           conversionsHandle,
-                           beamSpotHandle,
+                           iSetup,
+                           ecalRecHits,
                            treename);
   }
 }

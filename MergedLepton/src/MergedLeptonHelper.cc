@@ -1,9 +1,33 @@
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
 
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+#include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
+
+#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
+#include "TrackingTools/GsfTools/interface/MultiTrajectoryStateMode.h"
+#include "TrackingTools/GsfTools/interface/MultiTrajectoryStateTransform.h"
+#include "TrackingTools/GsfTools/interface/GsfPropagatorAdapter.h"
+#include "TrackingTools/GeomPropagators/interface/StateOnTrackerBound.h"
+#include "TrackingTools/GeomPropagators/interface/AnalyticalPropagator.h"
+#include "TrackingTools/TrajectoryState/interface/TrajectoryStateOnSurface.h"
+#include "TrackingTools/PatternTools/interface/TransverseImpactPointExtrapolator.h"
+#include "MagneticField/Engine/interface/MagneticField.h"
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+#include "RecoEgamma/EgammaElectronAlgos/interface/ElectronUtilities.h"
+#include "RecoTracker/Record/interface/TrackerRecoGeometryRecord.h"
+#include "RecoTracker/TkDetLayers/interface/GeometricSearchTracker.h"
+
 MergedLeptonHelper::MergedLeptonHelper() :
 pFS_(nullptr) {
   elstr_ = TString("weight/F:pt:eta:phi:en:et:charge/I:")
-  + "enSC/F:etSC:etaSC:phiSC:etaSCWidth:phiSCWidth:"
+  + "enSC/F:etSC:etaSC:phiSC:etaSeed:phiSeed:etaSCWidth:phiSCWidth:"
   + "full5x5_sigmaIetaIeta:full5x5_sigmaIphiIphi:"
   + "full5x5_E1x5:full5x5_E2x5:full5x5_E5x5:full5x5_hOverE:full5x5_r9:"
   + "dEtaIn:dPhiIn:dPhiSeed:dEtaEle:dPhiEle:dEtaSeed:"
@@ -15,15 +39,28 @@ pFS_(nullptr) {
   + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:"
   + "Gsfpt/F:Gsfeta:Gsfphi:"
   + "expectedMissingInnerHits/I:"
-  + "convVtxFitProb/F:convVtxChi2:convDist:convDcot:convRadius:"
+  + "convDist/F:convDcot:convRadius:"
   + "passConversionVeto/I:nbrem:"
   + "fbrem/F:fbremSC:"
   + "full5x5_e2x5Left:full5x5_e2x5Right:full5x5_e2x5Top:full5x5_e2x5Bottom:full5x5_eLeft:full5x5_eRight:full5x5_eTop:full5x5_eBottom:"
-  + "full5x5_eMax:full5x5_e2nd";
+  + "full5x5_eMax:full5x5_e2nd:"
+  + "etaE1st:phiE1st:etaE2nd:phiE2nd:etaSeedLinear:phiSeedLinear:"
+  + "clus2ndMoment_sMaj:clus2ndMoment_sMin:clus2ndMoment_alpha:"
+  + "full5x5_Em2m2:full5x5_Em2m1:full5x5_Em2p0:full5x5_Em2p1:full5x5_Em2p2:"
+  + "full5x5_Em1m2:full5x5_Em1m1:full5x5_Em1p0:full5x5_Em1p1:full5x5_Em1p2:"
+  + "full5x5_Ep0m2:full5x5_Ep0m1:full5x5_Ep0p0:full5x5_Ep0p1:full5x5_Ep0p2:"
+  + "full5x5_Ep1m2:full5x5_Ep1m1:full5x5_Ep1p0:full5x5_Ep1p1:full5x5_Ep1p2:"
+  + "full5x5_Ep2m2:full5x5_Ep2m1:full5x5_Ep2p0:full5x5_Ep2p1:full5x5_Ep2p2";
 
   addgsfstr_ = TString("weight/F:Gsfpt:Gsfeta:Gsfphi:")
   + "lostHits/I:nValidHits:nValidPixelHits:"
-  + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:ptErr";
+  + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:ptErr:"
+  + "deltaEtaSuperClusterAtVtx:deltaPhiSuperClusterAtVtx:"
+  + "deltaEtaSeedClusterAtCalo:deltaPhiSeedClusterAtCalo:"
+  + "deltaEtaSeedClusterAtVtx:"
+  + "union3x3LogEta:union3x3LogPhi:"
+  + "union3x3LinearEta:union3x3LinearPhi:"
+  + "union3x3Energy";
 
   mustr_ = TString("weight/F:numberOfValidTrackerHits/I:numberOfValidPixelHits:numberOfValidStripHits:")
   + "trackerLayersWithMeasurement:pixelLayersWithMeasurement:stripLayersWithMeasurement:"
@@ -78,12 +115,12 @@ void MergedLeptonHelper::initMETTree(const std::string& name,
   tree_[prefix+"_"+postfix+"Tree"]->Branch(TString(name),&(metvalues_[prefix+"_"+postfix]),metstr_);
 }
 
-void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
+void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
                                        const float& trkIso,
                                        const float& ecalIso,
                                        const reco::GsfTrackRef& addGsfTrk,
-                                       const edm::Handle<reco::ConversionCollection>& conversions,
-                                       const edm::Handle<reco::BeamSpot>& beamSpotHandle,
+                                       const edm::EventSetup& iSetup,
+                                       const EcalRecHitCollection* ecalRecHits,
                                        const std::string& prefix) {
   auto square = [](const double& val) { return val*val; };
   double rad = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()) + square(el->superCluster()->z()));
@@ -102,6 +139,8 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
   elvalues_[prefix+"_el"].etSC = (el->superCluster()->energy())*(radTrans/rad);
   elvalues_[prefix+"_el"].etaSC = el->superCluster()->eta();
   elvalues_[prefix+"_el"].phiSC = el->superCluster()->phi();
+  elvalues_[prefix+"_el"].etaSeed = el->superCluster()->seed()->eta();
+  elvalues_[prefix+"_el"].phiSeed = el->superCluster()->seed()->phi();
   elvalues_[prefix+"_el"].etaSCWidth = el->superCluster()->etaWidth();
   elvalues_[prefix+"_el"].phiSCWidth = el->superCluster()->phiWidth();
 
@@ -156,19 +195,7 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
 
   elvalues_[prefix+"_el"].expectedMissingInnerHits = el->gsfTrack()->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS); // 94X
 
-  elvalues_[prefix+"_el"].convVtxFitProb = -1.;
-  elvalues_[prefix+"_el"].convVtxChi2 = -1.;
-  elvalues_[prefix+"_el"].passConversionVeto = !ConversionTools::hasMatchedConversion(*el, *conversions, beamSpotHandle->position());
-  const reco::Conversion* convRef = ConversionTools::matchedConversion(*el, *conversions, beamSpotHandle->position());
-
-  if ( convRef!=nullptr ) {
-    reco::Vertex convVtx = convRef->conversionVertex();
-    if (convVtx.isValid()) {
-      elvalues_[prefix+"_el"].convVtxFitProb = TMath::Prob(convVtx.chi2(), convVtx.ndof());
-      elvalues_[prefix+"_el"].convVtxChi2 = convVtx.normalizedChi2();
-    }
-  }
-
+  elvalues_[prefix+"_el"].passConversionVeto = el->passConversionVeto();
   elvalues_[prefix+"_el"].convDist = el->convDist();
   elvalues_[prefix+"_el"].convDcot = el->convDcot();
   elvalues_[prefix+"_el"].convRadius = el->convRadius();
@@ -189,11 +216,106 @@ void MergedLeptonHelper::fillElectrons(const edm::Ptr<reco::GsfElectron>& el,
   elvalues_[prefix+"_el"].full5x5_eTop = el->full5x5_eTop();
   elvalues_[prefix+"_el"].full5x5_eBottom = el->full5x5_eBottom();
 
+  // Get Calo Geometry
+  edm::ESHandle<CaloGeometry> caloGeoHandle;
+  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  const CaloGeometry* caloGeom = caloGeoHandle.product();
+  const CaloSubdetectorGeometry* subdetGeom = caloGeom->getSubdetectorGeometry(el->superCluster()->seed()->seed());
+
+  std::vector<std::pair<DetId,float>> hitsAndEnergy;
+
+  for (auto cluster = el->basicClustersBegin(); cluster != el->basicClustersEnd(); ++cluster) {
+    for (auto& xtal : (*cluster)->hitsAndFractions()) {
+      float recHitEnergy = noZS::EcalClusterTools::recHitEnergy(xtal.first,ecalRecHits);
+
+      if ( recHitEnergy!=0. )
+        hitsAndEnergy.push_back(std::make_pair( xtal.first, xtal.second*recHitEnergy ));
+    }
+  }
+
+  auto sortByEnergy = [] (const std::pair<DetId,float>& a, const std::pair<DetId,float>& b) {
+    return a.second > b.second;
+  };
+
+  std::partial_sort(hitsAndEnergy.begin(),hitsAndEnergy.begin()+2,hitsAndEnergy.end(),sortByEnergy);
+  const auto& cell1st = caloGeom->getGeometry(hitsAndEnergy.at(0).first);
+  const auto& cell2nd = caloGeom->getGeometry(hitsAndEnergy.at(1).first);
+
+  elvalues_[prefix+"_el"].etaE1st = cell1st->etaPos();
+  elvalues_[prefix+"_el"].phiE1st = cell1st->phiPos();
+  elvalues_[prefix+"_el"].etaE2nd = cell2nd->etaPos();
+  elvalues_[prefix+"_el"].phiE2nd = cell2nd->phiPos();
+
+  const reco::CaloClusterPtr seedClus = el->superCluster()->seed();
+  auto cluster2ndMoments = noZS::EcalClusterTools::cluster2ndMoments(*seedClus,*ecalRecHits,1.0);
+  elvalues_[prefix+"_el"].clus2ndMoment_sMaj = cluster2ndMoments.sMaj;
+  elvalues_[prefix+"_el"].clus2ndMoment_sMin = cluster2ndMoments.sMin;
+  elvalues_[prefix+"_el"].clus2ndMoment_alpha = cluster2ndMoments.alpha;
+
+  // Get Calo Topology
+  edm::ESHandle<CaloTopology> caloTopoHandle;
+  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
+  const CaloTopology* caloTopo = caloTopoHandle.product();
+
+  auto posSeedLinear = posCalcLinear_.Calculate_Location(el->superCluster()->seed()->hitsAndFractions(),ecalRecHits,subdetGeom);
+  elvalues_[prefix+"_el"].etaSeedLinear = posSeedLinear.eta();
+  elvalues_[prefix+"_el"].phiSeedLinear = posSeedLinear.phi();
+
+  std::pair<DetId,float> seedMax = noZS::EcalClusterTools::getMaximum(*seedClus,ecalRecHits);
+  std::vector<DetId> matrix5x5;
+  matrix5x5.reserve(25);
+
+  // order - increment iPhi/iY first, then iEta/iX (see RecoCaloTools/Navigation/interface/CaloRectangle.h)
+  for (const auto& adetId : CaloRectangle{-2,2,-2,2}(seedMax.first,*caloTopo))
+    matrix5x5.emplace_back(adetId);
+
+  auto fillXtalEnergy = [&seedClus,&ecalRecHits] (float& treeValue, const DetId& adetId) {
+    if (adetId==DetId(0)) {
+      treeValue = 0.;
+      return;
+    }
+
+    treeValue = noZS::EcalClusterTools::recHitEnergy(adetId,ecalRecHits)*noZS::EcalClusterTools::getFraction(seedClus->hitsAndFractions(),adetId);
+  };
+
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em2m2,matrix5x5.at(0));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em2m1,matrix5x5.at(1));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em2p0,matrix5x5.at(2));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em2p1,matrix5x5.at(3));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em2p2,matrix5x5.at(4));
+
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em1m2,matrix5x5.at(5));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em1m1,matrix5x5.at(6));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em1p0,matrix5x5.at(7));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em1p1,matrix5x5.at(8));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Em1p2,matrix5x5.at(9));
+
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep0m2,matrix5x5.at(10));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep0m1,matrix5x5.at(11));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep0p0,matrix5x5.at(12));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep0p1,matrix5x5.at(13));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep0p2,matrix5x5.at(14));
+
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep1m2,matrix5x5.at(15));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep1m1,matrix5x5.at(16));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep1p0,matrix5x5.at(17));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep1p1,matrix5x5.at(18));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep1p2,matrix5x5.at(19));
+
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep2m2,matrix5x5.at(20));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep2m1,matrix5x5.at(21));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep2p0,matrix5x5.at(22));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep2p1,matrix5x5.at(23));
+  fillXtalEnergy(elvalues_[prefix+"_el"].full5x5_Ep2p2,matrix5x5.at(24));
+
   tree_[prefix+"_elTree"]->Fill();
 }
 
-void MergedLeptonHelper::fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,
-                                       const reco::GsfTrackRef& orgGsfTrk,
+void MergedLeptonHelper::fillGsfTracks(const pat::ElectronRef& el,
+                                       const reco::GsfTrackRef& addGsfTrk,
+                                       const edm::EventSetup& iSetup,
+                                       const edm::Handle<reco::BeamSpot>& beamSpotHandle,
+                                       const EcalRecHitCollection* ecalRecHits,
                                        const std::string& prefix) {
   gsfvalues_[prefix+"_addGsf"].weight = mcweight_;
 
@@ -213,6 +335,152 @@ void MergedLeptonHelper::fillGsfTracks(const reco::GsfTrackRef& addGsfTrk,
   gsfvalues_[prefix+"_addGsf"].dxy = addGsfTrk->dxy(pPV_->position());
   gsfvalues_[prefix+"_addGsf"].dz = addGsfTrk->dz(pPV_->position());
   gsfvalues_[prefix+"_addGsf"].ptErr = addGsfTrk->ptError();
+
+  gsfvalues_[prefix+"_addGsf"].deltaEtaSuperClusterAtVtx = std::numeric_limits<float>::max();
+  gsfvalues_[prefix+"_addGsf"].deltaPhiSuperClusterAtVtx = std::numeric_limits<float>::max();
+  gsfvalues_[prefix+"_addGsf"].deltaEtaSeedClusterAtCalo = std::numeric_limits<float>::max();
+  gsfvalues_[prefix+"_addGsf"].deltaPhiSeedClusterAtCalo = std::numeric_limits<float>::max();
+  gsfvalues_[prefix+"_addGsf"].deltaEtaSeedClusterAtVtx = std::numeric_limits<float>::max();
+
+  // track-cluster matching (see RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc)
+  edm::ESHandle<MagneticField> magFieldHandle;
+  iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+
+  // at innermost/outermost point
+  // edm::ESHandle<TrackerGeometry> trackerHandle;
+  // iSetup.get<TrackerDigiGeometryRecord>().get(trackerHandle);
+  // auto mtsTransform = std::make_unique<MultiTrajectoryStateTransform>(trackerHandle.product(),magFieldHandle.product());
+  // TrajectoryStateOnSurface innTSOS = mtsTransform->innerStateOnSurface(*addGsfTrk);
+  // TrajectoryStateOnSurface outTSOS = mtsTransform->outerStateOnSurface(*addGsfTrk);
+
+  // unfortunately above requires trackExtra - which is only available in RECO
+  // instead we start from track vtx then propagate free state to inner/outer surface
+  // no recHit hence make a reasonable approximation that
+  // inner surface is pixel barrel & outer surface is tracker envelope
+
+  edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
+  iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
+
+  const auto& pixelBarrelLayers = trackerSearchHandle.product()->pixelBarrelLayers();
+  BarrelDetLayer* innermostLayer = nullptr;
+  float innermostRadius = std::numeric_limits<float>::max();
+
+  for (const auto* alayer : pixelBarrelLayers) {
+    float aradius = alayer->surface().rSpan().first;
+    if ( aradius < innermostRadius ) {
+      innermostRadius = aradius;
+      innermostLayer = const_cast<BarrelDetLayer*>(alayer);
+    }
+  }
+
+  // GlobalTag matters here (tracker alignment)
+  FreeTrajectoryState freestate(GlobalTrajectoryParameters(GlobalPoint(addGsfTrk->referencePoint().x(),
+                                                                       addGsfTrk->referencePoint().y(),
+                                                                       addGsfTrk->referencePoint().z()),
+                                                           GlobalVector(addGsfTrk->momentum().x(),
+                                                                        addGsfTrk->momentum().y(),
+                                                                        addGsfTrk->momentum().z()),
+                                                           addGsfTrk->charge(),
+                                                           magFieldHandle.product()),
+                                CurvilinearTrajectoryError(addGsfTrk->covariance()));
+  auto gsfPropagator = std::make_unique<GsfPropagatorAdapter>(AnalyticalPropagator(magFieldHandle.product()));
+  auto extrapolator = std::make_unique<TransverseImpactPointExtrapolator>(*gsfPropagator);
+  TrajectoryStateOnSurface innTSOS = gsfPropagator->propagate(freestate,innermostLayer->surface());
+  StateOnTrackerBound stateOnBound(gsfPropagator.get());
+  TrajectoryStateOnSurface outTSOS = stateOnBound(freestate);
+
+  if ( innTSOS.isValid() && outTSOS.isValid() ) {
+    // at seed
+    TrajectoryStateOnSurface seedTSOS = extrapolator->extrapolate(*(outTSOS.freeState()), // with TSOS assert fails (not a real measurement)
+                                                                  GlobalPoint(el->superCluster()->seed()->position().x(),
+                                                                              el->superCluster()->seed()->position().y(),
+                                                                              el->superCluster()->seed()->position().z()));
+    if (!seedTSOS.isValid())
+      seedTSOS = outTSOS;
+
+    TrajectoryStateOnSurface sclTSOS = extrapolator->extrapolate(*(innTSOS.freeState()), // with TSOS assert fails (not a real measurement)
+                                                                 GlobalPoint(el->superCluster()->x(),
+                                                                             el->superCluster()->y(),
+                                                                             el->superCluster()->z()));
+    if (!sclTSOS.isValid())
+      sclTSOS = outTSOS;
+
+    GlobalPoint seedPos, sclPos;
+    multiTrajectoryStateMode::positionFromModeCartesian(seedTSOS,seedPos);
+    multiTrajectoryStateMode::positionFromModeCartesian(sclTSOS,sclPos);
+
+    EleRelPointPair scAtVtx(el->superCluster()->position(),sclPos,beamSpotHandle->position());
+    gsfvalues_[prefix+"_addGsf"].deltaEtaSuperClusterAtVtx = scAtVtx.dEta();
+    gsfvalues_[prefix+"_addGsf"].deltaPhiSuperClusterAtVtx = scAtVtx.dPhi();
+
+    EleRelPointPair seedAtCalo(el->superCluster()->seed()->position(),seedPos,beamSpotHandle->position());
+    gsfvalues_[prefix+"_addGsf"].deltaEtaSeedClusterAtCalo = seedAtCalo.dEta();
+    gsfvalues_[prefix+"_addGsf"].deltaPhiSeedClusterAtCalo = seedAtCalo.dPhi();
+
+    gsfvalues_[prefix+"_addGsf"].deltaEtaSeedClusterAtVtx = scAtVtx.dEta() - el->superCluster()->eta() + el->superCluster()->seed()->eta();
+  }
+
+  // Get Calo Geometry
+  edm::ESHandle<CaloGeometry> caloGeoHandle;
+  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  const CaloGeometry* caloGeom = caloGeoHandle.product();
+
+  // Get Calo Topology
+  edm::ESHandle<CaloTopology> caloTopoHandle;
+  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
+  const CaloTopology* caloTopo = caloTopoHandle.product();
+
+  auto searchClosestXtal = [&ecalRecHits,&caloGeom] (const float eta, const float phi) -> DetId {
+    float dR2 = std::numeric_limits<float>::max();
+    DetId candId = DetId(0);
+
+    for (auto& xtal : *ecalRecHits) {
+      const auto& xtalGeo = caloGeom->getGeometry(xtal.detid());
+      float candDR2 = reco::deltaR2(eta,phi,xtalGeo->etaPos(),xtalGeo->phiPos());
+
+      if (candDR2 < dR2) {
+        dR2 = candDR2;
+        candId = xtal.detid();
+      }
+    }
+
+    return candId;
+  };
+
+  const float eta1stGSF = -( el->deltaEtaSuperClusterTrackAtVtx() - el->superCluster()->eta() );
+  const float phi1stGSF = -( el->deltaPhiSuperClusterTrackAtVtx() - el->superCluster()->phi() );
+  const float eta2ndGSF = -( gsfvalues_[prefix+"_addGsf"].deltaEtaSuperClusterAtVtx - el->superCluster()->eta() );
+  const float phi2ndGSF = -( gsfvalues_[prefix+"_addGsf"].deltaPhiSuperClusterAtVtx - el->superCluster()->phi() );
+  const DetId xtal1st = searchClosestXtal(eta1stGSF,phi1stGSF);
+  const DetId xtal2nd = searchClosestXtal(eta2ndGSF,phi2ndGSF);
+
+  const CaloSubdetectorGeometry* subdetGeom = caloGeom->getSubdetectorGeometry(xtal1st);
+  auto matrix3x3of1stGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal1st, 1 );
+  auto matrix3x3of2ndGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal2nd, 1 );
+  std::vector<DetId> unionMatrix3x3(matrix3x3of1stGSF);
+  std::vector<std::pair<DetId,float>> hitFracUnion3x3;
+  double union3x3Energy = 0.;
+
+  for (auto& adetId : matrix3x3of2ndGSF) {
+    if ( std::find(unionMatrix3x3.begin(),unionMatrix3x3.end(),adetId)==unionMatrix3x3.end() )
+      unionMatrix3x3.push_back(adetId);
+  }
+
+  for (auto& hitFrac : el->superCluster()->seed()->hitsAndFractions()) {
+    if ( std::find(unionMatrix3x3.begin(),unionMatrix3x3.end(),hitFrac.first)!=unionMatrix3x3.end() ) {
+      hitFracUnion3x3.push_back(hitFrac);
+      union3x3Energy += noZS::EcalClusterTools::recHitEnergy(hitFrac.first,ecalRecHits)*hitFrac.second;
+    }
+  }
+
+  auto posUnion3x3Log = posCalcLog_.Calculate_Location(hitFracUnion3x3,ecalRecHits,subdetGeom);
+  auto posUnion3x3Linear = posCalcLinear_.Calculate_Location(hitFracUnion3x3,ecalRecHits,subdetGeom);
+
+  gsfvalues_[prefix+"_addGsf"].union3x3LogEta = posUnion3x3Log.eta();
+  gsfvalues_[prefix+"_addGsf"].union3x3LogPhi = posUnion3x3Log.phi();
+  gsfvalues_[prefix+"_addGsf"].union3x3LinearEta = posUnion3x3Linear.eta();
+  gsfvalues_[prefix+"_addGsf"].union3x3LinearPhi = posUnion3x3Linear.phi();
+  gsfvalues_[prefix+"_addGsf"].union3x3Energy = union3x3Energy;
 
   tree_[prefix+"_addGsfTree"]->Fill();
 }
