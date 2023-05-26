@@ -9,12 +9,12 @@
 #include "DataFormats/Common/interface/View.h"
 #include "DataFormats/Common/interface/Handle.h"
 
-#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
-#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedEleTkIsolFromCands.h"
+#include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedDEtaInSeed.h"
 
 #include <memory>
 #include <vector>
@@ -36,29 +36,26 @@ private:
   private:
     int data_;
   public:
-    DataFormat(int val):data_(val){}
-    bool tryAOD()const{return data_==AUTO || data_==AOD;}
-    bool tryMiniAOD()const{return data_==AUTO || data_==MINIAOD;}
-    int operator()()const{return data_;}
+    DataFormat(int val) : data_(val) {}
+    bool tryAOD() const { return data_==AUTO || data_==AOD; }
+    bool tryMiniAOD() const { return data_==AUTO || data_==MINIAOD; }
+    int operator()() const { return data_; }
   };
 
 public:
   explicit ModifiedHEEPIDValueMapProducer(const edm::ParameterSet&);
   ~ModifiedHEEPIDValueMapProducer() override;
 
-  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
 private:
   void produce(edm::Event&, const edm::EventSetup&) override;
 
   template<typename T>
   static void writeValueMap(edm::Event &iEvent,
-                            const edm::Handle<edm::View<reco::GsfElectron>>& handle,
+                            const edm::Handle<edm::View<pat::Electron>>& handle,
                             const std::vector<T> & values,
                             const std::string& label);
 
-  static float calTrkIso(const reco::GsfElectron& ele,
-                         const edm::View<reco::GsfElectron>& eles,
+  static float calTrkIso(const pat::Electron& ele,
                          const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& handles,
                          const reco::TrackBase& gsfTrk,
                          const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
@@ -158,32 +155,45 @@ private:
       return false;
   }
 
-  DualToken<edm::View<reco::GsfElectron>> eleToken_;
+  DualToken<edm::View<pat::Electron>> eleToken_;
   std::vector<DualToken<edm::View<pat::PackedCandidate>>> candTokens_;
   DualToken<edm::View<reco::GsfTrack>> gsfTrkToken_;
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
+  DualToken<EcalRecHitCollection> EBrecHitToken_;
+  DualToken<EcalRecHitCollection> EErecHitToken_;
 
   ModifiedEleTkIsolFromCands trkIsoCalc_;
   ModifiedEleTkIsolFromCands trkIso04Calc_;
+  ModifiedDEtaInSeed dEtaInSeedCalc_;
   bool makeTrkIso04_;
   DataFormat dataFormat_;
   std::vector<ModifiedEleTkIsolFromCands::PIDVeto> candVetosAOD_;
   std::vector<ModifiedEleTkIsolFromCands::PIDVeto> candVetosMiniAOD_;
+  const std::vector<edm::InputTag> candsTag_;
 
   const std::string eleTrkPtIsoLabel_ = "eleTrkPtIso";
   const std::string eleTrkPtIso04Label_ = "eleTrkPtIso04";
   const std::string eleAddGsfTrkLabel_ = "eleAddGsfTrk";
+  const std::string eleAddPackedCandLabel_ = "eleAddPackedCand";
+  const std::string modifiedDEtaInSeedLabel_ = "modifiedDEtaInSeed";
+  const std::string alphaTrackLabel_ = "alphaTrack";
+  const std::string alphaCaloLabel_ = "alphaCalo";
+  const std::string union5x5ratioDRlabel_ = "union5x5ratioDR";
 };
 
 ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::ParameterSet& iConfig) :
 trkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("trkIsoConfig")),
 trkIso04Calc_(iConfig.getParameter<edm::ParameterSet>("trkIso04Config")),
+dEtaInSeedCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
 makeTrkIso04_(iConfig.getParameter<bool>("makeTrkIso04")),
-dataFormat_(iConfig.getParameter<int>("dataFormat")) {
+dataFormat_(iConfig.getParameter<int>("dataFormat")),
+candsTag_(iConfig.getParameter<std::vector<edm::InputTag>>("candsMiniAOD")) {
   setToken(eleToken_,iConfig,"elesAOD","elesMiniAOD",dataFormat_);
   setToken(candTokens_,iConfig,"candsAOD","candsMiniAOD",dataFormat_);
   setToken(gsfTrkToken_,iConfig,"gsfTrksAOD","gsfTrksMiniAOD",dataFormat_);
   setToken(beamSpotToken_,iConfig,"beamSpot");
+  setToken(EBrecHitToken_,iConfig,"EBrecHitsAOD","EBrecHitsMiniAOD",dataFormat_);
+  setToken(EErecHitToken_,iConfig,"EErecHitsAOD","EErecHitsMiniAOD",dataFormat_);
 
   auto fillVetos = [] (const auto& in, auto& out) {
     std::transform(in.begin(),in.end(),std::back_inserter(out),ModifiedEleTkIsolFromCands::pidVetoFromStr);
@@ -200,11 +210,16 @@ dataFormat_(iConfig.getParameter<int>("dataFormat")) {
   }
 
   produces<edm::ValueMap<float> >(eleTrkPtIsoLabel_);
+  produces<edm::ValueMap<float> >(modifiedDEtaInSeedLabel_);
+  produces<edm::ValueMap<float> >(alphaTrackLabel_);
+  produces<edm::ValueMap<float> >(alphaCaloLabel_);
+  produces<edm::ValueMap<float> >(union5x5ratioDRlabel_);
 
   if (makeTrkIso04_)
     produces<edm::ValueMap<float> >(eleTrkPtIso04Label_);
 
   produces<edm::ValueMap<reco::GsfTrackRef>>(eleAddGsfTrkLabel_);
+  produces<edm::ValueMap<pat::PackedCandidateRef>>(eleAddPackedCandLabel_);
 }
 
 ModifiedHEEPIDValueMapProducer::~ModifiedHEEPIDValueMapProducer() {}
@@ -214,35 +229,65 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
   auto beamSpotHandle = getHandle(iEvent,beamSpotToken_);
   auto candHandles = getHandles(iEvent,candTokens_);
   auto gsfTrkHandle = getHandle(iEvent,gsfTrkToken_);
+  auto EBrecHitHandle = getHandle(iEvent,EBrecHitToken_);
+  auto EErecHitHandle = getHandle(iEvent,EErecHitToken_);
 
   bool isAOD = isEventAOD(iEvent,eleToken_);
   const auto& candVetos = isAOD ? candVetosAOD_ : candVetosMiniAOD_;
 
   std::vector<float> eleTrkPtIso;
   std::vector<float> eleTrkPtIso04;
+  std::vector<float> modifiedDEtaInSeed;
+  std::vector<float> alphaTrack;
+  std::vector<float> alphaCalo;
+  std::vector<float> union5x5ratioDR;
   std::vector<reco::GsfTrackRef> eleAddGsfTrk;
+  std::vector<pat::PackedCandidateRef> eleAddPackedCand;
 
   for (const auto& ele : *eleHandle) {
     const auto& additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(ele,gsfTrkHandle);
+    auto additionalCand = trkIsoCalc_.additionalPackedCandSelector(ele,candHandles,candVetos);
+    auto addTrk = reco::TrackBase(*additionalGsfTrk);
 
-    eleTrkPtIso.push_back(calTrkIso(ele,*eleHandle,candHandles,*additionalGsfTrk,candVetos,trkIsoCalc_));
+    if ( additionalCand.isNonnull() && ele.gsfTrack()==additionalGsfTrk )
+      addTrk = *(additionalCand->bestTrack());
+
+    auto modifiedDEtaInSeedVal = ModifiedDEtaInSeed::variables();
+
+    if ( ele.gsfTrack()!=additionalGsfTrk || additionalCand.isNonnull() )
+      modifiedDEtaInSeedVal = dEtaInSeedCalc_.value(ele,
+                                                    ele.isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
+                                                    addTrk,
+                                                    *beamSpotHandle,
+                                                    iSetup);
+
+    eleTrkPtIso.push_back(calTrkIso(ele,candHandles,addTrk,candVetos,trkIsoCalc_));
+    modifiedDEtaInSeed.push_back(modifiedDEtaInSeedVal.modifiedDEtaInSeed);
+    alphaTrack.push_back(modifiedDEtaInSeedVal.alphaTrack);
+    alphaCalo.push_back(modifiedDEtaInSeedVal.alphaCalo);
+    union5x5ratioDR.push_back(modifiedDEtaInSeedVal.union5x5ratioDR);
 
     if (makeTrkIso04_)
-      eleTrkPtIso04.push_back(calTrkIso(ele,*eleHandle,candHandles,*additionalGsfTrk,candVetos,trkIso04Calc_));
+      eleTrkPtIso04.push_back(calTrkIso(ele,candHandles,addTrk,candVetos,trkIso04Calc_));
 
     eleAddGsfTrk.push_back(additionalGsfTrk);
+    eleAddPackedCand.push_back(additionalCand);
   }
 
   writeValueMap(iEvent,eleHandle,eleTrkPtIso,eleTrkPtIsoLabel_);
+  writeValueMap(iEvent,eleHandle,modifiedDEtaInSeed,modifiedDEtaInSeedLabel_);
+  writeValueMap(iEvent,eleHandle,alphaTrack,alphaTrackLabel_);
+  writeValueMap(iEvent,eleHandle,alphaCalo,alphaCaloLabel_);
+  writeValueMap(iEvent,eleHandle,union5x5ratioDR,union5x5ratioDRlabel_);
 
   if (makeTrkIso04_)
     writeValueMap(iEvent,eleHandle,eleTrkPtIso04,eleTrkPtIso04Label_);
 
   writeValueMap(iEvent,eleHandle,eleAddGsfTrk,eleAddGsfTrkLabel_);
+  writeValueMap(iEvent,eleHandle,eleAddPackedCand,eleAddPackedCandLabel_);
 }
 
-float ModifiedHEEPIDValueMapProducer::calTrkIso(const reco::GsfElectron& ele,
-                                                const edm::View<reco::GsfElectron>& eles,
+float ModifiedHEEPIDValueMapProducer::calTrkIso(const pat::Electron& ele,
                                                 const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& handles,
                                                 const reco::TrackBase& addTrk,
                                                 const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
@@ -269,7 +314,7 @@ float ModifiedHEEPIDValueMapProducer::calTrkIso(const reco::GsfElectron& ele,
 
 template<typename T>
 void ModifiedHEEPIDValueMapProducer::writeValueMap(edm::Event& iEvent,
-                                                   const edm::Handle<edm::View<reco::GsfElectron>>& handle,
+                                                   const edm::Handle<edm::View<pat::Electron>>& handle,
                                                    const std::vector<T>& values,
                                                    const std::string& label) {
   std::unique_ptr<edm::ValueMap<T>> valMap(new edm::ValueMap<T>());
@@ -277,26 +322,6 @@ void ModifiedHEEPIDValueMapProducer::writeValueMap(edm::Event& iEvent,
   filler.insert(handle, values.begin(), values.end());
   filler.fill();
   iEvent.put(std::move(valMap),label);
-}
-
-void ModifiedHEEPIDValueMapProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
-  edm::ParameterSetDescription desc;
-  desc.add<edm::InputTag>("beamSpot",edm::InputTag("offlineBeamSpot"));
-  desc.add<std::vector<edm::InputTag> >("candsAOD",{edm::InputTag("packedCandidates")});
-  desc.add<std::vector<std::string> >("candVetosAOD",{"none"});
-  desc.add<edm::InputTag>("elesAOD",edm::InputTag("gedGsfElectrons"));
-  desc.add<edm::InputTag>("gsfTrksAOD",edm::InputTag("electronGsfTracks"));
-
-  desc.add<std::vector<edm::InputTag> >("candsMiniAOD",{edm::InputTag("packedCandidates")});
-  desc.add<std::vector<std::string> >("candVetosMiniAOD",{"none"});
-  desc.add<edm::InputTag>("elesMiniAOD",edm::InputTag("slimmedElectrons"));
-  desc.add<edm::InputTag>("gsfTrksMiniAOD",edm::InputTag("reducedEgamma:reducedGsfTracks"));
-  desc.add<int>("dataFormat",0);
-  desc.add<bool>("makeTrkIso04",false);
-  desc.add("trkIsoConfig",ModifiedEleTkIsolFromCands::pSetDescript());
-  desc.add("trkIso04Config",ModifiedEleTkIsolFromCands::pSetDescript());
-
-  descriptions.addDefault(desc);
 }
 
 DEFINE_FWK_MODULE(ModifiedHEEPIDValueMapProducer);

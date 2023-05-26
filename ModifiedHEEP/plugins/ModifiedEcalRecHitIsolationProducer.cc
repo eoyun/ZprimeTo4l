@@ -70,6 +70,7 @@ private:
   edm::EDGetTokenT<EcalRecHitCollection> ecalBarrelRecHitToken_;
   edm::EDGetTokenT<EcalRecHitCollection> ecalEndcapRecHitToken_;
   edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
+  edm::EDGetTokenT<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandToken_;
 
   double egIsoPtMinBarrel_; //minimum Et noise cut
   double egIsoEMinBarrel_;  //minimum E noise cut
@@ -111,6 +112,7 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   setToken(ecalBarrelRecHitToken_,config,"ecalBarrelRecHitCollection");
   setToken(ecalEndcapRecHitToken_,config,"ecalEndcapRecHitCollection");
   setToken(addGsfTrkToken_,config,"addGsfTrkMap");
+  setToken(addPackedCandToken_,config,"addPackedCandMap");
 
   // vetos
   egIsoPtMinBarrel_               = conf_.getParameter<double>("etMinBarrel");
@@ -146,7 +148,6 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   produces < edm::ValueMap<float> >("invertedEcalRecHitIso");
 }
 
-
 ModifiedEcalRecHitIsolationProducer::~ModifiedEcalRecHitIsolationProducer(){}
 
 //
@@ -157,12 +158,12 @@ ModifiedEcalRecHitIsolationProducer::~ModifiedEcalRecHitIsolationProducer(){}
 void
 ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  // Get the  filtered objects
+  // Get the filtered objects
   edm::Handle< edm::View<reco::GsfElectron> > emObjectHandle;
   iEvent.getByToken(emObjectToken_,emObjectHandle);
 
   // Next get Ecal hits barrel
-  edm::Handle<EcalRecHitCollection> ecalBarrelRecHitHandle; //EcalRecHitCollection is a typedef to
+  edm::Handle<EcalRecHitCollection> ecalBarrelRecHitHandle;
   iEvent.getByToken(ecalBarrelRecHitToken_, ecalBarrelRecHitHandle);
 
   // Next get Ecal hits endcap
@@ -171,6 +172,9 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
 
   edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkMap;
   iEvent.getByToken(addGsfTrkToken_, addGsfTrkMap);
+
+  edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandMap;
+  iEvent.getByToken(addPackedCandToken_, addPackedCandMap);
 
   edm::ESHandle<EcalSeverityLevelAlgo> sevlv;
   iSetup.get<EcalSeverityLevelAlgoRcd>().get(sevlv);
@@ -221,7 +225,7 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   ecalEndcapIsol.setUseNumCrystals(useNumCrystals_);
   ecalEndcapIsol.setVetoClustered(vetoClustered_);
 
-  for( size_t i = 0 ; i < emObjectHandle->size(); ++i) {
+  for(unsigned i = 0 ; i < emObjectHandle->size(); ++i) {
     //i need to know if its in the barrel/endcap so I get the supercluster handle to find out the detector eta
     //this might not be the best way, are we guaranteed that eta<1.5 is barrel
     //this can be safely replaced by another method which determines where the emobject is
@@ -231,23 +235,29 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
 
     reco::SuperClusterRef superClus = emObjectHandle->at(i).get<reco::SuperClusterRef>();
 
-    auto additionalGsfTrk = (*addGsfTrkMap)[emObjectHandle->ptrAt(i)];
+    const auto& aEle = emObjectHandle->refAt(i);
+    const auto& additionalGsfTrk = (*addGsfTrkMap)[aEle];
+    const auto& additionalCand = (*addPackedCandMap)[aEle];
+    auto addTrk = reco::TrackBase(*additionalGsfTrk);
+
+    if ( additionalGsfTrk==aEle->gsfTrack() && additionalCand.isNonnull() )
+      addTrk = reco::TrackBase(*(additionalCand->bestTrack()));
 
     if (tryBoth_) { //barrel + endcap
-      if (useIsolEt_) isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue) + ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
-      else            isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue) + ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
-    } else if ( fabs(superClus->eta())<1.479 ) { //barrel
-      if (useIsolEt_) isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
-      else            isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
+      if (useIsolEt_) isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue) + ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
+      else            isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue) + ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
+    } else if ( std::abs(superClus->eta()) < 1.479 ) { //barrel
+      if (useIsolEt_) isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
+      else            isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
     } else { //endcap
-      if (useIsolEt_) isoValue = ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
-      else            isoValue = ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),*(additionalGsfTrk.get()),invIsoValue);
+      if (useIsolEt_) isoValue = ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
+      else            isoValue = ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
     }
 
     // we subtract off the electron energy here as well
     double subtractVal=0;
 
-    if (useIsolEt_) subtractVal = superClus.get()->rawEnergy()*sin(2*atan(exp(-superClus.get()->eta())));
+    if (useIsolEt_) subtractVal = superClus.get()->rawEnergy()*std::sin(2*std::atan(std::exp(-superClus.get()->eta())));
     else            subtractVal = superClus.get()->rawEnergy();
 
     if (subtract_) isoValue -= subtractVal;

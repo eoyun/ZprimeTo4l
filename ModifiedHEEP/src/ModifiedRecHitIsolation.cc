@@ -28,6 +28,8 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 
@@ -77,10 +79,10 @@ float ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const 
   float energySum = 0.;
 
   if (!caloHits_.empty()) {
-    //Take the SC position
-    reco::SuperClusterRef sc = emObject->get<reco::SuperClusterRef>();
-    math::XYZPoint const& theCaloPosition = sc.get()->position();
-    GlobalPoint pclu( theCaloPosition.x (), theCaloPosition.y (), theCaloPosition.z () );
+    // Take the GSF track & SC position
+    const auto& sc = emObject->superCluster();
+    const math::XYZPoint& theCaloPosition = sc->position();
+    const GlobalPoint pclu( theCaloPosition.x (), theCaloPosition.y (), theCaloPosition.z () );
     float etaclus = pclu.eta();
     float phiclus = pclu.phi();
     float r2 = intRadius_*intRadius_;
@@ -112,23 +114,23 @@ float ModifiedRecHitIsolation::getSum_(const reco::GsfElectron* emObject, const 
           bool isNearGsf = false;
 
           if (useNumCrystals_) {
-            if (fabs(etaclus) < 1.479) { // Barrel num crystals, crystal width = 0.0174
-              if (fabs(etaDiff) < 0.0174*etaSlice_)
+            if (std::abs(etaclus) < 1.479) { // Barrel num crystals, crystal width = 0.0174
+              if (std::abs(etaDiff) < 0.0174*etaSlice_)
                 continue;
               if ((etaDiff*etaDiff + phiDiff*phiDiff) < 0.00030276*r2)
                 continue;
               if ( etaGSF2 + phiGSF2 < 0.00030276*r2_2nd || ( etaDiffGSF < 0.0174*etaSlice2nd_ && phiDiffGSF < extRadius_ ) )
                 isNearGsf = true;
             } else { // Endcap num crystals, crystal width = 0.00864*fabs(sinh(eta))
-              if (fabs(etaDiff) < 0.00864*fabs(sinh(eta))*etaSlice_)
+              if (std::abs(etaDiff) < 0.00864*std::abs(std::sinh(eta))*etaSlice_)
                 continue;
-              if ((etaDiff*etaDiff + phiDiff*phiDiff) < (0.000037325*(cosh(2*eta)-1)*r2))
+              if ((etaDiff*etaDiff + phiDiff*phiDiff) < (0.000037325*(std::cosh(2*eta)-1)*r2))
                 continue;
-              if ( etaGSF2 + phiGSF2 < (0.000037325*(cosh(2*eta)-1)*r2_2nd) || ( etaDiffGSF < 0.00864*fabs(sinh(eta))*etaSlice2nd_ && phiDiffGSF < extRadius_ ) )
+              if ( etaGSF2 + phiGSF2 < (0.000037325*(std::cosh(2*eta)-1)*r2_2nd) || ( etaDiffGSF < 0.00864*std::abs(std::sinh(eta))*etaSlice2nd_ && phiDiffGSF < extRadius_ ) )
                 isNearGsf = true;
             }
           } else {
-            if (fabs(etaDiff) < etaSlice_)
+            if (std::abs(etaDiff) < etaSlice_)
               continue; // jurassic strip cut
             if (etaDiff*etaDiff + phiDiff*phiDiff < r2)
               continue; // jurassic exclusion cone cut
@@ -228,23 +230,23 @@ float ModifiedRecHitIsolation::getSum_(const reco::SuperCluster* sc, const reco:
           bool isNearGsf = false;
 
           if (useNumCrystals_) {
-            if (fabs(etaclus) < 1.479) { // Barrel num crystals, crystal width = 0.0174
-              if (fabs(etaDiff) < 0.0174*etaSlice_)
+            if (std::abs(etaclus) < 1.479) { // Barrel num crystals, crystal width = 0.0174
+              if (std::abs(etaDiff) < 0.0174*etaSlice_)
                 continue;
               if ((etaDiff*etaDiff + phiDiff*phiDiff) < 0.00030276*r2)
                 continue;
               if ( etaGSF2 + phiGSF2 < 0.00030276*r2_2nd || ( etaDiffGSF < 0.0174*etaSlice2nd_ && phiDiffGSF < extRadius_ ) )
                 isNearGsf = true;
             } else { // Endcap num crystals, crystal width = 0.00864*fabs(sinh(eta))
-              if (fabs(etaDiff) < 0.00864*fabs(sinh(eta))*etaSlice_)
+              if (std::abs(etaDiff) < 0.00864*std::abs(std::sinh(eta))*etaSlice_)
                 continue;
-              if ((etaDiff*etaDiff + phiDiff*phiDiff) < (0.000037325*(cosh(2*eta)-1)*r2))
+              if ((etaDiff*etaDiff + phiDiff*phiDiff) < (0.000037325*(std::cosh(2*eta)-1)*r2))
                 continue;
-              if ( etaGSF2 + phiGSF2 < (0.000037325*(cosh(2*eta)-1)*r2_2nd) || ( etaDiffGSF < 0.00864*fabs(sinh(eta))*etaSlice2nd_ && phiDiffGSF < extRadius_ ) )
+              if ( etaGSF2 + phiGSF2 < (0.000037325*(std::cosh(2*eta)-1)*r2_2nd) || ( etaDiffGSF < 0.00864*std::abs(std::sinh(eta))*etaSlice2nd_ && phiDiffGSF < extRadius_ ) )
                 isNearGsf = true;
             }
           } else {
-            if (fabs(etaDiff) < etaSlice_)
+            if (std::abs(etaDiff) < etaSlice_)
               continue; // jurassic strip cut
             if (etaDiff*etaDiff + phiDiff*phiDiff < r2)
               continue; // jurassic exclusion cone cut

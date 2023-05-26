@@ -18,8 +18,9 @@ ModifiedEleTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
   minHits = para.getParameter<int>("minHits");
   minPixelHits = para.getParameter<int>("minPixelHits");
   maxDPtPt = para.getParameter<double>("maxDPtPt");
-  addGsfminPt = para.getParameter<double>("addGsfminPt");
-  addGsfDR2 = sq(para.getParameter<double>("addGsfDR2"));
+  addTrkMinPt = para.getParameter<double>("addTrkMinPt");
+  addTrkDR2 = sq(para.getParameter<double>("addTrkDR2"));
+  addTrkREguard = para.getParameter<double>("addTrkREguard");
 
   auto qualNames = para.getParameter<std::vector<std::string>>("allowedQualities");
   auto algoNames = para.getParameter<std::vector<std::string>>("algosToReject");
@@ -33,38 +34,10 @@ ModifiedEleTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
   std::sort(algosToReject.begin(),algosToReject.end());
 }
 
-edm::ParameterSetDescription ModifiedEleTkIsolFromCands::TrkCuts::pSetDescript() {
-  edm::ParameterSetDescription desc;
-  desc.add<double>("minPt",1.0);
-  desc.add<double>("maxDR",0.3);
-  desc.add<double>("minDR",0.000);
-  desc.add<double>("minDEta",0.005);
-  desc.add<double>("dEta2nd",0.005);
-  desc.add<double>("dPhi2nd",0.05);
-  desc.add<double>("maxDZ",0.1);
-  desc.add<double>("maxDPtPt",-1);
-  desc.add<double>("addGsfminPt",10.0);
-  desc.add<double>("addGsfDR2",0.4);
-  desc.add<int>("minHits",8);
-  desc.add<int>("minPixelHits",1);
-  desc.add<std::vector<std::string> >("allowedQualities");
-  desc.add<std::vector<std::string> >("algosToReject");
-
-  return desc;
-}
-
 ModifiedEleTkIsolFromCands::ModifiedEleTkIsolFromCands(const edm::ParameterSet& para):
   barrelCuts_(para.getParameter<edm::ParameterSet>("barrelCuts")),
   endcapCuts_(para.getParameter<edm::ParameterSet>("endcapCuts"))
 {}
-
-edm::ParameterSetDescription ModifiedEleTkIsolFromCands::pSetDescript() {
-  edm::ParameterSetDescription desc;
-  desc.add("barrelCuts",TrkCuts::pSetDescript());
-  desc.add("endcapCuts",TrkCuts::pSetDescript());
-
-  return desc;
-}
 
 double ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
                                            const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
@@ -173,11 +146,11 @@ bool ModifiedEleTkIsolFromCands::passTrkSel(const reco::TrackBase& trk,
   const float dEta = trk.eta()-eleEta;
   const float dZ = eleVZ - trk.vz();
 
-  return dR2>=cuts.minDR2 && dR2<=cuts.maxDR2 &&
-    std::abs(dEta)>=cuts.minDEta &&
-    std::abs(dZ)<cuts.maxDZ &&
+  return dR2 >= cuts.minDR2 && dR2 <= cuts.maxDR2 &&
+    std::abs(dEta) >= cuts.minDEta &&
+    std::abs(dZ) < cuts.maxDZ &&
     trk.hitPattern().numberOfValidHits() >= cuts.minHits &&
-    trk.hitPattern().numberOfValidPixelHits() >=cuts.minPixelHits &&
+    trk.hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits &&
     (trk.ptError()/trkPt < cuts.maxDPtPt || cuts.maxDPtPt<0) &&
     passQual(trk,cuts.allowedQualities) &&
     passAlgo(trk,cuts.algosToReject) &&
@@ -190,13 +163,29 @@ bool ModifiedEleTkIsolFromCands::additionalTrkSel(const reco::TrackBase& addTrk,
   const float dR2 = reco::deltaR2(eleTrk.eta(),eleTrk.phi(),addTrk.eta(),addTrk.phi());
   const float dZ = eleTrk.vz() - addTrk.vz();
 
-  return dR2 <= cuts.addGsfDR2 &&
+  return dR2 <= cuts.addTrkDR2 &&
     std::abs(dZ) < cuts.maxDZ &&
     addTrk.hitPattern().numberOfValidHits() >= cuts.minHits &&
     addTrk.hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits &&
     passQual(addTrk,cuts.allowedQualities) &&
     passAlgo(addTrk,cuts.algosToReject) &&
-    addTrk.pt() > cuts.addGsfminPt;
+    addTrk.pt() > cuts.addTrkMinPt;
+}
+
+bool ModifiedEleTkIsolFromCands::additionalTrkSel(const edm::RefToBase<pat::PackedCandidate>& cand,
+                                                  const reco::TrackBase& eleTrk,
+                                                  const TrkCuts& cuts) {
+  const reco::Track* addTrk = cand->bestTrack();
+  const float dR2 = reco::deltaR2(eleTrk.eta(),eleTrk.phi(),addTrk->eta(),addTrk->phi());
+  const float dZ = eleTrk.vz() - addTrk->vz();
+
+  return dR2 <= cuts.addTrkDR2 &&
+    std::abs(dZ) < cuts.maxDZ &&
+    addTrk->hitPattern().numberOfValidHits() >= cuts.minHits &&
+    addTrk->hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits &&
+    cand->trackHighPurity() &&
+    passAlgo(*addTrk,cuts.algosToReject) &&
+    addTrk->pt() > cuts.addTrkMinPt;
 }
 
 const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks) {
@@ -211,7 +200,7 @@ const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(con
     if ( trkRef==eleTrk )
       continue;
 
-    const ModifiedEleTkIsolFromCands::TrkCuts& cuts = std::abs(trkRef->eta())<1.5 ? barrelCuts_ : endcapCuts_;
+    const ModifiedEleTkIsolFromCands::TrkCuts& cuts = std::abs(trkRef->eta()) < 1.5 ? barrelCuts_ : endcapCuts_;
 
     if ( additionalTrkSel(*trkRef,*eleTrk,cuts) )
       additionalGsfTrks.push_back(trkRef);
@@ -223,6 +212,58 @@ const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(con
     return eleTrk;
 
   return additionalGsfTrks.front();
+}
+
+const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSelector(const pat::Electron& ele,
+                                                                                       const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
+                                                                                       const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& candVetos) {
+  std::vector<pat::PackedCandidateRef> additionalCands;
+
+  for (unsigned iHandle = 0; iHandle < cands.size(); iHandle++) {
+    const auto& ahandle = cands.at(iHandle);
+    const auto& pidVeto = candVetos.at(iHandle);
+
+    for (unsigned icand = 0; icand < ahandle->size(); icand++) {
+      const auto& acand = ahandle->refAt(icand);
+
+      if ( !acand->hasTrackDetails() )
+        continue;
+
+      if ( !passPIDVeto(acand->pdgId(),pidVeto) )
+        continue;
+
+      if (pidVeto!=PIDVeto::NONE) {
+        // skip PF electron candidates & electron CTF tracks since we use GSF tracks instead of them
+        // essentially reject all lostTracks:eleTracks products
+        if ( std::abs(acand->pdgId())==11 )
+          continue;
+      }
+
+      const reco::Track* atrack = acand->bestTrack();
+      const ModifiedEleTkIsolFromCands::TrkCuts& cuts = std::abs(atrack->eta()) < 1.5 ? barrelCuts_ : endcapCuts_;
+
+      // avoid double-counting of the closest CTF track
+      // note the rounding error due to the compression of packedPFCandidates
+      if ( ele.closestCtfTrackRef().isNonnull() &&
+           std::abs( atrack->eta() - ele.closestCtfTrackRef()->eta() ) < cuts.addTrkREguard &&
+           std::abs( atrack->phi() - ele.closestCtfTrackRef()->phi() ) < cuts.addTrkREguard )
+        continue;
+
+      if ( additionalTrkSel(acand,*(ele.gsfTrack()),cuts) )
+        additionalCands.push_back(acand.castTo<pat::PackedCandidateRef>());
+    }
+  }
+
+  if (additionalCands.empty())
+    return pat::PackedCandidateRef();
+
+  auto sortByTrackPt = [] (const pat::PackedCandidateRef& acand, const pat::PackedCandidateRef& bcand) {
+    return acand->bestTrack()->pt() > bcand->bestTrack()->pt();
+  };
+
+  std::sort(additionalCands.begin(), additionalCands.end(), sortByTrackPt);
+
+  return additionalCands.front();
 }
 
 bool ModifiedEleTkIsolFromCands::passQual(const reco::TrackBase& trk,

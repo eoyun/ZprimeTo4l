@@ -1,5 +1,6 @@
 #include "PhysicsTools/SelectorUtils/interface/CutApplicatorWithEventContentBase.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "RecoEgamma/ElectronIdentification/interface/EBEECutValues.h"
 
@@ -20,7 +21,8 @@ private:
   EBEECutValues minE1x5OverE5x5Cut_;
   EBEECutValues minE2x5OverE5x5Cut_;
   EBEECutValuesInt maxNrSatCrysIn5x5Cut_;
-  edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addTrkHandle_;
+  edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkHandle_;
+  edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandHandle_;
 };
 
 DEFINE_EDM_PLUGIN(CutApplicatorFactory,
@@ -33,21 +35,24 @@ GsfEleModifiedFull5x5E2x5OverE5x5WithSatCut::GsfEleModifiedFull5x5E2x5OverE5x5Wi
   minE2x5OverE5x5Cut_(params,"minE2x5OverE5x5"),
   maxNrSatCrysIn5x5Cut_(params,"maxNrSatCrysIn5x5")
 {
-  contentTags_.emplace("addTrkRef",params.getParameter<edm::InputTag>("addTrkRef"));
+  contentTags_.emplace("addGsfTrk",params.getParameter<edm::InputTag>("addGsfTrk"));
+  contentTags_.emplace("addPackedCand",params.getParameter<edm::InputTag>("addPackedCand"));
 }
 
 void GsfEleModifiedFull5x5E2x5OverE5x5WithSatCut::setConsumes(edm::ConsumesCollector& cc) {
-  contentTokens_.emplace("addTrkRef",cc.consumes<edm::ValueMap<reco::GsfTrackRef>>(contentTags_["addTrkRef"]));
+  contentTokens_.emplace("addGsfTrk",cc.consumes<edm::ValueMap<reco::GsfTrackRef>>(contentTags_["addGsfTrk"]));
+  contentTokens_.emplace("addPackedCand",cc.consumes<edm::ValueMap<pat::PackedCandidateRef>>(contentTags_["addPackedCand"]));
 }
 
 void GsfEleModifiedFull5x5E2x5OverE5x5WithSatCut::getEventContent(const edm::EventBase& ev) {
-  ev.getByLabel(contentTags_["addTrkRef"],addTrkHandle_);
+  ev.getByLabel(contentTags_["addGsfTrk"],addGsfTrkHandle_);
+  ev.getByLabel(contentTags_["addPackedCand"],addPackedCandHandle_);
 }
 
 CutApplicatorBase::result_type GsfEleModifiedFull5x5E2x5OverE5x5WithSatCut::operator() (const reco::GsfElectronPtr& cand) const {
-  bool has2ndGsf = (*addTrkHandle_)[cand]!=cand->gsfTrack();
+  const bool has2ndTrk = (*addGsfTrkHandle_)[cand]!=cand->gsfTrack() || (*addPackedCandHandle_)[cand].isNonnull();
 
-  if (has2ndGsf)
+  if (has2ndTrk)
     return true;
 
   if ( cand->nSaturatedXtals()>maxNrSatCrysIn5x5Cut_(cand) )

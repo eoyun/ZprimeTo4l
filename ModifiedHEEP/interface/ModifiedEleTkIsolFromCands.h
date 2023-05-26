@@ -6,10 +6,11 @@
 
 #include "DataFormats/TrackReco/interface/TrackBase.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
-#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 
 //author S. Harper (RAL)
 //this class does a simple calculation of the track isolation for a track with eta,
@@ -47,7 +48,7 @@
 
 class ModifiedEleTkIsolFromCands {
 public:
-  enum class PIDVeto{
+  enum class PIDVeto {
     NONE=0,
     ELES,
     NONELES,
@@ -64,8 +65,9 @@ public:
     float minHits;
     float minPixelHits;
     float maxDPtPt;
-    float addGsfminPt;
-    float addGsfDR2;
+    float addTrkMinPt;
+    float addTrkDR2;
+    float addTrkREguard;
     std::vector<reco::TrackBase::TrackQuality> allowedQualities;
     std::vector<reco::TrackBase::TrackAlgorithm> algosToReject;
     explicit TrkCuts(const edm::ParameterSet& para);
@@ -78,8 +80,6 @@ public:
   ModifiedEleTkIsolFromCands(const ModifiedEleTkIsolFromCands&)=default;
   ~ModifiedEleTkIsolFromCands()=default;
   ModifiedEleTkIsolFromCands& operator=(const ModifiedEleTkIsolFromCands&)=default;
-
-  static edm::ParameterSetDescription pSetDescript();
 
   double calIsol(const reco::TrackBase& trk,
                  const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
@@ -109,8 +109,14 @@ public:
   bool additionalTrkSel(const reco::TrackBase& addTrk,
                         const reco::TrackBase& eleTrk,
                         const TrkCuts& cuts);
+  bool additionalTrkSel(const edm::RefToBase<pat::PackedCandidate>& cand,
+                        const reco::TrackBase& eleTrk,
+                        const TrkCuts& cuts);
 
   const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks);
+  const pat::PackedCandidateRef additionalPackedCandSelector(const pat::Electron& ele,
+                                                             const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
+                                                             const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& candVetos);
 
 private:
   static bool passTrkSel(const reco::TrackBase& trk,

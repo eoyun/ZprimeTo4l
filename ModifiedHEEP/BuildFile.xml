@@ -1,8 +1,6 @@
 <use name="FWCore/Framework"/>
 <use name="FWCore/PluginManager"/>
 <use name="FWCore/ParameterSet"/>
-<use name="Geometry/CaloGeometry"/>
-<use name="Geometry/CaloTopology"/>
 <use name="DataFormats/Candidate"/>
 <use name="DataFormats/CaloTowers"/>
 <use name="DataFormats/RecoCandidate"/>
@@ -13,11 +11,17 @@
 <use name="DataFormats/EgammaReco"/>
 <use name="CondFormats/EcalObjects"/>
 <use name="CondFormats/DataRecord"/>
+<use name="Geometry/CaloGeometry"/>
+<use name="Geometry/CaloTopology"/>
+<use name="Geometry/TrackerGeometryBuilder"/>
 <use name="PhysicsTools/SelectorUtils"/>
 <use name="RecoEgamma/EgammaTools"/>
 <use name="RecoEgamma/EgammaIsolationAlgos"/>
 <use name="RecoLocalCalo/EcalRecAlgos"/>
-<use name="CommonTools/Statistics"/>
+<use name="RecoTracker/Record"/>
+<use name="RecoTracker/TkDetLayers"/>
+<use name="TrackingTools/TransientTrack"/>
+<use name="TrackingTools/Records"/>
 <export>
   <lib name="1"/>
 </export>

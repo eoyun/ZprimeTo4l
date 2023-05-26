@@ -38,6 +38,8 @@ def psetGsfModifiedEleEmHadD1IsoRhoCut(wpEB, wpEE, energyType="EcalTrk"):
         rhoConstant = cms.double( wpEB.effAreaForEHIso ), # expected to be the same for EB and EE
         rho = cms.InputTag("fixedGridRhoFastjetAll"),
         value = cms.InputTag("ModifiedEcalRecHitIsolationScone","EcalRecHitIso"),
+        addGsfTrk = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
+        addPackedCand = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddPackedCand"),
         needsAdditionalProducts = cms.bool(True),
         isIgnored = cms.bool(False)
         )
@@ -47,21 +49,11 @@ def psetGsfModifiedEleDEtaInSeedCut(wpEB, wpEE):
         cutName = cms.string('GsfEleModifiedDEtaInSeedCut'),
         dEtaInSeedCutValueEB = cms.double( wpEB.dEtaInSeedCut ),
         dEtaInSeedCutValueEE = cms.double( wpEE.dEtaInSeedCut ),
+        modifiedDEtaInSeedCutValueEB = cms.double( 0.001 ),
         barrelCutOff = cms.double( 1.479 ),
-        addTrkRef = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
-        needsAdditionalProducts = cms.bool(True),
-        isIgnored = cms.bool(False)
-        )
-
-
-def psetGsfModifiedEleFull5x5SigmaIEtaIEtaWithSatCut(wpEB, wpEE):
-    return cms.PSet(
-        cutName = cms.string('GsfEleModifiedFull5x5SigmaIEtaIEtaWithSatCut'),
-        maxSigmaIEtaIEtaEB = cms.double( wpEB.full5x5SigmaIEtaIEtaCut ),
-        maxSigmaIEtaIEtaEE = cms.double( wpEE.full5x5SigmaIEtaIEtaCut ),
-        maxNrSatCrysIn5x5EB =cms.int32( 0 ),
-        maxNrSatCrysIn5x5EE =cms.int32( 0 ),
-        addTrkRef = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
+        addGsfTrk = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
+        addPackedCand = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddPackedCand"),
+        modifiedDEtaInSeed = cms.InputTag("ModifiedHEEPIDVarValueMaps","modifiedDEtaInSeed"),
         needsAdditionalProducts = cms.bool(True),
         isIgnored = cms.bool(False)
         )
@@ -77,7 +69,8 @@ def psetGsfModifiedEleFull5x5E2x5OverE5x5WithSatCut(wpEB, wpEE):
         minE2x5OverE5x5EE = cms.double( wpEE.minE2x5OverE5x5Cut ),
         maxNrSatCrysIn5x5EB =cms.int32( 0 ),
         maxNrSatCrysIn5x5EE =cms.int32( 0 ),
-        addTrkRef = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
+        addGsfTrk = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
+        addPackedCand = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddPackedCand"),
         needsAdditionalProducts = cms.bool(True),
         isIgnored = cms.bool(False)
         )
@@ -90,7 +83,7 @@ def configureModifiedHEEPElectronID(idName, wpEB, wpEE):
             psetGsfEleSCEtaMultiRangeCut(),               #1
             psetGsfModifiedEleDEtaInSeedCut(wpEB,wpEE),   #2
             psetGsfEleDPhiInCut(wpEB,wpEE),               #3
-            psetGsfModifiedEleFull5x5SigmaIEtaIEtaWithSatCut(wpEB,wpEE), #4
+            psetGsfEleFull5x5SigmaIEtaIEtaWithSatCut(wpEB,wpEE), #4
             psetGsfModifiedEleFull5x5E2x5OverE5x5WithSatCut(wpEB,wpEE),  #5
             psetGsfEleHadronicOverEMLinearCut(wpEB,wpEE), #6
             psetGsfModifiedEleTrkPtIsoCut(wpEB,wpEE),     #7
