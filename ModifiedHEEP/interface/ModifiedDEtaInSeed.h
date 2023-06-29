@@ -18,6 +18,12 @@ public:
       alphaCalo(std::numeric_limits<float>::max()),
       union5x5ratioDR(std::numeric_limits<float>::max()) {}
 
+    variables(const double alCalo)
+    : modifiedDEtaInSeed(std::numeric_limits<float>::max()),
+      alphaTrack(std::numeric_limits<float>::max()),
+      alphaCalo(alCalo),
+      union5x5ratioDR(std::numeric_limits<float>::max()) {}
+
     variables(const double dEta, const double alTrk, const double alCalo, const double ratioDR)
     : modifiedDEtaInSeed(dEta),
       alphaTrack(alTrk),
@@ -29,6 +35,9 @@ public:
     double alphaCalo;
     double union5x5ratioDR;
   };
+
+  variables value(const reco::GsfElectron& aEle,
+                  const EcalRecHitCollection* ecalRecHits);
 
   variables value(const reco::GsfElectron& aEle,
                   const EcalRecHitCollection* ecalRecHits,

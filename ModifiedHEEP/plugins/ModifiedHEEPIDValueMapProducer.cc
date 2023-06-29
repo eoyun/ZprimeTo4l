@@ -260,6 +260,8 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
                                                     addTrk,
                                                     *beamSpotHandle,
                                                     iSetup);
+    else
+      modifiedDEtaInSeedVal = dEtaInSeedCalc_.value(ele, ele.isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle));
 
     eleTrkPtIso.push_back(calTrkIso(ele,candHandles,addTrk,candVetos,trkIsoCalc_));
     modifiedDEtaInSeed.push_back(modifiedDEtaInSeedVal.modifiedDEtaInSeed);

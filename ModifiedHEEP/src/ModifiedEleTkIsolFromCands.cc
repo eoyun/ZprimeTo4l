@@ -245,8 +245,8 @@ const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSe
       // avoid double-counting of the closest CTF track
       // note the rounding error due to the compression of packedPFCandidates
       if ( ele.closestCtfTrackRef().isNonnull() &&
-           std::abs( atrack->eta() - ele.closestCtfTrackRef()->eta() ) < cuts.addTrkREguard &&
-           std::abs( atrack->phi() - ele.closestCtfTrackRef()->phi() ) < cuts.addTrkREguard )
+           reco::deltaR2( atrack->eta(), atrack->phi(),
+                          ele.closestCtfTrackRef()->eta(), ele.closestCtfTrackRef()->phi() ) < cuts.addTrkREguard*cuts.addTrkREguard )
         continue;
 
       if ( additionalTrkSel(acand,*(ele.gsfTrack()),cuts) )

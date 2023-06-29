@@ -31,6 +31,24 @@ ModifiedDEtaInSeed::ModifiedDEtaInSeed(PositionCalc calc) :
   posCalcLog_(calc) {}
 
 ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron& aEle,
+                                                        const EcalRecHitCollection* ecalRecHits) {
+  // estimate alpha calo
+  std::vector<std::pair<const EcalRecHit*,float>> recHitsAndFractions;
+
+  for (auto& xtal : aEle.superCluster()->hitsAndFractions()) {
+    EcalRecHitCollection::const_iterator aRecHit = ecalRecHits->find(xtal.first);
+
+    if ( aRecHit!=ecalRecHits->end() )
+      recHitsAndFractions.push_back( std::make_pair(&(*aRecHit),xtal.second) );
+  }
+
+  auto cluster2ndMoments = noZS::EcalClusterTools::cluster2ndMoments(recHitsAndFractions,1.0);
+  const double alphaCalo = cluster2ndMoments.alpha;
+
+  return variables(alphaCalo);
+}
+
+ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron& aEle,
                                                         const EcalRecHitCollection* ecalRecHits,
                                                         const reco::TrackBase& addTrk,
                                                         const reco::BeamSpot& beamSpot,
@@ -128,8 +146,21 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
     return candId;
   };
 
+  // estimate alpha calo
+  std::vector<std::pair<const EcalRecHit*,float>> recHitsAndFractions;
+
+  for (auto& xtal : aEle.superCluster()->hitsAndFractions()) {
+    EcalRecHitCollection::const_iterator aRecHit = ecalRecHits->find(xtal.first);
+
+    if ( aRecHit!=ecalRecHits->end() )
+      recHitsAndFractions.push_back( std::make_pair(&(*aRecHit),xtal.second) );
+  }
+
+  auto cluster2ndMoments = noZS::EcalClusterTools::cluster2ndMoments(recHitsAndFractions,1.0);
+  const double alphaCalo = cluster2ndMoments.alpha;
+
   if ( dEtaInSeed2nd==std::numeric_limits<float>::max() || dPhiInSC2nd==std::numeric_limits<float>::max() )
-    return variables();
+    return variables(alphaCalo);
 
   const float eta1stGSF = -( aEle.deltaEtaSeedClusterTrackAtVtx() - aEle.superCluster()->seed()->eta() );
   const float phi1stGSF = -( aEle.deltaPhiSuperClusterTrackAtVtx() - aEle.superCluster()->phi() );
@@ -139,7 +170,7 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
   const DetId xtal2nd = searchClosestXtal(eta2ndGSF,phi2ndGSF);
 
   if ( xtal1st==DetId(0) || xtal2nd==DetId(0) )
-    return variables();
+    return variables(alphaCalo);
 
   const CaloSubdetectorGeometry* subdetGeom = caloGeom->getSubdetectorGeometry(xtal1st);
   auto matrix3x3of1stGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal1st, 1 );
@@ -159,19 +190,6 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
 
   auto posUnion3x3Log = posCalcLog_.Calculate_Location(hitFracUnion3x3,ecalRecHits,subdetGeom);
   const double modifiedDEtaInSeed = aEle.superCluster()->seed()->eta() - posUnion3x3Log.eta();
-
-  // estimate alpha calo
-  std::vector<std::pair<const EcalRecHit*,float>> recHitsAndFractions;
-
-  for (auto& xtal : aEle.superCluster()->hitsAndFractions()) {
-    EcalRecHitCollection::const_iterator aRecHit = ecalRecHits->find(xtal.first);
-
-    if ( aRecHit!=ecalRecHits->end() )
-      recHitsAndFractions.push_back( std::make_pair(&(*aRecHit),xtal.second) );
-  }
-
-  auto cluster2ndMoments = noZS::EcalClusterTools::cluster2ndMoments(recHitsAndFractions,1.0);
-  const double alphaCalo = cluster2ndMoments.alpha;
 
   // estimate alpha track
   const float dEtaCalo = eta2ndGSF - eta1stGSF;
