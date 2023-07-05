@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process('ResolvedEleCRanalysis')
+process = cms.Process('ResolvedEMuCRanalysis')
 
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -13,7 +13,9 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:MiniAOD.root'),
+    fileNames = cms.untracked.vstring(
+        'file:MiniAOD.root'
+    ),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -26,7 +28,7 @@ process.TFileService = cms.Service("TFileService",
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-process.GlobalTag.globaltag = cms.string("106X_dataRun2_v35")
+process.GlobalTag.globaltag = cms.string("106X_mcRun2_asymptotic_v17")
 
 runVIDmodules = [
     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff',
@@ -47,14 +49,10 @@ process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
 process.load("ZprimeTo4l.MergedLepton.MergedLeptonIDProducer_cfi")
+process.load("ZprimeTo4l.Analysis.ResolvedEMuCRanalyzer_cfi")
 
 process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone(
     elesMiniAOD=cms.InputTag("slimmedElectrons")
-)
-
-from ZprimeTo4l.Analysis.ResolvedEleCRanalyzer_cfi import resolvedEleCRanalyzer
-process.resolvedEleCRanalyzerData = resolvedEleCRanalyzer.clone(
-    isMC = cms.untracked.bool(False)
 )
 
 process.evtCounter = cms.EDAnalyzer('SimpleEventCounter')
@@ -62,8 +60,11 @@ process.evtCounter.isMC = cms.bool(True)
 
 from HLTrigger.HLTfilters.hltHighLevel_cfi import hltHighLevel
 process.hltFilter = hltHighLevel.clone()
-process.hltFilter.throw = cms.bool(False)
-process.hltFilter.HLTPaths = cms.vstring("HLT_DoubleEle33_CaloIdL_MW_v*","HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*")
+process.hltFilter.throw = cms.bool(True)
+process.hltFilter.HLTPaths = cms.vstring(
+    "HLT_Mu50_v*",
+    "HLT_TkMu50_v*"
+)
 process.hltFilter.TriggerResultsTag = cms.InputTag("TriggerResults","","HLT")
 
 process.p = cms.Path(
@@ -74,7 +75,7 @@ process.p = cms.Path(
     process.mergedLeptonIDProducer+
     process.egammaPostRecoSeq+
     process.modifiedHEEPIDVarValueMaps2nd+ # need to run it again since refs in ValueMap are broken
-    process.resolvedEleCRanalyzerData
+    process.resolvedEMuCRanalyzer
 )
 
 # Automatic addition of the customisation function from Configuration.DataProcessing.Utils

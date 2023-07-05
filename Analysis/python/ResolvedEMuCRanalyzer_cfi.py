@@ -1,26 +1,25 @@
 import FWCore.ParameterSet.Config as cms
 
-mergedMuCRanalyzer = cms.EDAnalyzer("MergedMuCRanalyzer",
+resolvedEMuCRanalyzer = cms.EDAnalyzer("ResolvedEMuCRanalyzer",
   isMC = cms.untracked.bool(True),
+  generator = cms.InputTag("generator"),
+  triggerResults = cms.InputTag("TriggerResults","","HLT"),
+  srcEle = cms.InputTag("slimmedElectrons"),
   srcMuon = cms.InputTag("slimmedMuons"),
   srcPv = cms.InputTag("offlineSlimmedPrimaryVertices"),
-  generator = cms.InputTag("generator"),
   genptc = cms.InputTag("prunedGenParticles"),
-  triggerResults = cms.InputTag("TriggerResults","","HLT"),
-  triggerObjects = cms.InputTag("slimmedPatTrigger"),
-  METfilters = cms.InputTag("TriggerResults","","PAT"),
   pileupSummary = cms.InputTag("slimmedAddPileupInfo"),
-  srcMET = cms.InputTag("slimmedMETsPuppi"),
-  beamSpot = cms.InputTag("offlineBeamSpot"),
+  triggerObjects = cms.InputTag("slimmedPatTrigger"),
+  trigList = cms.vstring(
+    "HLT_Mu50_v*",
+    "HLT_TkMu50_v*"
+  ),
   rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2016bUL.txt"),
   triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root"),
   trigHistName = cms.string("NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL16.root"),
-  ptThres = cms.double(50.),
-  ptMuThres = cms.double(20.),
-  drThres = cms.double(0.3),
-  ratioBarrelDn = cms.double(0.5),
-  ratioBarrelUp = cms.double(1.5),
-  ratioEndcapDn = cms.double(0.5),
-  ratioEndcapUp = cms.double(1.5)
+  RMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/RMFF_20UL16.root"),
+  REFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/REFF_20UL16.root"),
+  ptThresTrig = cms.double(52.),
+  ptThres = cms.double(20.)
 )
