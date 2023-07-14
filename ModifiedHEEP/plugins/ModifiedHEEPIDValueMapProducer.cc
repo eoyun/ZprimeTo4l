@@ -15,6 +15,7 @@
 
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedEleTkIsolFromCands.h"
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedDEtaInSeed.h"
+#include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedShowerShape.h"
 
 #include <memory>
 #include <vector>
@@ -165,6 +166,7 @@ private:
   ModifiedEleTkIsolFromCands trkIsoCalc_;
   ModifiedEleTkIsolFromCands trkIso04Calc_;
   ModifiedDEtaInSeed dEtaInSeedCalc_;
+  ModifiedShowerShape showerShapeCalc_;
   bool makeTrkIso04_;
   DataFormat dataFormat_;
   std::vector<ModifiedEleTkIsolFromCands::PIDVeto> candVetosAOD_;
@@ -175,16 +177,25 @@ private:
   const std::string eleTrkPtIso04Label_ = "eleTrkPtIso04";
   const std::string eleAddGsfTrkLabel_ = "eleAddGsfTrk";
   const std::string eleAddPackedCandLabel_ = "eleAddPackedCand";
-  const std::string modifiedDEtaInSeedLabel_ = "modifiedDEtaInSeed";
+  const std::string dPerpInLabel_ = "dPerpIn";
+  const std::string dEtaInSeed2ndLabel_ = "dEtaInSeed2nd";
+  const std::string dPhiInSC2ndLabel_ = "dPhiInSC2nd";
   const std::string alphaTrackLabel_ = "alphaTrack";
   const std::string alphaCaloLabel_ = "alphaCalo";
-  const std::string union5x5ratioDRlabel_ = "union5x5ratioDR";
+  const std::string normDParaInLabel_ = "normalizedDParaIn";
+  const std::string union5x5covIeIeLabel_ = "union5x5covIeIe";
+  const std::string union5x5covIeIpLabel_ = "union5x5covIeIp";
+  const std::string union5x5covIpIpLabel_ = "union5x5covIpIp";
+  const std::string union5x5dEtaInLabel_ = "union5x5dEtaIn";
+  const std::string union5x5dPhiInLabel_ = "union5x5dPhiIn";
+  const std::string union5x5EnergyLabel_ = "union5x5Energy";
 };
 
 ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::ParameterSet& iConfig) :
 trkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("trkIsoConfig")),
 trkIso04Calc_(iConfig.getParameter<edm::ParameterSet>("trkIso04Config")),
 dEtaInSeedCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
+showerShapeCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
 makeTrkIso04_(iConfig.getParameter<bool>("makeTrkIso04")),
 dataFormat_(iConfig.getParameter<int>("dataFormat")),
 candsTag_(iConfig.getParameter<std::vector<edm::InputTag>>("candsMiniAOD")) {
@@ -210,10 +221,18 @@ candsTag_(iConfig.getParameter<std::vector<edm::InputTag>>("candsMiniAOD")) {
   }
 
   produces<edm::ValueMap<float> >(eleTrkPtIsoLabel_);
-  produces<edm::ValueMap<float> >(modifiedDEtaInSeedLabel_);
+  produces<edm::ValueMap<float> >(dPerpInLabel_);
+  produces<edm::ValueMap<float> >(dEtaInSeed2ndLabel_);
+  produces<edm::ValueMap<float> >(dPhiInSC2ndLabel_);
   produces<edm::ValueMap<float> >(alphaTrackLabel_);
   produces<edm::ValueMap<float> >(alphaCaloLabel_);
-  produces<edm::ValueMap<float> >(union5x5ratioDRlabel_);
+  produces<edm::ValueMap<float> >(normDParaInLabel_);
+  produces<edm::ValueMap<float> >(union5x5covIeIeLabel_);
+  produces<edm::ValueMap<float> >(union5x5covIeIpLabel_);
+  produces<edm::ValueMap<float> >(union5x5covIpIpLabel_);
+  produces<edm::ValueMap<float> >(union5x5dEtaInLabel_);
+  produces<edm::ValueMap<float> >(union5x5dPhiInLabel_);
+  produces<edm::ValueMap<float> >(union5x5EnergyLabel_);
 
   if (makeTrkIso04_)
     produces<edm::ValueMap<float> >(eleTrkPtIso04Label_);
@@ -237,37 +256,62 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
 
   std::vector<float> eleTrkPtIso;
   std::vector<float> eleTrkPtIso04;
-  std::vector<float> modifiedDEtaInSeed;
+  std::vector<float> dPerpIn;
+  std::vector<float> dEtaInSeed2nd;
+  std::vector<float> dPhiInSC2nd;
   std::vector<float> alphaTrack;
   std::vector<float> alphaCalo;
-  std::vector<float> union5x5ratioDR;
+  std::vector<float> normDParaIn;
+  std::vector<float> union5x5covIeIe;
+  std::vector<float> union5x5covIeIp;
+  std::vector<float> union5x5covIpIp;
+  std::vector<float> union5x5dEtaIn;
+  std::vector<float> union5x5dPhiIn;
+  std::vector<float> union5x5Energy;
   std::vector<reco::GsfTrackRef> eleAddGsfTrk;
   std::vector<pat::PackedCandidateRef> eleAddPackedCand;
 
   for (const auto& ele : *eleHandle) {
-    const auto& additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(ele,gsfTrkHandle);
-    auto additionalCand = trkIsoCalc_.additionalPackedCandSelector(ele,candHandles,candVetos);
+    const auto& additionalGsfTrk = trkIsoCalc_.additionalGsfTrkSelector(ele,gsfTrkHandle,iSetup);
+    auto additionalCand = trkIsoCalc_.additionalPackedCandSelector(ele,candHandles,candVetos,iSetup);
     auto addTrk = reco::TrackBase(*additionalGsfTrk);
 
     if ( additionalCand.isNonnull() && ele.gsfTrack()==additionalGsfTrk )
       addTrk = *(additionalCand->bestTrack());
 
     auto modifiedDEtaInSeedVal = ModifiedDEtaInSeed::variables();
+    auto modifiedShowerShapeVal = ModifiedShowerShape::variables();
 
-    if ( ele.gsfTrack()!=additionalGsfTrk || additionalCand.isNonnull() )
+    if ( ele.gsfTrack()!=additionalGsfTrk || additionalCand.isNonnull() ) {
       modifiedDEtaInSeedVal = dEtaInSeedCalc_.value(ele,
                                                     ele.isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
                                                     addTrk,
                                                     *beamSpotHandle,
                                                     iSetup);
-    else
-      modifiedDEtaInSeedVal = dEtaInSeedCalc_.value(ele, ele.isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle));
+      modifiedShowerShapeVal = showerShapeCalc_.value(ele,
+                                                      ele.isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
+                                                      modifiedDEtaInSeedVal.dEtaInSeed2nd,
+                                                      modifiedDEtaInSeedVal.dPhiInSC2nd,
+                                                      iSetup);
+    } else {
+      modifiedShowerShapeVal = showerShapeCalc_.value(ele,
+                                                      ele.isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
+                                                      iSetup);
+    }
 
     eleTrkPtIso.push_back(calTrkIso(ele,candHandles,addTrk,candVetos,trkIsoCalc_));
-    modifiedDEtaInSeed.push_back(modifiedDEtaInSeedVal.modifiedDEtaInSeed);
+    dPerpIn.push_back(modifiedDEtaInSeedVal.dPerpIn);
+    dEtaInSeed2nd.push_back(modifiedDEtaInSeedVal.dEtaInSeed2nd);
+    dPhiInSC2nd.push_back(modifiedDEtaInSeedVal.dPhiInSC2nd);
     alphaTrack.push_back(modifiedDEtaInSeedVal.alphaTrack);
-    alphaCalo.push_back(modifiedDEtaInSeedVal.alphaCalo);
-    union5x5ratioDR.push_back(modifiedDEtaInSeedVal.union5x5ratioDR);
+    normDParaIn.push_back(modifiedDEtaInSeedVal.normalizedDParaIn);
+    union5x5covIeIe.push_back(modifiedShowerShapeVal.covEE);
+    union5x5covIeIp.push_back(modifiedShowerShapeVal.covEP);
+    union5x5covIpIp.push_back(modifiedShowerShapeVal.covPP);
+    alphaCalo.push_back(modifiedShowerShapeVal.alpha);
+    union5x5dEtaIn.push_back(modifiedShowerShapeVal.dEtaInUnion5x5);
+    union5x5dPhiIn.push_back(modifiedShowerShapeVal.dPhiInUnion5x5);
+    union5x5Energy.push_back(modifiedShowerShapeVal.union5x5Energy);
 
     if (makeTrkIso04_)
       eleTrkPtIso04.push_back(calTrkIso(ele,candHandles,addTrk,candVetos,trkIso04Calc_));
@@ -277,10 +321,18 @@ void ModifiedHEEPIDValueMapProducer::produce(edm::Event& iEvent, const edm::Even
   }
 
   writeValueMap(iEvent,eleHandle,eleTrkPtIso,eleTrkPtIsoLabel_);
-  writeValueMap(iEvent,eleHandle,modifiedDEtaInSeed,modifiedDEtaInSeedLabel_);
+  writeValueMap(iEvent,eleHandle,dPerpIn,dPerpInLabel_);
+  writeValueMap(iEvent,eleHandle,dEtaInSeed2nd,dEtaInSeed2ndLabel_);
+  writeValueMap(iEvent,eleHandle,dPhiInSC2nd,dPhiInSC2ndLabel_);
   writeValueMap(iEvent,eleHandle,alphaTrack,alphaTrackLabel_);
   writeValueMap(iEvent,eleHandle,alphaCalo,alphaCaloLabel_);
-  writeValueMap(iEvent,eleHandle,union5x5ratioDR,union5x5ratioDRlabel_);
+  writeValueMap(iEvent,eleHandle,normDParaIn,normDParaInLabel_);
+  writeValueMap(iEvent,eleHandle,union5x5covIeIe,union5x5covIeIeLabel_);
+  writeValueMap(iEvent,eleHandle,union5x5covIeIp,union5x5covIeIpLabel_);
+  writeValueMap(iEvent,eleHandle,union5x5covIpIp,union5x5covIpIpLabel_);
+  writeValueMap(iEvent,eleHandle,union5x5dEtaIn,union5x5dEtaInLabel_);
+  writeValueMap(iEvent,eleHandle,union5x5dPhiIn,union5x5dPhiInLabel_);
+  writeValueMap(iEvent,eleHandle,union5x5Energy,union5x5EnergyLabel_);
 
   if (makeTrkIso04_)
     writeValueMap(iEvent,eleHandle,eleTrkPtIso04,eleTrkPtIso04Label_);

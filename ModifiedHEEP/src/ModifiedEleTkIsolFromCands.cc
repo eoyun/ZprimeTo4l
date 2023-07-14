@@ -6,6 +6,13 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+
+#include "TMath.h"
+
 ModifiedEleTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
   auto sq = [](double val) { return val*val; };
   minPt = para.getParameter<double>("minPt");
@@ -21,6 +28,7 @@ ModifiedEleTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
   addTrkMinPt = para.getParameter<double>("addTrkMinPt");
   addTrkDR2 = sq(para.getParameter<double>("addTrkDR2"));
   addTrkREguard = para.getParameter<double>("addTrkREguard");
+  addTrkHoE = para.getParameter<double>("addTrkHoE");
 
   auto qualNames = para.getParameter<std::vector<std::string>>("allowedQualities");
   auto algoNames = para.getParameter<std::vector<std::string>>("algosToReject");
@@ -184,13 +192,21 @@ bool ModifiedEleTkIsolFromCands::additionalTrkSel(const edm::RefToBase<pat::Pack
     addTrk->hitPattern().numberOfValidHits() >= cuts.minHits &&
     addTrk->hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits &&
     cand->trackHighPurity() &&
+    cand->hcalFraction() < cuts.addTrkHoE/(1. + cuts.addTrkHoE) && // H/(H+E) = H/E / (1+H/E)
     passAlgo(*addTrk,cuts.algosToReject) &&
     addTrk->pt() > cuts.addTrkMinPt;
 }
 
-const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks) {
-  std::vector<reco::GsfTrackRef> additionalGsfTrks;
+const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(const reco::GsfElectron& ele,
+                                                                             const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks,
+                                                                             const edm::EventSetup& iSetup) {
+  std::vector<std::pair<reco::GsfTrackRef,double>> additionalGsfTrks;
   const reco::GsfTrackRef eleTrk = ele.gsfTrack();
+
+  edm::ESHandle<TransientTrackBuilder> TTbuilder;
+  auto fitter = KalmanVertexFitter();
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+  auto firstEle = TTbuilder->build(eleTrk);
 
   for (unsigned iGsf = 0; iGsf < gsfTrks->size(); iGsf++) {
     const auto& gsfTrk = gsfTrks->refAt(iGsf);
@@ -202,22 +218,42 @@ const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(con
 
     const ModifiedEleTkIsolFromCands::TrkCuts& cuts = std::abs(trkRef->eta()) < 1.5 ? barrelCuts_ : endcapCuts_;
 
-    if ( additionalTrkSel(*trkRef,*eleTrk,cuts) )
-      additionalGsfTrks.push_back(trkRef);
-  }
+    if ( additionalTrkSel(*trkRef,*eleTrk,cuts) ) {
+      std::vector<reco::TransientTrack> trackPair;
+      trackPair.push_back(firstEle);
+      trackPair.push_back(TTbuilder->build(trkRef));
 
-  std::sort(additionalGsfTrks.begin(), additionalGsfTrks.end(), [](const reco::GsfTrackRef& a, const reco::GsfTrackRef& b) {return a->pt() > b->pt();} );
+      auto aVtx = fitter.vertex(trackPair);
+
+      if (aVtx.isValid()) {
+        double prob = TMath::Prob(aVtx.totalChiSquared(),static_cast<int>(std::rint(aVtx.degreesOfFreedom())));
+        additionalGsfTrks.push_back(std::make_pair(trkRef,prob));
+      }
+    }
+  }
 
   if (additionalGsfTrks.empty())
     return eleTrk;
 
-  return additionalGsfTrks.front();
+  auto sortByProb = [] (const std::pair<reco::GsfTrackRef,double>& a, const std::pair<reco::GsfTrackRef,double>& b) {
+    return a.second > b.second;
+  };
+
+  std::sort(additionalGsfTrks.begin(), additionalGsfTrks.end(), sortByProb);
+
+  return additionalGsfTrks.front().first;
 }
 
 const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSelector(const pat::Electron& ele,
                                                                                        const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
-                                                                                       const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& candVetos) {
-  std::vector<pat::PackedCandidateRef> additionalCands;
+                                                                                       const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& candVetos,
+                                                                                       const edm::EventSetup& iSetup) {
+  std::vector<std::pair<pat::PackedCandidateRef,double>> additionalCands;
+
+  edm::ESHandle<TransientTrackBuilder> TTbuilder;
+  auto fitter = KalmanVertexFitter();
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+  auto firstEle = TTbuilder->build(ele.gsfTrack());
 
   for (unsigned iHandle = 0; iHandle < cands.size(); iHandle++) {
     const auto& ahandle = cands.at(iHandle);
@@ -237,6 +273,9 @@ const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSe
         // essentially reject all lostTracks:eleTracks products
         if ( std::abs(acand->pdgId())==11 )
           continue;
+
+        if ( std::abs(acand->pdgId())==13 )
+          continue;
       }
 
       const reco::Track* atrack = acand->bestTrack();
@@ -249,21 +288,49 @@ const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSe
                           ele.closestCtfTrackRef()->eta(), ele.closestCtfTrackRef()->phi() ) < cuts.addTrkREguard*cuts.addTrkREguard )
         continue;
 
-      if ( additionalTrkSel(acand,*(ele.gsfTrack()),cuts) )
-        additionalCands.push_back(acand.castTo<pat::PackedCandidateRef>());
+      if ( additionalTrkSel(acand,*(ele.gsfTrack()),cuts) ) {
+        std::vector<reco::TransientTrack> trackPair;
+        trackPair.push_back(firstEle);
+        trackPair.push_back(TTbuilder->build(atrack));
+
+        if ( std::isnan(atrack->dzError()) || std::isinf(atrack->dzError()) )
+          continue; // how could it pass high purity???
+
+        if ( std::isnan(atrack->dxyError()) || std::isinf(atrack->dxyError()) )
+          continue;
+
+        if ( std::isnan(atrack->d0Error()) || std::isinf(atrack->d0Error()) )
+          continue;
+
+        // std::cout << "Ele Pt " << ele.gsfTrack()->pt() << " Eta " << ele.gsfTrack()->eta() << " Phi " << ele.gsfTrack()->phi() << std::endl;
+        // std::cout << "Trk Pt " << atrack->pt() << " Eta " << atrack->eta() << " Phi " << atrack->phi() << std::endl;
+        // std::cout << "Trk errs q/p " << atrack->qoverpError() << " pt " << atrack->ptError() << std::endl;
+        // std::cout << "         eta " << atrack->etaError() << " phi " << atrack->phiError() << std::endl;
+        // std::cout << "         dxy " << atrack->dxyError() << " d0 " << atrack->d0Error()
+        //                              << " dsz " << atrack->dszError() << " dz " << atrack->dzError() << std::endl;
+        // std::cout << "         t0 " << atrack->t0Error() << std::endl;
+        // std::cout << "Cand pdg " << acand->pdgId() << " pidVeto " << static_cast<int>(pidVeto) << " HcalFrac " << acand->hcalFraction() << " caloFrac " << acand->caloFraction() << std::endl;
+
+        auto aVtx = fitter.vertex(trackPair);
+
+        if (aVtx.isValid()) {
+          double prob = TMath::Prob(aVtx.totalChiSquared(),static_cast<int>(std::rint(aVtx.degreesOfFreedom())));
+          additionalCands.push_back(std::make_pair(acand.castTo<pat::PackedCandidateRef>(),prob));
+        }
+      }
     }
   }
 
   if (additionalCands.empty())
     return pat::PackedCandidateRef();
 
-  auto sortByTrackPt = [] (const pat::PackedCandidateRef& acand, const pat::PackedCandidateRef& bcand) {
-    return acand->bestTrack()->pt() > bcand->bestTrack()->pt();
+  auto sortByProb = [] (const std::pair<pat::PackedCandidateRef,double>& a, const std::pair<pat::PackedCandidateRef,double>& b) {
+    return a.second > b.second;
   };
 
-  std::sort(additionalCands.begin(), additionalCands.end(), sortByTrackPt);
+  std::sort(additionalCands.begin(), additionalCands.end(), sortByProb);
 
-  return additionalCands.front();
+  return additionalCands.front().first;
 }
 
 bool ModifiedEleTkIsolFromCands::passQual(const reco::TrackBase& trk,

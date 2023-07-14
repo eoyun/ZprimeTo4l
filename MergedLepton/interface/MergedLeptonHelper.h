@@ -10,21 +10,27 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
-#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-#include "DataFormats/PatCandidates/interface/MET.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
 
-#include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
+#include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedDEtaInSeed.h"
+#include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedShowerShape.h"
 
 #include "TTree.h"
 #include "TString.h"
 #include "TMath.h"
+
+namespace MergedLeptonHelperFct {
+  bool isNotMerged(const pat::ElectronRef& aEle,
+                   const edm::Handle<edm::View<pat::Electron>>& eleHandle,
+                   const reco::GsfTrackRef& addGsfTrk);
+}
 
 class MergedLeptonHelper {
 public:
@@ -42,131 +48,81 @@ public:
     float modTrkIso, modEcalIso;
     int lostHits, nValidHits, nValidPixelHits, GsfHits;
     float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz;
-    float Gsfpt, Gsfeta, Gsfphi;
+    float Gsfpt, Gsfeta, Gsfphi, GsfPtErr;
     int expectedMissingInnerHits;
     float convDist, convDcot, convRadius;
     int passConversionVeto, nbrem;
     float fbrem, fbremSC;
-    float full5x5_e2x5Left, full5x5_e2x5Right, full5x5_e2x5Top, full5x5_e2x5Bottom, full5x5_eLeft, full5x5_eRight, full5x5_eTop, full5x5_eBottom;
+    float full5x5_e2x5Left, full5x5_e2x5Right, full5x5_e2x5Top, full5x5_e2x5Bottom;
+    float full5x5_eLeft, full5x5_eRight, full5x5_eTop, full5x5_eBottom;
     float full5x5_eMax, full5x5_e2nd;
-    float etaE1st, phiE1st, etaE2nd, phiE2nd, etaSeedLinear, phiSeedLinear;
     float clus2ndMoment_sMaj, clus2ndMoment_sMin, clus2ndMoment_alpha;
-    float full5x5_Em2m2, full5x5_Em2m1, full5x5_Em2p0, full5x5_Em2p1, full5x5_Em2p2;
-    float full5x5_Em1m2, full5x5_Em1m1, full5x5_Em1p0, full5x5_Em1p1, full5x5_Em1p2;
-    float full5x5_Ep0m2, full5x5_Ep0m1, full5x5_Ep0p0, full5x5_Ep0p1, full5x5_Ep0p2;
-    float full5x5_Ep1m2, full5x5_Ep1m1, full5x5_Ep1p0, full5x5_Ep1p1, full5x5_Ep1p2;
-    float full5x5_Ep2m2, full5x5_Ep2m1, full5x5_Ep2p0, full5x5_Ep2p1, full5x5_Ep2p2;
+    float dEtaSeedMiniAOD, dPhiInMiniAOD, sigIeIeMiniAOD;
+    float union5x5dEtaIn, union5x5dPhiIn;
+    float union5x5Energy, union5x5covIeIe, union5x5covIeIp, union5x5covIpIp;
+    float union5x5covMaj, union5x5covMin;
+    float alphaCalo;
   } ElectronStruct;
 
   typedef struct {
     float weight;
-    float Gsfpt, Gsfeta, Gsfphi;
+    float pt, eta, phi;
     int lostHits, nValidHits, nValidPixelHits;
     float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz, ptErr;
-    float deltaEtaSuperClusterAtVtx, deltaPhiSuperClusterAtVtx;
-    float deltaEtaSeedClusterAtCalo, deltaPhiSeedClusterAtCalo;
-    float deltaEtaSeedClusterAtVtx;
-    float union3x3LogEta, union3x3LogPhi;
-    float union3x3LinearEta, union3x3LinearPhi;
-    float union3x3Energy;
-  } AddGsfStruct;
-
-  typedef struct {
-    float weight;
-    int numberOfValidTrackerHits, numberOfValidPixelHits, numberOfValidStripHits,
-    trackerLayersWithMeasurement, pixelLayersWithMeasurement, stripLayersWithMeasurement,
-    trackerLayersWithoutMeasurement, pixelLayersWithoutMeasurement, stripLayersWithoutMeasurement;
-    int isHighPt, isTrackerHighPt, isPFloose, isPFmedium, isPFtight;
-    int isGlobal, isTracker, isStdAlone, bestType, tunePtype, nShower, nMatchedStations, nExpectedStations;
-    float trackerVoM, pixelVoM, stripVoM, pfPt, tunepPt, genPt, genEta, genPhi, PFoGen, TPoGen, trackerPt, TRKoGen;
-    float pairPt, pairEta, pairPhi;
-    float globalChi2, globalNormChi2, trackerChi2, trackerNormChi2, tunepChi2, tunepNormChi2;
-  } MuonStruct;
-
-  typedef struct {
-    float weight;
-    float PFphi, PFdPhi, PFpt, PFoGen, PFoMu, MuEta, PFSumEt, TPphi, TPdPhi, TPpt, TPoGen, TPoMu, TPSumEt, dSumEt, sumEtRatio, sumEtRatioTP;
-    int nLepton;
-    unsigned int bitmask;
-  } METstruct;
+    float deltaEtaSeedClusterAtVtx, deltaPhiSuperClusterAtVtx;
+    float dPerpIn, normalizedDParaIn, alphaTrack;
+  } AddTrkStruct;
 
   MergedLeptonHelper();
-  virtual ~MergedLeptonHelper() {}
+  virtual ~MergedLeptonHelper()=default;
 
 public:
   void initElectronTree(const std::string& name,
                         const std::string& prefix,
                         const std::string& postfix);
-  void initAddGsfTree(const std::string& name,
+  void initAddTrkTree(const std::string& name,
                       const std::string& prefix,
                       const std::string& postfix);
-  void initMuonTree(const std::string& name,
-                    const std::string& prefix,
-                    const std::string& postfix);
-  void initMETTree(const std::string& name,
-                   const std::string& prefix,
-                   const std::string& postfix);
 
   void fillElectrons(const pat::ElectronRef& el,
                      const float& trkIso,
                      const float& ecalIso,
-                     const reco::GsfTrackRef& addGsfTrk,
-                     const edm::EventSetup& iSetup,
+                     const ModifiedShowerShape::variables& variables,
                      const EcalRecHitCollection* ecalRecHits,
+                     const edm::EventSetup& iSetup,
                      const std::string& prefix);
 
-  void fillGsfTracks(const pat::ElectronRef& el,
-                     const reco::GsfTrackRef& addGsfTrk,
-                     const edm::EventSetup& iSetup,
-                     const edm::Handle<reco::BeamSpot>& beamSpotHandle,
+  void fillAddTracks(const pat::ElectronRef& el,
+                     const reco::TrackBase* addTrk,
+                     const ModifiedDEtaInSeed::variables& variables,
                      const EcalRecHitCollection* ecalRecHits,
+                     const edm::EventSetup& iSetup,
                      const std::string& prefix);
-
-  void fillMuons(const edm::Ptr<reco::Muon>&,
-                 const edm::Ptr<reco::GenParticle>&,
-                 const edm::Ptr<reco::GenParticle>&,
-                 std::string);
-
-  void fillMETs(const edm::Ptr<reco::Muon>&,
-                const edm::Ptr<reco::GenParticle>&,
-                const pat::MET&,
-                const std::vector<edm::Ptr<reco::Muon>>&,
-                const unsigned int&,
-                const std::string&);
-  void fillMETs(const edm::Ptr<reco::Candidate>&,
-                const pat::MET&,
-                const std::vector<edm::Ptr<reco::Candidate>>&,
-                const unsigned int&,
-                const std::string&);
 
   // non of these are owned by the helper
   void SetFileService(edm::Service<TFileService>* fs) { pFS_ = fs; }
-  void SetPV(edm::Ptr<reco::Vertex> pv) { pPV_ = pv; }
+  void SetPV(const reco::VertexRef& pv) { pPV_ = pv; }
+  void SetBS(const reco::BeamSpot* bs) { pBS_ = bs; }
   void SetMCweight(double mcweight) { mcweight_ = mcweight; }
   void SetPositionCalcLog(PositionCalc& calc) { posCalcLog_ = calc; }
-  void SetPositionCalcLinear(PositionCalc& calc) { posCalcLinear_ = calc; }
 
 private:
   std::map<std::string,TTree*> tree_;
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,ElectronStruct> elvalues_;
-  std::map<std::string,AddGsfStruct> gsfvalues_;
-  std::map<std::string,MuonStruct> muonvalues_;
-  std::map<std::string,METstruct> metvalues_;
+  std::map<std::string,AddTrkStruct> trkvalues_;
 
   edm::Service<TFileService>* pFS_;
-  edm::Ptr<reco::Vertex> pPV_;
+  reco::VertexRef pPV_;
+  const reco::BeamSpot* pBS_;
 
   // Ecal position calculation algorithm
   PositionCalc posCalcLog_;
-  PositionCalc posCalcLinear_;
 
   double mcweight_;
 
   TString elstr_;
-  TString addgsfstr_;
-  TString mustr_;
-  TString metstr_;
+  TString addtrkstr_;
 };
 
 #endif

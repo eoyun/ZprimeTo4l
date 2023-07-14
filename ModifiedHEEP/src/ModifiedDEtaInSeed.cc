@@ -27,50 +27,16 @@
 #include "RecoTracker/Record/interface/TrackerRecoGeometryRecord.h"
 #include "RecoTracker/TkDetLayers/interface/GeometricSearchTracker.h"
 
-ModifiedDEtaInSeed::ModifiedDEtaInSeed(PositionCalc calc) :
-  posCalcLog_(calc) {}
+ModifiedDEtaInSeed::ModifiedDEtaInSeed(PositionCalc calc)
+: posCalcLog_(calc) {}
 
-ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron& aEle,
-                                                        const EcalRecHitCollection* ecalRecHits) {
-  // estimate alpha calo
-  std::vector<std::pair<const EcalRecHit*,float>> recHitsAndFractions;
-
-  for (auto& xtal : aEle.superCluster()->hitsAndFractions()) {
-    EcalRecHitCollection::const_iterator aRecHit = ecalRecHits->find(xtal.first);
-
-    if ( aRecHit!=ecalRecHits->end() )
-      recHitsAndFractions.push_back( std::make_pair(&(*aRecHit),xtal.second) );
-  }
-
-  auto cluster2ndMoments = noZS::EcalClusterTools::cluster2ndMoments(recHitsAndFractions,1.0);
-  const double alphaCalo = cluster2ndMoments.alpha;
-
-  return variables(alphaCalo);
-}
-
-ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron& aEle,
-                                                        const EcalRecHitCollection* ecalRecHits,
-                                                        const reco::TrackBase& addTrk,
-                                                        const reco::BeamSpot& beamSpot,
-                                                        const edm::EventSetup& iSetup) {
-  // Get magField & tracker
+bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
+                                     const math::XYZPoint& beamSpotPos, const edm::EventSetup& iSetup,
+                                     EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo) {
+  // track-cluster matching (see RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc)
   edm::ESHandle<MagneticField> magFieldHandle;
   iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
 
-  edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
-  iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
-
-  // Get Calo Geometry
-  edm::ESHandle<CaloGeometry> caloGeoHandle;
-  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
-  const CaloGeometry* caloGeom = caloGeoHandle.product();
-
-  // Get Calo Topology
-  edm::ESHandle<CaloTopology> caloTopoHandle;
-  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
-  const CaloTopology* caloTopo = caloTopoHandle.product();
-
-  // track-cluster matching (see RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc
   // at innermost/outermost point
   // edm::ESHandle<TrackerGeometry> trackerHandle;
   // iSetup.get<TrackerDigiGeometryRecord>().get(trackerHandle);
@@ -82,6 +48,9 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
   // instead we start from track vtx then propagate free state to inner/outer surface
   // no recHit hence make a reasonable approximation that
   // inner surface is pixel barrel & outer surface is tracker envelope
+
+  edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
+  iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
 
   const auto& pixelBarrelLayers = trackerSearchHandle.product()->pixelBarrelLayers();
   BarrelDetLayer* innermostLayer = nullptr;
@@ -110,10 +79,16 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
   TrajectoryStateOnSurface innTSOS = gsfPropagator->propagate(freestate,innermostLayer->surface());
   StateOnTrackerBound stateOnBound(gsfPropagator.get());
   TrajectoryStateOnSurface outTSOS = stateOnBound(freestate);
-  double dEtaInSeed2nd = std::numeric_limits<float>::max();
-  double dPhiInSC2nd = std::numeric_limits<float>::max();
 
   if ( innTSOS.isValid() && outTSOS.isValid() ) {
+    // at seed
+    TrajectoryStateOnSurface seedTSOS = extrapolator->extrapolate(*(outTSOS.freeState()), // with TSOS assert fails (not a real measurement)
+                                                                  GlobalPoint(aEle.superCluster()->seed()->position().x(),
+                                                                              aEle.superCluster()->seed()->position().y(),
+                                                                              aEle.superCluster()->seed()->position().z()));
+    if (!seedTSOS.isValid())
+      seedTSOS = outTSOS;
+
     TrajectoryStateOnSurface sclTSOS = extrapolator->extrapolate(*(innTSOS.freeState()), // with TSOS assert fails (not a real measurement)
                                                                  GlobalPoint(aEle.superCluster()->x(),
                                                                              aEle.superCluster()->y(),
@@ -121,13 +96,58 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
     if (!sclTSOS.isValid())
       sclTSOS = outTSOS;
 
-    GlobalPoint sclPos;
+    GlobalPoint seedPos, sclPos;
+    multiTrajectoryStateMode::positionFromModeCartesian(seedTSOS,seedPos);
     multiTrajectoryStateMode::positionFromModeCartesian(sclTSOS,sclPos);
 
-    EleRelPointPair scAtVtx(aEle.superCluster()->position(),sclPos,beamSpot.position());
+    scAtVtx = EleRelPointPair(aEle.superCluster()->position(),sclPos,beamSpotPos);
+    seedAtCalo = EleRelPointPair(aEle.superCluster()->seed()->position(),seedPos,beamSpotPos);
+
+    return true;
+  }
+
+  return false;
+}
+
+ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron& aEle,
+                                                        const EcalRecHitCollection* ecalRecHits,
+                                                        const reco::TrackBase& addTrk,
+                                                        const reco::BeamSpot& beamSpot,
+                                                        const edm::EventSetup& iSetup) {
+  double dEtaInSeed2nd = std::numeric_limits<float>::max();
+  double dPhiInSC2nd = std::numeric_limits<float>::max();
+
+  auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot.position());
+  auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot.position());
+
+  if ( extrapolate(aEle,addTrk,beamSpot.position(),iSetup,scAtVtx,seedAtCalo) ) {
     dPhiInSC2nd = scAtVtx.dPhi();
     dEtaInSeed2nd = scAtVtx.dEta() - aEle.superCluster()->eta() + aEle.superCluster()->seed()->eta();
   }
+
+  if ( dEtaInSeed2nd==std::numeric_limits<float>::max() || dPhiInSC2nd==std::numeric_limits<float>::max() )
+    return variables();
+
+  const float eta1stGSF = -( aEle.deltaEtaSeedClusterTrackAtVtx() - aEle.superCluster()->seed()->eta() );
+  const float phi1stGSF = reco::reduceRange( -( aEle.deltaPhiSuperClusterTrackAtVtx() - aEle.superCluster()->phi() ) );
+  const float eta2ndGSF = -( dEtaInSeed2nd - aEle.superCluster()->seed()->eta() );
+  const float phi2ndGSF = reco::reduceRange( -( dPhiInSC2nd - aEle.superCluster()->phi() ) );
+
+  // estimate alpha track
+  const float dEtaCalo = eta2ndGSF - eta1stGSF;
+  const float dPhiCalo = reco::deltaPhi( phi2ndGSF , phi1stGSF );
+  const double drCalo = std::hypot( dEtaCalo, dPhiCalo );
+  const double alphaTrack = std::asin( static_cast<double>(dEtaCalo)/drCalo );
+
+  // Get Calo Geometry
+  edm::ESHandle<CaloGeometry> caloGeoHandle;
+  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  const CaloGeometry* caloGeom = caloGeoHandle.product();
+
+  // Get Calo Topology
+  edm::ESHandle<CaloTopology> caloTopoHandle;
+  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
+  const CaloTopology* caloTopo = caloTopoHandle.product();
 
   auto searchClosestXtal = [&ecalRecHits,&caloGeom] (const float eta, const float phi) -> DetId {
     float dR2 = std::numeric_limits<float>::max();
@@ -146,57 +166,13 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
     return candId;
   };
 
-  // estimate alpha calo
-  std::vector<std::pair<const EcalRecHit*,float>> recHitsAndFractions;
-
-  for (auto& xtal : aEle.superCluster()->hitsAndFractions()) {
-    EcalRecHitCollection::const_iterator aRecHit = ecalRecHits->find(xtal.first);
-
-    if ( aRecHit!=ecalRecHits->end() )
-      recHitsAndFractions.push_back( std::make_pair(&(*aRecHit),xtal.second) );
-  }
-
-  auto cluster2ndMoments = noZS::EcalClusterTools::cluster2ndMoments(recHitsAndFractions,1.0);
-  const double alphaCalo = cluster2ndMoments.alpha;
-
-  if ( dEtaInSeed2nd==std::numeric_limits<float>::max() || dPhiInSC2nd==std::numeric_limits<float>::max() )
-    return variables(alphaCalo);
-
-  const float eta1stGSF = -( aEle.deltaEtaSeedClusterTrackAtVtx() - aEle.superCluster()->seed()->eta() );
-  const float phi1stGSF = -( aEle.deltaPhiSuperClusterTrackAtVtx() - aEle.superCluster()->phi() );
-  const float eta2ndGSF = -( dEtaInSeed2nd - aEle.superCluster()->seed()->eta() );
-  const float phi2ndGSF = -( dPhiInSC2nd - aEle.superCluster()->phi() );
   const DetId xtal1st = searchClosestXtal(eta1stGSF,phi1stGSF);
   const DetId xtal2nd = searchClosestXtal(eta2ndGSF,phi2ndGSF);
 
   if ( xtal1st==DetId(0) || xtal2nd==DetId(0) )
-    return variables(alphaCalo);
+    return variables(std::numeric_limits<float>::max(),dEtaInSeed2nd,dPhiInSC2nd,alphaTrack,std::numeric_limits<float>::max());
 
   const CaloSubdetectorGeometry* subdetGeom = caloGeom->getSubdetectorGeometry(xtal1st);
-  auto matrix3x3of1stGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal1st, 1 );
-  auto matrix3x3of2ndGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal2nd, 1 );
-  std::vector<DetId> unionMatrix3x3(matrix3x3of1stGSF);
-  std::vector<std::pair<DetId,float>> hitFracUnion3x3;
-
-  for (auto& adetId : matrix3x3of2ndGSF) {
-    if ( std::find(unionMatrix3x3.begin(),unionMatrix3x3.end(),adetId)==unionMatrix3x3.end() )
-      unionMatrix3x3.push_back(adetId);
-  }
-
-  for (auto& hitFrac : aEle.superCluster()->seed()->hitsAndFractions()) {
-    if ( std::find(unionMatrix3x3.begin(),unionMatrix3x3.end(),hitFrac.first)!=unionMatrix3x3.end() )
-      hitFracUnion3x3.push_back(hitFrac);
-  }
-
-  auto posUnion3x3Log = posCalcLog_.Calculate_Location(hitFracUnion3x3,ecalRecHits,subdetGeom);
-  const double modifiedDEtaInSeed = aEle.superCluster()->seed()->eta() - posUnion3x3Log.eta();
-
-  // estimate alpha track
-  const float dEtaCalo = eta2ndGSF - eta1stGSF;
-  const float dPhiCalo = phi2ndGSF - phi1stGSF;
-  const double drCalo = std::sqrt( dEtaCalo*dEtaCalo + dPhiCalo*dPhiCalo );
-  const double alphaTrack = std::asin( static_cast<double>(dEtaCalo)/drCalo );
-
   auto matrix5x5of1stGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal1st, 2 );
   auto matrix5x5of2ndGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal2nd, 2 );
   std::vector<DetId> unionMatrix5x5(matrix5x5of1stGSF);
@@ -207,15 +183,22 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
       unionMatrix5x5.push_back(adetId);
   }
 
-  for (auto& hitFrac : aEle.superCluster()->hitsAndFractions()) {
-    if ( std::find(unionMatrix5x5.begin(),unionMatrix5x5.end(),hitFrac.first)!=unionMatrix5x5.end() )
-      hitFracUnion5x5.push_back(hitFrac);
+  for (const auto& recHit : *ecalRecHits) {
+    if ( std::find(unionMatrix5x5.begin(),unionMatrix5x5.end(),recHit.detid())!=unionMatrix5x5.end() )
+      hitFracUnion5x5.push_back(std::make_pair(recHit.detid(),1.));
   }
 
   auto posUnion5x5Log = posCalcLog_.Calculate_Location(hitFracUnion5x5,ecalRecHits,subdetGeom);
-  const double dR1st = reco::deltaR(eta1stGSF,phi1stGSF,posUnion5x5Log.eta(),posUnion5x5Log.phi());
-  const double dR2nd = reco::deltaR(eta2ndGSF,phi2ndGSF,posUnion5x5Log.eta(),posUnion5x5Log.phi());
-  const double ratioE = dR1st/(dR1st+dR2nd); // proxy for E2/(E1+E2);
 
-  return variables(modifiedDEtaInSeed,alphaTrack,alphaCalo,ratioE);
+  // u = dEtaCalo*cos(alpha) + dPhiCalo*sin(alpha) = 0 (perpendicular component)
+  // v = dEtaCalo*sin(alpha) - dPhiCalo*cos(alpha) = drCalo (parallel component)
+  double cosAlpha = -dPhiCalo/drCalo;
+  double sinAlpha = dEtaCalo/drCalo;
+  double dEtaInUnion5x5 = posUnion5x5Log.eta() - eta1stGSF;
+  double dPhiInUnion5x5 = reco::deltaPhi(posUnion5x5Log.phi(),phi1stGSF);
+
+  double union5x5U = dEtaInUnion5x5*cosAlpha + dPhiInUnion5x5*sinAlpha;
+  double union5x5V = dEtaInUnion5x5*sinAlpha - dPhiInUnion5x5*cosAlpha;
+
+  return variables(union5x5U,dEtaInSeed2nd,dPhiInSC2nd,alphaTrack,union5x5V/drCalo);
 }

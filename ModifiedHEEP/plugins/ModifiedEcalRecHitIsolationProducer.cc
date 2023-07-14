@@ -71,6 +71,8 @@ private:
   edm::EDGetTokenT<EcalRecHitCollection> ecalEndcapRecHitToken_;
   edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
   edm::EDGetTokenT<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandToken_;
+  edm::EDGetTokenT<edm::ValueMap<float>> dEtaInSeed2ndToken_;
+  edm::EDGetTokenT<edm::ValueMap<float>> dPhiInSC2ndToken_;
 
   double egIsoPtMinBarrel_; //minimum Et noise cut
   double egIsoEMinBarrel_;  //minimum E noise cut
@@ -80,9 +82,6 @@ private:
   double egIsoConeSizeInBarrel_; //inner cone size
   double egIsoConeSizeInEndcap_; //inner cone size
   double egIsoJurassicWidth_; // exclusion strip width for jurassic veto
-
-  double egIsoJurassicWidth2nd_;
-  double egIsoConeSizeIn2nd_;
 
   bool useIsolEt_; //switch for isolEt rather than isolE
   bool tryBoth_;   // use rechits from barrel + endcap
@@ -113,6 +112,8 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   setToken(ecalEndcapRecHitToken_,config,"ecalEndcapRecHitCollection");
   setToken(addGsfTrkToken_,config,"addGsfTrkMap");
   setToken(addPackedCandToken_,config,"addPackedCandMap");
+  setToken(dEtaInSeed2ndToken_,config,"dEtaInSeed2nd");
+  setToken(dPhiInSC2ndToken_,config,"dPhiInSC2nd");
 
   // vetos
   egIsoPtMinBarrel_               = conf_.getParameter<double>("etMinBarrel");
@@ -123,8 +124,6 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   egIsoConeSizeInEndcap_          = conf_.getParameter<double>("intRadiusEndcap");
   egIsoConeSizeOut_               = conf_.getParameter<double>("extRadius");
   egIsoJurassicWidth_             = conf_.getParameter<double>("jurassicWidth");
-  egIsoJurassicWidth2nd_          = conf_.getParameter<double>("jurassicWidth2nd");
-  egIsoConeSizeIn2nd_             = conf_.getParameter<double>("intRadius2nd");
 
   // options
   useIsolEt_      = conf_.getParameter<bool>("useIsolEt");
@@ -145,7 +144,6 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
 
   // register your products
   produces < edm::ValueMap<float> >("EcalRecHitIso");
-  produces < edm::ValueMap<float> >("invertedEcalRecHitIso");
 }
 
 ModifiedEcalRecHitIsolationProducer::~ModifiedEcalRecHitIsolationProducer(){}
@@ -176,6 +174,12 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandMap;
   iEvent.getByToken(addPackedCandToken_, addPackedCandMap);
 
+  edm::Handle<edm::ValueMap<float>> dEtaInSeed2ndMap;
+  iEvent.getByToken(dEtaInSeed2ndToken_, dEtaInSeed2ndMap);
+
+  edm::Handle<edm::ValueMap<float>> dPhiInSC2ndMap;
+  iEvent.getByToken(dPhiInSC2ndToken_, dPhiInSC2ndMap);
+
   edm::ESHandle<EcalSeverityLevelAlgo> sevlv;
   iSetup.get<EcalSeverityLevelAlgoRcd>().get(sevlv);
   const EcalSeverityLevelAlgo* sevLevel = sevlv.product();
@@ -189,10 +193,6 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   edm::ValueMap<float>::Filler filler(*isoMap);
   std::vector<float> retV(emObjectHandle->size(),0);
 
-  auto invIsoMap = std::make_unique<edm::ValueMap<float>>();
-  edm::ValueMap<float>::Filler invFiller(*invIsoMap);
-  std::vector<float> invRetV(emObjectHandle->size(),0);
-
   ModifiedRecHitIsolation ecalBarrelIsol(egIsoConeSizeOut_,
                                          egIsoConeSizeInBarrel_,
                                          egIsoJurassicWidth_,
@@ -203,9 +203,7 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
                                          sevLevel,
                                          DetId::Ecal,
                                          recHitFlagsEnumsEB_,
-                                         recHitSeverityEnumsEB_,
-                                         egIsoJurassicWidth2nd_,
-                                         egIsoConeSizeIn2nd_);
+                                         recHitSeverityEnumsEB_);
   ecalBarrelIsol.setUseNumCrystals(useNumCrystals_);
   ecalBarrelIsol.setVetoClustered(vetoClustered_);
 
@@ -219,9 +217,7 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
                                          sevLevel,
                                          DetId::Ecal,
                                          recHitFlagsEnumsEE_,
-                                         recHitSeverityEnumsEE_,
-                                         egIsoJurassicWidth2nd_,
-                                         egIsoConeSizeIn2nd_);
+                                         recHitSeverityEnumsEE_);
   ecalEndcapIsol.setUseNumCrystals(useNumCrystals_);
   ecalEndcapIsol.setVetoClustered(vetoClustered_);
 
@@ -231,7 +227,6 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
     //this can be safely replaced by another method which determines where the emobject is
     //then we either get the isolation Et or isolation Energy depending on user selection
     float isoValue =0.;
-    float invIsoValue = 0.;
 
     reco::SuperClusterRef superClus = emObjectHandle->at(i).get<reco::SuperClusterRef>();
 
@@ -239,19 +234,25 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
     const auto& additionalGsfTrk = (*addGsfTrkMap)[aEle];
     const auto& additionalCand = (*addPackedCandMap)[aEle];
     auto addTrk = reco::TrackBase(*additionalGsfTrk);
+    const float dEtaInSeed2nd = (*dEtaInSeed2ndMap)[aEle];
+    const float dPhiInSC2nd = (*dPhiInSC2ndMap)[aEle];
 
     if ( additionalGsfTrk==aEle->gsfTrack() && additionalCand.isNonnull() )
       addTrk = reco::TrackBase(*(additionalCand->bestTrack()));
 
     if (tryBoth_) { //barrel + endcap
-      if (useIsolEt_) isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue) + ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
-      else            isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue) + ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
+      if (useIsolEt_)
+        isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd)
+                   + ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
+      else
+        isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd)
+                   + ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
     } else if ( std::abs(superClus->eta()) < 1.479 ) { //barrel
-      if (useIsolEt_) isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
-      else            isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
+      if (useIsolEt_) isoValue = ecalBarrelIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
+      else            isoValue = ecalBarrelIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
     } else { //endcap
-      if (useIsolEt_) isoValue = ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
-      else            isoValue = ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,invIsoValue);
+      if (useIsolEt_) isoValue = ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
+      else            isoValue = ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
     }
 
     // we subtract off the electron energy here as well
@@ -263,18 +264,13 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
     if (subtract_) isoValue -= subtractVal;
 
     retV[i] = isoValue;
-    invRetV[i] = invIsoValue;
     //all done, isolation is now in the map
   } //end of loop over em objects
 
   filler.insert(emObjectHandle,retV.begin(),retV.end());
   filler.fill();
 
-  invFiller.insert(emObjectHandle,invRetV.begin(),invRetV.end());
-  invFiller.fill();
-
   iEvent.put(std::move(isoMap),"EcalRecHitIso");
-  iEvent.put(std::move(invIsoMap),"invertedEcalRecHitIso");
 }
 
 // define this as a plug-in

@@ -4,6 +4,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
 
+#include "FWCore/Framework/interface/EventSetup.h"
+
 #include "DataFormats/TrackReco/interface/TrackBase.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
@@ -68,6 +70,7 @@ public:
     float addTrkMinPt;
     float addTrkDR2;
     float addTrkREguard;
+    float addTrkHoE;
     std::vector<reco::TrackBase::TrackQuality> allowedQualities;
     std::vector<reco::TrackBase::TrackAlgorithm> algosToReject;
     explicit TrkCuts(const edm::ParameterSet& para);
@@ -113,10 +116,13 @@ public:
                         const reco::TrackBase& eleTrk,
                         const TrkCuts& cuts);
 
-  const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele, const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks);
+  const reco::GsfTrackRef additionalGsfTrkSelector(const reco::GsfElectron& ele,
+                                                   const edm::Handle<edm::View<reco::GsfTrack>>& gsfTrks,
+                                                   const edm::EventSetup& iSetup);
   const pat::PackedCandidateRef additionalPackedCandSelector(const pat::Electron& ele,
                                                              const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
-                                                             const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& candVetos);
+                                                             const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& candVetos,
+                                                             const edm::EventSetup& iSetup);
 
 private:
   static bool passTrkSel(const reco::TrackBase& trk,

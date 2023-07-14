@@ -11,7 +11,9 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:MiniAOD.root'),
+    fileNames = cms.untracked.vstring(
+        'file:MiniAOD.root'
+    ),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -20,6 +22,8 @@ process.options = cms.untracked.PSet()
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string('Ntuple.root')
 )
+
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")

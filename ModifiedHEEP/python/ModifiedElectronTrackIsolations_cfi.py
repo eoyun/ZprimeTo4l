@@ -13,6 +13,7 @@ _defaultCuts = cms.PSet(
     addTrkMinPt=cms.double(10.0),
     addTrkDR2=cms.double(0.4),
     addTrkREguard=cms.double(0.001),
+    addTrkHoE=cms.double(0.1),
     minHits=cms.int32(8),
     minPixelHits=cms.int32(1),
     allowedQualities=cms.vstring(),
@@ -25,7 +26,7 @@ trkIsol03CfgV1 = cms.PSet(
                                   maxDPtPt=-1,minHits=-1,minPixelHits=-1),
     endcapCuts=_defaultCuts.clone(minPt=0.7,minDEta=0.015,maxDZ=0.2,
                                   maxDPtPt=-1,minHits=-1,minPixelHits=-1)
-    )
+)
 trkIsol04CfgV1 = cms.PSet(
     barrelCuts=trkIsol03CfgV1.barrelCuts.clone(maxDR=0.4),
     endcapCuts=trkIsol03CfgV1.endcapCuts.clone(maxDR=0.4)

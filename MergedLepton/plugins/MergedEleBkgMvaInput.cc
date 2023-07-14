@@ -10,7 +10,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
-#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
@@ -21,7 +21,6 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
-#include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
 
 // produce TTree for merged electron training with bkg MC (QCD, WJets, DY, TT)
@@ -40,8 +39,20 @@ private:
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dPerpInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dEtaInSeed2ndToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dPhiInSC2ndToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> alphaTrackToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> alphaCaloToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> normDParaInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5covIeIeToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5covIeIpToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5covIpIpToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dEtaInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
-  const edm::EDGetTokenT<reco::ConversionCollection> conversionsToken_;
+  const edm::EDGetTokenT<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
   const edm::EDGetTokenT<EcalRecHitCollection> EBrecHitToken_;
   const edm::EDGetTokenT<EcalRecHitCollection> EErecHitToken_;
@@ -49,7 +60,6 @@ private:
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
   // Ecal position calculation algorithm
   PositionCalc posCalcLog_;
-  PositionCalc posCalcLinear_;
 
   const double ptThres_;
   const bool select0J_;
@@ -61,25 +71,36 @@ private:
   std::map<std::string,TH1*> histo1d_;
 };
 
-MergedEleBkgMvaInput::MergedEleBkgMvaInput(const edm::ParameterSet& iConfig) :
-srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
-pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
-trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
-ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ecalIsoMap"))),
-addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
-conversionsToken_(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("conversions"))),
-beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
-EBrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EBrecHits"))),
-EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
-generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
-lheToken_(consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lheEvent"))),
-posCalcLog_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
-posCalcLinear_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLinear"))),
-ptThres_(iConfig.getParameter<double>("ptThres")),
-select0J_(iConfig.getParameter<bool>("select0J")),
-selectHT_(iConfig.getParameter<bool>("selectHT")),
-maxHT_(iConfig.getParameter<double>("maxHT")),
-aHelper_() {
+MergedEleBkgMvaInput::MergedEleBkgMvaInput(const edm::ParameterSet& iConfig)
+: srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
+  pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
+  trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
+  ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ecalIsoMap"))),
+  dPerpInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPerpIn"))),
+  dEtaInSeed2ndToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dEtaInSeed2nd"))),
+  dPhiInSC2ndToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPhiInSC2nd"))),
+  alphaTrackToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaTrack"))),
+  alphaCaloToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaCalo"))),
+  normDParaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("normalizedDParaIn"))),
+  union5x5covIeIeToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5covIeIe"))),
+  union5x5covIeIpToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5covIeIp"))),
+  union5x5covIpIpToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5covIpIp"))),
+  union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dEtaIn"))),
+  union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
+  union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
+  addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
+  addPackedCandToken_(consumes<edm::ValueMap<pat::PackedCandidateRef>>(iConfig.getParameter<edm::InputTag>("addPackedCandMap"))),
+  beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
+  EBrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EBrecHits"))),
+  EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
+  generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
+  lheToken_(consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lheEvent"))),
+  posCalcLog_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
+  ptThres_(iConfig.getParameter<double>("ptThres")),
+  select0J_(iConfig.getParameter<bool>("select0J")),
+  selectHT_(iConfig.getParameter<bool>("selectHT")),
+  maxHT_(iConfig.getParameter<double>("maxHT")),
+  aHelper_() {
   usesResource("TFileService");
 }
 
@@ -95,10 +116,9 @@ void MergedEleBkgMvaInput::beginJob() {
 
   aHelper_.initElectronTree("ElectronStruct","fake","el");
   aHelper_.initElectronTree("ElectronStruct","bkg","el");
-  aHelper_.initAddGsfTree("AddGsfStruct","fakeGsf","addGsf");
+  aHelper_.initAddTrkTree("AddTrkStruct","fakeTrk","addTrk");
 
   aHelper_.SetPositionCalcLog(posCalcLog_);
-  aHelper_.SetPositionCalcLinear(posCalcLinear_);
 }
 
 void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -114,11 +134,47 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   edm::Handle<edm::ValueMap<float>> ecalIsoMapHandle;
   iEvent.getByToken(ecalIsoToken_, ecalIsoMapHandle);
 
+  edm::Handle<edm::ValueMap<float>> dPerpInHandle;
+  iEvent.getByToken(dPerpInToken_, dPerpInHandle);
+
+  edm::Handle<edm::ValueMap<float>> dEtaInSeed2ndHandle;
+  iEvent.getByToken(dEtaInSeed2ndToken_, dEtaInSeed2ndHandle);
+
+  edm::Handle<edm::ValueMap<float>> dPhiInSC2ndHandle;
+  iEvent.getByToken(dPhiInSC2ndToken_, dPhiInSC2ndHandle);
+
+  edm::Handle<edm::ValueMap<float>> alphaTrackHandle;
+  iEvent.getByToken(alphaTrackToken_, alphaTrackHandle);
+
+  edm::Handle<edm::ValueMap<float>> alphaCaloHandle;
+  iEvent.getByToken(alphaCaloToken_, alphaCaloHandle);
+
+  edm::Handle<edm::ValueMap<float>> normDParaInHandle;
+  iEvent.getByToken(normDParaInToken_, normDParaInHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5covIeIeHandle;
+  iEvent.getByToken(union5x5covIeIeToken_, union5x5covIeIeHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5covIeIpHandle;
+  iEvent.getByToken(union5x5covIeIpToken_, union5x5covIeIpHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5covIpIpHandle;
+  iEvent.getByToken(union5x5covIpIpToken_, union5x5covIpIpHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5dEtaInHandle;
+  iEvent.getByToken(union5x5dEtaInToken_, union5x5dEtaInHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5dPhiInHandle;
+  iEvent.getByToken(union5x5dPhiInToken_, union5x5dPhiInHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5EnergyHandle;
+  iEvent.getByToken(union5x5EnergyToken_, union5x5EnergyHandle);
+
   edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkHandle;
   iEvent.getByToken(addGsfTrkToken_, addGsfTrkHandle);
 
-  edm::Handle<reco::ConversionCollection> conversionsHandle;
-  iEvent.getByToken(conversionsToken_, conversionsHandle);
+  edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandHandle;
+  iEvent.getByToken(addPackedCandToken_, addPackedCandHandle);
 
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
@@ -176,13 +232,15 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
     histo1d_["lheHT_cut"]->Fill( lheHT );
   }
 
-  edm::Ptr<reco::Vertex> primaryVertex;
+  reco::VertexRef primaryVertex;
 
   if (pvHandle.isValid() && !pvHandle->empty()) {
-    primaryVertex = pvHandle->ptrAt(0);
+    primaryVertex = pvHandle->refAt(0).castTo<reco::VertexRef>();
     aHelper_.SetPV(primaryVertex);
   } else
     return;
+
+  aHelper_.SetBS(beamSpotHandle.product());
 
   std::vector<pat::ElectronRef> heepElectrons;
 
@@ -210,44 +268,50 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
     // requirement for add GSF track
     const auto& addGsfTrk = (*addGsfTrkHandle)[aEle];
+    const auto& addPackedCand = (*addPackedCandHandle)[aEle];
     const auto& orgGsfTrk = aEle->gsfTrack();
+
+    const auto dEtaVariables = ModifiedDEtaInSeed::variables((*dPerpInHandle)[aEle],
+                                                             (*dEtaInSeed2ndHandle)[aEle],
+                                                             (*dPhiInSC2ndHandle)[aEle],
+                                                             (*alphaTrackHandle)[aEle],
+                                                             (*normDParaInHandle)[aEle]);
+    const auto ssVariables = ModifiedShowerShape::variables((*union5x5covIeIeHandle)[aEle],
+                                                             (*union5x5covIeIpHandle)[aEle],
+                                                             (*union5x5covIpIpHandle)[aEle],
+                                                             (*alphaCaloHandle)[aEle],
+                                                             (*union5x5dEtaInHandle)[aEle],
+                                                             (*union5x5dPhiInHandle)[aEle],
+                                                             (*union5x5EnergyHandle)[aEle]);
 
     std::string treename = "";
 
-    if ( addGsfTrk==orgGsfTrk ) {
+    if ( addGsfTrk==orgGsfTrk && addPackedCand.isNull() ) {
       treename = "bkg";
     } else {
       // find whether add GSF track has a corresponding electron
       treename = "fake";
-      bool notMerged = false;
 
-      for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
-        const auto& secEle = eleHandle->refAt(jdx);
-        const auto& secGsfTrk = secEle->gsfTrack();
-
-        if ( addGsfTrk==secGsfTrk ) {
-          notMerged = true;
-          break;
-        }
-      }
-
-      if ( notMerged )
+      if ( MergedLeptonHelperFct::isNotMerged(aEle,eleHandle,addGsfTrk) )
         continue;
 
-      aHelper_.fillGsfTracks(aEle,
-                             (*addGsfTrkHandle)[aEle],
-                             iSetup,
-                             beamSpotHandle,
+      const bool isPackedCand = addGsfTrk==orgGsfTrk && addPackedCand.isNonnull();
+      const reco::TrackBase* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
+
+      aHelper_.fillAddTracks(aEle,
+                             addTrk,
+                             dEtaVariables,
                              ecalRecHits,
-                             "fakeGsf");
+                             iSetup,
+                             "fakeTrk");
     }
 
     aHelper_.fillElectrons(aEle,
                            (*trkIsoMapHandle)[aEle],
                            (*ecalIsoMapHandle)[aEle],
-                           addGsfTrk,
-                           iSetup,
+                           ssVariables,
                            ecalRecHits,
+                           iSetup,
                            treename);
   }
 }

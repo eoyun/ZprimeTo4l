@@ -6,6 +6,8 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
 )

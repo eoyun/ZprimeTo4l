@@ -30,9 +30,8 @@ ModifiedEcalRecHitIsolationScone = cms.EDProducer("ModifiedEcalRecHitIsolationPr
     recHitSeverityExclBarrel = stdGsfEle.recHitSeverityToBeExcludedBarrel,
     recHitSeverityExclEndcaps = stdGsfEle.recHitSeverityToBeExcludedEndcaps,
 
-    jurassicWidth2nd = cms.double(2.0),
-    intRadius2nd = cms.double(4.0),
-
     addGsfTrkMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
-    addPackedCandMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddPackedCand")
+    addPackedCandMap = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddPackedCand"),
+    dEtaInSeed2nd = cms.InputTag("ModifiedHEEPIDVarValueMaps","dEtaInSeed2nd"),
+    dPhiInSC2nd = cms.InputTag("ModifiedHEEPIDVarValueMaps","dPhiInSC2nd")
 )

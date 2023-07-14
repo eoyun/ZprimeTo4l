@@ -5,6 +5,7 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
+#include "RecoEgamma/EgammaElectronAlgos/interface/ElectronUtilities.h"
 
 class ModifiedDEtaInSeed {
 public:
@@ -13,37 +14,36 @@ public:
 
   struct variables {
     variables()
-    : modifiedDEtaInSeed(std::numeric_limits<float>::max()),
+    : dPerpIn(std::numeric_limits<float>::max()),
+      dEtaInSeed2nd(std::numeric_limits<float>::max()),
+      dPhiInSC2nd(std::numeric_limits<float>::max()),
       alphaTrack(std::numeric_limits<float>::max()),
-      alphaCalo(std::numeric_limits<float>::max()),
-      union5x5ratioDR(std::numeric_limits<float>::max()) {}
+      normalizedDParaIn(std::numeric_limits<float>::max()) {}
 
-    variables(const double alCalo)
-    : modifiedDEtaInSeed(std::numeric_limits<float>::max()),
-      alphaTrack(std::numeric_limits<float>::max()),
-      alphaCalo(alCalo),
-      union5x5ratioDR(std::numeric_limits<float>::max()) {}
-
-    variables(const double dEta, const double alTrk, const double alCalo, const double ratioDR)
-    : modifiedDEtaInSeed(dEta),
+    variables(const double dPerp, const double dEta2nd, const double dPhi2nd,
+              const double alTrk, const double dPara)
+    : dPerpIn(dPerp),
+      dEtaInSeed2nd(dEta2nd),
+      dPhiInSC2nd(dPhi2nd),
       alphaTrack(alTrk),
-      alphaCalo(alCalo),
-      union5x5ratioDR(ratioDR) {}
+      normalizedDParaIn(dPara) {}
 
-    double modifiedDEtaInSeed;
+    double dPerpIn;
+    double dEtaInSeed2nd;
+    double dPhiInSC2nd;
     double alphaTrack;
-    double alphaCalo;
-    double union5x5ratioDR;
+    double normalizedDParaIn;
   };
-
-  variables value(const reco::GsfElectron& aEle,
-                  const EcalRecHitCollection* ecalRecHits);
 
   variables value(const reco::GsfElectron& aEle,
                   const EcalRecHitCollection* ecalRecHits,
                   const reco::TrackBase& addTrk,
                   const reco::BeamSpot& beamSpot,
                   const edm::EventSetup& iSetup);
+
+  bool extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
+                   const math::XYZPoint& beamSpotPos, const edm::EventSetup& iSetup,
+                   EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo);
 
 private:
   PositionCalc posCalcLog_;

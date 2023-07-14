@@ -49,11 +49,11 @@ def psetGsfModifiedEleDEtaInSeedCut(wpEB, wpEE):
         cutName = cms.string('GsfEleModifiedDEtaInSeedCut'),
         dEtaInSeedCutValueEB = cms.double( wpEB.dEtaInSeedCut ),
         dEtaInSeedCutValueEE = cms.double( wpEE.dEtaInSeedCut ),
-        modifiedDEtaInSeedCutValueEB = cms.double( 0.001 ),
+        modifiedDEtaInSeedCutValueEB = cms.double( 0.004 ),
         barrelCutOff = cms.double( 1.479 ),
         addGsfTrk = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddGsfTrk"),
         addPackedCand = cms.InputTag("ModifiedHEEPIDVarValueMaps","eleAddPackedCand"),
-        modifiedDEtaInSeed = cms.InputTag("ModifiedHEEPIDVarValueMaps","modifiedDEtaInSeed"),
+        modifiedDEtaInSeed = cms.InputTag("ModifiedHEEPIDVarValueMaps","dPerpIn"),
         needsAdditionalProducts = cms.bool(True),
         isIgnored = cms.bool(False)
         )

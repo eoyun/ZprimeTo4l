@@ -20,6 +20,8 @@
 <use name="RecoLocalCalo/EcalRecAlgos"/>
 <use name="RecoTracker/Record"/>
 <use name="RecoTracker/TkDetLayers"/>
+<use name="RecoVertex/KalmanVertexFit"/>
+<use name="RecoVertex/VertexPrimitives"/>
 <use name="TrackingTools/TransientTrack"/>
 <use name="TrackingTools/Records"/>
 <export>

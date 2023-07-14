@@ -42,15 +42,15 @@ class ModifiedRecHitIsolation {
                           const EcalSeverityLevelAlgo*,
                           DetId::Detector detector,
                           std::vector<int> recHitFlags,
-                          std::vector<int> recHitSeverity,
-                          double etaSlice2nd,
-                          double intRadius2nd);
+                          std::vector<int> recHitSeverity);
 
-  float getEtSum(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const { return getSum_(emObject, addTrk, invIsoValue, true); }
-  float getEnergySum(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const{ return getSum_(emObject, addTrk, invIsoValue, false); }
+  float getEtSum(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, const float dEtaInSeed2nd, const float dPhiInSC2nd) const {
+    return getSum_(emObject, addTrk, dEtaInSeed2nd, dPhiInSC2nd, true);
+  }
 
-  float getEtSum(const reco::SuperCluster* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const { return getSum_(emObject, addTrk, invIsoValue, true); }
-  float getEnergySum(const reco::SuperCluster* emObject, const reco::TrackBase& addTrk, float& invIsoValue) const{ return getSum_(emObject, addTrk, invIsoValue, false); }
+  float getEnergySum(const reco::GsfElectron* emObject, const reco::TrackBase& addTrk, const float dEtaInSeed2nd, const float dPhiInSC2nd) const {
+    return getSum_(emObject, addTrk, dEtaInSeed2nd, dPhiInSC2nd, false);
+  }
 
   void setUseNumCrystals(bool b=true) { useNumCrystals_ = b; }
   void setVetoClustered(bool b=true) { vetoClustered_ = b; }
@@ -71,16 +71,14 @@ class ModifiedRecHitIsolation {
   ~ModifiedRecHitIsolation() ;
 
  private:
-  float getSum_(const reco::GsfElectron*, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt) const;
-  float getSum_(const reco::SuperCluster*, const reco::TrackBase& addTrk, float& invIsoValue, bool returnEt) const;
+  float getSum_(const reco::GsfElectron*, const reco::TrackBase& addTrk,
+                const float dEtaInSeed2nd, const float dPhiInSC2nd, bool returnEt) const;
 
   double extRadius_;
   double intRadius_;
   double etaSlice_;
   double etLow_;
   double eLow_;
-  double etaSlice2nd_;
-  double intRadius2nd_;
 
   edm::ESHandle<CaloGeometry> theCaloGeom_;
   const EcalRecHitCollection& caloHits_;
