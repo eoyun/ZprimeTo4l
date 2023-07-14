@@ -302,15 +302,6 @@ const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSe
         if ( std::isnan(atrack->d0Error()) || std::isinf(atrack->d0Error()) )
           continue;
 
-        // std::cout << "Ele Pt " << ele.gsfTrack()->pt() << " Eta " << ele.gsfTrack()->eta() << " Phi " << ele.gsfTrack()->phi() << std::endl;
-        // std::cout << "Trk Pt " << atrack->pt() << " Eta " << atrack->eta() << " Phi " << atrack->phi() << std::endl;
-        // std::cout << "Trk errs q/p " << atrack->qoverpError() << " pt " << atrack->ptError() << std::endl;
-        // std::cout << "         eta " << atrack->etaError() << " phi " << atrack->phiError() << std::endl;
-        // std::cout << "         dxy " << atrack->dxyError() << " d0 " << atrack->d0Error()
-        //                              << " dsz " << atrack->dszError() << " dz " << atrack->dzError() << std::endl;
-        // std::cout << "         t0 " << atrack->t0Error() << std::endl;
-        // std::cout << "Cand pdg " << acand->pdgId() << " pidVeto " << static_cast<int>(pidVeto) << " HcalFrac " << acand->hcalFraction() << " caloFrac " << acand->caloFraction() << std::endl;
-
         auto aVtx = fitter.vertex(trackPair);
 
         if (aVtx.isValid()) {
