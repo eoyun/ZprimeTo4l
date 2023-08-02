@@ -78,8 +78,14 @@ double GsfEleModifiedDEtaInSeedCut::value(const reco::CandidatePtr& cand) const 
   const bool has2ndTrk = (*addGsfTrkHandle_)[ele]!=ele->gsfTrack() || (*addPackedCandHandle_)[ele].isNonnull();
   const bool isEB = std::abs(ele->superCluster()->eta()) < _barrelCutOff;
 
-  if (has2ndTrk && isEB)
-    val = (*modifiedDEtaInSeedHandle_)[ele];
+  if (has2ndTrk && isEB) {
+    float modifiedDEtaInSeed = (*modifiedDEtaInSeedHandle_)[ele];
+
+    if ( modifiedDEtaInSeed >= std::numeric_limits<float>::max() )
+      return modifiedDEtaInSeed; // extrapolation failed, should be rejected
+
+    val = (std::abs(val) < std::abs(modifiedDEtaInSeed)) ? val : modifiedDEtaInSeed;
+  }
 
   return val;
 }
