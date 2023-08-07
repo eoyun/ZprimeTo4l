@@ -62,6 +62,13 @@ public:
     float union5x5Energy, union5x5covIeIe, union5x5covIeIp, union5x5covIpIp;
     float union5x5covMaj, union5x5covMin;
     float alphaCalo;
+    float GenPt, GenE;
+    int u5x5numGood, u5x5numPoorReco, u5x5numOutOfTime, u5x5numFaultyHardware;
+    int u5x5numNoisy, u5x5numPoorCalib, u5x5numSaturated, u5x5numLeadingEdgeRecovered;
+    int u5x5NeighboursRecovered, u5x5numTowerRecovered, u5x5numDead, u5x5numKilled;
+    int u5x5numTPSaturated, u5x5numL1SpikeFlag, u5x5numWeird, u5x5numDiWeird;
+    int u5x5numHasSwitchToGain6, u5x5numHasSwitchToGain1, u5x5numUnknown;
+    int u5x5numTPSaturatedAndTowerRecovered;
   } ElectronStruct;
 
   typedef struct {
@@ -87,10 +94,13 @@ public:
   void fillElectrons(const pat::ElectronRef& el,
                      const float& trkIso,
                      const float& ecalIso,
+                     const ModifiedDEtaInSeed::variables& variablesDEtaIn,
                      const ModifiedShowerShape::variables& variables,
                      const EcalRecHitCollection* ecalRecHits,
                      const edm::EventSetup& iSetup,
-                     const std::string& prefix);
+                     const std::string& prefix,
+                     const float genPt = -1., // signal MC only
+                     const float genE = -1.);
 
   void fillAddTracks(const pat::ElectronRef& el,
                      const reco::TrackBase* addTrk,

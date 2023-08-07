@@ -18,12 +18,12 @@ class modelPerformance(object):
         self.thrTest_ = thrTe
         self.aucTest_ = aucTe
 
-def calROC(dTrainPredict, dTestPredict, y_train, y_test):
-    fprTr, tprTr, thrTr = sklearn.metrics.roc_curve(y_train, dTrainPredict)
-    aucTr = sklearn.metrics.roc_auc_score(y_train, dTrainPredict)
+def calROC(dTrainPredict, dTestPredict, y_train, y_test, wgts_train=None, wgts_test=None):
+    fprTr, tprTr, thrTr = sklearn.metrics.roc_curve(y_train, dTrainPredict, sample_weight=wgts_train)
+    aucTr = sklearn.metrics.roc_auc_score(y_train, dTrainPredict, sample_weight=wgts_train)
 
-    fprTe, tprTe, thrTe = sklearn.metrics.roc_curve(y_test, dTestPredict)
-    aucTe = sklearn.metrics.roc_auc_score(y_test, dTestPredict)
+    fprTe, tprTe, thrTe = sklearn.metrics.roc_curve(y_test, dTestPredict, sample_weight=wgts_test)
+    aucTe = sklearn.metrics.roc_auc_score(y_test, dTestPredict, sample_weight=wgts_test)
 
     return modelPerformance(fprTr,tprTr,thrTr,aucTr,fprTe,tprTe,thrTe,aucTe)
 
@@ -41,10 +41,6 @@ def drawScoreByProcess(dSigPredict, sigWgt, dBkgPredicts, bkgWgts, labellist, co
             plt.hist(dBkgPredicts, nbins, stacked=True, weights=bkgWgts, label=labellist, range=(-2.5,2.5), color=colorlist)
             plt.xlim([-2.5,2.5])
             plt.xlabel(r"$\eta_{SC}$")
-        elif "invM" in plotname:
-            plt.hist(dBkgPredicts, nbins, stacked=True, weights=bkgWgts, label=labellist, range=(0,5), color=colorlist)
-            plt.xlim([0,5])
-            plt.xlabel(r"M(ll)")
         else:
             raise NameError('check plotname')
 
@@ -52,9 +48,9 @@ def drawScoreByProcess(dSigPredict, sigWgt, dBkgPredicts, bkgWgts, labellist, co
     plt.grid()
     plt.yscale('log')
     ymin, ymax = plt.gca().get_ylim()
-    plt.ylim([ymin,10.*ymax])
+    plt.ylim([10e-5*ymax,10.*ymax])
     plt.ylabel('a.u.')
-    plt.legend(loc=(0.8,0.73), fontsize=8)
+    plt.legend(loc='upper right', fontsize=8)
 
     plt.savefig(dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
@@ -70,7 +66,7 @@ def drawImportance(gain, cover, colname_full, plotname, dirname="plot"):
     barwidth = 0.3
     b1 = plt.barh(np.arange(len(gain)) -barwidth/2., 100.*valGain/np.sum(valGain),         barwidth, color='r', label='gain')
     b2 = plt.barh(np.arange(len(cover))+barwidth/2., 100.*sortedCover/np.sum(sortedCover), barwidth, color='b', label='cover')
-    plt.yticks(range(len(gain)), colname, fontsize=5)
+    plt.yticks(range(len(gain)), colname, fontsize=8)
     plt.title(r"$\bf{CMS}$"+"$\it{\;Simulation,\;work\;in\;progress}$", loc='left')
     plt.legend( (b1[0],b2[0]), ('gain','cover'), fontsize=8 )
 

@@ -8,6 +8,7 @@
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 
 bool MergedLeptonHelperFct::isNotMerged(const pat::ElectronRef& aEle,
                                         const edm::Handle<edm::View<pat::Electron>>& eleHandle,
@@ -62,7 +63,14 @@ MergedLeptonHelper::MergedLeptonHelper()
   + "union5x5dEtaIn:union5x5dPhiIn:"
   + "union5x5Energy:union5x5covIeIe:union5x5covIeIp:union5x5covIpIp:"
   + "union5x5covMaj:union5x5covMin:"
-  + "alphaCalo";
+  + "alphaCalo:"
+  + "GenPt:GenE:"
+  + "u5x5numGood/I:u5x5numPoorReco:u5x5numOutOfTime:u5x5numFaultyHardware:"
+  + "u5x5numNoisy:u5x5numPoorCalib:u5x5numSaturated:u5x5numLeadingEdgeRecovered:"
+  + "u5x5NeighboursRecovered:u5x5numTowerRecovered:u5x5numDead:u5x5numKilled:"
+  + "u5x5numTPSaturated:u5x5numL1SpikeFlag:u5x5numWeird:u5x5numDiWeird:"
+  + "u5x5numHasSwitchToGain6:u5x5numHasSwitchToGain1:u5x5numUnknown:"
+  + "u5x5numTPSaturatedAndTowerRecovered";
 
   addtrkstr_ = TString("weight/F:pt:eta:phi:")
   + "lostHits/I:nValidHits:nValidPixelHits:"
@@ -90,10 +98,13 @@ void MergedLeptonHelper::initAddTrkTree(const std::string& name,
 void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
                                        const float& trkIso,
                                        const float& ecalIso,
+                                       const ModifiedDEtaInSeed::variables& variablesDEtaIn,
                                        const ModifiedShowerShape::variables& variables,
                                        const EcalRecHitCollection* ecalRecHits,
                                        const edm::EventSetup& iSetup,
-                                       const std::string& prefix) {
+                                       const std::string& prefix,
+                                       const float genPt,
+                                       const float genE) {
   auto square = [](const double& val) { return val*val; };
   double rad = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()) + square(el->superCluster()->z()));
   double radTrans = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()));
@@ -250,6 +261,131 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
   auto sigmas = showerShapeCalc.calcSigmas(*el,hitFracUnion5x5,ecalRecHits,sumE);
   double sigEE = std::get<0>(sigmas);
   elvalues_[prefix+"_el"].sigIeIeMiniAOD = 0.01745*std::sqrt(sigEE);
+
+  // signal MC only
+  elvalues_[prefix+"_el"].GenPt = genPt;
+  elvalues_[prefix+"_el"].GenE = genE;
+
+  // temporary recHit status check
+  auto setRecHitFlags = [&,this] (int aFlag) {
+    elvalues_[prefix+"_el"].u5x5numGood = aFlag;
+    elvalues_[prefix+"_el"].u5x5numPoorReco = aFlag;
+    elvalues_[prefix+"_el"].u5x5numOutOfTime = aFlag;
+    elvalues_[prefix+"_el"].u5x5numFaultyHardware = aFlag;
+    elvalues_[prefix+"_el"].u5x5numNoisy = aFlag;
+    elvalues_[prefix+"_el"].u5x5numPoorCalib = aFlag;
+    elvalues_[prefix+"_el"].u5x5numSaturated = aFlag;
+    elvalues_[prefix+"_el"].u5x5numLeadingEdgeRecovered = aFlag;
+    elvalues_[prefix+"_el"].u5x5NeighboursRecovered = aFlag;
+    elvalues_[prefix+"_el"].u5x5numTowerRecovered = aFlag;
+    elvalues_[prefix+"_el"].u5x5numDead = aFlag;
+    elvalues_[prefix+"_el"].u5x5numKilled = aFlag;
+    elvalues_[prefix+"_el"].u5x5numTPSaturated = aFlag;
+    elvalues_[prefix+"_el"].u5x5numL1SpikeFlag = aFlag;
+    elvalues_[prefix+"_el"].u5x5numWeird = aFlag;
+    elvalues_[prefix+"_el"].u5x5numDiWeird = aFlag;
+    elvalues_[prefix+"_el"].u5x5numHasSwitchToGain6 = aFlag;
+    elvalues_[prefix+"_el"].u5x5numHasSwitchToGain1 = aFlag;
+    elvalues_[prefix+"_el"].u5x5numUnknown = aFlag;
+    elvalues_[prefix+"_el"].u5x5numTPSaturatedAndTowerRecovered = aFlag;
+  };
+
+  setRecHitFlags(-1);
+
+  // Get Calo Geometry
+  edm::ESHandle<CaloGeometry> caloGeoHandle;
+  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  const CaloGeometry* caloGeom = caloGeoHandle.product();
+
+  auto searchClosestXtal = [&ecalRecHits,&caloGeom] (const float eta, const float phi) -> DetId {
+    float dR2 = std::numeric_limits<float>::max();
+    DetId candId = DetId(0);
+
+    for (auto& xtal : *ecalRecHits) {
+      const auto& xtalGeo = caloGeom->getGeometry(xtal.detid());
+      float candDR2 = reco::deltaR2(eta,phi,xtalGeo->etaPos(),xtalGeo->phiPos());
+
+      if (candDR2 < dR2) {
+        dR2 = candDR2;
+        candId = xtal.detid();
+      }
+    }
+
+    return candId;
+  };
+
+  const float eta1stGSF = -( el->deltaEtaSeedClusterTrackAtVtx() - el->superCluster()->seed()->eta() );
+  const float phi1stGSF = reco::reduceRange( -( el->deltaPhiSuperClusterTrackAtVtx() - el->superCluster()->phi() ) );
+
+  const DetId xtal1st = searchClosestXtal(eta1stGSF,phi1stGSF);
+
+  if ( xtal1st!=DetId(0) ) {
+    unionMatrix5x5 = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal1st, 2 );
+
+    if ( variablesDEtaIn.dEtaInSeed2nd!=std::numeric_limits<float>::max() &&
+         variablesDEtaIn.dPhiInSC2nd!=std::numeric_limits<float>::max() ) {
+      const float eta2ndGSF = -( variablesDEtaIn.dEtaInSeed2nd - el->superCluster()->seed()->eta() );
+      const float phi2ndGSF = reco::reduceRange( -( variablesDEtaIn.dPhiInSC2nd - el->superCluster()->phi() ) );
+
+      const DetId xtal2nd = searchClosestXtal(eta2ndGSF,phi2ndGSF);
+
+      if ( xtal2nd!=DetId(0) ) {
+        auto matrix5x5of2ndGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, xtal2nd, 2 );
+
+        for (auto& adetId : matrix5x5of2ndGSF) {
+          if ( std::find(unionMatrix5x5.begin(),unionMatrix5x5.end(),adetId)==unionMatrix5x5.end() )
+            unionMatrix5x5.push_back(adetId);
+        }
+      } // if xtal2nd!=DetId(0)
+    } // if 2nd track
+
+    setRecHitFlags(0);
+
+    for (const auto& recHit : *ecalRecHits) {
+      if ( std::find(unionMatrix5x5.begin(),unionMatrix5x5.end(),recHit.detid())!=unionMatrix5x5.end() ) {
+        if (recHit.checkFlag(EcalRecHit::Flags::kGood))
+          elvalues_[prefix+"_el"].u5x5numGood += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kPoorReco))
+          elvalues_[prefix+"_el"].u5x5numPoorReco += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kOutOfTime))
+          elvalues_[prefix+"_el"].u5x5numOutOfTime += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kFaultyHardware))
+          elvalues_[prefix+"_el"].u5x5numFaultyHardware += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kNoisy))
+          elvalues_[prefix+"_el"].u5x5numNoisy += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kPoorCalib))
+          elvalues_[prefix+"_el"].u5x5numPoorCalib += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kSaturated))
+          elvalues_[prefix+"_el"].u5x5numSaturated += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kLeadingEdgeRecovered))
+          elvalues_[prefix+"_el"].u5x5numLeadingEdgeRecovered += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kNeighboursRecovered))
+          elvalues_[prefix+"_el"].u5x5NeighboursRecovered += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kTowerRecovered))
+          elvalues_[prefix+"_el"].u5x5numTowerRecovered += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kDead))
+          elvalues_[prefix+"_el"].u5x5numDead += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kKilled))
+          elvalues_[prefix+"_el"].u5x5numKilled += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kTPSaturated))
+          elvalues_[prefix+"_el"].u5x5numTPSaturated += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kL1SpikeFlag))
+          elvalues_[prefix+"_el"].u5x5numL1SpikeFlag += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kWeird))
+          elvalues_[prefix+"_el"].u5x5numWeird += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kDiWeird))
+          elvalues_[prefix+"_el"].u5x5numDiWeird += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kHasSwitchToGain6))
+          elvalues_[prefix+"_el"].u5x5numHasSwitchToGain6 += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kHasSwitchToGain1))
+          elvalues_[prefix+"_el"].u5x5numHasSwitchToGain1 += 1;
+        if (recHit.checkFlag(EcalRecHit::Flags::kUnknown))
+          elvalues_[prefix+"_el"].u5x5numUnknown += 1;
+        if ( recHit.checkFlag(EcalRecHit::Flags::kTPSaturated) && recHit.checkFlag(EcalRecHit::Flags::kTowerRecovered) )
+          elvalues_[prefix+"_el"].u5x5numTPSaturatedAndTowerRecovered += 1;
+      } // if unionMatrix5x5
+    } // for ecalRecHits
+  } // if xtal1st!=DetId(0)
 
   tree_[prefix+"_elTree"]->Fill();
 }

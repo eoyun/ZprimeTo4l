@@ -52,7 +52,10 @@ process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone
 
 process.modifiedEcalRecHitIsolationScone2nd = process.ModifiedEcalRecHitIsolationScone.clone(
     emObjectProducer=cms.InputTag("slimmedElectrons"),
-    addGsfTrkMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddGsfTrk")
+    addGsfTrkMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddGsfTrk"),
+    addPackedCandMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddPackedCand"),
+    dEtaInSeed2nd = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","dEtaInSeed2nd"),
+    dPhiInSC2nd = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","dPhiInSC2nd")
 )
 
 process.analyzer_step = cms.Path(

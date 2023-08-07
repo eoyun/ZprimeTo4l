@@ -6,16 +6,14 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-#include "DataFormats/PatCandidates/interface/MET.h"
 
-#include "ZprimeTo4l/MergedLepton/interface/MergedLeptonIDs.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedMvaEstimator.h"
 
 class MergedLeptonIDProducer : public edm::stream::EDProducer<> {
@@ -24,6 +22,12 @@ public:
   ~MergedLeptonIDProducer() override {}
 
 private:
+  enum MvaCategory {
+    Nulltype = -1,
+    HasTrk,  // has 2nd track & 20 GeV < Et
+    NoTrkEt2 // no 2nd track
+  };
+
   void produce(edm::Event&, const edm::EventSetup&) override;
 
   template<typename T>
@@ -34,42 +38,49 @@ private:
 
   const edm::EDGetTokenT<edm::View<pat::Electron>> eleToken_;
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
+  const edm::EDGetTokenT<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dPerpInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dEtaInSeed2ndToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dPhiInSC2ndToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> alphaTrackToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> alphaCaloToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> normDParaInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5covIeIeToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5covIeIpToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5covIpIpToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dEtaInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
 
-  const edm::FileInPath xgbPathDR1Et2EB_;
-  const edm::FileInPath xgbPathDR2Et1EB_;
-  const edm::FileInPath xgbPathDR2Et2EB_;
-  const edm::FileInPath xgbPathBkgEt2EB_;
-  const edm::FileInPath meanstdPathDR1Et2EB_;
-  const edm::FileInPath meanstdPathDR2Et1EB_;
-  const edm::FileInPath meanstdPathDR2Et2EB_;
-  const edm::FileInPath meanstdPathBkgEt2EB_;
+  const edm::FileInPath xgbPathHasTrkEB_;
+  const edm::FileInPath xgbPathNoneEt2EB_;
+  const edm::FileInPath meanstdPathHasTrkEB_;
+  const edm::FileInPath meanstdPathNoneEt2EB_;
 
-  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR1Et2EB_;
-  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et1EB_;
-  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorDR2Et2EB_;
-  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorBkgEt2EB_;
-
-  const double etThresEB_;
-  const double minEt_;
+  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorHasTrkEB_;
+  const std::unique_ptr<MergedMvaEstimator> xgbEstimatorNoneEt2EB_;
 };
 
 MergedLeptonIDProducer::MergedLeptonIDProducer(const edm::ParameterSet& iConfig)
 : eleToken_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
   addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
-  xgbPathDR1Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR1Et2EB")),
-  xgbPathDR2Et1EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et1EB")),
-  xgbPathDR2Et2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathDR2Et2EB")),
-  xgbPathBkgEt2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathBkgEt2EB")),
-  meanstdPathDR1Et2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR1Et2EB")),
-  meanstdPathDR2Et1EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et1EB")),
-  meanstdPathDR2Et2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathDR2Et2EB")),
-  meanstdPathBkgEt2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathBkgEt2EB")),
-  xgbEstimatorDR1Et2EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR1Et2EB_,meanstdPathDR1Et2EB_)),
-  xgbEstimatorDR2Et1EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et1EB_,meanstdPathDR2Et1EB_)),
-  xgbEstimatorDR2Et2EB_(std::make_unique<MergedMvaEstimator>(xgbPathDR2Et2EB_,meanstdPathDR2Et2EB_)),
-  xgbEstimatorBkgEt2EB_(std::make_unique<MergedMvaEstimator>(xgbPathBkgEt2EB_,meanstdPathBkgEt2EB_)),
-  etThresEB_(iConfig.getParameter<double>("etThresEB")),
-  minEt_(iConfig.getParameter<double>("minEt")) {
+  addPackedCandToken_(consumes<edm::ValueMap<pat::PackedCandidateRef>>(iConfig.getParameter<edm::InputTag>("addPackedCandMap"))),
+  dPerpInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPerpIn"))),
+  dEtaInSeed2ndToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dEtaInSeed2nd"))),
+  dPhiInSC2ndToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPhiInSC2nd"))),
+  alphaTrackToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaTrack"))),
+  alphaCaloToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaCalo"))),
+  normDParaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("normalizedDParaIn"))),
+  union5x5covIeIeToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5covIeIe"))),
+  union5x5covIeIpToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5covIeIp"))),
+  union5x5covIpIpToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5covIpIp"))),
+  union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dEtaIn"))),
+  union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
+  xgbPathHasTrkEB_(iConfig.getParameter<edm::FileInPath>("xgbPathHasTrkEB")),
+  xgbPathNoneEt2EB_(iConfig.getParameter<edm::FileInPath>("xgbPathNoneEt2EB")),
+  meanstdPathHasTrkEB_(iConfig.getParameter<edm::FileInPath>("meanstdPathHasTrkEB")),
+  meanstdPathNoneEt2EB_(iConfig.getParameter<edm::FileInPath>("meanstdPathNoneEt2EB")),
+  xgbEstimatorHasTrkEB_(std::make_unique<MergedMvaEstimator>(xgbPathHasTrkEB_,meanstdPathHasTrkEB_)),
+  xgbEstimatorNoneEt2EB_(std::make_unique<MergedMvaEstimator>(xgbPathNoneEt2EB_,meanstdPathNoneEt2EB_)) {
   produces<edm::ValueMap<float>>("mvaMergedElectronValues");
   produces<edm::ValueMap<int>>("mvaMergedElectronCategories");
 }
@@ -90,85 +101,99 @@ void MergedLeptonIDProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
   edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(eleToken_, eleHandle);
 
-  edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkMap;
-  iEvent.getByToken(addGsfTrkToken_, addGsfTrkMap);
+  edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkHandle;
+  iEvent.getByToken(addGsfTrkToken_, addGsfTrkHandle);
+
+  edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandHandle;
+  iEvent.getByToken(addPackedCandToken_, addPackedCandHandle);
+
+  edm::Handle<edm::ValueMap<float>> dPerpInHandle;
+  iEvent.getByToken(dPerpInToken_, dPerpInHandle);
+
+  edm::Handle<edm::ValueMap<float>> dEtaInSeed2ndHandle;
+  iEvent.getByToken(dEtaInSeed2ndToken_, dEtaInSeed2ndHandle);
+
+  edm::Handle<edm::ValueMap<float>> dPhiInSC2ndHandle;
+  iEvent.getByToken(dPhiInSC2ndToken_, dPhiInSC2ndHandle);
+
+  edm::Handle<edm::ValueMap<float>> alphaTrackHandle;
+  iEvent.getByToken(alphaTrackToken_, alphaTrackHandle);
+
+  edm::Handle<edm::ValueMap<float>> alphaCaloHandle;
+  iEvent.getByToken(alphaCaloToken_, alphaCaloHandle);
+
+  edm::Handle<edm::ValueMap<float>> normDParaInHandle;
+  iEvent.getByToken(normDParaInToken_, normDParaInHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5covIeIeHandle;
+  iEvent.getByToken(union5x5covIeIeToken_, union5x5covIeIeHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5covIeIpHandle;
+  iEvent.getByToken(union5x5covIeIpToken_, union5x5covIeIpHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5covIpIpHandle;
+  iEvent.getByToken(union5x5covIpIpToken_, union5x5covIpIpHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5dEtaInHandle;
+  iEvent.getByToken(union5x5dEtaInToken_, union5x5dEtaInHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5dPhiInHandle;
+  iEvent.getByToken(union5x5dPhiInToken_, union5x5dPhiInHandle);
 
   unsigned int nEle = eleHandle->size();
 
   std::vector<float> mvas_mergedElectron;
   mvas_mergedElectron.reserve(nEle);
-  std::vector<int> GSFtype_mergedElectron;
-  GSFtype_mergedElectron.reserve(nEle);
+  std::vector<int> trkType_mergedElectron;
+  trkType_mergedElectron.reserve(nEle);
 
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
     const auto& aEle = eleHandle->refAt(idx);
     const auto& orgGsfTrk = aEle->gsfTrack();
-    const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
+
+    const auto& addGsfTrk = (*addGsfTrkHandle)[aEle];
+    const auto& addPackedCand = (*addPackedCandHandle)[aEle];
+
+    const auto dEtaVariables = ModifiedDEtaInSeed::variables((*dPerpInHandle)[aEle],
+                                                             (*dEtaInSeed2ndHandle)[aEle],
+                                                             (*dPhiInSC2ndHandle)[aEle],
+                                                             (*alphaTrackHandle)[aEle],
+                                                             (*normDParaInHandle)[aEle]);
+    const auto ssVariables = ModifiedShowerShape::variables((*union5x5covIeIeHandle)[aEle],
+                                                             (*union5x5covIeIpHandle)[aEle],
+                                                             (*union5x5covIpIpHandle)[aEle],
+                                                             (*alphaCaloHandle)[aEle],
+                                                             (*union5x5dEtaInHandle)[aEle],
+                                                             (*union5x5dPhiInHandle)[aEle],
+                                                             0.);
 
     // default category is bkgEt2EB (no 2nd GSF)
-    MergedLeptonIDs::GSFtype aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::bkgEt2EB;
+    MvaCategory aTrkType_mergedElectron = MvaCategory::NoTrkEt2;
     double amvascore_mergedElectron = -1.;
 
-    if ( addGsfTrk==orgGsfTrk ) {
+    if ( addGsfTrk==orgGsfTrk && addPackedCand.isNull() ) {
       // no additional GSF track
-      const auto castEle = aEle.castTo<pat::ElectronRef>();
-
-      // apply lower Et cut for the bkg enriched CR
       // need to apply an additional offline Et cut afterwards
-      if ( std::abs(aEle->superCluster()->eta()) < 1.5 && aEle->et() > minEt_ )
-        amvascore_mergedElectron = xgbEstimatorBkgEt2EB_->computeMva(castEle);
+      if ( std::abs(aEle->superCluster()->eta()) < 1.5 ) {
+        const auto castEle = aEle.castTo<pat::ElectronRef>();
+        amvascore_mergedElectron = xgbEstimatorNoneEt2EB_->computeMva(castEle);
+      }
     } else {
       // has additional GSF track
-      // assume modified HEEP apriori
-      // default category is DR1Et2EB
-      aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::DR1Et2EB;
+      aTrkType_mergedElectron = MvaCategory::HasTrk;
 
-      // additional GSF track must not be an electron
-      bool notMerged = false;
-
-      for (unsigned int jdx = 0; jdx < eleHandle->size(); ++jdx) {
-        const auto& secEle = eleHandle->refAt(jdx);
-        const auto& secGsfTrk = secEle->gsfTrack();
-
-        if ( addGsfTrk==secGsfTrk ) {
-          notMerged = true;
-          break;
-        }
-      }
-
-      if ( !notMerged ) {
+      if ( std::abs(aEle->superCluster()->eta()) < 1.5 ) {
         const auto castEle = aEle.castTo<pat::ElectronRef>();
-        aGSFtype_mergedElectron = MergedLeptonIDs::checkElectronGSFtype(castEle,orgGsfTrk,addGsfTrk,etThresEB_,minEt_);
-
-        switch ( aGSFtype_mergedElectron ) {
-          case MergedLeptonIDs::GSFtype::DR1Et2EB:
-            amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle);
-            break;
-          case MergedLeptonIDs::GSFtype::DR2Et1EB:
-            amvascore_mergedElectron = xgbEstimatorDR2Et1EB_->computeMva(castEle);
-            break;
-          case MergedLeptonIDs::GSFtype::DR2Et2EB:
-            amvascore_mergedElectron = xgbEstimatorDR2Et2EB_->computeMva(castEle);
-            break;
-          case MergedLeptonIDs::GSFtype::extendedCR:
-            // need to apply an additional offline Et cut afterwards
-            aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::DR1Et2EB;
-            amvascore_mergedElectron = xgbEstimatorDR1Et2EB_->computeMva(castEle);
-            break;
-          default:
-            aGSFtype_mergedElectron = MergedLeptonIDs::GSFtype::DR1Et2EB;
-            amvascore_mergedElectron = -1.;
-            break;
-        } // switch
-      } // !notMerged
+        amvascore_mergedElectron = xgbEstimatorHasTrkEB_->computeMva(castEle,dEtaVariables,ssVariables);
+      } // isEB
     } // end isSameGsfTrack
 
     mvas_mergedElectron.emplace_back(amvascore_mergedElectron);
-    GSFtype_mergedElectron.emplace_back( static_cast<int>(aGSFtype_mergedElectron) );
+    trkType_mergedElectron.emplace_back( static_cast<int>(aTrkType_mergedElectron) );
   } // electron loop
 
   writeValueMap(iEvent,eleHandle,mvas_mergedElectron,"mvaMergedElectronValues");
-  writeValueMap(iEvent,eleHandle,GSFtype_mergedElectron,"mvaMergedElectronCategories");
+  writeValueMap(iEvent,eleHandle,trkType_mergedElectron,"mvaMergedElectronCategories");
 
   return;
 }

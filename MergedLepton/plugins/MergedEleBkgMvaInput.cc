@@ -309,6 +309,7 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
     aHelper_.fillElectrons(aEle,
                            (*trkIsoMapHandle)[aEle],
                            (*ecalIsoMapHandle)[aEle],
+                           dEtaVariables,
                            ssVariables,
                            ecalRecHits,
                            iSetup,

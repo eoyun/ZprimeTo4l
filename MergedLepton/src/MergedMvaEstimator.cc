@@ -26,16 +26,40 @@ MergedMvaEstimator::MergedMvaEstimator(const edm::FileInPath& weightsfile, const
 
 }
 
+double MergedMvaEstimator::computeMva(const pat::ElectronRef& el,
+                                      const ModifiedDEtaInSeed::variables& dEta,
+                                      const ModifiedShowerShape::variables& ss) {
+  const unsigned int nvar = scale_mean_.size();
+  float var[nvar];
+
+  const double covEE = ss.covEE;
+  const double covEP = ss.covEP;
+  const double covPP = ss.covPP;
+  const double covMaj = ((covEE + covPP) + std::sqrt((covEE - covPP)*(covEE - covPP) + 4.*covEP*covEP)) / 2.;
+
+  var[mergedElectronVar::alphaCalo] = ss.alpha;
+  var[mergedElectronVar::union5x5covIeIe] = ss.covEE;
+  var[mergedElectronVar::union5x5dEtaIn] = ss.dEtaInUnion5x5;
+  var[mergedElectronVar::union5x5dPhiIn] = ss.dPhiInUnion5x5;
+  var[mergedElectronVar::alphaTrack] = dEta.alphaTrack;
+  var[mergedElectronVar::normalizedDParaIn] = dEta.normalizedDParaIn;
+
+  for (unsigned int idx = 0; idx < nvar; idx++)
+    var[idx] = ( var[idx]-scale_mean_.at(idx) ) / scale_std_.at(idx);
+
+  double rawScore = gbrForest_->GetResponse(var);
+
+  return 1./( 1. + std::exp(-rawScore) ); // return sigmoid
+}
+
 double MergedMvaEstimator::computeMva(const pat::ElectronRef& el) {
   const unsigned int nvar = scale_mean_.size();
   float var[nvar];
 
-  var[mergedElectronVar::dr03HcalDepth1TowerSumEt] = el->dr03HcalDepth1TowerSumEt();
-  var[mergedElectronVar::full5x5_r9] = el->full5x5_r9();
-  var[mergedElectronVar::full5x5_sigmaIetaIeta] = el->full5x5_sigmaIetaIeta();
-  var[mergedElectronVar::absDEtaInSeed] = std::abs(el->deltaEtaSeedClusterTrackAtVtx());
-  var[mergedElectronVar::absDPhiIn] = std::abs(el->deltaPhiSuperClusterTrackAtVtx());
-  var[mergedElectronVar::fbrem] = el->fbrem();
+  var[mergedElectronVar::full5x5_sigIeIe] = el->full5x5_sigmaIetaIeta();
+  var[mergedElectronVar::full5x5_E1x5oE5x5] = el->full5x5_e5x5() > 0. ? el->full5x5_e1x5()/el->full5x5_e5x5() : 0.;
+  var[mergedElectronVar::dEtaInSeed] = el->deltaEtaSeedClusterTrackAtVtx();
+  var[mergedElectronVar::dPhiIn] = el->deltaPhiSuperClusterTrackAtVtx();
   var[mergedElectronVar::EOverP] = el->eSuperClusterOverP();
 
   for (unsigned int idx = 0; idx < nvar; idx++)

@@ -16,41 +16,50 @@ import xgbVis as zvis
 
 parser = argparse.ArgumentParser(description="BDT training for merged electrons")
 parser.add_argument("--det",dest="det",type=str,help="detector (EB/EE)")
-parser.add_argument("--ang",dest="angle",type=str,help="opening angle (DR1/DR2/None)")
-parser.add_argument("--et",dest="et",type=str,help="Et range (Et1/Et2)")
+parser.add_argument("--ang",dest="angle",type=str,help="opening angle (''/None)")
+parser.add_argument("--et",dest="et",type=str,help="Et range (''/Et1/Et2)")
 parser.add_argument("--opt",dest="opt",type=str,help="perform training")
 parser.add_argument("--era",dest="era",type=str,help="era (20UL16APV/20UL16/20UL17/20UL18)")
 parser.add_argument("--model",dest="model",type=str,help="path to model",default="")
+parser.add_argument("--cut",dest="cut",type=str,help="BDT score cut",default="")
+parser.add_argument("--rwgt",dest="rwgt",type=str,help="do kinematic reweighting",default="False")
 
 args = parser.parse_args()
 
 # choose the right signal model for relevant phase spaces
-aFile = None
-mergedTree = None
-mergedGsfTree = None
+sigSamples = []
+etThres = 50.
 
-if args.angle=="DR2" and args.et=="Et1":
-    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H200A1.root")
-elif args.angle=="DR2" and args.et=="Et2":
-    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H800A10.root")
-elif args.angle=="DR1" and args.et=="Et2":
-    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H800A1.root")
+if args.angle=="" and args.et=="Et1":
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A1.root","H250A1",ROOT.kSpring+2))
+elif args.angle=="" and args.et=="Et2":
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","H750A1",ROOT.kTeal+2))
+    etThres = 200.
 elif args.angle=="None" and args.et=="Et2":
-    aFile = ROOT.TFile.Open("data/MergedEleMva_"+args.era+"_H800A1.root")
-else:
-    raise NameError('check dr/Et argument [DR1/DR2/None][Et1/Et2]')
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","H750A1",ROOT.kTeal+2))
+    etThres = 200.
 
-if args.angle=="None":
-    mergedTree = aFile.Get("mergedEleSigMvaInput/mergedEl2_elTree")
-else:
-    mergedTree = aFile.Get("mergedEleSigMvaInput/mergedEl1_elTree")
-    mergedGsfTree = aFile.Get("mergedEleSigMvaInput/mergedEl1Gsf_addGsfTree")
+    if args.opt=="False":
+        sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))
 
-mergedWgtHist= aFile.Get("mergedEleSigMvaInput/totWeightedSum")
-mergedTotWgtSum = mergedWgtHist.GetBinContent(1)
+elif args.angle=="" and args.et=="":
+    if args.opt=="False":
+        sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_BuJpsiKee.root","Jpsi->ee",ROOT.kGray))
+
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","H750A1",ROOT.kSpring+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A1.root","H250A1",ROOT.kTeal+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A10.root","H2000A10",ROOT.kCyan+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A10.root","H750A10",ROOT.kAzure-2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A10.root","H250A10",ROOT.kBlue+2))
+else:
+    raise NameError('check dr/Et argument [""/None][Et1/Et2]')
+
+if args.opt=="False":
+    etThres = 20.
 
 workflowname = args.angle+args.et+'_'+args.det+'_'+args.era
-dfProducer = zprep.DataframeInitializer(args.det,args.angle,args.et)
+dfProducer = zprep.DataframeInitializer(args.det,args.angle,args.et,etThres)
 
 bkglist = [
     zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_WJets_HT-0To70.root",53870.0),
@@ -73,30 +82,81 @@ bkglist = [
     zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-1200To2500.root",0.1305),
     zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_DY_HT-2500ToInf.root",0.002997),
 
-    zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_TT.root",471.7)
+    # zprep.SampleProcessor("data/MergedEleMva_"+args.era+"_TT.root",471.7)
 ]
+
+col_names = dfProducer.col_names()
+
+sum_bkg = 0.
+sum_sig = 0.
+n_sig = 0.
+n_bkg = 0.
 
 for aproc in bkglist:
     aproc.read(dfProducer)
 
-df_mergedEl, wgts_mergedEl, pts_mergedEl, etas_mergedEl, invMs_mergedEl = dfProducer.fill_arr(mergedTree,mergedGsfTree)
-col_names = dfProducer.col_names()
+for asample in sigSamples:
+    asample.read(dfProducer)
+    n_sig += asample.wgts_.shape[0]
 
-# equalize sumwgt(bkg) to sumwgt(sig) to avoid class imbalance
-sum_sig = np.sum(wgts_mergedEl)
-sum_bkg = 0.
+for asample in sigSamples:
+    asample.wgts_ *= asample.factor_*n_sig / np.sum(asample.wgts_)
+    sum_sig += asample.factor_*n_sig
 
-for aproc in bkglist:
-    sum_bkg += np.sum(aproc.wgts_)
-
-for aproc in bkglist:
-    aproc.wgts_ = aproc.wgts_*(sum_sig/sum_bkg)
+df_mergedEl = pd.concat([ asample.df_ for asample in sigSamples ], axis=0, ignore_index=True)
+wgts_mergedEl = np.concatenate([ asample.wgts_ for asample in sigSamples ], axis=0)
+pts_mergedEl = np.concatenate([ asample.pts_ for asample in sigSamples ], axis=0)
+etas_mergedEl = np.concatenate([ asample.etas_ for asample in sigSamples ], axis=0)
+drs_mergedEl = np.concatenate([ asample.drs_ for asample in sigSamples ], axis=0)
 
 # concat bkg
 df_bkg = pd.concat([ aproc.df_ for aproc in bkglist ], axis=0, ignore_index=True)
 wgts_bkg = np.concatenate([ aproc.wgts_ for aproc in bkglist ], axis=0)
 pts_bkg = np.concatenate([ aproc.pts_ for aproc in bkglist ], axis=0)
 etas_bkg = np.concatenate([ aproc.etas_ for aproc in bkglist ], axis=0)
+drs_bkg = np.concatenate([ aproc.drs_ for aproc in bkglist ], axis=0)
+
+if args.opt=="True" and args.rwgt=="True":
+    # kinematic reweight for bkg
+    ptBinning = [0,20,30,50,60,70,80,100,125,150,200,250,300,350,400,500,600,800,1000,1200,1500,2000]
+    histEt = ROOT.TH1D("histPt",";E_{T};",len(ptBinning)-1,array('d',ptBinning))
+
+    for pt, wgt in np.column_stack((pts_bkg,wgts_bkg)):
+        histEt.Fill(pt,wgt)
+
+    reweight = []
+
+    for ibin in range(histEt.GetNbinsX()):
+        wgt = 1./histEt.GetBinWidth(ibin+1)
+        content = wgt*histEt.GetBinContent(ibin+1)
+
+        if content==0.:
+            reweight.append(1.)
+        else:
+            reweight.append(1./content)
+
+    for aproc in bkglist:
+        for idx in range(aproc.wgts_.shape[0]):
+            ibin = histEt.FindFixBin(aproc.pts_[idx])
+
+            if ibin <= histEt.GetNbinsX():
+                aproc.wgts_[idx] *= reweight[ibin-1]
+
+    del reweight, histEt
+
+for aproc in bkglist:
+    sum_bkg += np.sum(aproc.wgts_)
+    n_bkg += aproc.wgts_.shape[0]
+
+for aproc in bkglist:
+    aproc.wgts_ *= n_sig/sum_bkg
+
+for asample in sigSamples:
+    asample.wgts_ *= n_sig/sum_sig
+
+# replace wgts
+wgts_mergedEl = np.concatenate([ asample.wgts_ for asample in sigSamples ], axis=0)
+wgts_bkg = np.concatenate([ aproc.wgts_ for aproc in bkglist ], axis=0)
 
 # prepare labels
 y_mergedEl = np.ones(shape=(df_mergedEl.shape[0],))
@@ -137,15 +197,11 @@ def objective(params,dmat):
 
 if args.opt=="True": # hyper-optimization
     weightSum = np.sum(wgts_total)
-
     weightSumFrac = 1000.
 
-    if args.angle=="None" or args.angle=="DR1" or (args.angle=="DR2" and args.et=="Et1" and args.det=="EE"):
-        weightSumFrac = 100.
-
     param_space = {
-        'max_depth': hyperopt.hp.quniform('max_depth',1,4,1), # lower depth, more robust # 4 for EE dr2 dr3
-        'eta': hyperopt.hp.loguniform('eta',-3.,-1.), # from exp(-3) to exp(1)
+        'max_depth': hyperopt.hp.quniform('max_depth',1,4,1), # lower depth, more robust
+        'eta': hyperopt.hp.loguniform('eta',-3.,-1.), # from exp(-3) to exp(-1)
         'gamma': hyperopt.hp.uniform('gamma',0.,10.),
         'lambda': hyperopt.hp.uniform('lambda',0.,2.),
         'min_child_weight': hyperopt.hp.loguniform('min_child_weight',math.log(weightSum/weightSumFrac),math.log(weightSum/10.))
@@ -163,9 +219,11 @@ if args.opt=="True": # hyper-optimization
 
 # load hyper parameters
 npz_params = np.array([])
+plotname = workflowname
 
 if args.model is not "" and os.path.splitext(args.model)[1]=='.model':
     npz_params = np.load('npz/'+os.path.splitext(os.path.basename(args.model))[0]+'.npz',allow_pickle=True)
+    plotname += ('_'+os.path.splitext(os.path.basename(args.model))[0])
 elif args.opt=="True":
     npz_params = np.load('npz/'+workflowname+'.npz',allow_pickle=True)
 else:
@@ -210,26 +268,14 @@ if args.opt=='True':
         dTrainPredict    = bst.predict(dtrain)
         dTestPredict     = bst.predict(dtest)
 
-        modelPerforms_list.append( zvis.calROC(dTrainPredict,dTestPredict,y_train,y_test) )
+        modelPerforms_list.append( zvis.calROC(dTrainPredict,dTestPredict,y_train,y_test,wgts_train,wgts_test) )
 
-targetFpr = 0.2
-nbins = 50
+targetFpr = 0.10
+nbins = 100
 idx_max = -1
 targetThres = -1
 trainThres = -1
 bst = None
-plotname = workflowname
-
-# calculate score threshold at a certain FPR, which differs by w/ or w/o GSF scenarios
-if args.angle=="None":
-    targetFpr = 0.05
-    nbins = 100
-else:
-    pass
-
-# append the model name when not training
-if args.model is not "" and os.path.splitext(args.model)[1]=='.model':
-    plotname += ('_'+os.path.splitext(os.path.basename(args.model))[0])
 
 if args.opt=='True':
     # draw ROC curve and calculate score threshold
@@ -244,8 +290,7 @@ if args.opt=='True':
     zvis.drawImportance(gain,cover,col_names,plotname+'_importance')
 else:
     bst = xgb.Booster(param)
-    targetThres = 0.791 # TODO set manually for now
-    bst.load_model('model/'+workflowname+'.model')
+    bst.load_model('model/'+os.path.splitext(os.path.basename(args.model))[0]+'.model')
 
 # calculate scores by physics processes
 def bkg_predict(abst,atransformer,adf,awgt,colname):
@@ -271,17 +316,23 @@ for aproc in bkglist:
 
 scores_bkg = np.concatenate(score_list, axis=0)
 
+if args.opt=="False" and args.cut=="":
+    score_all = np.concatenate([dSigPredict,scores_bkg], axis=0)
+    modelPerforms_list.append( zvis.calROC(score_all,score_all,y_total,y_total,wgts_total,wgts_total) )
+    zvis.drawROC(modelPerforms_list, plotname+'_roc')
+    targetThres, trainThres = zvis.drawThr(modelPerforms_list[idx_max], targetFpr, plotname+'_thr')
+elif args.cut!="":
+    targetThres = float(args.cut)
+
 zvis.drawScoreByProcess(
     dSigPredict,
     wgts_mergedEl,
     list(np.array([aproc for aproc in reversed(score_list)],dtype=object)),
     list(np.array([aproc.wgts_ for aproc in reversed(bkglist)],dtype=object)),
-    ['TT',
-    '_','_','_','_','DY','_','_','_','_',
+    ['_','_','_','_','DY','_','_','_','_',
     '_','_','_','_','WJets','_','_','_','_'],
-    ['tomato',
-    'tan','burlywood','darkorange','orange','wheat','moccasin','navajowhite','blanchedalmond','papayawhip',
-    'darkgreen','green','forestgreen','limegreen','lime','chartreuse','greenyellow','lightgreen','palegreen'],
+    ['wheat','wheat','wheat','wheat','wheat','wheat','wheat','wheat','wheat',
+    'green','green','green','green','green','green','green','green','green'],
     nbins,
     plotname+'_scoreProcess'
 )
@@ -292,63 +343,56 @@ zvis.drawScoreByProcess(
     # hail python
     list(np.array([aproc.etas_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
     list(np.array([aproc.wgts_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
-    ['TT',
-    '_','_','_','_','DY','_','_','_','_',
+    ['_','_','_','_','DY','_','_','_','_',
     '_','_','_','_','WJets','_','_','_','_'],
-    ['tomato',
-    'tan','burlywood','darkorange','orange','wheat','moccasin','navajowhite','blanchedalmond','papayawhip',
-    'darkgreen','green','forestgreen','limegreen','lime','chartreuse','greenyellow','lightgreen','palegreen'],
+    ['wheat','wheat','wheat','wheat','wheat','wheat','wheat','wheat','wheat',
+    'green','green','green','green','green','green','green','green','green'],
     100,
     plotname+'_etaSC'
 )
 
-if args.angle!="None":
-    zvis.drawScoreByProcess(
-        None,
-        None,
-        list(np.array([aproc.invMs_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
-        list(np.array([aproc.wgts_[score_list[idx] > targetThres] for idx, aproc in reversed(list(enumerate(bkglist)))],dtype=object)),
-        ['TT',
-        '_','_','_','_','DY','_','_','_','_',
-        '_','_','_','_','WJets','_','_','_','_'],
-        ['tomato',
-        'tan','burlywood','darkorange','orange','wheat','moccasin','navajowhite','blanchedalmond','papayawhip',
-        'darkgreen','green','forestgreen','limegreen','lime','chartreuse','greenyellow','lightgreen','palegreen'],
-        100,
-        plotname+'_invM'
-    )
+ptBinning = [0,20,30,50,75,100,125,150,200,250,300,350,400,500,600,800,1000,1500]
+effplot_bkg = ROOT.TEfficiency("eff_bkg",";GeV;Eff",len(ptBinning)-1,array('d',ptBinning))
 
-# efficiency as a function of Et at threshold
-etThresLow = 0.
-etThresHigh = 1000.
+ptBinning750 = [0,20,50,100,150,200,220,240,260,280,300,320,340,360,380,400,450,500,600,800,1000,1500]
+ptBinning2000 = [0,200,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1200,1300,1500]
 
-if args.et=="Et1":
-    if args.det=="EB":
-        etThresHigh = 200.
+etaBinning = [-2.5,-2.,-1.566,-1.4442,-1.2,-0.8,-0.4,0.,0.4,0.8,1.2,1.4442,1.566,2.,2.5]
+effplot_etaSC_sig = ROOT.TEfficiency("eff_etaSC_sig",";#eta_{SC};Eff",len(etaBinning)-1,array('d',etaBinning))
+effplot_etaSC_bkg = ROOT.TEfficiency("eff_etaSC_bkg",";#eta_{SC};Eff",len(etaBinning)-1,array('d',etaBinning))
+
+drBinning = [0.,0.001,0.002,0.003,0.005,0.007,0.01,0.02,0.03,0.05,0.07,0.1,0.2,0.3,0.5,0.7,1.0]
+effplot_dr_bkg = ROOT.TEfficiency("eff_dr_bkg",";#Delta R;Eff",len(drBinning)-1,array('d',drBinning))
+
+effplot_sigs = []
+effplot_dr_sigs = []
+
+for asample in sigSamples:
+    if "750" in asample.name_:
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";GeV;Eff",len(ptBinning750)-1,array('d',ptBinning750)) )
+    elif "2000" in asample.name_:
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";GeV;Eff",len(ptBinning2000)-1,array('d',ptBinning2000)) )
     else:
-        etThresHigh = 150.
-elif args.et=="Et2":
-    if args.det=="EB":
-        etThresLow = 200.
-    else:
-        etThresLow = 150.
-else:
-    raise NameError('check Et argument [Et1/Et2]')
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";GeV;Eff",len(ptBinning)-1,array('d',ptBinning)) )
 
-effplot_sig = ROOT.TEfficiency("eff_sig",";GeV;Eff",20,etThresLow,etThresHigh)
-effplot_bkg = ROOT.TEfficiency("eff_bkg",";GeV;Eff",20,etThresLow,etThresHigh)
-
-etaBinning = [-2.5,-2.,-1.566,-1.444,-1.2,-0.8,-0.4,0.,0.4,0.8,1.2,1.444,1.566,2.,2.5]
-effplot_etaSC_sig = ROOT.TEfficiency("eff_etaSC_sig",";#eta_{SC};Eff",14,array('d',etaBinning))
-effplot_etaSC_bkg = ROOT.TEfficiency("eff_etaSC_bkg",";#eta_{SC};Eff",14,array('d',etaBinning))
+    effplot_dr_sigs.append( ROOT.TEfficiency("eff_dr_sig"+asample.name_,";#Delta R;Eff",len(drBinning)-1,array('d',drBinning)) )
 
 for idx in range(len(wgts_mergedEl)):
-    effplot_sig.FillWeighted(dSigPredict[idx] > targetThres, wgts_mergedEl[idx], pts_mergedEl[idx])
     effplot_etaSC_sig.FillWeighted(dSigPredict[idx] > targetThres, wgts_mergedEl[idx], etas_mergedEl[idx])
 
 for idx in range(len(wgts_bkg)):
     effplot_bkg.FillWeighted(scores_bkg[idx] > targetThres, wgts_bkg[idx], pts_bkg[idx])
     effplot_etaSC_bkg.FillWeighted(scores_bkg[idx] > targetThres, wgts_bkg[idx], etas_bkg[idx])
+    effplot_dr_bkg.FillWeighted(scores_bkg[idx] > targetThres, wgts_bkg[idx], drs_bkg[idx])
+
+for idx, asample in enumerate(sigSamples):
+    y_asample = np.ones(shape=(asample.df_.shape[0],))
+    trans_asample = transformer.transform(asample.df_)
+    predict_asample = bst.predict( xgb.DMatrix(trans_asample, weight=asample.wgts_, label=y_asample, feature_names=col_names) )
+
+    for iEvt in range(len(asample.wgts_)):
+        effplot_sigs[idx].FillWeighted(predict_asample[iEvt] > targetThres, asample.wgts_[iEvt], asample.pts_[iEvt])
+        effplot_dr_sigs[idx].FillWeighted(predict_asample[iEvt] > targetThres, asample.wgts_[iEvt], asample.drs_[iEvt])
 
 # some serious plotting
 import CMS_lumi, tdrstyle
@@ -392,9 +436,7 @@ canvas.SetTickx(0)
 canvas.SetTicky(0)
 
 effplot_bkg.SetLineWidth(2)
-effplot_sig.SetLineWidth(2)
 effplot_bkg.SetLineColor(ROOT.kRed)
-effplot_sig.SetLineColor(ROOT.kBlue)
 effplot_bkg.Draw()
 canvas.Update()
 agraph = effplot_bkg.GetPaintedGraph()
@@ -402,11 +444,19 @@ agraph.GetYaxis().SetTitleOffset(1)
 agraph.SetMinimum(0.);
 agraph.SetMaximum(1.2);
 canvas.Update()
-effplot_sig.Draw("sames")
 
-legend = ROOT.TLegend(0.85,0.8,0.98,0.9)
+for idx, plot in enumerate(effplot_sigs):
+    plot.SetLineWidth(2)
+    plot.SetLineColor(sigSamples[idx].color_)
+    plot.Draw("sames")
+
+legend = ROOT.TLegend(0.72,0.75,0.95,0.9)
 legend.SetBorderSize(0);
-legend.AddEntry(effplot_sig,"sig")
+legend.SetNColumns(2)
+
+for idx, plot in enumerate(effplot_sigs):
+    legend.AddEntry(plot,sigSamples[idx].name_)
+
 legend.AddEntry(effplot_bkg,"bkg")
 legend.Draw()
 
@@ -448,3 +498,40 @@ frame = canvas.GetFrame()
 frame.Draw()
 
 canvas.SaveAs("plot/"+plotname+"_etaSC_eff.png")
+
+if args.angle!="None":
+    canvas.SetLogx()
+    effplot_dr_bkg.SetLineWidth(2)
+    effplot_dr_bkg.SetLineColor(ROOT.kRed)
+    effplot_dr_bkg.Draw()
+    canvas.Update()
+    agraph = effplot_dr_bkg.GetPaintedGraph()
+    agraph.GetYaxis().SetTitleOffset(1)
+    agraph.SetMinimum(0.);
+    agraph.SetMaximum(1.2);
+    canvas.Update()
+
+    for idx, plot in enumerate(effplot_dr_sigs):
+        plot.SetLineWidth(2)
+        plot.SetLineColor(sigSamples[idx].color_)
+        plot.Draw("sames")
+
+    legend = ROOT.TLegend(0.15,0.75,0.38,0.9)
+    legend.SetBorderSize(0);
+    legend.SetNColumns(2)
+
+    for idx, plot in enumerate(effplot_dr_sigs):
+        legend.AddEntry(plot,sigSamples[idx].name_)
+
+    legend.AddEntry(effplot_dr_bkg,"bkg")
+    legend.Draw()
+
+    #draw the lumi text on the canvas
+    CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+    canvas.cd()
+    canvas.Update()
+    canvas.RedrawAxis()
+    frame = canvas.GetFrame()
+    frame.Draw()
+
+    canvas.SaveAs("plot/"+plotname+"_dr_eff.png")

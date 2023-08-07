@@ -38,7 +38,10 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override {}
 
-  void fillByGsfTrack(const edm::Event& iEvent, const edm::EventSetup& iSetup, std::vector<pat::ElectronRef>& eles);
+  void fillByGsfTrack(const edm::Event& iEvent,
+                      const edm::EventSetup& iSetup,
+                      const std::vector<pat::ElectronRef>& recoPair,
+                      const std::vector<reco::GenParticleRef>& promptPair);
 
   const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
@@ -69,6 +72,10 @@ private:
   const double ptThres_;
   const double ptThres2nd_;
   const double drThres_;
+  const double drThres2_;
+  const double drThres2nd_;
+  const double drThres2nd2_;
+  const bool allowNonPrompt_;
 
   std::map<std::string,TH1*> histo1d_;
 
@@ -103,6 +110,10 @@ MergedEleSigMvaInput::MergedEleSigMvaInput(const edm::ParameterSet& iConfig)
   ptThres_(iConfig.getParameter<double>("ptThres")),
   ptThres2nd_(iConfig.getParameter<double>("ptThres2nd")),
   drThres_(iConfig.getParameter<double>("drThres")),
+  drThres2_(drThres_*drThres_),
+  drThres2nd_(iConfig.getParameter<double>("drThres2nd")),
+  drThres2nd2_(drThres2nd_*drThres2nd_),
+  allowNonPrompt_(iConfig.getParameter<bool>("allowNonPrompt")),
   aHelper_() {
   usesResource("TFileService");
 }
@@ -113,13 +124,8 @@ void MergedEleSigMvaInput::beginJob() {
   aHelper_.SetFileService(&fs);
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
 
-  aHelper_.initElectronTree("ElectronStruct","heep1","el");
-  aHelper_.initElectronTree("ElectronStruct","heep2","el");
   aHelper_.initElectronTree("ElectronStruct","mergedEl1","el");
   aHelper_.initElectronTree("ElectronStruct","mergedEl2","el");
-
-  aHelper_.initAddTrkTree("AddTrkStruct","heep1Trk","addTrk");
-  aHelper_.initAddTrkTree("AddTrkStruct","heep2Trk","addTrk");
   aHelper_.initAddTrkTree("AddTrkStruct","mergedEl1Trk","addTrk");
 
   aHelper_.SetPositionCalcLog(posCalcLog_);
@@ -161,7 +167,6 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   aHelper_.SetBS(beamSpotHandle.product());
 
   std::vector<reco::GenParticleRef> promptLeptons;
-  double drThres2 = drThres_*drThres_;
 
   for (unsigned int idx = 0; idx < genptcHandle->size(); ++idx) {
     const auto& genptc = genptcHandle->refAt(idx);
@@ -170,6 +175,14 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
          genptc->fromHardProcessFinalState() &&
          ( std::abs(genptc->eta()) < 2.5 ) )
       promptLeptons.push_back(genptc.castTo<reco::GenParticleRef>());
+
+    if (allowNonPrompt_) {
+      if ( ( std::abs(genptc->pdgId())==11 ) &&
+           genptc->statusFlags().isDirectHadronDecayProduct() &&
+           ( std::abs(genptc->eta()) < 2.5 ) &&
+           ( std::abs(genptc->mother()->pdgId())==443 ) )
+        promptLeptons.push_back(genptc.castTo<reco::GenParticleRef>());
+    }
   }
 
   if (promptLeptons.size() < 2)
@@ -182,12 +195,22 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
   std::sort(promptLeptons.begin(),promptLeptons.end(),sisterLambda);
 
+  edm::Handle<edm::ValueMap<float>> union5x5dEtaInHandle;
+  iEvent.getByToken(union5x5dEtaInToken_, union5x5dEtaInHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5EnergyHandle;
+  iEvent.getByToken(union5x5EnergyToken_, union5x5EnergyHandle);
+
   std::vector<pat::ElectronRef> heeps1, heeps2;
 
   for (unsigned int idx = 0; idx < eleHandle->size(); ++idx) {
     const auto& aEle = eleHandle->refAt(idx);
 
-    if ( aEle->et() < ptThres2nd_ )
+    const float eta1stGSF = -(aEle->deltaEtaSeedClusterTrackAtVtx() - aEle->superCluster()->seed()->eta());
+    const float u5x5Eta = (*union5x5dEtaInHandle)[aEle] + eta1stGSF;
+    const float u5x5Et = (*union5x5EnergyHandle)[aEle]/std::cosh(u5x5Eta);
+
+    if ( u5x5Et < ptThres_ )
       continue;
 
     bool matched = false;
@@ -196,9 +219,9 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
     // for given reco electron, check whether GEN-lv prompt electron exists within dR thres
     for (; igen < promptLeptons.size(); ++igen) {
       const auto& genptc = promptLeptons.at(igen);
-      double dr2 = reco::deltaR2(aEle->eta(),aEle->phi(),genptc->eta(),genptc->phi());
+      double dr2 = reco::deltaR2(aEle->gsfTrack()->eta(),aEle->gsfTrack()->phi(),genptc->eta(),genptc->phi());
 
-      if (dr2 < drThres2) {
+      if (dr2 < drThres2_) {
         matched = true;
         break;
       }
@@ -216,32 +239,38 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   if ( heeps1.empty() )
     return;
 
-  if ( promptLeptons.at(0)->pt() < ptThres_ || promptLeptons.at(1)->pt() < ptThres2nd_ )
-    return;
-
-  if ( heeps1.size() > 1 && promptLeptons.at(1)->pt() < ptThres_ )
+  if ( promptLeptons.at(0)->pt() + promptLeptons.at(1)->pt() < ptThres_ )
     return;
 
   // for eeee final state
-  if ( promptLeptons.size()==4 ) {
+  if ( promptLeptons.size() > 2 ) {
+    if (promptLeptons.size() != 4)
+      return;
+
     if ( heeps2.empty() )
       return;
 
-    if ( promptLeptons.at(2)->pt() < ptThres_ || promptLeptons.at(3)->pt() < ptThres2nd_ )
-      return;
-
-    if ( heeps2.size() > 1 && promptLeptons.at(3)->pt() < ptThres_ )
+    if ( promptLeptons.at(2)->pt() + promptLeptons.at(3)->pt() < ptThres_ )
       return;
   }
 
-  if (!heeps1.empty())
-    fillByGsfTrack(iEvent,iSetup,heeps1);
+  auto sortByEt = [] (const pat::ElectronRef& a, const pat::ElectronRef& b) { return a->et() > b->et(); };
 
-  if (!heeps2.empty())
-    fillByGsfTrack(iEvent,iSetup,heeps2);
+  if (!heeps1.empty()) {
+    std::sort(heeps1.begin(),heeps1.end(),sortByEt);
+    fillByGsfTrack(iEvent,iSetup,heeps1,std::vector<reco::GenParticleRef>({promptLeptons.at(0),promptLeptons.at(1)}));
+  }
+
+  if (!heeps2.empty()) {
+    std::sort(heeps2.begin(),heeps2.end(),sortByEt);
+    fillByGsfTrack(iEvent,iSetup,heeps2,std::vector<reco::GenParticleRef>({promptLeptons.at(2),promptLeptons.at(3)}));
+  }
 }
 
-void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::EventSetup& iSetup, std::vector<pat::ElectronRef>& eles) {
+void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
+                                          const edm::EventSetup& iSetup,
+                                          const std::vector<pat::ElectronRef>& recoPair,
+                                          const std::vector<reco::GenParticleRef>& promptPair) {
   edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(srcEle_, eleHandle);
 
@@ -302,153 +331,87 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent, const edm::E
   edm::Handle<EcalRecHitCollection> EErecHitHandle;
   iEvent.getByToken(EErecHitToken_, EErecHitHandle);
 
-  if ( eles.size()==1 ) {
-    auto addGsfTrk = (*addGsfTrkHandle)[eles.front()];
-    auto addPackedCand = (*addPackedCandHandle)[eles.front()];
-    auto orgGsfTrk = eles.front()->gsfTrack();
+  for (const auto aEle : recoPair) {
+    auto addGsfTrk = (*addGsfTrkHandle)[aEle];
+    auto addPackedCand = (*addPackedCandHandle)[aEle];
+    auto orgGsfTrk = aEle->gsfTrack();
 
-    const auto dEtaVariables = ModifiedDEtaInSeed::variables((*dPerpInHandle)[eles.front()],
-                                                             (*dEtaInSeed2ndHandle)[eles.front()],
-                                                             (*dPhiInSC2ndHandle)[eles.front()],
-                                                             (*alphaTrackHandle)[eles.front()],
-                                                             (*normDParaInHandle)[eles.front()]);
-    const auto ssVariables = ModifiedShowerShape::variables((*union5x5covIeIeHandle)[eles.front()],
-                                                             (*union5x5covIeIpHandle)[eles.front()],
-                                                             (*union5x5covIpIpHandle)[eles.front()],
-                                                             (*alphaCaloHandle)[eles.front()],
-                                                             (*union5x5dEtaInHandle)[eles.front()],
-                                                             (*union5x5dPhiInHandle)[eles.front()],
-                                                             (*union5x5EnergyHandle)[eles.front()]);
+    const auto dEtaVariables = ModifiedDEtaInSeed::variables((*dPerpInHandle)[aEle],
+                                                             (*dEtaInSeed2ndHandle)[aEle],
+                                                             (*dPhiInSC2ndHandle)[aEle],
+                                                             (*alphaTrackHandle)[aEle],
+                                                             (*normDParaInHandle)[aEle]);
+    const auto ssVariables = ModifiedShowerShape::variables((*union5x5covIeIeHandle)[aEle],
+                                                             (*union5x5covIeIpHandle)[aEle],
+                                                             (*union5x5covIpIpHandle)[aEle],
+                                                             (*alphaCaloHandle)[aEle],
+                                                             (*union5x5dEtaInHandle)[aEle],
+                                                             (*union5x5dPhiInHandle)[aEle],
+                                                             (*union5x5EnergyHandle)[aEle]);
 
-    const EcalRecHitCollection* ecalRecHits = eles.front()->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle);
+    const EcalRecHitCollection* ecalRecHits = aEle->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle);
+    const float genPt = promptPair.at(0)->pt() + promptPair.at(1)->pt();
+    const float genE = promptPair.at(0)->p() + promptPair.at(1)->p();
+
+    if (allowNonPrompt_) {
+      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
+      int32_t mask = 0x00000381; // = 0011 1000 0001 - 1st for min Et, 7th for trk iso, 8th for EM+HadD1 iso, 9th for dxy
+      int32_t pass = bitmap | mask;
+      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+
+      if ( !passMaskedId )
+        continue;
+    } else {
+      if ( !aEle->electronID("modifiedHeepElectronID") )
+        continue;
+    }
 
     if ( addGsfTrk==orgGsfTrk && addPackedCand.isNull() ) { // ME w/o add GSF
-      // veto any nearby electron over Et thres
-      for (unsigned jdx = 0; jdx < eleHandle->size(); jdx++) {
-        const auto& secEleRef = eleHandle->refAt(jdx);
-
-        if (secEleRef->et() < ptThres2nd_)
-          continue;
-
-        auto secEle = secEleRef.castTo<pat::ElectronRef>();
-
-        if (secEle==eles.front())
-          continue;
-
-        double dr2 = reco::deltaR2(eles.front()->eta(),eles.front()->phi(),secEle->eta(),secEle->phi());
-
-        if (dr2 < drThres_*drThres_)
-          return;
-      }
-
-      if ( !eles.front()->electronID("modifiedHeepElectronID") )
-        return;
-
-      aHelper_.fillElectrons(eles.front(),
-                             (*trkIsoMapHandle)[eles.front()],
-                             (*ecalIsoMapHandle)[eles.front()],
+      aHelper_.fillElectrons(aEle,
+                             (*trkIsoMapHandle)[aEle],
+                             (*ecalIsoMapHandle)[aEle],
+                             dEtaVariables,
                              ssVariables,
                              ecalRecHits,
                              iSetup,
-                             "mergedEl2");
+                             "mergedEl2",
+                             genPt,
+                             genE);
     } else { // ME w/ GSF
-      // find whether add GSF track has a corresponding electron
-      if ( MergedLeptonHelperFct::isNotMerged(eles.front(),eleHandle,addGsfTrk) )
-        return;
-
-      if ( !eles.front()->electronID("modifiedHeepElectronID") )
-        return;
-
       const bool isPackedCand = addGsfTrk==orgGsfTrk && addPackedCand.isNonnull();
       const reco::TrackBase* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
 
-      aHelper_.fillElectrons(eles.front(),
-                             (*trkIsoMapHandle)[eles.front()],
-                             (*ecalIsoMapHandle)[eles.front()],
+      bool matched1st = false;
+      bool matched2nd = false;
+
+      for (const auto& genptc : promptPair) {
+        if ( reco::deltaR2(genptc->eta(),genptc->phi(),orgGsfTrk->eta(),orgGsfTrk->phi()) < drThres2nd2_ )
+          matched1st = true;
+        if ( reco::deltaR2(genptc->eta(),genptc->phi(),addTrk->eta(),addTrk->phi()) < drThres2nd2_ )
+          matched2nd = true;
+      }
+
+      if ( !matched1st || !matched2nd )
+        continue;
+
+      aHelper_.fillElectrons(aEle,
+                             (*trkIsoMapHandle)[aEle],
+                             (*ecalIsoMapHandle)[aEle],
+                             dEtaVariables,
                              ssVariables,
                              ecalRecHits,
                              iSetup,
-                             "mergedEl1");
-      aHelper_.fillAddTracks(eles.front(),
+                             "mergedEl1",
+                             genPt,
+                             genE);
+      aHelper_.fillAddTracks(aEle,
                              addTrk,
                              dEtaVariables,
                              ecalRecHits,
                              iSetup,
                              "mergedEl1Trk");
     }
-
-    return;
   }
-
-  // default case: eles.size() > 1
-  std::sort(eles.begin(),eles.end(),[](const pat::ElectronRef& a, const pat::ElectronRef& b) { return a->et() > b->et(); });
-
-  if ( !eles.at(0)->electronID("modifiedHeepElectronID") )
-    return;
-
-  if ( !eles.at(1)->electronID("modifiedHeepElectronID") )
-    return;
-
-  const bool isPackedCand1 = (*addGsfTrkHandle)[eles.at(0)]==eles.at(0)->gsfTrack() && (*addPackedCandHandle)[eles.at(0)].isNonnull();
-  const bool isPackedCand2 = (*addGsfTrkHandle)[eles.at(1)]==eles.at(1)->gsfTrack() && (*addPackedCandHandle)[eles.at(1)].isNonnull();
-
-  if (isPackedCand1 || isPackedCand2)
-    return;
-
-  const reco::TrackBase* addTrk1 = (*addGsfTrkHandle)[eles.at(0)].get();
-  const reco::TrackBase* addTrk2 = (*addGsfTrkHandle)[eles.at(1)].get();
-
-  const auto dEtaVariables1 = ModifiedDEtaInSeed::variables((*dPerpInHandle)[eles.at(0)],
-                                                            (*dEtaInSeed2ndHandle)[eles.at(0)],
-                                                            (*dPhiInSC2ndHandle)[eles.at(0)],
-                                                            (*alphaTrackHandle)[eles.at(0)],
-                                                            (*normDParaInHandle)[eles.at(0)]);
-  const auto ssVariables1 = ModifiedShowerShape::variables((*union5x5covIeIeHandle)[eles.at(0)],
-                                                            (*union5x5covIeIpHandle)[eles.at(0)],
-                                                            (*union5x5covIpIpHandle)[eles.at(0)],
-                                                            (*alphaCaloHandle)[eles.at(0)],
-                                                            (*union5x5dEtaInHandle)[eles.at(0)],
-                                                            (*union5x5dPhiInHandle)[eles.at(0)],
-                                                            (*union5x5EnergyHandle)[eles.at(0)]);
-  const auto dEtaVariables2 = ModifiedDEtaInSeed::variables((*dPerpInHandle)[eles.at(1)],
-                                                            (*dEtaInSeed2ndHandle)[eles.at(1)],
-                                                            (*dPhiInSC2ndHandle)[eles.at(1)],
-                                                            (*alphaTrackHandle)[eles.at(1)],
-                                                            (*normDParaInHandle)[eles.at(1)]);
-  const auto ssVariables2 = ModifiedShowerShape::variables((*union5x5covIeIeHandle)[eles.at(1)],
-                                                            (*union5x5covIeIpHandle)[eles.at(1)],
-                                                            (*union5x5covIpIpHandle)[eles.at(1)],
-                                                            (*alphaCaloHandle)[eles.at(1)],
-                                                            (*union5x5dEtaInHandle)[eles.at(1)],
-                                                            (*union5x5dPhiInHandle)[eles.at(1)],
-                                                            (*union5x5EnergyHandle)[eles.at(1)]);
-
-  aHelper_.fillElectrons(eles.at(0),
-                         (*trkIsoMapHandle)[eles.at(0)],
-                         (*ecalIsoMapHandle)[eles.at(0)],
-                         ssVariables1,
-                         eles.at(0)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
-                         iSetup,
-                         "heep1");
-  aHelper_.fillElectrons(eles.at(1),
-                         (*trkIsoMapHandle)[eles.at(1)],
-                         (*ecalIsoMapHandle)[eles.at(1)],
-                         ssVariables2,
-                         eles.at(1)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
-                         iSetup,
-                         "heep2");
-  aHelper_.fillAddTracks(eles.at(0),
-                         addTrk1,
-                         dEtaVariables1,
-                         eles.at(0)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
-                         iSetup,
-                        "heep1Trk");
-  aHelper_.fillAddTracks(eles.at(1),
-                         addTrk2,
-                         dEtaVariables2,
-                         eles.at(1)->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle),
-                         iSetup,
-                         "heep2Trk");
 
   return;
 }
