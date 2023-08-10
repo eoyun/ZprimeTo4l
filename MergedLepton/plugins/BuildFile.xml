@@ -30,3 +30,6 @@
 <library file="*.cc" name="ZprimeTo4l_MergedLepton_plugins">
   <flags EDM_PLUGIN="1"/>
 </library>
+<library file="cuts/*.cc" name="ZprimeTo4l_MergedLepton_plugins_cuts">
+  <flags EDM_PLUGIN="1"/>
+</library>
