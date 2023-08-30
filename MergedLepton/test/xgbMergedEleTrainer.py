@@ -43,7 +43,7 @@ elif args.angle=="None" and args.et=="Et2":
         sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))
 
 elif args.angle=="" and args.et=="":
-    if args.opt=="False":
+    if args.opt=="False" and args.era=="20UL18":
         sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_BuJpsiKee.root","Jpsi->ee",ROOT.kGray))
 
     sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))

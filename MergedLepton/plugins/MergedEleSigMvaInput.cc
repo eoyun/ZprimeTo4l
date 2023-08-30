@@ -242,6 +242,14 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
   if ( promptLeptons.at(0)->pt() + promptLeptons.at(1)->pt() < ptThres_ )
     return;
 
+  if ( !allowNonPrompt_) {
+    if ( promptLeptons.at(0)->pt() < ptThres_ || promptLeptons.at(1)->pt() < ptThres2nd_ )
+      return;
+
+    if ( heeps1.size() > 1 && promptLeptons.at(1)->pt() < ptThres_ )
+      return;
+  }
+
   // for eeee final state
   if ( promptLeptons.size() > 2 ) {
     if (promptLeptons.size() != 4)
@@ -252,6 +260,14 @@ void MergedEleSigMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
     if ( promptLeptons.at(2)->pt() + promptLeptons.at(3)->pt() < ptThres_ )
       return;
+
+    if ( !allowNonPrompt_) {
+      if ( promptLeptons.at(2)->pt() < ptThres_ || promptLeptons.at(3)->pt() < ptThres2nd_ )
+        return;
+
+      if ( heeps2.size() > 1 && promptLeptons.at(3)->pt() < ptThres_ )
+        return;
+    }
   }
 
   auto sortByEt = [] (const pat::ElectronRef& a, const pat::ElectronRef& b) { return a->et() > b->et(); };
@@ -331,6 +347,9 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
   edm::Handle<EcalRecHitCollection> EErecHitHandle;
   iEvent.getByToken(EErecHitToken_, EErecHitHandle);
 
+  if (recoPair.size() > 2)
+    return;
+
   for (const auto aEle : recoPair) {
     auto addGsfTrk = (*addGsfTrkHandle)[aEle];
     auto addPackedCand = (*addPackedCandHandle)[aEle];
@@ -367,16 +386,17 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
     }
 
     if ( addGsfTrk==orgGsfTrk && addPackedCand.isNull() ) { // ME w/o add GSF
-      aHelper_.fillElectrons(aEle,
-                             (*trkIsoMapHandle)[aEle],
-                             (*ecalIsoMapHandle)[aEle],
-                             dEtaVariables,
-                             ssVariables,
-                             ecalRecHits,
-                             iSetup,
-                             "mergedEl2",
-                             genPt,
-                             genE);
+      if (recoPair.size()==1)
+        aHelper_.fillElectrons(aEle,
+                               (*trkIsoMapHandle)[aEle],
+                               (*ecalIsoMapHandle)[aEle],
+                               dEtaVariables,
+                               ssVariables,
+                               ecalRecHits,
+                               iSetup,
+                               "mergedEl2",
+                               genPt,
+                               genE);
     } else { // ME w/ GSF
       const bool isPackedCand = addGsfTrk==orgGsfTrk && addPackedCand.isNonnull();
       const reco::TrackBase* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
