@@ -5,10 +5,12 @@ mergedEleSigAnalyzer = cms.EDAnalyzer("MergedEleSigAnalyzer",
   srcGenPtc=cms.InputTag("prunedGenParticles"),
   srcPv=cms.InputTag("offlineSlimmedPrimaryVertices"),
   addGsfTrkMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddGsfTrk"),
-  conversions = cms.InputTag("reducedEgamma:reducedConversions"),
-  beamSpot = cms.InputTag("offlineBeamSpot"),
+  addPackedCandMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddPackedCand"),
+  dPerpIn = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","dPerpIn"),
+  union5x5dEtaIn = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","union5x5dEtaIn"),
+  union5x5Energy = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","union5x5Energy"),
   generator = cms.InputTag("generator"),
   ptThres = cms.double(20.),
   ptThres2nd = cms.double(10.),
-  drThres = cms.double(0.3)
+  drThres = cms.double(0.001)
 )

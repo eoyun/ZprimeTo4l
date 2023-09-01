@@ -6,6 +6,8 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
 
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
 )
@@ -30,11 +32,13 @@ process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
+process.load("ZprimeTo4l.MergedLepton.MergedLeptonIDProducer_cfi")
 process.load("ZprimeTo4l.MergedLepton.MergedEleSigAnalyzer_cfi")
 
 runVIDmodules = [
     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff',
-    'ZprimeTo4l.ModifiedHEEP.Identification.modifiedHeepElectronID_cff'
+    'ZprimeTo4l.ModifiedHEEP.Identification.modifiedHeepElectronID_cff',
+    'ZprimeTo4l.MergedLepton.Identification.mergedElectronID_20UL16_cff'
 ]
 
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
@@ -52,6 +56,7 @@ process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone
 process.analyzer_step = cms.Path(
     process.ModifiedHEEPIDVarValueMaps*
     process.ModifiedEcalRecHitIsolationScone*
+    process.mergedLeptonIDProducer*
     process.egammaPostRecoSeq*
     process.modifiedHEEPIDVarValueMaps2nd*
     process.mergedEleSigAnalyzer
