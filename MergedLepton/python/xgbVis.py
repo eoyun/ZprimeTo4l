@@ -44,7 +44,7 @@ def drawScoreByProcess(dSigPredict, sigWgt, dBkgPredicts, bkgWgts, labellist, co
         else:
             raise NameError('check plotname')
 
-    plt.title(r"$\bf{CMS}$"+"$\it{\;Simulation,\;work\;in\;progress}$", loc='left',fontsize=12)
+    plt.title(r"$\bf{CMS}$"+"$\it{\;Internal}$", loc='left',fontsize=12)
     plt.grid()
     plt.yscale('log')
     ymin, ymax = plt.gca().get_ylim()
@@ -62,21 +62,21 @@ def drawImportance(gain, cover, colname_full, plotname, dirname="plot"):
     valGain     = np.asarray( [ gain[x]  for x in colname ] )
     sortedCover = np.asarray( [ cover[x] for x in colname ] )
 
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6,6))
     barwidth = 0.3
     b1 = plt.barh(np.arange(len(gain)) -barwidth/2., 100.*valGain/np.sum(valGain),         barwidth, color='r', label='gain')
     b2 = plt.barh(np.arange(len(cover))+barwidth/2., 100.*sortedCover/np.sum(sortedCover), barwidth, color='b', label='cover')
     plt.yticks(range(len(gain)), colname, fontsize=8)
-    plt.title(r"$\bf{CMS}$"+"$\it{\;Simulation,\;work\;in\;progress}$", loc='left')
+    plt.title(r"$\bf{CMS}$"+"$\it{\;Internal}$", loc='left')
     plt.legend( (b1[0],b2[0]), ('gain','cover'), fontsize=8 )
 
-    plt.savefig(dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig(dirname+'/'+plotname+'.pdf',dpi=300, bbox_inches='tight')
     plt.close()
 
     return
 
 def drawROC(modelPerforms_list, plotname, dirname="plot"):
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6,6))
 
     for idx in range(len(modelPerforms_list)):
         plt.plot(modelPerforms_list[idx].fprTrain_, modelPerforms_list[idx].tprTrain_, color='lightsalmon')
@@ -89,7 +89,7 @@ def drawROC(modelPerforms_list, plotname, dirname="plot"):
 
     plt.plot(modelPerforms_list[idx_max].fprTrain_, modelPerforms_list[idx_max].tprTrain_, color='r', label='Train ROC (AUC = %.4f)' % modelPerforms_list[idx_max].aucTrain_)
     plt.plot(modelPerforms_list[idx_max].fprTest_,  modelPerforms_list[idx_max].tprTest_,  color='b', label='Test ROC (AUC = %.4f)' % modelPerforms_list[idx_max].aucTest_)
-    plt.title(r"$\bf{CMS}$"+"$\it{\;Simulation,\;work\;in\;progress}$", loc='left')
+    plt.title(r"$\bf{CMS}$"+"$\it{\;Internal}$", loc='left')
 
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -108,7 +108,7 @@ def drawThr(amodelperform, targetFpr, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.plot(amodelperform.thrTrain_, amodelperform.fprTrain_, color='r', label='Train thr (%.3f at FPR=%.2f)' % (trainThres,targetFpr))
     plt.plot(amodelperform.thrTest_,  amodelperform.fprTest_,  color='b', label='Test thr (%.3f at FPR=%.2f)' % (targetThres,targetFpr))
-    plt.title(r"$\bf{CMS}$"+"$\it{\;Simulation,\;work\;in\;progress}$", loc='left')
+    plt.title(r"$\bf{CMS}$"+"$\it{\;Internal}$", loc='left')
     plt.xlabel('Threshold')
     plt.ylabel('False Positive Rate')
     plt.xlim(xmin=0.0, xmax=1.0)

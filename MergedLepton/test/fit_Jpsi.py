@@ -55,7 +55,7 @@ def computeEffi(n1,n2,e1,e2):
 
     effout.append(eff)
     effout.append(e_eff)
-    
+
     return effout
 
 def readEff(aname, histname):
@@ -112,15 +112,20 @@ def makeTGraphFromList( effList ):
     return outData, outMC, outSF
 
 def drawEff1D(effList, nameout):
-    W = 800
+    W = 600
     H = 600
     yUp = 0.45
+
+    tdrstyle.setTDRStyle()
 
     canName = 'c'
     c = ROOT.TCanvas(canName,canName,50,50,W,H)
     c.SetTopMargin(0.055)
     c.SetBottomMargin(0.10)
     c.SetLeftMargin(0.12)
+
+    ROOT.gStyle.SetOptStat(0)
+    ROOT.gStyle.SetOptFit(0)
 
     p1 = ROOT.TPad( canName + '_up', canName + '_up', 0, yUp, 1,   1, 0,0,0)
     p2 = ROOT.TPad( canName + '_do', canName + '_do', 0,   0, 1, yUp, 0,0,0)
@@ -160,8 +165,8 @@ def drawEff1D(effList, nameout):
     grBinsSF     .SetLineWidth(2)
     grBinsEffData.SetMarkerColor( ROOT.kBlack )
     grBinsEffData.SetLineColor(   ROOT.kBlack )
-    grBinsEffData.SetLineWidth(2) 
-            
+    grBinsEffData.SetLineWidth(2)
+
     grBinsEffData.GetHistogram().SetMinimum(effiMin)
     grBinsEffData.GetHistogram().SetMaximum(effiMax)
 
@@ -171,7 +176,7 @@ def drawEff1D(effList, nameout):
     grBinsSF.GetHistogram().SetMaximum(sfMax)
 
     grBinsSF.GetHistogram().GetXaxis().SetTitleOffset(1)
-    grBinsSF.GetHistogram().GetXaxis().SetTitle("E_{T}  [GeV]")
+    grBinsSF.GetHistogram().GetXaxis().SetTitle("E_{T} [GeV]")
     grBinsSF.GetHistogram().GetXaxis().SetTitleSize(0.08)
     grBinsSF.GetHistogram().GetXaxis().SetLabelSize(0.06)
 
@@ -198,19 +203,61 @@ def drawEff1D(effList, nameout):
 
     p2.cd()
 
+    fitFunc = ROOT.TF1("SF","[0]",20,120)
+    fitFunc.SetLineColor(ROOT.kGray+1)
+    fitFunc.SetLineWidth(2)
+    fitFunc.SetLineStyle(ROOT.kDashed)
+    fitPtr = grBinsSF.Fit(fitFunc,"S&R")
+
+    xarr = [100.]
+    yarr = [0.]
+    xseq = ctypes.c_double*len(xarr)
+    yseq = ctypes.c_double*len(yarr)
+    cxarr = xseq(*xarr)
+    cyarr = yseq(*yarr)
+    fitPtr.GetConfidenceIntervals(1,1,0,cxarr,cyarr,0.95,False)
+
+    textbox = ROOT.TPaveText(0.7,0.23,0.96,0.37,"NDC")
+    textbox.SetBorderSize(0)
+    textbox.SetFillStyle(3025)
+    textbox.SetFillColor(0)
+
+    textbox_pol = ROOT.TPaveText(0.13,0.23,0.55,0.37,"NDC")
+    textbox_pol.SetBorderSize(0)
+    textbox_pol.SetFillStyle(3025)
+    textbox_pol.SetFillColor(0)
+
+    textbox.AddText(r'#mu=%.3f, CI_{0.95}=#pm%.4g' % (fitFunc.GetParameter(0), cyarr[0]))
+    lastText = textbox.GetListOfLines().Last()
+    lastText.SetTextColor(ROOT.kGray+1)
+
+    fitFuncPol = ROOT.TF1("SFpol","[0]*x+[1]",20,120)
+    fitFuncPol.SetLineColor(ROOT.kGray+1)
+    fitFuncPol.SetLineWidth(2)
+    fitFuncPol.SetLineStyle(ROOT.kDashed)
+    fitPtrPol = grBinsSF.Fit(fitFuncPol,"SREX0+")
+
+    lastbinMCeff = (grBinsEffMC.GetY())[grBinsEffMC.GetN()-1]
+    textbox_pol.AddText(r'%.4gE_{T}+%.3f #leq 1/eff_{MC} = %.3f' % (fitFuncPol.GetParameter(0), fitFuncPol.GetParameter(1), 1./lastbinMCeff))
+    lastText = textbox_pol.GetListOfLines().Last()
+    lastText.SetTextColor(ROOT.kGray+1)
+    lastText.SetTextAlign(12)
+
     grBinsSF.Draw("AP")
+    textbox.Draw()
+    textbox_pol.Draw()
 
     lineAtOne = ROOT.TLine(xMin,1,xMax,1)
-    lineAtOne.SetLineStyle(ROOT.kDashed)
-    lineAtOne.SetLineWidth(2)
+    lineAtOne.SetLineStyle(ROOT.kSolid)
+    lineAtOne.SetLineWidth(1)
     lineAtOne.Draw()
 
     c.cd()
 
-    leg.Draw()    
+    leg.Draw()
     CMS_lumi.CMS_lumi(c, 5, 10)
 
-    c.SaveAs(nameout+'.png')
+    c.SaveAs(nameout+'.pdf')
 
 def histFitter( sample, histname, tnpWorkspaceParam, tnpWorkspaceFunc, plotDir, lo, hi, prefix='mergedLeptonIDJpsiAnalyzer/' ):
 
@@ -299,8 +346,8 @@ if __name__ == "__main__":
         ]
 
         tnpWorkspaceParam = [
-            "meanP[0.1,-0.12,0.12]","sigmaP[0.03,0.012,0.1]","alphasP[0.2,0.1,0.5]",'nP[0.1,0.1,0.5]',"sigmaP_2[0.05,0.012,0.1]","sosP[0.001,0.001,0.1]",
-            "meanF[0.1,-0.12,0.12]","sigmaF[0.03,0.012,0.1]","alphasF[0.2,0.1,0.5]",'nF[0.1,0.1,0.5]',"sigmaF_2[0.05,0.012,0.1]","sosF[0.001,0.001,0.1]",
+            "meanP[0.1,-0.12,0.12]","sigmaP[0.03,0.012,0.1]","alphasP[0.2,0.1,0.5]",'nP[3,0,5]',"sigmaP_2[0.05,0.012,0.1]","sosP[0.001,0.001,0.1]",
+            "meanF[0.1,-0.12,0.12]","sigmaF[0.03,0.012,0.1]","alphasF[0.2,0.1,0.5]",'nF[3,0,5]',"sigmaF_2[0.05,0.012,0.1]","sosF[0.001,0.001,0.1]",
             "alphaP[-1.,-2,-0.65]",
             "alphaF[-1.,-2,-0.65]"
         ]
@@ -316,7 +363,7 @@ if __name__ == "__main__":
 
         tnpWorkspaceParam = [
             "meanP[0.1,-0.15,0.15]","sigmaP[0.06,0.025,0.15]",
-            "meanF[0.1,-0.15,0.15]","sigmaF[0.06,0.025,0.15]",
+            "meanF[0.1,0,0.15]","sigmaF[0.025,0.025,0.15]",
             "alphaP[-1.,-2,-0.65]",
             "alphaF[-1.,-2,-0.65]"
         ]

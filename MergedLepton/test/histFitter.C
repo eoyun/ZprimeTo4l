@@ -78,7 +78,7 @@ void tnpFitter::setWorkspace(std::vector<std::string> workspace) {
   _work->factory(TString::Format("nBkgF[%f,0.5,%f]",_nTotF*0.9,_nTotF*1.5));
   _work->factory("SUM::pdfPass(nSigP*sigPass,nBkgP*bkgPass)");
   _work->factory("SUM::pdfFail(nSigF*sigFail,nBkgF*bkgFail)");
-  _work->Print();			         
+  _work->Print();
 }
 
 void tnpFitter::fits(string title) {
@@ -86,7 +86,7 @@ void tnpFitter::fits(string title) {
 
   RooAbsPdf *pdfPass = _work->pdf("pdfPass");
   RooAbsPdf *pdfFail = _work->pdf("pdfFail");
-  RooFitResult* resPass;  
+  RooFitResult* resPass;
   RooFitResult* resFail;
 
   /// FC: seems to be better to change the actual range than using a fitRange in the fit itself (???)
@@ -108,12 +108,12 @@ void tnpFitter::fits(string title) {
   RooPlot *pFail = _work->var("x")->frame(_xFitMin,_xFitMax);
   pPass->SetTitle("passing probe");
   pFail->SetTitle("failing probe");
-  
+
   _work->data("hPass") ->plotOn( pPass );
   _work->pdf("pdfPass")->plotOn( pPass, LineColor(kRed) );
   _work->pdf("pdfPass")->plotOn( pPass, Components("bkgPass"),LineColor(kBlue),LineStyle(kDashed));
   _work->data("hPass") ->plotOn( pPass );
-  
+
   _work->data("hFail") ->plotOn( pFail );
   _work->pdf("pdfFail")->plotOn( pFail, LineColor(kRed) );
   _work->pdf("pdfFail")->plotOn( pFail, Components("bkgFail"),LineColor(kBlue),LineStyle(kDashed));
@@ -129,7 +129,7 @@ void tnpFitter::fits(string title) {
   _fOut->cd();
   c.Write(TString::Format("%s_Canv",_histname_base.c_str()),TObject::kOverwrite);
   resPass->Write(TString::Format("%s_resP",_histname_base.c_str()),TObject::kOverwrite);
-  resFail->Write(TString::Format("%s_resF",_histname_base.c_str()),TObject::kOverwrite);  
+  resFail->Write(TString::Format("%s_resF",_histname_base.c_str()),TObject::kOverwrite);
 }
 
 /////// Stupid parameter dumper /////////
@@ -148,18 +148,18 @@ void tnpFitter::textParForCanvas(RooFitResult *resP, RooFitResult *resF,TPad *p)
   eff = nP / (nP+nF);
   e_eff = 1./(nTot*nTot) * sqrt( nP*nP* e_nF*e_nF + nF*nF * e_nP*e_nP );
 
-  TPaveText *text1 = new TPaveText(0,0.9,1,1);
+  TPaveText *text1 = new TPaveText(0,0.8,1,1);
   text1->SetFillColor(0);
   text1->SetBorderSize(0);
   text1->SetTextAlign(12);
 
-  // text1->AddText(TString::Format("* fit status pass: %d, fail : %d",resP->status(),resF->status()));
+  text1->AddText(TString::Format("* fit status pass: %d, fail : %d",resP->status(),resF->status()));
   text1->AddText(TString::Format("* eff = %1.4f #pm %1.4f",eff,e_eff));
 
   // text->SetTextSize(0.06);
 
   // text->AddText("* Passing parameters");
-  TPaveText *text = new TPaveText(0,0,1,0.9);
+  TPaveText *text = new TPaveText(0,0,1,0.8);
   text->SetFillColor(0);
   text->SetBorderSize(0);
   text->SetTextAlign(12);
@@ -187,4 +187,3 @@ void tnpFitter::textParForCanvas(RooFitResult *resP, RooFitResult *resF,TPad *p)
   text1->Draw();
   text->Draw();
 }
-

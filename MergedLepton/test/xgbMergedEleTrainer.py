@@ -43,8 +43,8 @@ elif args.angle=="None" and args.et=="Et2":
         sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))
 
 elif args.angle=="" and args.et=="":
-    if args.opt=="False" and args.era=="20UL18":
-        sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_BuJpsiKee.root","Jpsi->ee",ROOT.kGray))
+    # if args.opt=="False" and args.era=="20UL18":
+    #     sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_BuJpsiKee.root","Jpsi->ee",ROOT.kGray))
 
     sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))
     sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","H750A1",ROOT.kSpring+2))
@@ -352,7 +352,7 @@ zvis.drawScoreByProcess(
 )
 
 ptBinning = [0,20,30,50,75,100,125,150,200,250,300,350,400,500,600,800,1000,1500]
-effplot_bkg = ROOT.TEfficiency("eff_bkg",";GeV;Eff",len(ptBinning)-1,array('d',ptBinning))
+effplot_bkg = ROOT.TEfficiency("eff_bkg",";E_{T}^{5x5};Eff",len(ptBinning)-1,array('d',ptBinning))
 
 ptBinning750 = [0,20,50,100,150,200,220,240,260,280,300,320,340,360,380,400,450,500,600,800,1000,1500]
 ptBinning2000 = [0,200,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1200,1300,1500]
@@ -369,11 +369,11 @@ effplot_dr_sigs = []
 
 for asample in sigSamples:
     if "750" in asample.name_:
-        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";GeV;Eff",len(ptBinning750)-1,array('d',ptBinning750)) )
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Eff",len(ptBinning750)-1,array('d',ptBinning750)) )
     elif "2000" in asample.name_:
-        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";GeV;Eff",len(ptBinning2000)-1,array('d',ptBinning2000)) )
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Eff",len(ptBinning2000)-1,array('d',ptBinning2000)) )
     else:
-        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";GeV;Eff",len(ptBinning)-1,array('d',ptBinning)) )
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Eff",len(ptBinning)-1,array('d',ptBinning)) )
 
     effplot_dr_sigs.append( ROOT.TEfficiency("eff_dr_sig"+asample.name_,";#Delta R;Eff",len(drBinning)-1,array('d',drBinning)) )
 
@@ -402,16 +402,25 @@ tdrstyle.setTDRStyle()
 
 #change the CMS_lumi variables (see CMS_lumi.py)
 CMS_lumi.writeExtraText = 1
-CMS_lumi.extraText = "Work in progress"
-CMS_lumi.lumi_sqrtS = "13 TeV" # used with iPeriod = 0
+CMS_lumi.extraText = "#splitline{                 Simulation}{                 Work in progress}"
 
-iPos = 0
+if args.era=="20UL16APV":
+    CMS_lumi.lumi_sqrtS = "2016preVFP"
+elif args.era=="20UL16":
+    CMS_lumi.lumi_sqrtS = "2016postVFP"
+elif args.era=="20UL17":
+    CMS_lumi.lumi_sqrtS = "2017"
+elif args.era=="20UL18":
+    CMS_lumi.lumi_sqrtS = "2018"
+
+iPos = 11
+CMS_lumi.relPosX = 0.11
 
 if( iPos==0 ):
     CMS_lumi.relPosX = 0.12
 
 H_ref = 600;
-W_ref = 800;
+W_ref = 600;
 W = W_ref
 H = H_ref
 
@@ -441,8 +450,13 @@ effplot_bkg.Draw()
 canvas.Update()
 agraph = effplot_bkg.GetPaintedGraph()
 agraph.GetYaxis().SetTitleOffset(1)
+agraph.GetXaxis().SetTitleSize(0.05)
+agraph.GetYaxis().SetTitleSize(0.05)
+agraph.GetXaxis().SetLabelSize(0.03)
+agraph.GetYaxis().SetLabelSize(0.03)
+agraph.GetHistogram().GetXaxis().SetLimits(0.,1500.)
 agraph.SetMinimum(0.);
-agraph.SetMaximum(1.2);
+agraph.SetMaximum(1.4);
 canvas.Update()
 
 for idx, plot in enumerate(effplot_sigs):
@@ -450,14 +464,15 @@ for idx, plot in enumerate(effplot_sigs):
     plot.SetLineColor(sigSamples[idx].color_)
     plot.Draw("sames")
 
-legend = ROOT.TLegend(0.72,0.75,0.95,0.9)
+# legend = ROOT.TLegend(0.5,0.75,0.95,0.9)
+legend = ROOT.TLegend(0.5,0.82,0.95,0.9)
 legend.SetBorderSize(0);
-legend.SetNColumns(2)
+legend.SetNColumns(3)
 
 for idx, plot in enumerate(effplot_sigs):
     legend.AddEntry(plot,sigSamples[idx].name_)
 
-legend.AddEntry(effplot_bkg,"bkg")
+legend.AddEntry(effplot_bkg,"Bkg")
 legend.Draw()
 
 #draw the lumi text on the canvas
@@ -468,7 +483,7 @@ canvas.RedrawAxis()
 frame = canvas.GetFrame()
 frame.Draw()
 
-canvas.SaveAs("plot/"+plotname+"_eff.png")
+canvas.SaveAs("plot/"+plotname+"_eff.pdf")
 
 effplot_etaSC_bkg.SetLineWidth(2)
 effplot_etaSC_sig.SetLineWidth(2)

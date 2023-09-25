@@ -84,7 +84,7 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
   setTDRStyle();
 
   writeExtraText = true;            // if extra text
-  extraText  = "Simulation Work in progress";  // default extra text is "Preliminary"
+  extraText  = "#splitline{Simulation}{Work in progress}";  // default extra text is "Preliminary"
   lumi_sqrtS = "13 TeV";            // used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 
   if (era!="20UL16APV" && era!="20UL16" && era!="20UL17" && era!="20UL18") {
@@ -102,16 +102,16 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     lumi_sqrtS = "2018";
 
   int iPeriod = 0; // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
-  int iPos = 0;
+  int iPos = 11;
 
   if( iPos==0 )
     relPosX = 0.12;
 
-  int W = 800;
+  int W = 600;
   int H = 600;
 
   int H_ref = 600;
-  int W_ref = 800;
+  int W_ref = 600;
 
   // references for T, B, L, R
   float T = 0.08*H_ref;
@@ -160,8 +160,8 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     sigSamples.push_back( sample(TFile::Open(("MergedEleMva_"+era+"_H750A10.root").c_str()),kAzure-2,"H750A10") );
     sigSamples.push_back( sample(TFile::Open(("MergedEleMva_"+era+"_H250A10.root").c_str()),kBlue+2,"H250A10") );
 
-    if (era=="20UL18")
-      sigSamples.push_back( sample(TFile::Open(("MergedEleMva_"+era+"_BuJpsiKee.root").c_str()),kGray,"Jpsi->ee") );
+    // if (era=="20UL18")
+    //   sigSamples.push_back( sample(TFile::Open(("MergedEleMva_"+era+"_BuJpsiKee.root").c_str()),kGray,"Jpsi->ee") );
   } else if (ang=="None"&&etThres=="Et2") {
     sigSamples.push_back( sample(TFile::Open(("MergedEleMva_"+era+"_H2000A1.root").c_str()),kRed,"H2000A1") );
     sigSamples.push_back( sample(TFile::Open(("MergedEleMva_"+era+"_H750A1.root").c_str()),kOrange+7,"H750A1") );
@@ -237,12 +237,12 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
 
   auto fillElectrons = [&](TTree* tr, TTree* trkTree, TString postfix, std::vector<std::shared_ptr<TH2D>>& hist2Ds) -> std::vector<std::shared_ptr<TH1D>> {
     auto h_r9 = std::make_shared<TH1D>("R9_"+postfix,"R9;R9;nEle",nbins,0.,1.);
-    auto h_detaInSeed = std::make_shared<TH1D>("dEtaInSeed_"+postfix,"#Delta#eta_{in}(seed);#Delta#eta_{in}(seed);nEle",nbins,-0.025,0.025);
-    auto h_dphiIn = std::make_shared<TH1D>("dPhiIn_"+postfix,"#Delta#phi_{in};#Delta#phi_{in};nEle",nbins,-0.1,0.1);
+    auto h_detaInSeed = std::make_shared<TH1D>("dEtaInSeed_"+postfix,"#Delta#eta_{in}(seed);#Delta#eta_{in}^{seed};nEle",nbins,-0.005,0.005);
+    auto h_dphiIn = std::make_shared<TH1D>("dPhiIn_"+postfix,"#Delta#phi_{in};#Delta#phi_{in};nEle",nbins,-0.02,0.02);
     auto h_EOP = std::make_shared<TH1D>("EoverP_"+postfix,"E/p;E/p;nEle",nbins,0.,10.);
     auto h_fbrem = std::make_shared<TH1D>("fbrem_"+postfix,"f_{brem};f_{brem};nEle",nbins,-1.,1.);
 
-    auto h_sigIeIe = std::make_shared<TH1D>("sigIeIe_"+postfix,"#sigma_{i#eta i#eta};#sigma_{i#eta i#eta};nEle",nbins,0.,ang=="None" ? 0.02 : 0.05);
+    auto h_sigIeIe = std::make_shared<TH1D>("sigIeIe_"+postfix,"#sigma_{i#eta i#eta};#sigma_{i#eta i#eta};nEle",nbins,0.,ang=="None" ? 0.015 : 0.05);
     auto h_E1x5E5x5 = std::make_shared<TH1D>("E1x5E5x5_"+postfix,"E1x5/E5x5;E1x5/E5x5;nEle",2.*nbins,0.,1.);
     auto h_sigIpIp = std::make_shared<TH1D>("sigIpIp_"+postfix,"#sigma_{i#phi i#phi};#sigma_{i#phi i#phi};nEle",nbins,0.,0.08);
     auto h_HoE = std::make_shared<TH1D>("HoE_"+postfix,"H/E;H/E;nEle",nbins,0.,0.1);
@@ -251,19 +251,19 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     auto h_minmaxRatio = std::make_shared<TH1D>("minmaxRatio"+postfix,";sMin/sMaj;nEle",nbins,0.,1.);
     auto h_alphaSC = std::make_shared<TH1D>("alphaSC"+postfix,";alpha_{SC};nEle",nbins,-1.6,1.6);
 
-    auto h_trackAlpha = std::make_shared<TH1D>("trackAlpha_"+postfix,";#alpha_{trk};nEle",nbins,-1.6,1.6);
+    auto h_trackAlpha = std::make_shared<TH1D>("trackAlpha_"+postfix,";#alpha_{track};nEle",nbins,-1.6,1.6);
 
-    auto h_union5x5covIeIe = std::make_shared<TH1D>("union5x5covIeIe_"+postfix,";cov_{i#eta i#eta};nEle",nbins,0.,2.);
+    auto h_union5x5covIeIe = std::make_shared<TH1D>("union5x5covIeIe_"+postfix,";#sigma_{i#eta i#eta}^{2};nEle",nbins,0.,2.);
     auto h_union5x5covIeIp = std::make_shared<TH1D>("union5x5covIeIp_"+postfix,";cov_{i#eta i#phi}/cov_{maj};nEle",nbins,-0.7,0.7);
     auto h_union5x5minmaxRatio = std::make_shared<TH1D>("union5x5minmaxRatio_"+postfix,";#sigma_{min}/#sigma_{Maj};nEle",nbins,0.,1.);
-    auto h_alphaU5x5 = std::make_shared<TH1D>("alphaU5x5_"+postfix,";#alpha_{u5x5};nEle",nbins,-1.6,1.6);
+    auto h_alphaU5x5 = std::make_shared<TH1D>("alphaU5x5_"+postfix,";#alpha_{5x5};nEle",nbins,-1.6,1.6);
 
     auto h_detaInSeedMiniAOD = std::make_shared<TH1D>("dEtaInSeedMiniAOD_"+postfix,"#Delta#eta_{in}(seed);#Delta#eta_{in}(seed);nEle",nbins,-0.025,0.025);
     auto h_dphiInMiniAOD = std::make_shared<TH1D>("dPhiInMiniAOD_"+postfix,"#Delta#phi_{in};#Delta#phi_{in};nEle",nbins,-0.1,0.1);
     auto h_sigIeIeMiniAOD = std::make_shared<TH1D>("sigIeIeMiniAOD_"+postfix,"#sigma_{i#eta i#eta};#sigma_{i#eta i#eta};nEle",nbins,0.,0.05);
 
-    auto h_union5x5detaIn = std::make_shared<TH1D>("union5x5dEtaIn_"+postfix,";#Delta#eta_{in}(u5x5);nEle",nbins,-0.05,0.05);
-    auto h_union5x5dphiIn = std::make_shared<TH1D>("union5x5dPhiIn_"+postfix,";#Delta#phi_{in}(u5x5);nEle",nbins,-0.1,0.1);
+    auto h_union5x5detaIn = std::make_shared<TH1D>("union5x5dEtaIn_"+postfix,";#Delta#eta_{in}^{5x5};nEle",nbins,-0.05,0.05);
+    auto h_union5x5dphiIn = std::make_shared<TH1D>("union5x5dPhiIn_"+postfix,";#Delta#phi_{in}^{5x5};nEle",nbins,-0.1,0.1);
     auto h_union5x5drIn = std::make_shared<TH1D>("h_union5x5drIn"+postfix,";#Delta R_{in}(u5x5);nEle",nbins,0.,0.05);
     auto h_union5x5EOP = std::make_shared<TH1D>("union5x5EoverP_"+postfix,"E/p(u5x5);E/p(u5x5);nEle",nbins,0.,10.);
 
@@ -276,7 +276,7 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     auto h_GenEratio = std::make_shared<TH1D>("GenEratio_"+postfix,";E_{reco}/E_{GEN};nEle",nbins,-1.,3.);
 
     auto h_dPerpIn = std::make_shared<TH1D>("dPerpIn"+postfix,";#Delta u_{in};nEle",nbins,-0.025,0.025);
-    auto h_normDParaIn = std::make_shared<TH1D>("normDParaIn"+postfix,";#Delta v_{in}/#Delta R(e_{1},e_{2});nEle",nbins,-0.5,1.5);
+    auto h_normDParaIn = std::make_shared<TH1D>("normDParaIn"+postfix,";#Delta v_{in}/#Delta R;nEle",nbins,-0.5,1.5);
 
     auto h_trackPtErr = std::make_shared<TH2D>("trackPtErr_"+postfix,";p_{T};dp_{T}/p_{T}",nbins,0.,1200.,nbins,0.,1.);
     auto h_eopErrEt = std::make_shared<TH2D>("eopErrEt_"+postfix,";E_{T};E/p error",nbins,0.,1200.,nbins,0.,1.);
@@ -405,54 +405,54 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     }
 
     std::vector<std::shared_ptr<TH1D>> hists;
-    hists.push_back(std::move(h_r9));
     hists.push_back(std::move(h_detaInSeed));
     hists.push_back(std::move(h_dphiIn));
     hists.push_back(std::move(h_EOP));
-    hists.push_back(std::move(h_fbrem));
     hists.push_back(std::move(h_E1x5E5x5));
     hists.push_back(std::move(h_sigIeIe));
-    hists.push_back(std::move(h_sigIpIp));
-    hists.push_back(std::move(h_HoE));
-    hists.push_back(std::move(h_HcalD1iso));
-    hists.push_back(std::move(h_minmaxRatio));
-    hists.push_back(std::move(h_alphaSC));
+    // hists.push_back(std::move(h_r9));
+    // hists.push_back(std::move(h_fbrem));
+    // hists.push_back(std::move(h_sigIpIp));
+    // hists.push_back(std::move(h_HoE));
+    // hists.push_back(std::move(h_HcalD1iso));
+    // hists.push_back(std::move(h_minmaxRatio));
+    // hists.push_back(std::move(h_alphaSC));
 
-    hists.push_back(std::move(h_alphaU5x5));
-    hists.push_back(std::move(h_detaInSeedMiniAOD));
-    hists.push_back(std::move(h_dphiInMiniAOD));
-    hists.push_back(std::move(h_sigIeIeMiniAOD));
-    hists.push_back(std::move(h_union5x5detaIn));
-    hists.push_back(std::move(h_union5x5dphiIn));
-    hists.push_back(std::move(h_union5x5EOP));
+    // hists.push_back(std::move(h_alphaU5x5));
+    // hists.push_back(std::move(h_union5x5detaIn));
+    // hists.push_back(std::move(h_union5x5dphiIn));
+    // hists.push_back(std::move(h_detaInSeedMiniAOD));
+    // hists.push_back(std::move(h_dphiInMiniAOD));
+    // hists.push_back(std::move(h_sigIeIeMiniAOD));
+    // hists.push_back(std::move(h_union5x5EOP));
 
-    hists.push_back(std::move(h_union5x5covIeIe));
-    hists.push_back(std::move(h_union5x5covIeIp));
-    hists.push_back(std::move(h_union5x5minmaxRatio));
+    // hists.push_back(std::move(h_union5x5covIeIe));
+    // hists.push_back(std::move(h_union5x5covIeIp));
+    // hists.push_back(std::move(h_union5x5minmaxRatio));
 
-    hists.push_back(std::move(h_union5x5drIn));
+    // hists.push_back(std::move(h_union5x5drIn));
 
-    hists.push_back(std::move(h_u5x5Et));
-    hists.push_back(std::move(h_Et));
-    hists.push_back(std::move(h_GenPt));
-    hists.push_back(std::move(h_GenE));
-    hists.push_back(std::move(h_GenPtRatio));
-    hists.push_back(std::move(h_GenEratio));
+    // hists.push_back(std::move(h_u5x5Et));
+    // hists.push_back(std::move(h_Et));
+    // hists.push_back(std::move(h_GenPt));
+    // hists.push_back(std::move(h_GenE));
+    // hists.push_back(std::move(h_GenPtRatio));
+    // hists.push_back(std::move(h_GenEratio));
 
     if (trkTree) {
       hists.push_back(std::move(h_trackAlpha));
 
-      hists.push_back(std::move(h_dPerpIn));
+      // hists.push_back(std::move(h_dPerpIn));
       hists.push_back(std::move(h_normDParaIn));
 
-      hists.push_back(std::move(h_trackDEta));
-      hists.push_back(std::move(h_trackDPhi));
-
-      hists.push_back(std::move(h_dr));
+      // hists.push_back(std::move(h_trackDEta));
+      // hists.push_back(std::move(h_trackDPhi));
+      //
+      // hists.push_back(std::move(h_dr));
     }
 
-    hist2Ds.push_back(std::move(h_trackPtErr));
-    hist2Ds.push_back(std::move(h_eopErrEt));
+    // hist2Ds.push_back(std::move(h_trackPtErr));
+    // hist2Ds.push_back(std::move(h_eopErrEt));
 
     return std::move(hists);
   };
@@ -561,23 +561,27 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
   canvas->SetTickx(0);
   canvas->SetTicky(0);
 
-  auto legend = std::make_unique<TLegend>(0.73,0.7,0.93,0.9);
-  legend->SetNColumns(2);
+  // auto legend = std::make_unique<TLegend>(0.5,0.7,0.93,0.9);
+  auto legend = std::make_unique<TLegend>(0.5,0.77,0.93,0.9);
+  legend->SetNColumns(3);
   legend->SetBorderSize(0);
-
-  // loop over sig samples
-  for (unsigned idx = 0; idx < sigSamples.size(); idx++)
-    legend->AddEntry(sigHists.at(idx).at(0).get(),sigSamples.at(idx).name.c_str());
 
   legend->AddEntry(histowner.at(4).at(0).get(),"W");
   legend->AddEntry(histowner.at(11).at(0).get(),"DY");
   legend->AddEntry(histowner.at(18).at(0).get(),"TT");
+
+  // loop over sig samples
+  for (unsigned idx = 0; idx < sigSamples.size(); idx++)
+    legend->AddEntry(sigHists.at(idx).at(0).get(),sigSamples.at(idx).name.c_str());
 
   // loop over hists
   for (unsigned idx = 0; idx < sigHists.front().size(); idx++) {
     double theMax = 0.;
 
     stacks.at(idx)->Draw("hist");
+    stacks.at(idx)->GetXaxis()->SetLabelSize(0.03);
+    stacks.at(idx)->GetYaxis()->SetLabelSize(0.03);
+    stacks.at(idx)->GetXaxis()->SetTitleSize(0.05);
     theMax = std::max(stacks.at(idx)->GetMaximum(),theMax);
 
     auto* tmpHist = (TH1D*)stacks.at(idx)->GetHists()->At(0)->Clone();
@@ -613,7 +617,7 @@ void compareMvaInputs(const std::string ang, const std::string etThres, const st
     canvas->RedrawAxis();
     canvas->GetFrame()->Draw();
 
-    canvas->SaveAs(TString("MvaInputs/")+TString(ang)+TString(etThres)+TString(EBEE)+"_"+sigHists.front().at(idx)->GetName()+".png");
+    canvas->SaveAs(TString("MvaInputs/")+TString(ang)+TString(etThres)+TString(EBEE)+"_"+sigHists.front().at(idx)->GetName()+".pdf");
   } // histograms
 
   canvas->SetLogy(0);

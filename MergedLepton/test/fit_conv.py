@@ -56,7 +56,7 @@ def computeEffi(n1,n2,e1,e2):
 
     effout.append(eff)
     effout.append(e_eff)
-    
+
     return effout
 
 def readEff(aname, histname):
@@ -131,6 +131,9 @@ def drawEff1D(effList, nameout):
     c.SetBottomMargin(0.10)
     c.SetLeftMargin(0.12)
 
+    ROOT.gStyle.SetOptStat(0)
+    ROOT.gStyle.SetOptFit(0)
+
     p1 = ROOT.TPad( canName + '_up', canName + '_up', 0, yUp, 1,   1, 0,0,0)
     p2 = ROOT.TPad( canName + '_do', canName + '_do', 0,   0, 1, yUp, 0,0,0)
     p1.SetBottomMargin(0.0075)
@@ -149,7 +152,7 @@ def drawEff1D(effList, nameout):
     leg.SetBorderSize(0)
 
     xMin = 10.
-    xMax = 50.
+    xMax = 70.
 
     effiMin = 0.18
     effiMax = 1.35
@@ -169,8 +172,8 @@ def drawEff1D(effList, nameout):
     grBinsSF     .SetLineWidth(2)
     grBinsEffData.SetMarkerColor( ROOT.kBlack )
     grBinsEffData.SetLineColor(   ROOT.kBlack )
-    grBinsEffData.SetLineWidth(2) 
-            
+    grBinsEffData.SetLineWidth(2)
+
     grBinsEffData.GetHistogram().SetMinimum(effiMin)
     grBinsEffData.GetHistogram().SetMaximum(effiMax)
 
@@ -207,16 +210,58 @@ def drawEff1D(effList, nameout):
 
     p2.cd()
 
+    fitFunc = ROOT.TF1("SF","[0]",xMin,xMax)
+    fitFunc.SetLineColor(ROOT.kGray+1)
+    fitFunc.SetLineWidth(2)
+    fitFunc.SetLineStyle(ROOT.kDashed)
+    fitPtr = grBinsSF.Fit(fitFunc,"S&R")
+
+    xarr = [35.]
+    yarr = [0.]
+    xseq = ctypes.c_double*len(xarr)
+    yseq = ctypes.c_double*len(yarr)
+    cxarr = xseq(*xarr)
+    cyarr = yseq(*yarr)
+    fitPtr.GetConfidenceIntervals(1,1,0,cxarr,cyarr,0.95,False)
+
+    textbox = ROOT.TPaveText(0.7,0.23,0.96,0.37,"NDC")
+    textbox.SetBorderSize(0)
+    textbox.SetFillStyle(3025)
+    textbox.SetFillColor(0)
+
+    textbox_pol = ROOT.TPaveText(0.13,0.23,0.55,0.37,"NDC")
+    textbox_pol.SetBorderSize(0)
+    textbox_pol.SetFillStyle(3025)
+    textbox_pol.SetFillColor(0)
+
+    textbox.AddText(r'#mu=%.3f, CI_{0.95}=#pm%.4g' % (fitFunc.GetParameter(0), cyarr[0]))
+    lastText = textbox.GetListOfLines().Last()
+    lastText.SetTextColor(ROOT.kGray+1)
+
+    fitFuncPol = ROOT.TF1("SFpol","[0]*x+[1]",xMin,xMax)
+    fitFuncPol.SetLineColor(ROOT.kGray+1)
+    fitFuncPol.SetLineWidth(2)
+    fitFuncPol.SetLineStyle(ROOT.kDashed)
+    fitPtrPol = grBinsSF.Fit(fitFuncPol,"SREX0+")
+
+    lastbinMCeff = (grBinsEffMC.GetY())[grBinsEffMC.GetN()-1]
+    textbox_pol.AddText(r'%.4gE_{T}+%.3f #leq 1/eff_{MC} = %.3f' % (fitFuncPol.GetParameter(0), fitFuncPol.GetParameter(1), 1./lastbinMCeff))
+    lastText = textbox_pol.GetListOfLines().Last()
+    lastText.SetTextColor(ROOT.kGray+1)
+    lastText.SetTextAlign(12)
+
     grBinsSF.Draw("AP")
+    textbox.Draw()
+    textbox_pol.Draw()
 
     lineAtOne = ROOT.TLine(xMin,1,xMax,1)
-    lineAtOne.SetLineStyle(ROOT.kDashed)
-    lineAtOne.SetLineWidth(2)
+    lineAtOne.SetLineStyle(ROOT.kSolid)
+    lineAtOne.SetLineWidth(1)
     lineAtOne.Draw()
 
     c.cd()
 
-    leg.Draw()    
+    leg.Draw()
     CMS_lumi.CMS_lumi(c, 5, 10)
 
     c.SaveAs(nameout+'.pdf')
@@ -232,7 +277,7 @@ def histFitter( sample, histname, tnpWorkspaceParam, tnpWorkspaceFunc, plotDir, 
 
     upper = hi
 
-    if hi==50.:
+    if hi==70.:
         upper = 13000.
 
     if "20UL3y" in sample:
@@ -309,15 +354,17 @@ if __name__ == "__main__":
 
     plotlist = [
         "Et10to12_",
-        "Et12to15_",
-        "Et15to20_",
+        "Et12to14_",
+        "Et14to16_",
+        "Et16to20_",
         "Et20to25_",
-        "Et25toInf_"
+        "Et25to30_",
+        "Et30toInf_"
     ]
-#    plotlist = ["Et10toInf_"]
+#    plotlist = ["Et30toInf_"]
 
-    binEdgeList = [10,12,15,20,25,50]
-#    binEdgeList = [25,50]
+    binEdgeList = [10,12,14,16,20,25,30,70]
+#    binEdgeList = [30,70]
 
     tnpWorkspaceFunc = []
     tnpWorkspaceParam = []
@@ -332,8 +379,8 @@ if __name__ == "__main__":
         ]
 
         tnpWorkspaceParam = [
-            "meanP[-0.0,-5.0,5.0]","sigmaP[1.5,1,3]","alphasP[2.0,1.2,3.5]" ,'nP[3,0.8,5]',"sigmaP_2[2.2,1.7,4]","sosP[0]",
-            "meanF[-0.0,-5.0,5.0]","sigmaF[2,1,3]","alphasF[2.0,1.2,3.5]",'nF[3,0.8,5]',"sigmaF_2[2.2,1.7,4]","sosF[0]",
+            "meanP[-0.0,-5.0,5.0]","sigmaP[2.5,1.5,4]","alphasP[2.5,1.8,3.5]",'nP[3,1,5]',"sigmaP_2[2.5,1.5,4]","sosP[0]",
+            "meanF[-0.0,-5.0,5.0]","sigmaF[2.5,1.5,4]","alphasF[2.5,1.8,3.5]",'nF[3,1,5]',"sigmaF_2[2.5,1.5,4]","sosF[0]",
             "alphaP[0.,-1,1]",
             "alphaF[0.,-1,1]"
         ]
@@ -348,8 +395,8 @@ if __name__ == "__main__":
         ]
 
         tnpWorkspaceParam = [
-            "meanP[0,-3.0,3.0]","sigmaP[2,1,5.0]",
-            "meanF[0,-3.0,3.0]","sigmaF[2,1,5.0]",
+            "meanP[0,-3.0,3.0]","sigmaP[2.5,1.5,4]",
+            "meanF[0,-3.0,3.0]","sigmaF[2.5,1.5,4]",
             "alphaP[0.,-1,1]",
             "alphaF[0.,-1,1]"
         ]
@@ -364,8 +411,8 @@ if __name__ == "__main__":
         ]
 
         tnpWorkspaceParam = [
-            "meanP[-0.0,-3.0,3.0]","sigmaP[2,1,5.0]",
-            "meanF[-0.0,-3.0,3.0]","sigmaF[2,1,5.0]",
+            "meanP[-0.0,-3.0,3.0]","sigmaP[2.5,1.5,5.0]",
+            "meanF[-0.0,-3.0,3.0]","sigmaF[2.5,1.5,5.0]",
             "acmsP[60.,50.,80.]","betaP[0.05,0.01,0.08]","gammaP[0.1, -2, 2]","peakP[90.0]",
             "acmsF[60.,50.,80.]","betaF[0.05,0.01,0.08]","gammaF[0.1, -2, 2]","peakF[90.0]"
         ]
