@@ -51,10 +51,6 @@ process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
 process.load("ZprimeTo4l.MergedLepton.MergedLeptonIDProducer_cfi")
 process.load("ZprimeTo4l.Analysis.ResolvedEMuCRanalyzer_cfi")
 
-process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone(
-    elesMiniAOD=cms.InputTag("slimmedElectrons")
-)
-
 process.evtCounter = cms.EDAnalyzer('SimpleEventCounter')
 process.evtCounter.isMC = cms.bool(True)
 
@@ -74,7 +70,6 @@ process.p = cms.Path(
     process.ModifiedEcalRecHitIsolationScone+
     process.mergedLeptonIDProducer+
     process.egammaPostRecoSeq+
-    process.modifiedHEEPIDVarValueMaps2nd+ # need to run it again since refs in ValueMap are broken
     process.resolvedEMuCRanalyzer
 )
 

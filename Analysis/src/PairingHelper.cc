@@ -57,27 +57,9 @@ bool PairingHelper::pair4E(const std::vector<pat::ElectronRef>& eles,
     pat::ElectronRef aEle3 = leftover.front();
     pat::ElectronRef aEle4 = leftover.at(1);
 
-    if ( aEle3->gsfTrack()==(*addGsfTrkMap)[aEle3] && aEle4->gsfTrack()==(*addGsfTrkMap)[aEle4] ) {
-      // 3rd & 4th not boosted
-      pair2 = std::make_pair(aEle3,aEle4);
-      return true;
-    } else {
-      // 3rd & 4th boosted
-      if ( pairBoostedElectrons(aEle3,aEle4,addGsfTrkMap) ) {
-        pair2 = std::make_pair(aEle3,aEle4);
-        return true;
-      }
-
-      return false;
-    }
+    pair2 = std::make_pair(aEle3,aEle4);
+    return true;
   } // 1st & 2nd boosted
-
-  // now consider the case that nothing boosted
-  if ( eles.at(0)->gsfTrack()!=(*addGsfTrkMap)[eles.at(0)] ||
-       eles.at(1)->gsfTrack()!=(*addGsfTrkMap)[eles.at(1)] ||
-       eles.at(2)->gsfTrack()!=(*addGsfTrkMap)[eles.at(2)] ||
-       eles.at(3)->gsfTrack()!=(*addGsfTrkMap)[eles.at(3)] )
-    return false;
 
   return pairByDR(eles,pair1,pair2);
 }

@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 resolvedEMuCRanalyzer = cms.EDAnalyzer("ResolvedEMuCRanalyzer",
-  isMC = cms.untracked.bool(True),
+  isMC = cms.bool(True),
   generator = cms.InputTag("generator"),
   triggerResults = cms.InputTag("TriggerResults","","HLT"),
   srcEle = cms.InputTag("slimmedElectrons"),
@@ -9,7 +9,19 @@ resolvedEMuCRanalyzer = cms.EDAnalyzer("ResolvedEMuCRanalyzer",
   srcPv = cms.InputTag("offlineSlimmedPrimaryVertices"),
   genptc = cms.InputTag("prunedGenParticles"),
   pileupSummary = cms.InputTag("slimmedAddPileupInfo"),
+  METfilters = cms.InputTag("TriggerResults","","PAT"),
   triggerObjects = cms.InputTag("slimmedPatTrigger"),
+  METfilterList = cms.vstring(
+    "Flag_goodVertices",
+    "Flag_globalSuperTightHalo2016Filter",
+    "Flag_HBHENoiseFilter",
+    "Flag_HBHENoiseIsoFilter",
+    "EcalDeadCellTriggerPrimitiveFilter",
+    "Flag_BadPFMuonFilter",
+    "Flag_BadPFMuonDzFilter",
+    "Flag_eeBadScFilter",
+    "Flag_hfNoisyHitsFilter"
+  ),
   trigList = cms.vstring(
     "HLT_Mu50_v*",
     "HLT_TkMu50_v*"
@@ -21,5 +33,98 @@ resolvedEMuCRanalyzer = cms.EDAnalyzer("ResolvedEMuCRanalyzer",
   RMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/RMFF_20UL16.root"),
   REFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/REFF_20UL16.root"),
   ptThresTrig = cms.double(52.),
-  ptThres = cms.double(20.)
+  ptThres = cms.double(20.),
+  ffSystCL95 = cms.double(0.5)
+)
+
+resolvedEMuCRanalyzer20UL17 = resolvedEMuCRanalyzer.clone(
+  METfilterList = cms.vstring(
+    "Flag_goodVertices",
+    "Flag_globalSuperTightHalo2016Filter",
+    "Flag_HBHENoiseFilter",
+    "Flag_HBHENoiseIsoFilter",
+    "EcalDeadCellTriggerPrimitiveFilter",
+    "Flag_BadPFMuonFilter",
+    "Flag_BadPFMuonDzFilter",
+    "Flag_eeBadScFilter",
+    "Flag_hfNoisyHitsFilter",
+    "Flag_ecalBadCalibFilter"
+  ),
+  trigList = cms.vstring(
+    "HLT_Mu50_v*",
+    "HLT_OldMu100_v*",
+    "HLT_TkMu100_v*"
+  ),
+  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2017UL.txt"),
+  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root"),
+  trigHistName = cms.string("NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
+  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root"),
+  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
+  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
+  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root"),
+  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
+  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL17.root"),
+  recoEleSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_ptAbove20_EGM2D_UL2017.root"),
+  RMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/RMFF_20UL17.root"),
+  REFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/REFF_20UL17.root"),
+  modHeepSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_modHeep_EGM2D_UL2017.root"),
+  modHeepSFmuEB1 = cms.double(1.015),
+  modHeepSFmuEB2 = cms.double(1.002),
+  modHeepSFmuEE = cms.double(1.003),
+  modHeepSFcl95EB1 = cms.double(0.03528),
+  modHeepSFcl95EB2 = cms.double(0.02765),
+  modHeepSFcl95EE = cms.double(0.02814),
+  modHeepSFupperEB1 = cms.double(1.118),
+  modHeepSFupperEB2 = cms.double(1.093),
+  modHeepSFupperEE = cms.double(1.144),
+  modHeepPolEB1str = cms.string("1.119*0.00001*x+1.012"),
+  modHeepPolEB2str = cms.string("2.415*0.00001*x+0.995"),
+  modHeepPolEEstr = cms.string("2.153*0.00001*x+1.001")
+)
+
+resolvedEMuCRanalyzer20UL18 = resolvedEMuCRanalyzer.clone(
+  METfilterList = cms.vstring(
+    "Flag_goodVertices",
+    "Flag_globalSuperTightHalo2016Filter",
+    "Flag_HBHENoiseFilter",
+    "Flag_HBHENoiseIsoFilter",
+    "EcalDeadCellTriggerPrimitiveFilter",
+    "Flag_BadPFMuonFilter",
+    "Flag_BadPFMuonDzFilter",
+    "Flag_eeBadScFilter",
+    "Flag_hfNoisyHitsFilter",
+    "Flag_ecalBadCalibFilter"
+  ),
+  trigList = cms.vstring(
+    "HLT_Mu50_v*",
+    "HLT_OldMu100_v*",
+    "HLT_TkMu100_v*"
+  ),
+  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2018UL.txt"),
+  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root"),
+  trigHistName = cms.string("NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
+  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root"),
+  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
+  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
+  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root"),
+  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
+  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL18.root"),
+  recoEleSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_ptAbove20_EGM2D_UL2018.root"),
+  RMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/RMFF_20UL18.root"),
+  REFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/REFF_20UL18.root"),
+  modHeepSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_modHeep_EGM2D_UL2018.root"),
+  modHeepSFmuEB1 = cms.double(0.998),
+  modHeepSFmuEB2 = cms.double(0.991),
+  modHeepSFmuEE = cms.double(1.005),
+  modHeepSFcl95EB1 = cms.double(0.02489),
+  modHeepSFcl95EB2 = cms.double(0.03772),
+  modHeepSFcl95EE = cms.double(0.04466),
+  modHeepSFupperEB1 = cms.double(1.110),
+  modHeepSFupperEB2 = cms.double(1.128),
+  modHeepSFupperEE = cms.double(1.125),
+  modHeepPolEB1str = cms.string("-8.873*0.000001*x+1.000"),
+  modHeepPolEB2str = cms.string("2.09*0.000001*x+0.990"),
+  modHeepPolEEstr = cms.string("2.354*0.00001*x+0.999")
 )

@@ -53,19 +53,28 @@ private:
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
   const edm::EDGetTokenT<double> prefweight_token;
 
+  const edm::EDGetTokenT<edm::TriggerResults> METfilterToken_;
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> triggerobjectsToken_;
+  const std::vector<std::string> METfilterList_;
   const std::vector<std::string> trigList_;
 
   const std::string trigHistName_;
+  const std::string idHistName_;
+  const std::string idHistNameTrkHighPt_;
+  const std::string isoHistName_;
+  const std::string isoHistNameTrkHighPt_;
   const edm::FileInPath rochesterPath_;
   const edm::FileInPath triggerSFpath_;
+  const edm::FileInPath muonIdSFpath_;
+  const edm::FileInPath muonIsoSFpath_;
   const edm::FileInPath purwgtPath_;
 
   const edm::FileInPath FFpath_;
 
   const double ptThres_;
   const double ptThresTrig_;
+  const double ffSystCL95_;
 
   MuonCorrectionHelper mucorrHelper_;
 
@@ -83,7 +92,7 @@ private:
 };
 
 ResolvedMuCRanalyzer::ResolvedMuCRanalyzer(const edm::ParameterSet& iConfig) :
-isMC_(iConfig.getUntrackedParameter<bool>("isMC")),
+isMC_(iConfig.getParameter<bool>("isMC")),
 srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
 srcMuon_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
@@ -91,17 +100,26 @@ genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::In
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
+METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
+METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
 trigHistName_(iConfig.getParameter<std::string>("trigHistName")),
+idHistName_(iConfig.getParameter<std::string>("idHistName")),
+idHistNameTrkHighPt_(iConfig.getParameter<std::string>("idHistNameTrkHighPt")),
+isoHistName_(iConfig.getParameter<std::string>("isoHistName")),
+isoHistNameTrkHighPt_(iConfig.getParameter<std::string>("isoHistNameTrkHighPt")),
 rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
 triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
+muonIdSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdSFpath")),
+muonIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIsoSFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 ptThresTrig_(iConfig.getParameter<double>("ptThresTrig")),
-mucorrHelper_(rochesterPath_,triggerSFpath_,trigHistName_) {
+ffSystCL95_(iConfig.getParameter<double>("ffSystCL95")),
+mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdSFpath_,muonIsoSFpath_,trigHistName_) {
   usesResource("TFileService");
 }
 
@@ -120,8 +138,8 @@ void ResolvedMuCRanalyzer::beginJob() {
   purwgt_ = static_cast<TH1D*>(purwgtFile_->Get("PUrwgt"));
 
   FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
-  drFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_dr_MB"));
-  ffFit_ = (static_cast<TH1D*>(FFfile_->Get("dr_3P0F_MB_rebin")))->Fit(drFF_,"RS");
+  drFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_dr_all"));
+  ffFit_ = (static_cast<TH1D*>(FFfile_->Get("all_dr_3P0F_rebin")))->Fit(drFF_,"RS");
 
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
@@ -226,6 +244,8 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["2P2F_CR_ll2_dr"] = fs->make<TH1D>("2P2F_CR_ll2_dr","2P2F CR dR(ll2)",128,0.,6.4);
 
   histo1d_["2P2F_CR_llll_invM_xFF"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
+  histo1d_["2P2F_CR_llll_invM_xFF_ffUp"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF_ffUp","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
+  histo1d_["2P2F_CR_llll_invM_xFF_ffDn"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF_ffDn","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_ll1ll2_dr_xFF"] = fs->make<TH1D>("2P2F_CR_ll1ll2_dr_xFF","2P2F CR dR(ll1ll2) x Fake factor",128,0.,6.4);
   histo1d_["2P2F_CR_ll1_invM_xFF"] = fs->make<TH1D>("2P2F_CR_ll1_invM_xFF","2P2F CR M(ll1) x Fake factor;M [GeV];",100,0.,200.);
   histo1d_["2P2F_CR_ll1_dr_xFF"] = fs->make<TH1D>("2P2F_CR_ll1_dr_xFF","2P2F CR dR(ll1) x Fake factor",128,0.,6.4);
@@ -233,6 +253,8 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["2P2F_CR_ll2_dr_xFF"] = fs->make<TH1D>("2P2F_CR_ll2_dr_xFF","2P2F CR dR(ll2) x Fake factor",128,0.,6.4);
 
   histo1d_["2P2F_CR_llll_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
+  histo1d_["2P2F_CR_llll_invM_xFF2_ffUp"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2_ffUp","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
+  histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2_ffDn","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_ll1ll2_dr_xFF2"] = fs->make<TH1D>("2P2F_CR_ll1ll2_dr_xFF2","2P2F CR dR(ll1ll2) x Fake factor^2",128,0.,6.4);
   histo1d_["2P2F_CR_ll1_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_ll1_invM_xFF2","2P2F CR M(ll1) x Fake factor^2;M [GeV];",100,0.,200.);
   histo1d_["2P2F_CR_ll1_dr_xFF2"] = fs->make<TH1D>("2P2F_CR_ll1_dr_xFF2","2P2F CR dR(ll1) x Fake factor^2",128,0.,6.4);
@@ -287,6 +309,8 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["3P1F_CR_ll2_dr"] = fs->make<TH1D>("3P1F_CR_ll2_dr","3P1F CR dR(ll2)",64,0.,6.4);
 
   histo1d_["3P1F_CR_llll_invM_xFF"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
+  histo1d_["3P1F_CR_llll_invM_xFF_ffUp"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF_ffUp","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
+  histo1d_["3P1F_CR_llll_invM_xFF_ffDn"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF_ffDn","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["3P1F_CR_ll1ll2_dr_xFF"] = fs->make<TH1D>("3P1F_CR_ll1ll2_dr_xFF","3P1F CR dR(ll1ll2) x Fake factor",64,0.,6.4);
   histo1d_["3P1F_CR_ll1_invM_xFF"] = fs->make<TH1D>("3P1F_CR_ll1_invM_xFF","3P1F CR M(ll1) x Fake factor;M [GeV];",100,0.,200.);
   histo1d_["3P1F_CR_ll1_dr_xFF"] = fs->make<TH1D>("3P1F_CR_ll1_dr_xFF","3P1F CR dR(ll1) x Fake factor",64,0.,6.4);
@@ -394,6 +418,26 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
   if (!isFired)
     return;
 
+  edm::Handle<edm::TriggerResults> METfilterHandle;
+  iEvent.getByToken(METfilterToken_,METfilterHandle);
+  edm::TriggerNames METfilters = iEvent.triggerNames(*METfilterHandle);
+
+  unsigned int nPassedFilters = 0;
+
+  for (unsigned int iTrig = 0; iTrig < METfilterHandle.product()->size(); iTrig++) {
+    const std::string trigname = METfilters.triggerName(iTrig);
+
+    if (METfilterHandle.product()->accept(iTrig)) {
+      for (const auto& filterName : METfilterList_) {
+        if (trigname.find(filterName) != std::string::npos)
+          nPassedFilters++;
+      }
+    }
+  }
+
+  if (nPassedFilters!=METfilterList_.size())
+    return;
+
   std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> trigObjs;
 
   for (unsigned iTrig = 0; iTrig < trigObjHandle->size(); iTrig++) {
@@ -419,29 +463,10 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
   histo1d_["cutflow"]->Fill( 1.5, aWeight );
 
-  std::vector<pat::ElectronRef> acceptEles;
-
-  for (unsigned int idx = 0; idx < eleHandle->size(); idx++) {
-    const auto& aEle = eleHandle->refAt(idx);
-
-    if ( std::abs(aEle->superCluster()->eta()) > 2.5 )
-      continue;
-
-    // veto EBEE gap
-    if ( std::abs(aEle->superCluster()->eta()) > 1.4442 && std::abs(aEle->superCluster()->eta()) < 1.566 )
-      continue;
-
-    if ( aEle->electronID("modifiedHeepElectronID") )
-      acceptEles.push_back(aEle.castTo<pat::ElectronRef>());
-  }
-
-  if ( !acceptEles.empty() )
+  if (muonHandle->empty())
     return;
 
   histo1d_["cutflow"]->Fill( 2.5, aWeight );
-
-  if (muonHandle->empty())
-    return;
 
   std::vector<pat::MuonRef> highPtMuons;
   std::vector<pat::MuonRef> highPtTrackerMuons; // but not highPtMuon
@@ -496,7 +521,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                          isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
         firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.05 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
       isolatedHighPtMuons.push_back(firstMuon);
   }
 
@@ -530,7 +555,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                          isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
         firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.05 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
       isolatedHighPtTrackerMuons.push_back(firstMuon);
   }
 
@@ -563,6 +588,18 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
   if ( !trigMatched )
     return;
 
+  if (isMC_) {
+    for (const auto& aMu : isolatedHighPtMuons) {
+      aWeight *= mucorrHelper_.idSF(aMu,idHistName_);
+      aWeight *= mucorrHelper_.isoSF(aMu,isoHistName_);
+    }
+
+    for (const auto& aMu : isolatedHighPtTrackerMuons) {
+      aWeight *= mucorrHelper_.idSF(aMu,idHistNameTrkHighPt_);
+      aWeight *= mucorrHelper_.isoSF(aMu,isoHistNameTrkHighPt_);
+    }
+  }
+
   histo1d_["cutflow"]->Fill( 4.5, aWeight );
 
   // concatenate(-ish) highPtMuons & highPtTrackerMuons - order is important!
@@ -593,6 +630,15 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
     bool check2nd = std::find(isolatedHighPtTrackerMuons.begin(),isolatedHighPtTrackerMuons.end(),apair.second) != isolatedHighPtTrackerMuons.end();
 
     return check1st && check2nd;
+  };
+
+  auto ciFF = [this] (const double dr) {
+    const double ff = drFF_->Eval(dr);
+    const double xval[1] = {dr};
+    double ci[1];
+    ffFit_->GetConfidenceIntervals(1,1,0,xval,ci,0.95,false);
+
+    return std::hypot(ci[0],ff*ffSystCL95_);
   };
 
   switch (allHighPtMuons.size()) {
@@ -838,9 +884,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                                                       reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
                                                                     allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(1)->tunePMuonBestTrack()->phi()) }) );
           const double ff = drFF_->Eval(drFake);
-          const double xval[1] = {drFake};
-          double ci[1];
-          ffFit_->GetConfidenceIntervals(1,1,0,xval,ci,0.6827,false);
+          const double ci = ciFF(drFake);
 
           if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["3P1F_llll_pt"]->Fill(lvec4l.pt(), aWeight);
@@ -854,6 +898,8 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
             histo1d_["3P1F_CR_llll_invM"]->Fill(m4l, aWeight);
             histo1d_["3P1F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff);
+            histo1d_["3P1F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff+ci));
+            histo1d_["3P1F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff-std::min(ff,ci)));
           }
 
           if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
@@ -1003,14 +1049,10 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                                                                      allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(1)->tunePMuonBestTrack()->phi()) }) );
 
           const double ff1 = drFF_->Eval(drFake1);
-          const double xval1[1] = {drFake1};
-          double ci1[1];
-          ffFit_->GetConfidenceIntervals(1,1,0,xval1,ci1,0.6827,false);
+          const double ci1 = ciFF(drFake1);
 
           const double ff2 = drFF_->Eval(drFake2);
-          const double xval2[1] = {drFake2};
-          double ci2[1];
-          ffFit_->GetConfidenceIntervals(1,1,0,xval2,ci2,0.6827,false);
+          const double ci2 = ciFF(drFake2);
 
           if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["2P2F_P1_pt"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
@@ -1038,8 +1080,14 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
 
             histo1d_["2P2F_CR_llll_invM"]->Fill(m4l, aWeight);
             histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff1);
+            histo1d_["2P2F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff1+ci1));
+            histo1d_["2P2F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1)));
             histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff2);
+            histo1d_["2P2F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff2+ci2));
+            histo1d_["2P2F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff2-std::min(ff2,ci2)));
             histo1d_["2P2F_CR_llll_invM_xFF2"]->Fill(m4l, aWeight*ff1*ff2);
+            histo1d_["2P2F_CR_llll_invM_xFF2_ffUp"]->Fill(m4l, aWeight*(ff1+ci1)*(ff2+ci2));
+            histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2)));
           }
 
           if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {

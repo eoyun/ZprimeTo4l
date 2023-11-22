@@ -60,9 +60,15 @@ private:
   const std::vector<std::string> trigList_;
 
   const std::string trigHistName_;
+  const std::string idHistName_;
+  const std::string idHistNameTrkHighPt_;
+  const std::string isoHistName_;
+  const std::string isoHistNameTrkHighPt_;
   const edm::FileInPath MMFFpath_;
   const edm::FileInPath rochesterPath_;
   const edm::FileInPath triggerSFpath_;
+  const edm::FileInPath muonIdSFpath_;
+  const edm::FileInPath muonIsoSFpath_;
   const edm::FileInPath purwgtPath_;
 
   std::unique_ptr<TFile> purwgtFile_;
@@ -102,9 +108,15 @@ beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("bea
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
 trigHistName_(iConfig.getParameter<std::string>("trigHistName")),
+idHistName_(iConfig.getParameter<std::string>("idHistName")),
+idHistNameTrkHighPt_(iConfig.getParameter<std::string>("idHistNameTrkHighPt")),
+isoHistName_(iConfig.getParameter<std::string>("isoHistName")),
+isoHistNameTrkHighPt_(iConfig.getParameter<std::string>("isoHistNameTrkHighPt")),
 MMFFpath_(iConfig.getParameter<edm::FileInPath>("MMFFpath")),
 rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
 triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
+muonIdSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdSFpath")),
+muonIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIsoSFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 ptMuThres_(iConfig.getParameter<double>("ptMuThres")),
@@ -112,7 +124,7 @@ drThres_(iConfig.getParameter<double>("drThres")),
 drThresCR_(iConfig.getParameter<double>("drThresCR")),
 ratioThresLo_(iConfig.getParameter<double>("ratioThresLo")),
 ratioThresHi_(iConfig.getParameter<double>("ratioThresHi")),
-mucorrHelper_(rochesterPath_,triggerSFpath_,trigHistName_) {
+mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdSFpath_,muonIsoSFpath_,trigHistName_) {
   usesResource("TFileService");
 }
 
@@ -451,7 +463,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                          isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
         firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->pt() < 0.05 )
+    if ( firstIso/firstMuon->pt() < 0.1 )
       isolatedHighPtMuons.push_back(firstMuon);
   }
 
@@ -485,7 +497,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                          isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
         firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->pt() < 0.05 )
+    if ( firstIso/firstMuon->pt() < 0.1 )
       isolatedHighPtTrackerMuons.push_back(firstMuon);
   }
 
@@ -521,6 +533,18 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   histo1d_["cutflow_4M"]->Fill( 4.5, aWeight );
   histo1d_["cutflow_3M"]->Fill( 4.5, aWeight );
+
+  if (isMC_) {
+    for (const auto& aMu : isolatedHighPtMuons) {
+      aWeight *= mucorrHelper_.idSF(aMu,idHistName_);
+      aWeight *= mucorrHelper_.isoSF(aMu,isoHistName_);
+    }
+
+    for (const auto& aMu : isolatedHighPtTrackerMuons) {
+      aWeight *= mucorrHelper_.idSF(aMu,idHistNameTrkHighPt_);
+      aWeight *= mucorrHelper_.isoSF(aMu,isoHistNameTrkHighPt_);
+    }
+  }
 
   // concatenate(-ish) highPtMuons & highPtTrackerMuons - order is important!
   std::vector<pat::MuonRef> allHighPtMuons(isolatedHighPtMuons);

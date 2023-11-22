@@ -7,13 +7,42 @@ MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
   triggerSF_ = static_cast<TH2D*>(triggerSFfile_->Get(trigHistName.c_str()));
 }
 
+MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
+                                           const edm::FileInPath& trigSFpath,
+                                           const edm::FileInPath& muonIdSFpath,
+                                           const edm::FileInPath& muonIsoSFpath,
+                                           const std::string& trigHistName) {
+  rochester_.init(rochesterPath.fullPath());
+  triggerSFfile_ = std::make_unique<TFile>(trigSFpath.fullPath().c_str(),"READ");
+  triggerSF_ = static_cast<TH2D*>(triggerSFfile_->Get(trigHistName.c_str()));
+
+  idSFfile_ = std::make_unique<TFile>(muonIdSFpath.fullPath().c_str(),"READ");
+  isoSFfile_ = std::make_unique<TFile>(muonIsoSFpath.fullPath().c_str(),"READ");
+}
+
 MuonCorrectionHelper::~MuonCorrectionHelper() {
   triggerSFfile_->Close();
+  idSFfile_->Close();
+  isoSFfile_->Close();
 }
 
 double MuonCorrectionHelper::triggerSF(const pat::MuonRef& mu) {
   double apt = mu->pt() > 200. ? 199.9 : mu->pt();
   return triggerSF_->GetBinContent( triggerSF_->FindBin(mu->eta(),apt) );
+}
+
+double MuonCorrectionHelper::idSF(const pat::MuonRef& mu, const std::string& name) {
+  double apt = mu->pt() > 120. ? 119.9 : mu->pt();
+  TH2D* ahist = static_cast<TH2D*>(idSFfile_->Get(name.c_str()));
+
+  return ahist->GetBinContent( ahist->FindBin(std::abs(mu->eta()),apt) );
+}
+
+double MuonCorrectionHelper::isoSF(const pat::MuonRef& mu, const std::string& name) {
+  double apt = mu->pt() > 120. ? 119.9 : mu->pt();
+  TH2D* ahist = static_cast<TH2D*>(isoSFfile_->Get(name.c_str()));
+
+  return ahist->GetBinContent( ahist->FindBin(std::abs(mu->eta()),apt) );
 }
 
 double MuonCorrectionHelper::rochesterData(const pat::MuonRef& mu) const {

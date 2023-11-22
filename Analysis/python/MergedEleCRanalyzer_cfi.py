@@ -40,7 +40,14 @@ mergedEleCRanalyzer = cms.EDAnalyzer("MergedEleCRanalyzer",
     "Flag_hfNoisyHitsFilter"
   ),
   etThres1 = cms.double(35.),
-  ssBoundary = cms.double(200.)
+  mergedEleSFmuHasTrk = cms.double(1.012),
+  mergedEleSFmuNoTrk = cms.double(1.004),
+  mergedEleSFcl95HasTrk = cms.double(0.07007),
+  mergedEleSFcl95NoTrk = cms.double(0.2448),
+  mergedEleSFupperHasTrk = cms.double(1.083),
+  mergedEleSFupperNoTrk = cms.double(1.785),
+  mergedElePolHasTrkStr = cms.string("0.0007899*x+0.970"),
+  mergedElePolNoTrkStr = cms.string("0.004586*x+0.919")
 )
 
 mergedEleCRanalyzer20UL16APV = mergedEleCRanalyzer.clone(
@@ -61,6 +68,7 @@ mergedEleCRanalyzer20UL17 = mergedEleCRanalyzer.clone(
   trigList = cms.vstring(
     "HLT_DoubleEle33_CaloIdL_MW_v*"
   ),
+  etThres1 = cms.double(35.),
   METfilterList = cms.vstring(
     "Flag_goodVertices",
     "Flag_globalSuperTightHalo2016Filter",
@@ -73,7 +81,19 @@ mergedEleCRanalyzer20UL17 = mergedEleCRanalyzer.clone(
     "Flag_hfNoisyHitsFilter",
     "Flag_ecalBadCalibFilter"
   ),
-  etThres1 = cms.double(35.)
+  modHeepSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_modHeep_EGM2D_UL2017.root"),
+  modHeepSFmuEB1 = cms.double(1.015),
+  modHeepSFmuEB2 = cms.double(1.002),
+  modHeepSFmuEE = cms.double(1.003),
+  modHeepSFcl95EB1 = cms.double(0.03528),
+  modHeepSFcl95EB2 = cms.double(0.02765),
+  modHeepSFcl95EE = cms.double(0.02814),
+  modHeepSFupperEB1 = cms.double(1.118),
+  modHeepSFupperEB2 = cms.double(1.093),
+  modHeepSFupperEE = cms.double(1.144),
+  modHeepPolEB1str = cms.string("1.119*0.00001*x+1.012"),
+  modHeepPolEB2str = cms.string("2.415*0.00001*x+0.995"),
+  modHeepPolEEstr = cms.string("2.153*0.00001*x+1.001")
 )
 
 mergedEleCRanalyzer20UL18 = mergedEleCRanalyzer.clone(
@@ -95,5 +115,18 @@ mergedEleCRanalyzer20UL18 = mergedEleCRanalyzer.clone(
     "Flag_hfNoisyHitsFilter",
     "Flag_ecalBadCalibFilter"
   ),
-  etThres1 = cms.double(28.)
+  etThres1 = cms.double(28.),
+  modHeepSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_modHeep_EGM2D_UL2018.root"),
+  modHeepSFmuEB1 = cms.double(0.998),
+  modHeepSFmuEB2 = cms.double(0.991),
+  modHeepSFmuEE = cms.double(1.005),
+  modHeepSFcl95EB1 = cms.double(0.02489),
+  modHeepSFcl95EB2 = cms.double(0.03772),
+  modHeepSFcl95EE = cms.double(0.04466),
+  modHeepSFupperEB1 = cms.double(1.110),
+  modHeepSFupperEB2 = cms.double(1.128),
+  modHeepSFupperEE = cms.double(1.125),
+  modHeepPolEB1str = cms.string("-8.873*0.000001*x+1.000"),
+  modHeepPolEB2str = cms.string("2.09*0.000001*x+0.990"),
+  modHeepPolEEstr = cms.string("2.354*0.00001*x+0.999")
 )

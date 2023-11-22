@@ -45,7 +45,61 @@ mergedEMuCRanalyzer = cms.EDAnalyzer("MergedEMuCRanalyzer",
   drThres = cms.double(0.3),
   drThresCR = cms.double(0.6),
   ratioThresLo = cms.double(0.5),
-  ratioThresHi = cms.double(1.5)
+  ratioThresHi = cms.double(1.5),
+  mergedEleSFmuHasTrk = cms.double(1.012),
+  mergedEleSFmuNoTrk = cms.double(1.004),
+  mergedEleSFcl95HasTrk = cms.double(0.07007),
+  mergedEleSFcl95NoTrk = cms.double(0.2448),
+  mergedEleSFupperHasTrk = cms.double(1.083),
+  mergedEleSFupperNoTrk = cms.double(1.785),
+  mergedElePolHasTrkStr = cms.string("0.0007899*x+0.970"),
+  mergedElePolNoTrkStr = cms.string("0.004586*x+0.919")
+)
+
+mergedEMuCRanalyzer20UL17 = mergedEMuCRanalyzer.clone(
+  METfilterList = cms.vstring(
+    "Flag_goodVertices",
+    "Flag_globalSuperTightHalo2016Filter",
+    "Flag_HBHENoiseFilter",
+    "Flag_HBHENoiseIsoFilter",
+    "EcalDeadCellTriggerPrimitiveFilter",
+    "Flag_BadPFMuonFilter",
+    "Flag_BadPFMuonDzFilter",
+    "Flag_eeBadScFilter",
+    "Flag_hfNoisyHitsFilter",
+    "Flag_ecalBadCalibFilter"
+  ),
+  trigList = cms.vstring(
+    "HLT_Mu50_v*",
+    "HLT_OldMu100_v*",
+    "HLT_TkMu100_v*"
+  ),
+  recoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_ptAbove20_EGM2D_UL2017.root"),
+  FFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MEFF_20UL17.root"),
+  MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL17.root"),
+  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2017UL.txt"),
+  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root"),
+  trigHistName = cms.string("NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL17.root"),
+  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root"),
+  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
+  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
+  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root"),
+  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
+  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt"),
+  modHeepSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_modHeep_EGM2D_UL2017.root"),
+  modHeepSFmuEB1 = cms.double(1.015),
+  modHeepSFmuEB2 = cms.double(1.002),
+  modHeepSFmuEE = cms.double(1.003),
+  modHeepSFcl95EB1 = cms.double(0.03528),
+  modHeepSFcl95EB2 = cms.double(0.02765),
+  modHeepSFcl95EE = cms.double(0.02814),
+  modHeepSFupperEB1 = cms.double(1.118),
+  modHeepSFupperEB2 = cms.double(1.093),
+  modHeepSFupperEE = cms.double(1.144),
+  modHeepPolEB1str = cms.string("1.119*0.00001*x+1.012"),
+  modHeepPolEB2str = cms.string("2.415*0.00001*x+0.995"),
+  modHeepPolEEstr = cms.string("2.153*0.00001*x+1.001")
 )
 
 mergedEMuCRanalyzer20UL18 = mergedEMuCRanalyzer.clone(
@@ -72,5 +126,24 @@ mergedEMuCRanalyzer20UL18 = mergedEMuCRanalyzer.clone(
   rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2018UL.txt"),
   triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root"),
   trigHistName = cms.string("NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
-  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL18.root")
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL18.root"),
+  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root"),
+  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
+  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
+  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root"),
+  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
+  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt"),
+  modHeepSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_modHeep_EGM2D_UL2018.root"),
+  modHeepSFmuEB1 = cms.double(0.998),
+  modHeepSFmuEB2 = cms.double(0.991),
+  modHeepSFmuEE = cms.double(1.005),
+  modHeepSFcl95EB1 = cms.double(0.02489),
+  modHeepSFcl95EB2 = cms.double(0.03772),
+  modHeepSFcl95EE = cms.double(0.04466),
+  modHeepSFupperEB1 = cms.double(1.110),
+  modHeepSFupperEB2 = cms.double(1.128),
+  modHeepSFupperEE = cms.double(1.125),
+  modHeepPolEB1str = cms.string("-8.873*0.000001*x+1.000"),
+  modHeepPolEB2str = cms.string("2.09*0.000001*x+0.990"),
+  modHeepPolEEstr = cms.string("2.354*0.00001*x+0.999")
 )
