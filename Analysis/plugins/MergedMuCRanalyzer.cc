@@ -737,7 +737,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
         if ( ratioThresLo_ < ratioPt && ratioPt < ratioThresHi_ )
           passRatioPt = true;
 
-        const double ffMM = ffFunc_->Eval(mt);
+        const double ffMM = std::max(ffFunc_->Eval(mt),0.);
         const double xvalMET[1] = {mt};
         double ciMM[1];
         fitResult_->GetConfidenceIntervals(1,1,0,xvalMET,ciMM,0.95,false);
@@ -786,7 +786,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
           histo1d_["3M_antiRpt_mt"]->Fill( mt, aWeight );
           histo1d_["3M_antiRpt_mt_xFF"]->Fill( mt, aWeight*ffMM );
           histo1d_["3M_antiRpt_mt_xFF_up"]->Fill( mt, aWeight*(ffMM+ciMM[0]) );
-          histo1d_["3M_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-ciMM[0]) );
+          histo1d_["3M_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-std::min(ciMM[0],ffMM)) );
           histo1d_["3M_antiDphi_MET_ratioPt"]->Fill( ratioPt, aWeight );
         } else if ( passDPhiCR && passRatioPt ) {
           histo1d_["3M_CRdphi_MM_pt"]->Fill( mergedP4.pt(), aWeight );
@@ -817,7 +817,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
           histo1d_["3M_CRdphi_antiRpt_mt"]->Fill( mt, aWeight );
           histo1d_["3M_CRdphi_antiRpt_mt_xFF"]->Fill( mt, aWeight*ffMM );
           histo1d_["3M_CRdphi_antiRpt_mt_xFF_up"]->Fill( mt, aWeight*(ffMM+ciMM[0]) );
-          histo1d_["3M_CRdphi_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-ciMM[0]) );
+          histo1d_["3M_CRdphi_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-std::min(ciMM[0],ffMM)) );
           histo1d_["3M_CRdphi_antiDphi_MET_ratioPt"]->Fill( ratioPt, aWeight );
         } else if ( !passDPhi && !passDPhiCR && passRatioPt ) {
           histo1d_["3M_antiDphi_MM_pt"]->Fill( mergedP4.pt(), aWeight );
@@ -857,7 +857,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
           histo1d_["3M_antiDphi_antiRpt_mt"]->Fill( mt, aWeight );
           histo1d_["3M_antiDphi_antiRpt_mt_xFF"]->Fill( mt, aWeight*ffMM );
           histo1d_["3M_antiDphi_antiRpt_mt_xFF_up"]->Fill( mt, aWeight*(ffMM+ciMM[0]) );
-          histo1d_["3M_antiDphi_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-ciMM[0]) );
+          histo1d_["3M_antiDphi_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-std::min(ciMM[0],ffMM)) );
           histo1d_["3M_antiDphi_antiDphi_MET_ratioPt"]->Fill( ratioPt, aWeight );
         } // MET dPhi ratioPt CR
       } // MET ptThres

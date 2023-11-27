@@ -37,9 +37,9 @@ void estimateMEFF(TString era) {
     relPosX = 0.12;
 
   int W = 800;
-  int H = 600;
+  int H = 800;
 
-  int H_ref = 600;
+  int H_ref = 800;
   int W_ref = 800;
 
   // references for T, B, L, R
@@ -49,75 +49,124 @@ void estimateMEFF(TString era) {
   float R = 0.04*W_ref;
 
   // EB
-  TFile* datafile = new TFile("MergedEleCR_"+era+"_data.root","READ");
+  TFile* datafile = new TFile("EleAnalyzer_"+era+"_data.root","READ");
 
-  TH1D* SSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_SSll_Et_noCorr")->Clone();
-  TH1D* SSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_antiME_SSll_Et_noCorr")->Clone();
-  int nbinsSS = 11;
-  double xbinsSS[12] = {0, 50, 60, 70, 80, 100, 120, 150, 200, 300, 500, 1000};
-  double xcenSS[11] = {55,65,75,90,110,135,175,250,400,750,1000};
-  TH1D* SSnum_rebin = (TH1D*)SSnum->Rebin(nbinsSS, "2E_mixedME_SSll_Et_noCorr_rebin", xbinsSS);
-  TH1D* SSdenom_rebin = (TH1D*)SSdenom->Rebin(nbinsSS, "2E_antiME_SSll_Et_noCorr_rebin", xbinsSS);
+  auto estimateCenter = [] (const std::vector<double>& vec) -> std::vector<double> {
+    std::vector<double> out;
+
+    for (unsigned idx = 1; idx < vec.size()-1; idx++)
+      out.push_back( (vec.at(idx) + vec.at(idx+1) ) / 2. );
+
+    out.push_back(vec.back());
+
+    return std::move(out);
+  };
+
+  auto estimateWidth = [] (const std::vector<double>& vec) -> std::vector<double> {
+    std::vector<double> out;
+
+    for (unsigned idx = 1; idx < vec.size()-1; idx++)
+      out.push_back( ( vec.at(idx+1) - vec.at(idx) ) / 2. );
+
+    out.push_back(0.);
+
+    return std::move(out);
+  };
+
+  TH1D* SSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_SSCR_EB_mixedME")->Clone();
+  TH1D* SSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_SSCR_EB_antiME")->Clone();
+  std::vector<double> xbinsSS = {0, 50, 60, 70, 100, 150, 250, 500, 1000};
+  const int nbinsSS = xbinsSS.size()-1;
+  std::vector<double> xcenSS = estimateCenter(xbinsSS);
+  TH1D* SSnum_rebin = (TH1D*)SSnum->Rebin(nbinsSS, "2E_Et_SSCR_EB_mixedME", &(xbinsSS[0]));
+  TH1D* SSdenom_rebin = (TH1D*)SSdenom->Rebin(nbinsSS, "2E_Et_SSCR_EB_antiME", &(xbinsSS[0]));
 
   SSnum_rebin->Divide( SSdenom_rebin );
 
-  TH1D* OSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_OSll_Et_noCorr")->Clone();
-  TH1D* OSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_antiME_OSll_Et_noCorr")->Clone();
-  int nbinsOS = 26;
-  double xbinsOS[27] = {0, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
-                        225, 250, 275, 300, 350, 400, 500, 600, 700, 1000};
-  double xcenOS[26] = {55,65,75,85,95,105,115,125,135,145,155,165,175,185,195,212.5,237.5,262.5,287.5,325,375,450,550,650,850,1000};
-  TH1D* OSnum_rebin = (TH1D*)OSnum->Rebin(nbinsOS, "2E_mixedME_OSll_Et_noCorr_rebin", xbinsOS);
-  TH1D* OSdenom_rebin = (TH1D*)OSdenom->Rebin(nbinsOS, "2E_antiME_OSll_Et_noCorr_rebin", xbinsOS);
+  TH1D* OSnum = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_OSCR_EB_mixedME")->Clone();
+  TH1D* OSdenom = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_OSCR_EB_antiME")->Clone();
+  std::vector<double> xbinsOS = {0, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
+                                 225, 250, 275, 300, 400, 500, 700, 1000};
+  const int nbinsOS = xbinsOS.size()-1;
+  std::vector<double> xcenOS = estimateCenter(xbinsOS);
+  TH1D* OSnum_rebin = (TH1D*)OSnum->Rebin(nbinsOS, "2E_Et_OSCR_EB_mixedME", &(xbinsOS[0]));
+  TH1D* OSdenom_rebin = (TH1D*)OSdenom->Rebin(nbinsOS, "2E_Et_OSCR_EB_antiME", &(xbinsOS[0]));
 
   OSnum_rebin->Divide( OSdenom_rebin );
 
-  TF1* ssboth = new TF1("ssboth","[0]*x+[1]",50,1000);
+  TF1* ssboth = new TF1("ssboth","[0]",50,1000);
   ssboth->SetLineColor(kBlue);
   ssboth->SetLineWidth(2);
   ssboth->SetLineStyle(2);
   TFitResultPtr fitSS = SSnum_rebin->Fit(ssboth,"RS");
   fitSS->SetName("fitSS");
-  double ciSS[11];
-  fitSS->GetConfidenceIntervals(11,1,0,xcenSS,ciSS,0.6827,false);
-  double xbinwSS[11] = {5,5,5,10,10,15,25,50,100,250,0};
-  double ybinSS[11];
+  double ciSS[nbinsSS];
+  fitSS->GetConfidenceIntervals(nbinsSS,1,0,&(xcenSS[0]),ciSS,0.95,false); // 0.6827
+  std::vector<double> xbinwSS = estimateWidth(xbinsSS);
+  double ybinSS[nbinsSS];
 
-  for (unsigned idx = 0; idx<11; idx++) {
+  for (unsigned idx = 0; idx < nbinsSS; idx++) {
     ybinSS[idx] = ssboth->Eval(xcenSS[idx]);
   }
 
-  auto errSS = new TGraphErrors(11,xcenSS,ybinSS,xbinwSS,ciSS);
+  auto errSS = new TGraphErrors(nbinsSS,&(xcenSS[0]),ybinSS,&(xbinwSS[0]),ciSS);
   errSS->SetFillColor(kBlue);
   errSS->SetFillStyle(3003);
 
-  TF1* osboth = new TF1("osboth","[0]*x+[1]",50,1000);
+  TF1* osboth = new TF1("osboth","[0]+[1]*x+[2]/sqrt(x)",50,1000);
   osboth->SetLineColor(kRed);
   osboth->SetLineWidth(2);
   osboth->SetLineStyle(2);
   TFitResultPtr fitOS = OSnum_rebin->Fit(osboth,"RS");
   fitOS->SetName("fitOS");
-  double ciOS[26];
-  fitOS->GetConfidenceIntervals(26,1,0,xcenOS,ciOS,0.6827,false);
-  double xbinwOS[26] = {5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,12.5,12.5,12.5,12.5,25,25,50,50,50,150,0};
-  double ybinOS[26];
+  double ciOS[nbinsOS];
+  fitOS->GetConfidenceIntervals(nbinsOS,1,0,&(xcenOS[0]),ciOS,0.95,false);
+  std::vector<double> xbinwOS = estimateWidth(xbinsOS);
+  double ybinOS[nbinsOS];
 
-  for (unsigned idx = 0; idx<26; idx++) {
+  for (unsigned idx = 0; idx < nbinsOS; idx++) {
     ybinOS[idx] = osboth->Eval(xcenOS[idx]);
   }
 
-  auto errOS = new TGraphErrors(26,xcenOS,ybinOS,xbinwOS,ciOS);
+  auto errOS = new TGraphErrors(nbinsOS,&(xcenOS[0]),ybinOS,&(xbinwOS[0]),ciOS);
   errOS->SetFillColor(kRed);
   errOS->SetFillStyle(3001);
+
+  TH1D* OSnumEta = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_eta_OSCR_EB_mixedME")->Clone();
+  TH1D* OSdenomEta = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_eta_OSCR_EB_antiME")->Clone();
+
+  OSnumEta->Divide( OSdenomEta );
+  TF1* osEta = new TF1("osEta","[0]",-1.5,1.5);
+  OSnumEta->Fit(osEta,"RS");
+
+  TH2D* OSnum2d = (TH2D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_eta_OSCR_EB_mixedME")->Clone();
+  TH2D* OSdenom2d = (TH2D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_eta_OSCR_EB_antiME")->Clone();
+
+  OSdenom2d->RebinX(2);
+  OSnum2d->RebinX(2);
+
+  OSnum2d->Divide( OSdenom2d );
+
+  TObjArray aSlices;
+  TF1* os2d = new TF1("os2d","[0]+[1]*x+[2]/sqrt(x)",50,1000);
+  os2d->SetParLimits(0,-0.5,0.5);
+  os2d->SetParLimits(1,-0.001,0.001);
+  OSnum2d->FitSlicesY(os2d,0,-1,0,"QNR",&aSlices);
+
+  TF1* par2 = new TF1("par2","[0]",-1.5,1.5);
+  ((TH1D*)aSlices.At(2))->Fit(par2,"RS");
+  OSnumEta->Scale(par2->GetParameter(0)/osEta->GetParameter(0)); // par2->GetParameter(0)
 
   // save file
   TFile* outfile = new TFile("MEFF_"+era+".root","RECREATE");
   SSnum_rebin->Write();
   OSnum_rebin->Write();
+  OSnumEta->Write();
   ssboth->Write();
   osboth->Write();
   fitSS->Write();
   fitOS->Write();
+  aSlices.At(2)->Write();
   outfile->Close();
 
   auto* canvas = new TCanvas("canvas","canvas",50,50,W,H);
@@ -134,12 +183,12 @@ void estimateMEFF(TString era) {
   canvas->SetTicky(0);
 
   // EB
-  auto legend = std::make_unique<TLegend>(0.82,0.78,0.95,0.9);
+  auto legend = std::make_unique<TLegend>(0.85,0.8,0.95,0.9);
   legend->SetBorderSize(0);
   legend->AddEntry(SSnum_rebin,"SS");
   legend->AddEntry(OSnum_rebin,"OS");
 
-  OSnum_rebin->GetYaxis()->SetRangeUser(0.,0.7);
+  OSnum_rebin->GetYaxis()->SetRangeUser(0.,1.0);
   OSnum_rebin->SetLineWidth(2);
   OSnum_rebin->GetYaxis()->SetTitle("Fake factor");
   OSnum_rebin->GetXaxis()->SetTitle("E_{T} [GeV]");
@@ -154,13 +203,12 @@ void estimateMEFF(TString era) {
   errOS->Draw("3");
   legend->Draw();
 
-  TPaveText* textlow = new TPaveText(0.12,0.63,0.55,0.7,"NDC");
+  TPaveText* textlow = new TPaveText(0.12,0.65,0.3,0.69,"NDC");
   textlow->SetBorderSize(0);
   textlow->SetFillStyle(3025);
   textlow->SetFillColor(0);
-  // x < 100 ? [0]*x+[1] : (x < 200 ? 100*[0]+[1]+[2]*(x-100) : 100*[0]+[1]+100*[2]+[3]*(x-200))
   TString textsslow;
-  textsslow.Form("(%.3g#pm%.3g) #times E_{T} + %.3f#pm%.3f", ssboth->GetParameter(0), ssboth->GetParError(0),ssboth->GetParameter(1), ssboth->GetParError(1));
+  textsslow.Form(" %.3f#pm%.3f", ssboth->GetParameter(0), ssboth->GetParError(0));
   textlow->AddText(textsslow);
   ((TText*)textlow->GetListOfLines()->Last())->SetTextColor(kBlue);
   ((TText*)textlow->GetListOfLines()->Last())->SetTextAlign(12);
@@ -170,12 +218,12 @@ void estimateMEFF(TString era) {
   //((TText*)textlow->GetListOfLines()->Last())->SetTextColor(kBlue);
   //((TText*)textlow->GetListOfLines()->Last())->SetTextAlign(32);
 
-  TPaveText* texthigh = new TPaveText(0.55,0.63,0.95,0.7,"NDC");
+  TPaveText* texthigh = new TPaveText(0.3,0.645,0.95,0.685,"NDC");
   texthigh->SetBorderSize(0);
   texthigh->SetFillColor(0);
   texthigh->SetFillStyle(3025);
   TString textoslow;
-  textoslow.Form("(%.3g#pm%.3g) #times E_{T} + %.3f#pm%.3f", osboth->GetParameter(0), osboth->GetParError(0),osboth->GetParameter(1), osboth->GetParError(1));
+  textoslow.Form("%.3f#pm%.3f + (%.3g#pm%.3g)#timesE_{T} + (%.3g#pm%.3g)/#surd E_{T}", osboth->GetParameter(0), osboth->GetParError(0),osboth->GetParameter(1), osboth->GetParError(1), osboth->GetParameter(2), osboth->GetParError(2));
   texthigh->AddText(textoslow);
   ((TText*)texthigh->GetListOfLines()->Last())->SetTextColor(kRed);
   ((TText*)texthigh->GetListOfLines()->Last())->SetTextAlign(12);
@@ -192,6 +240,56 @@ void estimateMEFF(TString era) {
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
   canvas->SaveAs("FF_2E.png");
+
+  OSnumEta->GetYaxis()->SetRangeUser(0.,1.0);
+  OSnumEta->SetLineWidth(2);
+  OSnumEta->GetYaxis()->SetTitle("Fake factor");
+  OSnumEta->GetXaxis()->SetTitle("#eta_{SC}");
+  OSnumEta->SetLineColor(kRed);
+  OSnumEta->Draw("E1");
+
+  CMS_lumi( canvas, iPeriod, iPos );
+
+  canvas->Update();
+  canvas->RedrawAxis();
+  canvas->GetFrame()->Draw();
+  canvas->SaveAs("FF_eta.png");
+
+  OSnum2d->Draw("colz");
+  canvas->SaveAs("FF_2d.png");
+
+  TF1* par0 = new TF1("par0","[0]",-1.5,1.5);
+  ((TH1D*)aSlices.At(0))->Fit(par0,"RS");
+  aSlices.At(0)->Draw("E1");
+  CMS_lumi( canvas, iPeriod, iPos );
+  canvas->Update();
+  canvas->RedrawAxis();
+  canvas->GetFrame()->Draw();
+  canvas->SaveAs("FF_slice0.png");
+
+  TF1* par1 = new TF1("par1","[0]",-1.5,1.5);
+  ((TH1D*)aSlices.At(1))->Fit(par1,"RS");
+  aSlices.At(1)->Draw("E1");
+  CMS_lumi( canvas, iPeriod, iPos );
+  canvas->Update();
+  canvas->RedrawAxis();
+  canvas->GetFrame()->Draw();
+  canvas->SaveAs("FF_slice1.png");
+
+  aSlices.At(2)->Draw("E1");
+  OSnumEta->Draw("E1&same");
+  CMS_lumi( canvas, iPeriod, iPos );
+  canvas->Update();
+  canvas->RedrawAxis();
+  canvas->GetFrame()->Draw();
+  canvas->SaveAs("FF_slice2.png");
+
+  aSlices.At(3)->Draw("E1");
+  CMS_lumi( canvas, iPeriod, iPos );
+  canvas->Update();
+  canvas->RedrawAxis();
+  canvas->GetFrame()->Draw();
+  canvas->SaveAs("FF_slice3.png");
 
   return;
 }
