@@ -118,6 +118,7 @@ private:
   const double pionMassErr_ = 0.00000018;
   const double kaonMass_ = 0.493677;
   const double kaonMassErr_ = 0.000016;
+  const double jpsiMass_ = 3.0969;
 
   std::unique_ptr<TFile> purwgtFile_;
   TH1D* purwgt_;
@@ -130,6 +131,20 @@ private:
   float u5x5Et_ = -1.;
   float wgt_ = 0.;
   int passME_ = -1;
+
+  TTree* Btree_ = nullptr;
+  float BinvMtrk_ = -1.;
+  float BinvMcalo_ = -1.;
+  float Bu5x5Et_ = -1.;
+  float Bwgt_ = 0.;
+  int BpassME_ = -1;
+  int BpassModHeep_ = -1;
+  float ptK_ = -1.;
+  float etaK_ = std::numeric_limits<float>::max();
+  float phiK_ = std::numeric_limits<float>::max();
+  float u5x5En_ = -1.;
+  float etaJpsi_ = std::numeric_limits<float>::max();
+  float phiJpsi_ = std::numeric_limits<float>::max();
 
 public:
   struct dielectron {
@@ -261,6 +276,20 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   tree_->Branch("wgt",&wgt_,"wgt/F");
   tree_->Branch("passME",&passME_,"passME/I");
 
+  Btree_ = fs->make<TTree>("BmesonTree","BmesonTree");
+  Btree_->Branch("invMtrk",&BinvMtrk_,"invMtrk/F");
+  Btree_->Branch("invMcalo",&BinvMcalo_,"invMcalo/F");
+  Btree_->Branch("u5x5Et",&Bu5x5Et_,"u5x5Et/F");
+  Btree_->Branch("wgt",&Bwgt_,"wgt/F");
+  Btree_->Branch("passME",&BpassME_,"passME/I");
+  Btree_->Branch("passModHeep",&BpassModHeep_,"passModHeep/I");
+  Btree_->Branch("ptK",&ptK_,"ptK/F");
+  Btree_->Branch("etaK",&etaK_,"etaK/F");
+  Btree_->Branch("phiK",&phiK_,"phiK/F");
+  Btree_->Branch("u5x5En",&u5x5En_,"u5x5En/F");
+  Btree_->Branch("etaJpsi",&etaJpsi_,"etaJpsi/F");
+  Btree_->Branch("phiJpsi",&phiJpsi_,"phiJpsi/F");
+
   auto create2trkHisto = [this,&fs] (const std::string& prefix) {
     histo1d_[prefix+"2trk_diel_invM"] = fs->make<TH1D>((prefix+"2trk_diel_invM").c_str(),";Mass [GeV];",1000,0.,5.);
     histo1d_[prefix+"2trk_diel_pt"] = fs->make<TH1D>((prefix+"2trk_diel_pt").c_str(),";p_{T} [GeV];",200,0.,100.);
@@ -391,6 +420,7 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
 
     histo1d_[prefix+"3trk_B_invM"] = fs->make<TH1D>((prefix+"3trk_B_invM").c_str(),";Mass [GeV];",1000,0.,10.);
     histo1d_[prefix+"3trk_B_invM_wide"] = fs->make<TH1D>((prefix+"3trk_B_invM_wide").c_str(),";Mass [GeV];",500,0.,50.);
+    histo1d_[prefix+"3trk_B_invM_u5x5"] = fs->make<TH1D>((prefix+"3trk_B_invM_u5x5").c_str(),";Mass [GeV];",1000,0.,10.);
     histo1d_[prefix+"3trk_B_pt"] = fs->make<TH1D>((prefix+"3trk_B_pt").c_str(),";p_{T} [GeV];",200,0.,200.);
     histo1d_[prefix+"3trk_B_normChi2"] = fs->make<TH1D>((prefix+"3trk_B_normChi2").c_str(),";#chi^{2}/ndof;",100,0.,10.);
     histo1d_[prefix+"3trk_B_prob"] = fs->make<TH1D>((prefix+"3trk_B_prob").c_str(),";Prob;",200,0.,1.);
@@ -403,9 +433,12 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
     histo1d_[prefix+"3trk_Pi1K2_invM"] = fs->make<TH1D>((prefix+"3trk_Pi1K2_invM").c_str(),";Mass [GeV];",800,0.,8.);
     histo1d_[prefix+"3trk_K1Pi2_invM"] = fs->make<TH1D>((prefix+"3trk_K1Pi2_invM").c_str(),";Mass [GeV];",800,0.,8.);
 
-    histo2d_[prefix+"3trk_dalitz_E1X_E2X"] = fs->make<TH2F>((prefix+"3trk_dalitz_E1X_E2X").c_str(),"m^{2}(e1,X);m^{2}(e2,X);",200,0.,50.,200,0.,50.);
-    histo2d_[prefix+"3trk_dalitz_E1E2_E2X"] = fs->make<TH2F>((prefix+"3trk_dalitz_E1E2_E2X").c_str(),"m^{2}(e1,e2);m^{2}(e2,X);",200,0.,15.,200,0.,50.);
-    histo2d_[prefix+"3trk_dalitz_E1E2_E1X"] = fs->make<TH2F>((prefix+"3trk_dalitz_E1E2_E1X").c_str(),"m^{2}(e1,e2);m^{2}(e1,X);",200,0.,15.,200,0.,50.);
+    histo1d_[prefix+"3trk_e1K_invM"] = fs->make<TH1D>((prefix+"3trk_e1K_invM").c_str(),";Mass [GeV];",800,0.,8.);
+    histo1d_[prefix+"3trk_e2K_invM"] = fs->make<TH1D>((prefix+"3trk_e2K_invM").c_str(),";Mass [GeV];",800,0.,8.);
+
+    histo2d_[prefix+"3trk_dalitz_E1X_E2X"] = fs->make<TH2F>((prefix+"3trk_dalitz_E1X_E2X").c_str(),";m^{2}(e1,X);m^{2}(e2,X);",200,0.,50.,200,0.,50.);
+    histo2d_[prefix+"3trk_dalitz_E1E2_E2X"] = fs->make<TH2F>((prefix+"3trk_dalitz_E1E2_E2X").c_str(),";m^{2}(e1,e2);m^{2}(e2,X);",200,0.,15.,200,0.,50.);
+    histo2d_[prefix+"3trk_dalitz_E1E2_E1X"] = fs->make<TH2F>((prefix+"3trk_dalitz_E1E2_E1X").c_str(),";m^{2}(e1,e2);m^{2}(e1,X);",200,0.,15.,200,0.,50.);
   };
 
   create3trkHisto("");
@@ -413,6 +446,7 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   create3trkHisto("FailModifiedHeep_");
   create3trkHisto("PassMergedEle_");
   create3trkHisto("FailMergedEle_");
+  create3trkHisto("PassModifiedHeepPassMergedEle_");
 }
 
 void MergedLeptonIDJpsiAnalyzer::endJob() {
@@ -692,7 +726,7 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     const float u5x5Eta = (*union5x5dEtaInHandle)[aEle] + eta1stGSF;
     const float u5x5Et = (*union5x5EnergyHandle)[aEle]/std::cosh(u5x5Eta);
 
-    if ( u5x5Et < 20. || std::abs(aEle->superCluster()->eta()) > 1.4442 )
+    if ( u5x5Et < 10. || std::abs(aEle->superCluster()->eta()) > 1.4442 )
       continue;
 
     int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
@@ -965,6 +999,8 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
         const auto lvecE2 = math::PtEtaPhiMLorentzVector( vec3P2.perp(), vec3P2.eta(), vec3P2.phi(), elmass_ );
         atree->movePointerToTheNextChild();
         const KinematicState refitPtc3 = atree->currentParticle()->currentState();
+        const auto& vec3P3 = refitPtc3.globalMomentum();
+        const auto lvecK = math::PtEtaPhiMLorentzVector( vec3P3.perp(), vec3P3.eta(), vec3P3.phi(), kaonMass_ );
 
         const reco::Vertex aVtx = *BmesonVtx;
         const auto lvecEE = lvecE1+lvecE2;
@@ -981,6 +1017,25 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
         const double cosAlpha2d = (px*dvx+py*dvy) / ( std::sqrt(dvx*dvx+dvy*dvy)*std::sqrt(px*px+py*py) );
 
         if ( cosAlpha2d < cosAlpha2dThres_ )
+          continue;
+
+        if ( lvecEE.M() < 2.5 || lvecEE.M() > 4. )
+          continue;
+
+        if ( reco::deltaR2(lvecEE.eta(),lvecEE.phi(),lvecK.eta(),lvecK.phi()) > 0.64 )
+          continue;
+
+        if ( (lvecE1+lvecK).M() < 2. || (lvecE2+lvecK).M() < 2. )
+          continue;
+
+        const double u5x5En = (*union5x5EnergyHandle)[aEle];
+        const auto lvecJpsi = math::PtEtaPhiELorentzVector( std::sqrt(u5x5En*u5x5En - jpsiMass_*jpsiMass_)/std::cosh(lvecEE.eta()),
+                                                            lvecEE.eta(),
+                                                            lvecEE.phi(),
+                                                            u5x5En );
+        const auto lvecBu = lvecJpsi + lvecK;
+
+        if ( lvecBu.M() < 4.5 || lvecBu.M() > 6. )
           continue;
 
         const auto aDielectron = dielectron(refitPtc1,
@@ -1003,6 +1058,32 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     }
 
     std::sort(Bdecays.begin(),Bdecays.end());
+
+    auto estimateJpsiVec = [&,this] (const decaychain& achain) {
+      const auto lvecE1 = math::PtEtaPhiMLorentzVector( achain.dielec.refitFirstEle.globalMomentum().perp(),
+                                                        achain.dielec.refitFirstEle.globalMomentum().eta(),
+                                                        achain.dielec.refitFirstEle.globalMomentum().phi(), elmass_ );
+      const auto lvecE2 = math::PtEtaPhiMLorentzVector( achain.dielec.refitSecondEle.globalMomentum().perp(),
+                                                        achain.dielec.refitSecondEle.globalMomentum().eta(),
+                                                        achain.dielec.refitSecondEle.globalMomentum().phi(), elmass_ );
+      const double u5x5En = (*union5x5EnergyHandle)[achain.dielec.firstEle];
+      const auto lvecEE = lvecE1+lvecE2;
+      const auto lvecJpsi = math::PtEtaPhiELorentzVector( std::sqrt(u5x5En*u5x5En - jpsiMass_*jpsiMass_)/std::cosh(lvecEE.eta()),
+                                                          lvecEE.eta(),
+                                                          lvecEE.phi(),
+                                                          u5x5En );
+
+      return lvecJpsi;
+    };
+
+    auto BmesonMassU5x5 = [&,this] (const decaychain& achain) -> double {
+      const auto lvecK = math::PtEtaPhiMLorentzVector( achain.refitThirdTrk.globalMomentum().perp(),
+                                                       achain.refitThirdTrk.globalMomentum().eta(),
+                                                       achain.refitThirdTrk.globalMomentum().phi(), kaonMass_ );
+      const auto lvecJpsi = estimateJpsiVec(achain);
+
+      return (lvecJpsi+lvecK).M();
+    };
 
     auto fill3trkHisto = [&,this] (const std::string& prefix, const decaychain& achain) {
       const auto lvecP1 = math::PtEtaPhiMLorentzVector( achain.dielec.refitFirstEle.globalMomentum().perp(),
@@ -1032,6 +1113,9 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       histo1d_[prefix+"3trk_Pi1Pi2_invM"]->Fill((lvecP1+lvecP2).M(),aWeight);
       histo1d_[prefix+"3trk_Pi1K2_invM"]->Fill((lvecP1+lvecK2).M(),aWeight);
       histo1d_[prefix+"3trk_K1Pi2_invM"]->Fill((lvecK1+lvecP2).M(),aWeight);
+
+      histo1d_[prefix+"3trk_e1K_invM"]->Fill((lvecE1+lvecK).M(),aWeight);
+      histo1d_[prefix+"3trk_e2K_invM"]->Fill((lvecE2+lvecK).M(),aWeight);
 
       histo1d_[prefix+"3trk_diel_invM"]->Fill(lvecEE.M(),aWeight);
       histo1d_[prefix+"3trk_diel_invM_wide"]->Fill(lvecEE.M(),aWeight);
@@ -1077,6 +1161,7 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
       histo1d_[prefix+"3trk_B_invM"]->Fill(achain.Bmeson.mass(),aWeight);
       histo1d_[prefix+"3trk_B_invM_wide"]->Fill(achain.Bmeson.mass(),aWeight);
+      histo1d_[prefix+"3trk_B_invM_u5x5"]->Fill(BmesonMassU5x5(achain),aWeight);
       histo1d_[prefix+"3trk_B_pt"]->Fill(bMomentum.perp(),aWeight);
       histo1d_[prefix+"3trk_B_normChi2"]->Fill(achain.BmesonChi2/achain.BmesonNdof,aWeight);
       histo1d_[prefix+"3trk_B_prob"]->Fill( TMath::Prob(achain.BmesonChi2,static_cast<int>(std::rint(achain.BmesonNdof))) , aWeight );
@@ -1107,7 +1192,27 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
           fill3trkHisto(prefix+"PassMergedEle_",Bdecays.front());
         else
           fill3trkHisto(prefix+"FailMergedEle_",Bdecays.front());
+
+        if (passMaskedId && passMergedElectronID)
+          fill3trkHisto(prefix+"PassModifiedHeepPassMergedEle_",Bdecays.front());
       };
+
+      const auto lvecJpsi = estimateJpsiVec(Bdecays.front());
+
+      BinvMtrk_ = Bdecays.front().Bmeson.mass();
+      BinvMcalo_ = BmesonMassU5x5(Bdecays.front());
+      Bu5x5Et_ = u5x5Et;
+      Bwgt_ = aWeight;
+      BpassME_ = static_cast<int>(passMergedElectronID);
+      BpassModHeep_ = static_cast<int>(passMaskedId);
+      ptK_ = Bdecays.front().refitThirdTrk.globalMomentum().perp();
+      etaK_ = Bdecays.front().refitThirdTrk.globalMomentum().eta();
+      phiK_ = Bdecays.front().refitThirdTrk.globalMomentum().phi();
+      u5x5En_ = (*union5x5EnergyHandle)[aEle];
+      etaJpsi_ = lvecJpsi.eta();
+      phiJpsi_ = lvecJpsi.phi();
+
+      Btree_->Fill();
 
       fill3trkHistos("");
     } // if Bdecays
