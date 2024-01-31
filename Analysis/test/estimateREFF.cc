@@ -121,7 +121,7 @@ void estimateREFF(TString era) {
 
   auto errEB = new TGraphErrors(nbinsEB+1,&(xcenEB[0]),ybinEB,&(xbinwEB[0]),ciEB);
   errEB->SetFillColor(kRed);
-  errEB->SetFillStyle(3001);
+  errEB->SetFillStyle(3004);
 
   double ciEE[nbinsEE+1];
   fitResultEE->GetConfidenceIntervals(nbinsEE+1,1,0,&(xbinsEE[0]),ciEE,0.95,false); // 0.6827
@@ -134,7 +134,7 @@ void estimateREFF(TString era) {
 
   auto errEE = new TGraphErrors(nbinsEE+1,&(xcenEE[0]),ybinEE,&(xbinwEE[0]),ciEE);
   errEE->SetFillColor(kBlue);
-  errEE->SetFillStyle(3003);
+  errEE->SetFillStyle(3005);
 
   TF1* fitAll = new TF1("REFF_all","[0]",0,1000);
   fitAll->SetLineColor(kRed);
@@ -190,7 +190,7 @@ void estimateREFF(TString era) {
 
   auto errDREB = new TGraphErrors(nbinsdrEB+1,&(xcendrEB[0]),ybindrEB,&(xbinwdrEB[0]),cidrEB);
   errDREB->SetFillColor(kRed);
-  errDREB->SetFillStyle(3001);
+  errDREB->SetFillStyle(3004);
 
   double cidrEE[nbinsdrEB+1];
   fitResultDREE->GetConfidenceIntervals(nbinsdrEB+1,1,0,&(xbinsdrEB[0]),cidrEE,0.95,false);
@@ -202,7 +202,7 @@ void estimateREFF(TString era) {
 
   auto errDREE = new TGraphErrors(nbinsdrEB+1,&(xcendrEB[0]),ybindrEE,&(xbinwdrEB[0]),cidrEE);
   errDREE->SetFillColor(kBlue);
-  errDREE->SetFillStyle(3003);
+  errDREE->SetFillStyle(3005);
 
   TF1* fitDRall = new TF1("REFF_dr_all","x > 0.4 ? [0]+[1]*x : [0]+0.4*[1]+[2]*(x-0.4)",0,6.4);
   fitDRall->SetLineColor(kRed);
@@ -220,7 +220,7 @@ void estimateREFF(TString era) {
 
   auto errDR = new TGraphErrors(nbinsdrEB+1,&(xcendrEB[0]),ybindr,&(xbinwdrEB[0]),cidr);
   errDR->SetFillColor(kRed);
-  errDR->SetFillStyle(3001);
+  errDR->SetFillStyle(3004);
 
   // save file
   TFile* outfile = new TFile("REFF_"+era+".root","RECREATE");
@@ -266,7 +266,7 @@ void estimateREFF(TString era) {
   errEB->Draw("3");
   errEE->Draw("3");
 
-  TPaveText* textEB = new TPaveText(0.15,0.6,0.4,0.75,"NDC");
+  TPaveText* textEB = new TPaveText(0.15,0.6,0.5,0.75,"NDC");
   textEB->SetBorderSize(0);
   textEB->SetFillColor(0);
   TString textEBstr;
@@ -275,7 +275,7 @@ void estimateREFF(TString era) {
   ((TText*)textEB->GetListOfLines()->Last())->SetTextColor(kRed);
   ((TText*)textEB->GetListOfLines()->Last())->SetTextAlign(12);
 
-  TPaveText* textEE = new TPaveText(0.7,0.6,0.92,0.75,"NDC");
+  TPaveText* textEE = new TPaveText(0.6,0.6,0.92,0.75,"NDC");
   textEE->SetBorderSize(0);
   textEE->SetFillColor(0);
   TString textEEstr;
@@ -300,7 +300,7 @@ void estimateREFF(TString era) {
   canvas->Update();
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
-  canvas->SaveAs("REFF_"+era+".png");
+  canvas->SaveAs("REFF_"+era+".pdf");
 
   // all
   all_3P0F_rebin->GetYaxis()->SetRangeUser(0.,0.3);
@@ -404,13 +404,13 @@ void estimateREFF(TString era) {
 
   errDR->Draw("3");
 
-  TPaveText* textDRall = new TPaveText(0.15,0.6,0.5,0.75,"NDC");
+  TPaveText* textDRall = new TPaveText(0.5,0.6,0.9,0.75,"NDC");
   textDRall->SetBorderSize(0);
   textDRall->SetFillColor(0);
   TString textDRAllstrBelow;
-  textDRAllstrBelow.Form("%.3g#DeltaR + %.3g (#Delta R < 0.4)", fitDRall->GetParameter(2), fitDRall->GetParameter(0)+0.4*fitDRall->GetParameter(1)-0.4*fitDRall->GetParameter(2));
+  textDRAllstrBelow.Form("%.3g #times #DeltaR + %.3g (#Delta R < 0.4)", fitDRall->GetParameter(2), fitDRall->GetParameter(0)+0.4*fitDRall->GetParameter(1)-0.4*fitDRall->GetParameter(2));
   TString textDRallAbove;
-  textDRallAbove.Form("%.3g#DeltaR + %.3g (#Delta R > 0.4)", fitDRall->GetParameter(1), fitDRall->GetParameter(0));
+  textDRallAbove.Form("%.3g #times #DeltaR + %.3g (#Delta R > 0.4)", fitDRall->GetParameter(1), fitDRall->GetParameter(0));
   textDRall->AddText(textDRAllstrBelow);
   ((TText*)textDRall->GetListOfLines()->Last())->SetTextColor(kRed);
   ((TText*)textDRall->GetListOfLines()->Last())->SetTextAlign(12);
@@ -429,7 +429,7 @@ void estimateREFF(TString era) {
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
 
-  canvas->SaveAs("REFF_all_dr_"+era+".png");
+  canvas->SaveAs("REFF_all_dr_"+era+".pdf");
 
   return;
 }

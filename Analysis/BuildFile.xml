@@ -17,6 +17,7 @@
 <use name="ZprimeTo4l/MergedLepton"/>
 <use name="root"/>
 <use name="rootmath"/>
+<use name="correctionlib"/>
 <export>
   <lib name="1"/>
 </export>

@@ -333,6 +333,10 @@ void ResolvedEleCRanalyzer::beginJob() {
   histo1d_["4P0F_CR_Et_P4"] = fs->make<TH1D>("4P0F_CR_Et_P4","4P0F CR Pass E4 E_{T};E_{T} [GeV];",100,0.,500.);
 
   histo1d_["4P0F_CR_llll_invM"] = fs->make<TH1D>("4P0F_CR_llll_invM","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_scaleUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_scaleUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_scaleDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_scaleDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_sigmaUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_sigmaUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_sigmaDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_sigmaDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_idUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_idUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_idDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_idDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_pt"] = fs->make<TH1D>("4P0F_CR_llll_pt","4P0F CR p_{T}(4l);p_{T} [GeV];",100,0.,200.);
@@ -580,7 +584,7 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       // 4P0F
       histo1d_["cutflow_4E"]->Fill(7.5,aWeight);
 
-      if ( nonHeepEles.size()==0 ) {
+      if (true) {
         std::vector<pat::ElectronRef> allEles(acceptEles);
         std::pair<pat::ElectronRef,pat::ElectronRef> pair1, pair2;
 
@@ -589,10 +593,31 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         if (paired) {
           histo1d_["cutflow_4E"]->Fill(8.5,aWeight);
 
-          const auto lvecE1 = pair1.first->polarP4()*pair1.first->userFloat("ecalTrkEnergyPostCorr")/pair1.first->energy();
-          const auto lvecE2 = pair1.second->polarP4()*pair1.second->userFloat("ecalTrkEnergyPostCorr")/pair1.second->energy();
-          const auto lvecE3 = pair2.first->polarP4()*pair2.first->userFloat("ecalTrkEnergyPostCorr")/pair2.first->energy();
-          const auto lvecE4 = pair2.second->polarP4()*pair2.second->userFloat("ecalTrkEnergyPostCorr")/pair2.second->energy();
+          auto lvecCorr = [] (const pat::ElectronRef& aEle, const std::string& opt) {
+            return aEle->polarP4()*aEle->userFloat(opt)/aEle->energy();
+          };
+
+          const auto lvecE1 = lvecCorr(pair1.first,"ecalTrkEnergyPostCorr");
+          const auto lvecE2 = lvecCorr(pair1.second,"ecalTrkEnergyPostCorr");
+          const auto lvecE3 = lvecCorr(pair2.first,"ecalTrkEnergyPostCorr");
+          const auto lvecE4 = lvecCorr(pair2.second,"ecalTrkEnergyPostCorr");
+
+          const auto lvecE1_scaleUp = lvecCorr(pair1.first,"energyScaleUp");
+          const auto lvecE2_scaleUp = lvecCorr(pair1.second,"energyScaleUp");
+          const auto lvecE3_scaleUp = lvecCorr(pair2.first,"energyScaleUp");
+          const auto lvecE4_scaleUp = lvecCorr(pair2.second,"energyScaleUp");
+          const auto lvecE1_scaleDn = lvecCorr(pair1.first,"energyScaleDown");
+          const auto lvecE2_scaleDn = lvecCorr(pair1.second,"energyScaleDown");
+          const auto lvecE3_scaleDn = lvecCorr(pair2.first,"energyScaleDown");
+          const auto lvecE4_scaleDn = lvecCorr(pair2.second,"energyScaleDown");
+          const auto lvecE1_sigmaUp = lvecCorr(pair1.first,"energySigmaUp");
+          const auto lvecE2_sigmaUp = lvecCorr(pair1.second,"energySigmaUp");
+          const auto lvecE3_sigmaUp = lvecCorr(pair2.first,"energySigmaUp");
+          const auto lvecE4_sigmaUp = lvecCorr(pair2.second,"energySigmaUp");
+          const auto lvecE1_sigmaDn = lvecCorr(pair1.first,"energySigmaDown");
+          const auto lvecE2_sigmaDn = lvecCorr(pair1.second,"energySigmaDown");
+          const auto lvecE3_sigmaDn = lvecCorr(pair2.first,"energySigmaDown");
+          const auto lvecE4_sigmaDn = lvecCorr(pair2.second,"energySigmaDown");
 
           const auto lvecA1 = lvecE1 + lvecE2;
           const auto lvecA2 = lvecE3 + lvecE4;
@@ -601,12 +626,20 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           const double dr2ll2 = reco::deltaR2(lvecE3.eta(),lvecE3.phi(),lvecE4.eta(),lvecE4.phi());
           const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
           const double m4l = lvec4l.M();
+          const double m4l_scaleUp = (lvecE1_scaleUp+lvecE2_scaleUp+lvecE3_scaleUp+lvecE4_scaleUp).M();
+          const double m4l_scaleDn = (lvecE1_scaleDn+lvecE2_scaleDn+lvecE3_scaleDn+lvecE4_scaleDn).M();
+          const double m4l_sigmaUp = (lvecE1_sigmaUp+lvecE2_sigmaUp+lvecE3_sigmaUp+lvecE4_sigmaUp).M();
+          const double m4l_sigmaDn = (lvecE1_sigmaDn+lvecE2_sigmaDn+lvecE3_sigmaDn+lvecE4_sigmaDn).M();
 
           if ( m4l > 50. && m4l < 200. )
             histo1d_["cutflow_4E"]->Fill(9.5,aWeight);
 
           if ( m4l > 50. && (m4l < 200. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
+            histo1d_["4P0F_CR_llll_invM_scaleUp"]->Fill(m4l_scaleUp, aWeight);
+            histo1d_["4P0F_CR_llll_invM_scaleDn"]->Fill(m4l_scaleDn, aWeight);
+            histo1d_["4P0F_CR_llll_invM_sigmaUp"]->Fill(m4l_sigmaUp, aWeight);
+            histo1d_["4P0F_CR_llll_invM_sigmaDn"]->Fill(m4l_sigmaDn, aWeight);
             histo1d_["4P0F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
             histo1d_["4P0F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
           }
@@ -638,7 +671,7 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             histo1d_["4P0F_CR_Et_P4"]->Fill(acceptEles.at(3)->et(), aWeight);
           } // CR
         } // paired
-      } // 4P0F
+      }
 
       break;
     case 3:
@@ -649,8 +682,8 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           auto& second = acceptEles.at(1);
           auto& probe = acceptEles.at(2);
 
-          const auto lvecE1 = first->polarP4()*first->userFloat("ecalTrkEnergyPostCorr")/first->energy();
-          const auto lvecE2 = second->polarP4()*second->userFloat("ecalTrkEnergyPostCorr")/second->energy();
+          const auto lvecE1 = first->polarP4();
+          const auto lvecE2 = second->polarP4();
           const auto lvecll = lvecE1 + lvecE2;
           const double mll = lvecll.M();
           const double dr2ll = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
@@ -690,8 +723,8 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             const auto& second = acceptEles.at( (idx+1)%acceptEles.size() );
             const auto& probe = acceptEles.at( (idx+2)%acceptEles.size() );
 
-            const auto lvecE1 = first->polarP4()*first->userFloat("ecalTrkEnergyPostCorr")/first->energy();
-            const auto lvecE2 = second->polarP4()*second->userFloat("ecalTrkEnergyPostCorr")/second->energy();
+            const auto lvecE1 = first->polarP4();
+            const auto lvecE2 = second->polarP4();
             const auto lvecll = lvecE1 + lvecE2;
             const double mll = lvecll.M();
             const double dr2ll = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
@@ -768,7 +801,7 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           const double drFake = std::sqrt( std::min({ reco::deltaR2(nonHeepEles.front()->eta(),nonHeepEles.front()->phi(),acceptEles.at(2)->eta(),acceptEles.at(2)->phi()),
                                                       reco::deltaR2(nonHeepEles.front()->eta(),nonHeepEles.front()->phi(),acceptEles.front()->eta(),acceptEles.front()->phi()),
                                                       reco::deltaR2(nonHeepEles.front()->eta(),nonHeepEles.front()->phi(),acceptEles.at(1)->eta(),acceptEles.at(1)->phi()) }) );
-          const double ff = ff_dr_->Eval(drFake);
+          const double ff = std::max(ff_dr_->Eval(drFake),0.);
           const double ci = ciFF(drFake);
 
           if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
@@ -832,9 +865,9 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       break;
     case 2:
       // 2P1F - FF denominator
-      if ( nonHeepEles.size()==1 && acceptEles.front()->charge()*acceptEles.at(1)->charge() < 0 ) {
-        const auto lvecE1 = acceptEles.front()->polarP4()*acceptEles.front()->userFloat("ecalTrkEnergyPostCorr")/acceptEles.front()->energy();
-        const auto lvecE2 = acceptEles.at(1)->polarP4()*acceptEles.at(1)->userFloat("ecalTrkEnergyPostCorr")/acceptEles.at(1)->energy();
+      if ( nonHeepEles.size()==1 ) {
+        const auto lvecE1 = acceptEles.front()->polarP4();
+        const auto lvecE2 = acceptEles.at(1)->polarP4();
         const auto lvecll = lvecE1 + lvecE2;
         const double mll = lvecll.M();
         const double dr2ll = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
@@ -918,8 +951,8 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             const double drFake2 = std::sqrt( std::min({ reco::deltaR2(nonHeepEles.front()->eta(),nonHeepEles.front()->phi(),nonHeepEles.at(1)->eta(),nonHeepEles.at(1)->phi()),
                                                          reco::deltaR2(nonHeepEles.at(1)->eta(),nonHeepEles.at(1)->phi(),acceptEles.front()->eta(),acceptEles.front()->phi()),
                                                          reco::deltaR2(nonHeepEles.at(1)->eta(),nonHeepEles.at(1)->phi(),acceptEles.at(1)->eta(),acceptEles.at(1)->phi()) }) );
-            const double ff1 = ff_dr_->Eval(drFake1);
-            const double ff2 = ff_dr_->Eval(drFake2);
+            const double ff1 = std::max(ff_dr_->Eval(drFake1),0.);
+            const double ff2 = std::max(ff_dr_->Eval(drFake2),0.);
             const double ci1 = ciFF(drFake1);
             const double ci2 = ciFF(drFake2);
 

@@ -142,3 +142,19 @@ void ElectronSystematicsHelper::SetMergedElePol1(const std::string& hasTrk, cons
   mergedElePolHasTrk_ = std::make_unique<TF1>("mergedElePolHasTrk",hasTrk.c_str(),50.,2000.);
   mergedElePolNoTrk_ = std::make_unique<TF1>("mergedElePolNoTrk",noTrk.c_str(),50.,2000.);
 }
+
+double ElectronSystematicsHelper::mergedEleScale(const pat::ElectronRef& aEle) const {
+  if ( aEle->userInt("mvaMergedElectronCategories")==1 )
+    return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
+
+  return 0.992;
+}
+
+double ElectronSystematicsHelper::mergedEleSmear(const pat::ElectronRef& aEle, const double u5x5En) {
+  if ( aEle->userInt("mvaMergedElectronCategories")==1 )
+    return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
+
+  double corr = u5x5En + rng_.Gaus(0.,u5x5En*0.025);
+
+  return corr/u5x5En;
+}

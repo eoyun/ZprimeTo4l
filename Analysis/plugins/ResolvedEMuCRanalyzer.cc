@@ -51,8 +51,9 @@ private:
   const edm::EDGetTokenT<edm::View<pat::Muon>> srcMuon_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> genptcToken_;
-  const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
+  const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
+  const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
   const edm::EDGetTokenT<double> prefweight_token;
 
   const edm::EDGetTokenT<edm::TriggerResults> METfilterToken_;
@@ -61,20 +62,20 @@ private:
   const std::vector<std::string> METfilterList_;
   const std::vector<std::string> trigList_;
 
-  const std::string trigHistName_;
-  const std::string idHistName_;
-  const std::string idHistNameTrkHighPt_;
-  const std::string isoHistName_;
-  const std::string isoHistNameTrkHighPt_;
   const edm::FileInPath rochesterPath_;
   const edm::FileInPath triggerSFpath_;
-  const edm::FileInPath muonIdSFpath_;
-  const edm::FileInPath muonIsoSFpath_;
+  const edm::FileInPath muonIdIsoSFpath_;
+  const edm::FileInPath muonRecoSFpath_;
+
   const edm::FileInPath purwgtPath_;
   const edm::FileInPath recoEleSFpath_;
 
   const edm::FileInPath RMFFpath_;
   const edm::FileInPath REFFpath_;
+
+  const std::vector<double> muScaleBias_;
+  const std::vector<double> muSmearFactors_;
+  const std::vector<double> muSmearParams_;
 
   const double ptThres_;
   const double ptThresTrig_;
@@ -110,31 +111,30 @@ srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("
 srcMuon_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genptc"))),
-generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
+generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
+beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
-trigHistName_(iConfig.getParameter<std::string>("trigHistName")),
-idHistName_(iConfig.getParameter<std::string>("idHistName")),
-idHistNameTrkHighPt_(iConfig.getParameter<std::string>("idHistNameTrkHighPt")),
-isoHistName_(iConfig.getParameter<std::string>("isoHistName")),
-isoHistNameTrkHighPt_(iConfig.getParameter<std::string>("isoHistNameTrkHighPt")),
 rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
 triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
-muonIdSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdSFpath")),
-muonIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIsoSFpath")),
+muonIdIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdIsoSFpath")),
+muonRecoSFpath_(iConfig.getParameter<edm::FileInPath>("muonRecoSFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 recoEleSFpath_(iConfig.getParameter<edm::FileInPath>("recoEleSFpath")),
 RMFFpath_(iConfig.getParameter<edm::FileInPath>("RMFFpath")),
 REFFpath_(iConfig.getParameter<edm::FileInPath>("REFFpath")),
+muScaleBias_(iConfig.getParameter<std::vector<double>>("muScaleBias")),
+muSmearFactors_(iConfig.getParameter<std::vector<double>>("muSmearFactors")),
+muSmearParams_(iConfig.getParameter<std::vector<double>>("muSmearParams")),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 ptThresTrig_(iConfig.getParameter<double>("ptThresTrig")),
 ffSystCL95_(iConfig.getParameter<double>("ffSystCL95")),
-mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdSFpath_,muonIsoSFpath_,trigHistName_),
+mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonRecoSFpath_),
 systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("modHeepSFpath"))) {
   usesResource("TFileService");
 
@@ -229,6 +229,7 @@ void ResolvedEMuCRanalyzer::beginJob() {
   histo1d_["2P2F_CR_ll2_dr"] = fs->make<TH1D>("2P2F_CR_ll2_dr","2P2F CR dR(ll2)",128,0.,6.4);
 
   histo1d_["2P2F_CR_llll_invM_xFF"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
+  histo1d_["2P2F_CR_llll_invM_altMuScale_xFF"] = fs->make<TH1D>("2P2F_CR_llll_invM_altMuScale_xFF",";M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF_ffUpE"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF_ffUpE","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF_ffDnE"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF_ffDnE","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF_ffUpM"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF_ffUpM","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
@@ -242,6 +243,7 @@ void ResolvedEMuCRanalyzer::beginJob() {
   histo1d_["2P2F_CR_ll2_dr_xFF"] = fs->make<TH1D>("2P2F_CR_ll2_dr_xFF","2P2F CR dR(ll2) x Fake factor",128,0.,6.4);
 
   histo1d_["2P2F_CR_llll_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
+  histo1d_["2P2F_CR_llll_invM_altMuScale_xFF2"] = fs->make<TH1D>("2P2F_CR_llll_invM_altMuScale_xFF2",";M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF2_ffUpE"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2_ffUpE","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF2_ffDnE"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2_ffDnE","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF2_ffUpM"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2_ffUpM","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
@@ -298,6 +300,7 @@ void ResolvedEMuCRanalyzer::beginJob() {
   histo1d_["3P1F_CR_ll2_dr"] = fs->make<TH1D>("3P1F_CR_ll2_dr","3P1F CR dR(ll2)",64,0.,6.4);
 
   histo1d_["3P1F_CR_llll_invM_xFF"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
+  histo1d_["3P1F_CR_llll_invM_altMuScale_xFF"] = fs->make<TH1D>("3P1F_CR_llll_invM_altMuScale_xFF",";M [GeV];",500,0.,2500.);
   histo1d_["3P1F_CR_llll_invM_xFF_ffUpE"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF_ffUpE","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["3P1F_CR_llll_invM_xFF_ffDnE"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF_ffDnE","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["3P1F_CR_llll_invM_xFF_ffUpM"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF_ffUpM","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
@@ -321,8 +324,22 @@ void ResolvedEMuCRanalyzer::beginJob() {
   histo1d_["4P0F_CR_pt_M"] = fs->make<TH1D>("4P0F_CR_pt_M","4P0F CR Pass M p_{T};p_{T} [GeV];",100,0.,500.);
 
   histo1d_["4P0F_CR_llll_invM"] = fs->make<TH1D>("4P0F_CR_llll_invM","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elScaleUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_elScaleUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elScaleDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_elScaleDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elSigmaUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_elSigmaUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elSigmaDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_elSigmaDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_altMuScale"] = fs->make<TH1D>("4P0F_CR_llll_invM_altMuScale","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_altMuSmear"] = fs->make<TH1D>("4P0F_CR_llll_invM_altMuSmear","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_idUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_idUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_idDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_idDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_muIdUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_muIdUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_muIdDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_muIdDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_muIsoUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_muIsoUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_muIsoDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_muIsoDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_trigUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_trigUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_trigDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_trigDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_muRecoUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_muRecoUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_muRecoDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_muRecoDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_pt"] = fs->make<TH1D>("4P0F_CR_llll_pt","4P0F CR p_{T}(4l);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll1ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll1ll2_dr","4P0F CR dR(ll1ll2)",64,0.,6.4);
   histo1d_["4P0F_CR_ll1_invM"] = fs->make<TH1D>("4P0F_CR_ll1_invM","4P0F CR M(ll1);M [GeV];",100,0.,200.);
@@ -348,6 +365,9 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
+
+  edm::Handle<reco::BeamSpot> beamSpotHandle;
+  iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
   double aWeight = 1.;
 
@@ -478,15 +498,10 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
   }
 
-  if ( acceptEles.size() + nonHeepEles.size() != 2 )
-    return;
-
-  histo1d_["cutflow"]->Fill( 2.5, aWeight );
-
   if (muonHandle->empty())
     return;
 
-  histo1d_["cutflow"]->Fill( 3.5, aWeight );
+  histo1d_["cutflow"]->Fill( 2.5, aWeight );
 
   std::vector<pat::MuonRef> highPtMuons;
   std::vector<pat::MuonRef> highPtTrackerMuons; // but not highPtMuon
@@ -523,23 +538,21 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       if (firstMuon==secondMuon)
         continue;
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
       const auto& secondMuon = highPtTrackerMuons.at(jdx);
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
 
     if (!isoCands.empty())
-      if ( reco::deltaR2(firstMuon->innerTrack()->eta(),firstMuon->innerTrack()->phi(),
-                         isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
-        firstIso -= isoCands.front()->innerTrack()->pt();
+      firstIso -= isoCands.front()->innerTrack()->pt();
 
     if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
       isolatedHighPtMuons.push_back(firstMuon);
@@ -557,23 +570,21 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       if (firstMuon==secondMuon)
         continue;
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
       const auto& secondMuon = highPtMuons.at(jdx);
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
 
     if (!isoCands.empty())
-      if ( reco::deltaR2(firstMuon->innerTrack()->eta(),firstMuon->innerTrack()->phi(),
-                         isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
-        firstIso -= isoCands.front()->innerTrack()->pt();
+      firstIso -= isoCands.front()->innerTrack()->pt();
 
     if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
       isolatedHighPtTrackerMuons.push_back(firstMuon);
@@ -582,38 +593,61 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   std::sort(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),sortByTuneP);
   std::sort(isolatedHighPtTrackerMuons.begin(),isolatedHighPtTrackerMuons.end(),sortByTuneP);
 
-  if ( isolatedHighPtMuons.empty() )
-    return;
-
-  if ( isolatedHighPtMuons.front()->tunePMuonBestTrack()->pt() < ptThresTrig_ )
-    return;
-
-  histo1d_["cutflow"]->Fill( 4.5, aWeight );
-
   bool trigMatched = false;
+  std::vector<double> trigSyst;
 
   for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
     const auto& trigObj = trigObjs.at(idx);
 
-    if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),isolatedHighPtMuons.front()->eta(),isolatedHighPtMuons.front()->phi()) < 0.01 ) {
-      trigMatched = true;
+    if (!isolatedHighPtMuons.empty()) {
+      if ( reco::deltaR2(trigObj->eta(),
+                         trigObj->phi(),
+                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->eta(),
+                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
+        trigMatched = true;
 
-      if (isMC_)
-        aWeight *= mucorrHelper_.triggerSF(isolatedHighPtMuons.front());
+        if (isMC_) {
+          aWeight *= mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front());
+          trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(isolatedHighPtMuons.front()) /
+                              mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front()) );
+        }
 
-      break;
+        break;
+      }
+    }
+
+    if (!isolatedHighPtTrackerMuons.empty()) {
+      if ( reco::deltaR2(trigObj->eta(),
+                         trigObj->phi(),
+                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->eta(),
+                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
+        trigMatched = true;
+
+        if (isMC_) {
+          aWeight *= mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front());
+          trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(isolatedHighPtTrackerMuons.front()) /
+                              mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front()) );
+        }
+
+        break;
+      }
     }
   }
 
   if ( !trigMatched )
     return;
 
-  histo1d_["cutflow"]->Fill( 5.5, aWeight );
+  histo1d_["cutflow"]->Fill( 3.5, aWeight );
 
   // concatenate(-ish) highPtMuons & highPtTrackerMuons - order is important!
   std::vector<pat::MuonRef> allHighPtMuons(isolatedHighPtMuons);
   allHighPtMuons.insert( allHighPtMuons.end(), isolatedHighPtTrackerMuons.begin(), isolatedHighPtTrackerMuons.end() );
   std::sort(allHighPtMuons.begin(),allHighPtMuons.end(),sortByTuneP);
+
+  if ( allHighPtMuons.front()->tunePMuonBestTrack()->pt() < ptThresTrig_ )
+    return;
+
+  histo1d_["cutflow"]->Fill( 4.5, aWeight );
 
   for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
     const auto& aMuon = muonHandle->refAt(idx);
@@ -633,10 +667,9 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       nonHighPtMuons.push_back(castMu);
   }
 
-  if ( allHighPtMuons.size() + nonHighPtMuons.size() != 2 )
-    return;
-
-  histo1d_["cutflow"]->Fill( 6.5, aWeight );
+  std::vector<double> muIdSyst;
+  std::vector<double> muIsoSyst;
+  std::vector<double> muRecoSyst;
 
   // SF
   if (isMC_) {
@@ -652,15 +685,39 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     }
 
     for (const auto& aMu : isolatedHighPtMuons) {
-      aWeight *= mucorrHelper_.idSF(aMu,idHistName_);
-      aWeight *= mucorrHelper_.isoSF(aMu,isoHistName_);
+      aWeight *= mucorrHelper_.highptIdSF(aMu);
+      aWeight *= mucorrHelper_.looseIsoSF(aMu);
+      aWeight *= mucorrHelper_.recoSF(aMu);
+      muIdSyst.push_back( mucorrHelper_.highptIdSFsyst(aMu)/mucorrHelper_.highptIdSF(aMu) );
+      muIsoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
+      muRecoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
     }
 
     for (const auto& aMu : isolatedHighPtTrackerMuons) {
-      aWeight *= mucorrHelper_.idSF(aMu,idHistNameTrkHighPt_);
-      aWeight *= mucorrHelper_.isoSF(aMu,isoHistNameTrkHighPt_);
+      aWeight *= mucorrHelper_.trkHighptIdSF(aMu);
+      aWeight *= mucorrHelper_.looseIsoSFtracker(aMu);
+      aWeight *= mucorrHelper_.recoSF(aMu);
+      muIdSyst.push_back( mucorrHelper_.trkHighptIdSFsyst(aMu)/mucorrHelper_.trkHighptIdSF(aMu) );
+      muIsoSyst.push_back( mucorrHelper_.looseIsoSFtrackerSyst(aMu)/mucorrHelper_.looseIsoSFtracker(aMu) );
+      muRecoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
+    }
+
+    for (const auto& aMu : nonHighPtMuons) {
+      aWeight *= mucorrHelper_.recoSF(aMu);
+      muRecoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
     }
   }
+
+  auto systSFratio = [] (const std::vector<double>& vec) -> std::pair<double,double> {
+    double up = 1., dn = 1.;
+
+    for (const auto& systOverSF : vec) {
+      up *= (1.+systOverSF);
+      dn *= std::max(1.-systOverSF,0.);
+    }
+
+    return std::make_pair(up,dn); // ratio to the nominal
+  };
 
   auto modHeepSFcl95 = [this,&acceptEles] (const double wgt) -> std::pair<double,double> {
     if (!isMC_)
@@ -687,25 +744,55 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     return std::hypot(ci[0],ff*ffSystCL95_);
   };
 
+  auto checkTrackerMuPair = [&isolatedHighPtMuons] (const std::pair<pat::MuonRef,pat::MuonRef>& apair, bool checkId=true) -> bool {
+    if (!checkId)
+      return !apair.first->isGlobalMuon() && !apair.second->isGlobalMuon();
+
+    bool check1st = std::find(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),apair.first) != isolatedHighPtMuons.end();
+    bool check2nd = std::find(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),apair.second) != isolatedHighPtMuons.end();
+
+    return !check1st && !check2nd;
+  };
+
   switch ( allHighPtMuons.size() + acceptEles.size() ) {
     case 4:
       // 4P0F
-      if ( nonHighPtMuons.empty() && nonHeepEles.empty() ) {
+      if ( allHighPtMuons.size()==2 && acceptEles.size()==2 ) {
+        auto lvecCorr = [] (const pat::ElectronRef& aEle, const std::string& opt) {
+          return aEle->polarP4()*aEle->userFloat(opt)/aEle->energy();
+        };
+
         auto lvecM1 = lvecFromTuneP( allHighPtMuons.at(0) );
         auto lvecM2 = lvecFromTuneP( allHighPtMuons.at(1) );
-        const auto lvecE1 = acceptEles.at(0)->polarP4()*acceptEles.at(0)->userFloat("ecalTrkEnergyPostCorr")/acceptEles.at(0)->energy();
-        const auto lvecE2 = acceptEles.at(1)->polarP4()*acceptEles.at(1)->userFloat("ecalTrkEnergyPostCorr")/acceptEles.at(1)->energy();
+        const auto lvecE1 = lvecCorr(acceptEles.at(0),"ecalTrkEnergyPostCorr");
+        const auto lvecE2 = lvecCorr(acceptEles.at(1),"ecalTrkEnergyPostCorr");
+        const auto lvecE1_scaleUp = lvecCorr(acceptEles.at(0),"energyScaleUp");
+        const auto lvecE2_scaleUp = lvecCorr(acceptEles.at(1),"energyScaleUp");
+        const auto lvecE1_scaleDn = lvecCorr(acceptEles.at(0),"energyScaleDown");
+        const auto lvecE2_scaleDn = lvecCorr(acceptEles.at(1),"energyScaleDown");
+        const auto lvecE1_sigmaUp = lvecCorr(acceptEles.at(0),"energySigmaUp");
+        const auto lvecE2_sigmaUp = lvecCorr(acceptEles.at(1),"energySigmaUp");
+        const auto lvecE1_sigmaDn = lvecCorr(acceptEles.at(0),"energySigmaDown");
+        const auto lvecE2_sigmaDn = lvecCorr(acceptEles.at(1),"energySigmaDown");
+        lvecM1 *= mucorrHelper_.smear(allHighPtMuons.at(0),muSmearParams_,muSmearFactors_,isMC_);
+        lvecM2 *= mucorrHelper_.smear(allHighPtMuons.at(1),muSmearParams_,muSmearFactors_,isMC_);
+
+        auto lvecM1alt = lvecM1*mucorrHelper_.altScale(allHighPtMuons.at(0),muScaleBias_,isMC_);
+        auto lvecM2alt = lvecM2*mucorrHelper_.altScale(allHighPtMuons.at(1),muScaleBias_,isMC_);
 
         if (isMC_) {
           edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
           iEvent.getByToken(genptcToken_, genptcHandle);
 
-          lvecM1 *= mucorrHelper_.rochesterMC(allHighPtMuons.at(0),genptcHandle);
-          lvecM2 *= mucorrHelper_.rochesterMC(allHighPtMuons.at(1),genptcHandle);
+          lvecM1 *= mucorrHelper_.nominalMC(allHighPtMuons.at(0),genptcHandle);
+          lvecM2 *= mucorrHelper_.nominalMC(allHighPtMuons.at(1),genptcHandle);
         } else {
-          lvecM1 *= mucorrHelper_.rochesterData(allHighPtMuons.at(0));
-          lvecM2 *= mucorrHelper_.rochesterData(allHighPtMuons.at(1));
+          lvecM1 *= mucorrHelper_.nominalData(allHighPtMuons.at(0));
+          lvecM2 *= mucorrHelper_.nominalData(allHighPtMuons.at(1));
         }
+
+        const auto lvecM1smear = lvecM1*mucorrHelper_.smear(allHighPtMuons.at(0),muSmearParams_,{0.46,0.46},isMC_);
+        const auto lvecM2smear = lvecM2*mucorrHelper_.smear(allHighPtMuons.at(1),muSmearParams_,{0.46,0.46},isMC_);
 
         const auto lvecA1 = lvecM1 + lvecM2;
         const auto lvecA2 = lvecE1 + lvecE2;
@@ -714,44 +801,69 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const double dr2ll2 = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
         const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
         const double m4l = lvec4l.M();
+        const double m4lAltMu = (lvecM1alt + lvecM2alt + lvecE1 + lvecE2).M();
+        const double m4lsmear = (lvecM1smear+lvecM2smear+lvecE1+lvecE2).M();
+        const double m4l_elScaleUp = (lvecM1 + lvecM2 + lvecE1_scaleUp + lvecE2_scaleUp).M();
+        const double m4l_elScaleDn = (lvecM1 + lvecM2 + lvecE1_scaleDn + lvecE2_scaleDn).M();
+        const double m4l_elSigmaUp = (lvecM1 + lvecM2 + lvecE1_sigmaUp + lvecE2_sigmaUp).M();
+        const double m4l_elSigmaDn = (lvecM1 + lvecM2 + lvecE1_sigmaDn + lvecE2_sigmaDn).M();
 
-        if ( m4l > 50. && (m4l < 200. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
-          histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
-          histo1d_["4P0F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
-          histo1d_["4P0F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
+        auto muPair = std::make_pair(allHighPtMuons.front(),allHighPtMuons.at(1));
+
+        if ( !checkTrackerMuPair(muPair) ) {
+          if ( m4l > 50. && (m4l < 200. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
+            histo1d_["4P0F_CR_llll_invM_elScaleUp"]->Fill(m4l_elScaleUp, aWeight);
+            histo1d_["4P0F_CR_llll_invM_elScaleDn"]->Fill(m4l_elScaleDn, aWeight);
+            histo1d_["4P0F_CR_llll_invM_elSigmaUp"]->Fill(m4l_elSigmaUp, aWeight);
+            histo1d_["4P0F_CR_llll_invM_elSigmaDn"]->Fill(m4l_elSigmaDn, aWeight);
+            histo1d_["4P0F_CR_llll_invM_altMuScale"]->Fill(m4lAltMu, aWeight);
+            histo1d_["4P0F_CR_llll_invM_altMuSmear"]->Fill(m4lsmear, aWeight);
+            histo1d_["4P0F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
+            histo1d_["4P0F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
+            histo1d_["4P0F_CR_llll_invM_muIdUp"]->Fill(m4l, aWeight*systSFratio(muIdSyst).first);
+            histo1d_["4P0F_CR_llll_invM_muIdDn"]->Fill(m4l, aWeight*systSFratio(muIdSyst).second);
+            histo1d_["4P0F_CR_llll_invM_muIsoUp"]->Fill(m4l, aWeight*systSFratio(muIsoSyst).first);
+            histo1d_["4P0F_CR_llll_invM_muIsoDn"]->Fill(m4l, aWeight*systSFratio(muIsoSyst).second);
+            histo1d_["4P0F_CR_llll_invM_trigUp"]->Fill(m4l, aWeight*systSFratio(trigSyst).first);
+            histo1d_["4P0F_CR_llll_invM_trigDn"]->Fill(m4l, aWeight*systSFratio(trigSyst).second);
+            histo1d_["4P0F_CR_llll_invM_muRecoUp"]->Fill(m4l, aWeight*systSFratio(muRecoSyst).first);
+            histo1d_["4P0F_CR_llll_invM_muRecoDn"]->Fill(m4l, aWeight*systSFratio(muRecoSyst).second);
+          }
+
+          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            histo1d_["4P0F_CR_E_eta"]->Fill( acceptEles.front()->eta(), aWeight );
+            histo1d_["4P0F_CR_E_phi"]->Fill( acceptEles.front()->phi(), aWeight );
+            histo1d_["4P0F_CR_E_eta"]->Fill( acceptEles.at(1)->eta(), aWeight );
+            histo1d_["4P0F_CR_E_phi"]->Fill( acceptEles.at(1)->phi(), aWeight );
+
+            histo1d_["4P0F_CR_M_eta"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->eta(), aWeight);
+            histo1d_["4P0F_CR_M_phi"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->phi(), aWeight);
+            histo1d_["4P0F_CR_M_eta"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(), aWeight);
+            histo1d_["4P0F_CR_M_phi"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->phi(), aWeight);
+
+            histo1d_["4P0F_CR_pt_E"]->Fill( acceptEles.front()->et(), aWeight );
+            histo1d_["4P0F_CR_pt_E"]->Fill( acceptEles.at(1)->et(), aWeight );
+            histo1d_["4P0F_CR_pt_M"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
+            histo1d_["4P0F_CR_pt_M"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight);
+
+            histo1d_["4P0F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
+            histo1d_["4P0F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
+            histo1d_["4P0F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);
+            histo1d_["4P0F_CR_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
+            histo1d_["4P0F_CR_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
+            histo1d_["4P0F_CR_ll2_invM"]->Fill(lvecA2.M(), aWeight);
+            histo1d_["4P0F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
+            histo1d_["4P0F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
+          } // CR
         }
-
-        if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
-          histo1d_["4P0F_CR_E_eta"]->Fill( acceptEles.front()->eta(), aWeight );
-          histo1d_["4P0F_CR_E_phi"]->Fill( acceptEles.front()->phi(), aWeight );
-          histo1d_["4P0F_CR_E_eta"]->Fill( acceptEles.at(1)->eta(), aWeight );
-          histo1d_["4P0F_CR_E_phi"]->Fill( acceptEles.at(1)->phi(), aWeight );
-
-          histo1d_["4P0F_CR_M_eta"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->eta(), aWeight);
-          histo1d_["4P0F_CR_M_phi"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->phi(), aWeight);
-          histo1d_["4P0F_CR_M_eta"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(), aWeight);
-          histo1d_["4P0F_CR_M_phi"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->phi(), aWeight);
-
-          histo1d_["4P0F_CR_pt_E"]->Fill( acceptEles.front()->et(), aWeight );
-          histo1d_["4P0F_CR_pt_E"]->Fill( acceptEles.at(1)->et(), aWeight );
-          histo1d_["4P0F_CR_pt_M"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
-          histo1d_["4P0F_CR_pt_M"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight);
-
-          histo1d_["4P0F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
-          histo1d_["4P0F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
-          histo1d_["4P0F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);
-          histo1d_["4P0F_CR_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
-          histo1d_["4P0F_CR_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
-          histo1d_["4P0F_CR_ll2_invM"]->Fill(lvecA2.M(), aWeight);
-          histo1d_["4P0F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
-          histo1d_["4P0F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
-        } // CR
-      } // 4P0F
+      } // nEle==2 && nMu==2 && no tracker mu pair
 
       break;
     case 3:
       // 3P1F
-      if ( nonHighPtMuons.size()==1 || nonHeepEles.size()==1 ) {
+      if ( (allHighPtMuons.size()+nonHighPtMuons.size()==2) &&
+           (acceptEles.size()+nonHeepEles.size()==2) ) {
         auto lvecM1 = lvecFromTuneP(allHighPtMuons.front());
         const auto secondMuon = nonHighPtMuons.empty() ? allHighPtMuons.at(1) : nonHighPtMuons.front();
         auto lvecM2 = lvecFromTuneP(secondMuon);
@@ -760,6 +872,9 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const auto lvecE2 = secondEle->polarP4()*secondEle->userFloat("ecalTrkEnergyPostCorr")/secondEle->energy();
         const auto lvecFake = nonHighPtMuons.empty() ? lvecE2 : lvecM2;
         const auto lvecPair = nonHighPtMuons.empty() ? lvecE1 : lvecM1;
+
+        auto lvecM1alt = lvecM1*mucorrHelper_.altScale(allHighPtMuons.front(),muScaleBias_,isMC_);
+        auto lvecM2alt = lvecM2*mucorrHelper_.altScale(secondMuon,muScaleBias_,isMC_);
 
         histo1d_["3P1F_EP_pt"]->Fill(lvecE1.pt(), aWeight);
         histo1d_["3P1F_EP_eta"]->Fill(lvecE1.eta(), aWeight);
@@ -791,11 +906,11 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
           iEvent.getByToken(genptcToken_, genptcHandle);
 
-          lvecM1 *= mucorrHelper_.rochesterMC( allHighPtMuons.front() ,genptcHandle);
-          lvecM2 *= mucorrHelper_.rochesterMC( secondMuon ,genptcHandle);
+          lvecM1 *= mucorrHelper_.nominalMC( allHighPtMuons.front() ,genptcHandle);
+          lvecM2 *= mucorrHelper_.nominalMC( secondMuon ,genptcHandle);
         } else {
-          lvecM1 *= mucorrHelper_.rochesterData(allHighPtMuons.front());
-          lvecM2 *= mucorrHelper_.rochesterData(secondMuon);
+          lvecM1 *= mucorrHelper_.nominalData(allHighPtMuons.front());
+          lvecM2 *= mucorrHelper_.nominalData(secondMuon);
         }
 
         const auto lvecA1 = lvecM1 + lvecM2;
@@ -805,65 +920,75 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const double dr2ll2 = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
         const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
         const double m4l = lvec4l.M();
+        const double m4lAltMu = (lvecM1alt + lvecM2alt + lvecE1 + lvecE2).M();
 
         const double drFake = reco::deltaR(lvecFake.eta(),lvecFake.phi(),lvecPair.eta(),lvecPair.phi());
-        const double ff = nonHighPtMuons.empty() ? drREFF_->Eval(drFake) : drRMFF_->Eval(drFake);
+        const double ff = nonHighPtMuons.empty() ? std::max(drREFF_->Eval(drFake),0.) : std::max(drRMFF_->Eval(drFake),0.);
         const double ciE = nonHighPtMuons.empty() ? ciFF(drFake, drREFF_, ffEleFit_) : 0.;
         const double ciM = nonHighPtMuons.empty() ? 0. : ciFF(drFake, drRMFF_, ffMuonFit_);
 
-        if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
-          histo1d_["3P1F_llll_pt"]->Fill(lvec4l.pt(), aWeight);
-          histo1d_["3P1F_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
-          histo1d_["3P1F_ll1_invM"]->Fill(lvecA1.M(), aWeight);
-          histo1d_["3P1F_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
-          histo1d_["3P1F_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
-          histo1d_["3P1F_ll2_invM"]->Fill(lvecA2.M(), aWeight);
-          histo1d_["3P1F_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
-          histo1d_["3P1F_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
+        std::vector<pat::MuonRef> allMuons(allHighPtMuons);
+        allMuons.insert( allMuons.end(), nonHighPtMuons.begin(), nonHighPtMuons.end() );
 
-          histo1d_["3P1F_CR_llll_invM"]->Fill(m4l, aWeight);
-          histo1d_["3P1F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
-          histo1d_["3P1F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
-          histo1d_["3P1F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff);
-          histo1d_["3P1F_CR_llll_invM_xFF_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff);
-          histo1d_["3P1F_CR_llll_invM_xFF_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff);
-          histo1d_["3P1F_CR_llll_invM_xFF_ffUpE"]->Fill(m4l, aWeight*(ff+ciE));
-          histo1d_["3P1F_CR_llll_invM_xFF_ffDnE"]->Fill(m4l, aWeight*(ff-std::min(ciE,ff)));
-          histo1d_["3P1F_CR_llll_invM_xFF_ffUpM"]->Fill(m4l, aWeight*(ff+ciM));
-          histo1d_["3P1F_CR_llll_invM_xFF_ffDnM"]->Fill(m4l, aWeight*(ff-std::min(ciM,ff)));
-        }
+        auto muPair = std::make_pair(allMuons.front(),allMuons.at(1));
 
-        if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
-          histo1d_["3P1F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
-          histo1d_["3P1F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
-          histo1d_["3P1F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);
-          histo1d_["3P1F_CR_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
-          histo1d_["3P1F_CR_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
-          histo1d_["3P1F_CR_ll2_invM"]->Fill(lvecA2.M(), aWeight);
-          histo1d_["3P1F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
-          histo1d_["3P1F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
+        if ( !checkTrackerMuPair(muPair,false) ) {
+          if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            histo1d_["3P1F_llll_pt"]->Fill(lvec4l.pt(), aWeight);
+            histo1d_["3P1F_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
+            histo1d_["3P1F_ll1_invM"]->Fill(lvecA1.M(), aWeight);
+            histo1d_["3P1F_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
+            histo1d_["3P1F_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
+            histo1d_["3P1F_ll2_invM"]->Fill(lvecA2.M(), aWeight);
+            histo1d_["3P1F_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
+            histo1d_["3P1F_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
 
-          if ( nonHighPtMuons.empty() ) {
-            histo1d_["3P1F_CR_pt_E"]->Fill( lvecE1.pt(), aWeight );
-            histo1d_["3P1F_CR_dr_E"]->Fill( drFake, aWeight );
-          } else {
-            histo1d_["3P1F_CR_pt_M"]->Fill( lvecM1.pt(), aWeight );
-            histo1d_["3P1F_CR_dr_M"]->Fill( drFake, aWeight );
+            histo1d_["3P1F_CR_llll_invM"]->Fill(m4l, aWeight);
+            histo1d_["3P1F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
+            histo1d_["3P1F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
+            histo1d_["3P1F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff);
+            histo1d_["3P1F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAltMu, aWeight*ff);
+            histo1d_["3P1F_CR_llll_invM_xFF_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff);
+            histo1d_["3P1F_CR_llll_invM_xFF_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff);
+            histo1d_["3P1F_CR_llll_invM_xFF_ffUpE"]->Fill(m4l, aWeight*(ff+ciE));
+            histo1d_["3P1F_CR_llll_invM_xFF_ffDnE"]->Fill(m4l, aWeight*(ff-std::min(ciE,ff)));
+            histo1d_["3P1F_CR_llll_invM_xFF_ffUpM"]->Fill(m4l, aWeight*(ff+ciM));
+            histo1d_["3P1F_CR_llll_invM_xFF_ffDnM"]->Fill(m4l, aWeight*(ff-std::min(ciM,ff)));
           }
 
-          histo1d_["3P1F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff);
+          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            histo1d_["3P1F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
+            histo1d_["3P1F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
+            histo1d_["3P1F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);
+            histo1d_["3P1F_CR_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
+            histo1d_["3P1F_CR_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
+            histo1d_["3P1F_CR_ll2_invM"]->Fill(lvecA2.M(), aWeight);
+            histo1d_["3P1F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
+            histo1d_["3P1F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
 
-          histo1d_["3P1F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff);
-          histo1d_["3P1F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff);
-          histo1d_["3P1F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff);
-          histo1d_["3P1F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff);
-        } // CR
+            if ( nonHighPtMuons.empty() ) {
+              histo1d_["3P1F_CR_pt_E"]->Fill( lvecE1.pt(), aWeight );
+              histo1d_["3P1F_CR_dr_E"]->Fill( drFake, aWeight );
+            } else {
+              histo1d_["3P1F_CR_pt_M"]->Fill( lvecM1.pt(), aWeight );
+              histo1d_["3P1F_CR_dr_M"]->Fill( drFake, aWeight );
+            }
+
+            histo1d_["3P1F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff);
+
+            histo1d_["3P1F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff);
+            histo1d_["3P1F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff);
+            histo1d_["3P1F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff);
+            histo1d_["3P1F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff);
+          } // CR
+        }
       } // 3P1F
 
       break;
     case 2:
       // 2P2F
-      if ( nonHighPtMuons.size() + nonHeepEles.size()==2 ) {
+      if ( (allHighPtMuons.size()+nonHighPtMuons.size()==2) &&
+           (acceptEles.size()+nonHeepEles.size()==2) ) {
         auto lvecM1 = lvecFromTuneP(allHighPtMuons.front());
         const auto secondMuon = nonHighPtMuons.empty() ? allHighPtMuons.at(1) : nonHighPtMuons.front();
         auto lvecM2 = lvecFromTuneP(secondMuon);
@@ -871,6 +996,9 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const auto lvecE1 = firstEle->polarP4()*firstEle->userFloat("ecalTrkEnergyPostCorr")/firstEle->energy();
         const auto secondEle = acceptEles.empty() ? nonHeepEles.at(1) : nonHeepEles.at(0);
         const auto lvecE2 = secondEle->polarP4()*secondEle->userFloat("ecalTrkEnergyPostCorr")/secondEle->energy();
+
+        auto lvecM1alt = lvecM1*mucorrHelper_.altScale(allHighPtMuons.front(),muScaleBias_,isMC_);
+        auto lvecM2alt = lvecM2*mucorrHelper_.altScale(secondMuon,muScaleBias_,isMC_);
 
         std::vector<edm::Ptr<reco::RecoCandidate>> allLeptons;
         const edm::Ptr<reco::RecoCandidate> firstElePtr = edm::refToPtr(firstEle);
@@ -891,11 +1019,11 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
               edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
               iEvent.getByToken(genptcToken_, genptcHandle);
 
-              lvecM1 *= mucorrHelper_.rochesterMC(allHighPtMuons.front(),genptcHandle);
-              lvecM2 *= mucorrHelper_.rochesterMC(secondMuon,genptcHandle);
+              lvecM1 *= mucorrHelper_.nominalMC(allHighPtMuons.front(),genptcHandle);
+              lvecM2 *= mucorrHelper_.nominalMC(secondMuon,genptcHandle);
             } else {
-              lvecM1 *= mucorrHelper_.rochesterData(allHighPtMuons.front());
-              lvecM2 *= mucorrHelper_.rochesterData(secondMuon);
+              lvecM1 *= mucorrHelper_.nominalData(allHighPtMuons.front());
+              lvecM2 *= mucorrHelper_.nominalData(secondMuon);
             }
 
             const auto lvecA1 = lvecM1 + lvecM2;
@@ -905,124 +1033,135 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             const double dr2ll2 = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
             const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
             const double m4l = lvec4l.M();
+            const double m4lAltMu = (lvecM1alt + lvecM2alt + lvecE1 + lvecE2).M();
 
             const double drFakeE = reco::deltaR( lvecE1.eta(), lvecE1.phi(), lvecE2.eta(), lvecE2.phi() );
             const double drFake2 = acceptEles.empty() ? drFakeE : reco::deltaR( lvecM1.eta(), lvecM1.phi(), lvecM2.eta(), lvecM2.phi() );
 
-            const double ff1 = drREFF_->Eval(drFakeE);
-            const double ff2 = acceptEles.empty() ? drREFF_->Eval(drFake2) : drRMFF_->Eval(drFake2);
+            const double ff1 = std::max(drREFF_->Eval(drFakeE),0.);
+            const double ff2 = acceptEles.empty() ? std::max(drREFF_->Eval(drFake2),0.) : std::max(drRMFF_->Eval(drFake2),0.);
             const double ci1 = ciFF(drFakeE, drREFF_, ffEleFit_);
             const double ci2E = acceptEles.empty() ? ciFF(drFake2, drREFF_, ffEleFit_) : 0.;
             const double ci2M = acceptEles.empty() ? 0. : ciFF(drFake2, drRMFF_, ffMuonFit_);
 
-            if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
-              histo1d_["2P2F_MP_pt"]->Fill( lvecM1.pt(), aWeight );
-              histo1d_["2P2F_MP_eta"]->Fill( lvecM1.eta(), aWeight );
-              histo1d_["2P2F_MP_phi"]->Fill( lvecM1.phi(), aWeight );
+            std::vector<pat::MuonRef> allMuons(allHighPtMuons);
+            allMuons.insert( allMuons.end(), nonHighPtMuons.begin(), nonHighPtMuons.end() );
 
-              histo1d_["2P2F_EF_pt"]->Fill( lvecE2.pt(), aWeight );
-              histo1d_["2P2F_EF_eta"]->Fill( lvecE2.eta(), aWeight );
-              histo1d_["2P2F_EF_phi"]->Fill( lvecE2.phi(), aWeight );
+            auto muPair = std::make_pair(allMuons.front(),allMuons.at(1));
 
-              if (acceptEles.empty()) {
-                histo1d_["2P2F_EF_pt"]->Fill( lvecE1.pt(), aWeight );
-                histo1d_["2P2F_EF_eta"]->Fill( lvecE1.eta(), aWeight );
-                histo1d_["2P2F_EF_phi"]->Fill( lvecE1.phi(), aWeight );
+            if ( !checkTrackerMuPair(muPair,false) ) {
+              if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+                histo1d_["2P2F_MP_pt"]->Fill( lvecM1.pt(), aWeight );
+                histo1d_["2P2F_MP_eta"]->Fill( lvecM1.eta(), aWeight );
+                histo1d_["2P2F_MP_phi"]->Fill( lvecM1.phi(), aWeight );
 
-                histo1d_["2P2F_MP_pt"]->Fill( lvecM2.pt(), aWeight );
-                histo1d_["2P2F_MP_eta"]->Fill( lvecM2.eta(), aWeight );
-                histo1d_["2P2F_MP_phi"]->Fill( lvecM2.phi(), aWeight );
-              } else {
-                histo1d_["2P2F_EP_pt"]->Fill( lvecE1.pt(), aWeight );
-                histo1d_["2P2F_EP_eta"]->Fill( lvecE1.eta(), aWeight );
-                histo1d_["2P2F_EP_phi"]->Fill( lvecE1.phi(), aWeight );
+                histo1d_["2P2F_EF_pt"]->Fill( lvecE2.pt(), aWeight );
+                histo1d_["2P2F_EF_eta"]->Fill( lvecE2.eta(), aWeight );
+                histo1d_["2P2F_EF_phi"]->Fill( lvecE2.phi(), aWeight );
 
-                histo1d_["2P2F_MF_pt"]->Fill( lvecM2.pt(), aWeight );
-                histo1d_["2P2F_MF_eta"]->Fill( lvecM2.eta(), aWeight );
-                histo1d_["2P2F_MF_phi"]->Fill( lvecM2.phi(), aWeight );
+                if (acceptEles.empty()) {
+                  histo1d_["2P2F_EF_pt"]->Fill( lvecE1.pt(), aWeight );
+                  histo1d_["2P2F_EF_eta"]->Fill( lvecE1.eta(), aWeight );
+                  histo1d_["2P2F_EF_phi"]->Fill( lvecE1.phi(), aWeight );
+
+                  histo1d_["2P2F_MP_pt"]->Fill( lvecM2.pt(), aWeight );
+                  histo1d_["2P2F_MP_eta"]->Fill( lvecM2.eta(), aWeight );
+                  histo1d_["2P2F_MP_phi"]->Fill( lvecM2.phi(), aWeight );
+                } else {
+                  histo1d_["2P2F_EP_pt"]->Fill( lvecE1.pt(), aWeight );
+                  histo1d_["2P2F_EP_eta"]->Fill( lvecE1.eta(), aWeight );
+                  histo1d_["2P2F_EP_phi"]->Fill( lvecE1.phi(), aWeight );
+
+                  histo1d_["2P2F_MF_pt"]->Fill( lvecM2.pt(), aWeight );
+                  histo1d_["2P2F_MF_eta"]->Fill( lvecM2.eta(), aWeight );
+                  histo1d_["2P2F_MF_phi"]->Fill( lvecM2.phi(), aWeight );
+                }
+
+                histo1d_["2P2F_llll_pt"]->Fill(lvec4l.pt(), aWeight);
+                histo1d_["2P2F_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
+                histo1d_["2P2F_ll1_invM"]->Fill(lvecA1.M(), aWeight);
+                histo1d_["2P2F_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
+                histo1d_["2P2F_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
+                histo1d_["2P2F_ll2_invM"]->Fill(lvecA2.M(), aWeight);
+                histo1d_["2P2F_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
+                histo1d_["2P2F_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
+
+                histo1d_["2P2F_CR_llll_invM"]->Fill(m4l, aWeight);
+                histo1d_["2P2F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
+                histo1d_["2P2F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
+                histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff1);
+                histo1d_["2P2F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAltMu, aWeight*ff1);
+                histo1d_["2P2F_CR_llll_invM_xFF_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff1);
+                histo1d_["2P2F_CR_llll_invM_xFF_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff1);
+                histo1d_["2P2F_CR_llll_invM_xFF_ffUpE"]->Fill(m4l, aWeight*(ff1+ci1));
+                histo1d_["2P2F_CR_llll_invM_xFF_ffDnE"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1)));
+                histo1d_["2P2F_CR_llll_invM_xFF_ffUpM"]->Fill(m4l, aWeight*ff1);
+                histo1d_["2P2F_CR_llll_invM_xFF_ffDnM"]->Fill(m4l, aWeight*ff1);
+                histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff2);
+                histo1d_["2P2F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAltMu, aWeight*ff2);
+                histo1d_["2P2F_CR_llll_invM_xFF_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff2);
+                histo1d_["2P2F_CR_llll_invM_xFF_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff2);
+                histo1d_["2P2F_CR_llll_invM_xFF_ffUpE"]->Fill(m4l, aWeight*(ff2+ci2E));
+                histo1d_["2P2F_CR_llll_invM_xFF_ffDnE"]->Fill(m4l, aWeight*(ff2-std::min(ff2,ci2E)));
+                histo1d_["2P2F_CR_llll_invM_xFF_ffUpM"]->Fill(m4l, aWeight*(ff2+ci2M));
+                histo1d_["2P2F_CR_llll_invM_xFF_ffDnM"]->Fill(m4l, aWeight*(ff2-std::min(ff2,ci2M)));
+                histo1d_["2P2F_CR_llll_invM_xFF2"]->Fill(m4l, aWeight*ff1*ff2);
+                histo1d_["2P2F_CR_llll_invM_altMuScale_xFF2"]->Fill(m4lAltMu, aWeight*ff1*ff2);
+                histo1d_["2P2F_CR_llll_invM_xFF2_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff1*ff2);
+                histo1d_["2P2F_CR_llll_invM_xFF2_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff1*ff2);
+                histo1d_["2P2F_CR_llll_invM_xFF2_ffUpE"]->Fill(m4l, aWeight*(ff1+ci1)*(ff2+ci2E));
+                histo1d_["2P2F_CR_llll_invM_xFF2_ffDnE"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2E)));
+                histo1d_["2P2F_CR_llll_invM_xFF2_ffUpM"]->Fill(m4l, aWeight*ff1*(ff2+ci2M));
+                histo1d_["2P2F_CR_llll_invM_xFF2_ffDnM"]->Fill(m4l, aWeight*ff1*(ff2-std::min(ff2,ci2M)));
               }
 
-              histo1d_["2P2F_llll_pt"]->Fill(lvec4l.pt(), aWeight);
-              histo1d_["2P2F_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
-              histo1d_["2P2F_ll1_invM"]->Fill(lvecA1.M(), aWeight);
-              histo1d_["2P2F_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
-              histo1d_["2P2F_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
-              histo1d_["2P2F_ll2_invM"]->Fill(lvecA2.M(), aWeight);
-              histo1d_["2P2F_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
-              histo1d_["2P2F_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
+              if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+                histo1d_["2P2F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
+                histo1d_["2P2F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
+                histo1d_["2P2F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);
+                histo1d_["2P2F_CR_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
+                histo1d_["2P2F_CR_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
+                histo1d_["2P2F_CR_ll2_invM"]->Fill(lvecA2.M(), aWeight);
+                histo1d_["2P2F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
+                histo1d_["2P2F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
 
-              histo1d_["2P2F_CR_llll_invM"]->Fill(m4l, aWeight);
-              histo1d_["2P2F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
-              histo1d_["2P2F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
-              histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff1);
-              histo1d_["2P2F_CR_llll_invM_xFF_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff1);
-              histo1d_["2P2F_CR_llll_invM_xFF_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff1);
-              histo1d_["2P2F_CR_llll_invM_xFF_ffUpE"]->Fill(m4l, aWeight*(ff1+ci1));
-              histo1d_["2P2F_CR_llll_invM_xFF_ffDnE"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1)));
-              histo1d_["2P2F_CR_llll_invM_xFF_ffUpM"]->Fill(m4l, aWeight*ff1);
-              histo1d_["2P2F_CR_llll_invM_xFF_ffDnM"]->Fill(m4l, aWeight*ff1);
-              histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF_ffUpE"]->Fill(m4l, aWeight*(ff2+ci2E));
-              histo1d_["2P2F_CR_llll_invM_xFF_ffDnE"]->Fill(m4l, aWeight*(ff2-std::min(ff2,ci2E)));
-              histo1d_["2P2F_CR_llll_invM_xFF_ffUpM"]->Fill(m4l, aWeight*(ff2+ci2M));
-              histo1d_["2P2F_CR_llll_invM_xFF_ffDnM"]->Fill(m4l, aWeight*(ff2-std::min(ff2,ci2M)));
-              histo1d_["2P2F_CR_llll_invM_xFF2"]->Fill(m4l, aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF2_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first*ff1*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF2_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff1*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF2_ffUpE"]->Fill(m4l, aWeight*(ff1+ci1)*(ff2+ci2E));
-              histo1d_["2P2F_CR_llll_invM_xFF2_ffDnE"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2E)));
-              histo1d_["2P2F_CR_llll_invM_xFF2_ffUpM"]->Fill(m4l, aWeight*ff1*(ff2+ci2M));
-              histo1d_["2P2F_CR_llll_invM_xFF2_ffDnM"]->Fill(m4l, aWeight*ff1*(ff2-std::min(ff2,ci2M)));
-            }
+                histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff1);
+                histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff2);
 
-            if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
-              histo1d_["2P2F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
-              histo1d_["2P2F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
-              histo1d_["2P2F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);
-              histo1d_["2P2F_CR_ll1_pt"]->Fill(lvecA1.pt(), aWeight);
-              histo1d_["2P2F_CR_ll1_dr"]->Fill(std::sqrt(dr2ll1), aWeight);
-              histo1d_["2P2F_CR_ll2_invM"]->Fill(lvecA2.M(), aWeight);
-              histo1d_["2P2F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
-              histo1d_["2P2F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
+                histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff1);
+                histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff1);
+                histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff2);
+                histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff2);
 
-              histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff1);
-              histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff2);
+                histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff1);
+                histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff1);
+                histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff2);
+                histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff2);
 
-              histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff1);
-              histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff1);
-              histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff2);
-              histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff2);
+                histo1d_["2P2F_CR_ll1ll2_dr_xFF2"]->Fill(std::sqrt(dr2A12), aWeight*ff1*ff2);
+                histo1d_["2P2F_CR_ll1_invM_xFF2"]->Fill(lvecA1.M(), aWeight*ff1*ff2);
+                histo1d_["2P2F_CR_ll1_dr_xFF2"]->Fill(std::sqrt(dr2ll1), aWeight*ff1*ff2);
+                histo1d_["2P2F_CR_ll2_invM_xFF2"]->Fill(lvecA2.M(), aWeight*ff1*ff2);
+                histo1d_["2P2F_CR_ll2_dr_xFF2"]->Fill(std::sqrt(dr2ll2), aWeight*ff1*ff2);
 
-              histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff1);
-              histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff1);
-              histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff2);
-              histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff2);
-
-              histo1d_["2P2F_CR_ll1ll2_dr_xFF2"]->Fill(std::sqrt(dr2A12), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll1_invM_xFF2"]->Fill(lvecA1.M(), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll1_dr_xFF2"]->Fill(std::sqrt(dr2ll1), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll2_invM_xFF2"]->Fill(lvecA2.M(), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll2_dr_xFF2"]->Fill(std::sqrt(dr2ll2), aWeight*ff1*ff2);
-
-              histo1d_["2P2F_CR_pt_E"]->Fill( lvecE2.pt(), aWeight );
-              histo1d_["2P2F_CR_dr_E"]->Fill( drFakeE, aWeight );
-              histo1d_["2P2F_CR_pt_E_xFF"]->Fill( lvecE2.pt(), aWeight*ff2 );
-              histo1d_["2P2F_CR_dr_E_xFF"]->Fill( drFakeE, aWeight*ff2 );
-
-              if (acceptEles.empty()) {
-                histo1d_["2P2F_CR_pt_E"]->Fill( lvecE1.pt(), aWeight );
+                histo1d_["2P2F_CR_pt_E"]->Fill( lvecE2.pt(), aWeight );
                 histo1d_["2P2F_CR_dr_E"]->Fill( drFakeE, aWeight );
-                histo1d_["2P2F_CR_pt_E_xFF"]->Fill( lvecE1.pt(), aWeight*ff1 );
-                histo1d_["2P2F_CR_dr_E_xFF"]->Fill( drFakeE, aWeight*ff1 );
-              } else {
-                histo1d_["2P2F_CR_pt_M"]->Fill( lvecM2.pt(), aWeight );
-                histo1d_["2P2F_CR_dr_M"]->Fill( drFake2, aWeight );
-                histo1d_["2P2F_CR_pt_M_xFF"]->Fill( lvecM2.pt(), aWeight*ff2 );
-                histo1d_["2P2F_CR_dr_M_xFF"]->Fill( drFake2, aWeight*ff2 );
-              }
-            } // CR
+                histo1d_["2P2F_CR_pt_E_xFF"]->Fill( lvecE2.pt(), aWeight*ff2 );
+                histo1d_["2P2F_CR_dr_E_xFF"]->Fill( drFakeE, aWeight*ff2 );
+
+                if (acceptEles.empty()) {
+                  histo1d_["2P2F_CR_pt_E"]->Fill( lvecE1.pt(), aWeight );
+                  histo1d_["2P2F_CR_dr_E"]->Fill( drFakeE, aWeight );
+                  histo1d_["2P2F_CR_pt_E_xFF"]->Fill( lvecE1.pt(), aWeight*ff1 );
+                  histo1d_["2P2F_CR_dr_E_xFF"]->Fill( drFakeE, aWeight*ff1 );
+                } else {
+                  histo1d_["2P2F_CR_pt_M"]->Fill( lvecM2.pt(), aWeight );
+                  histo1d_["2P2F_CR_dr_M"]->Fill( drFake2, aWeight );
+                  histo1d_["2P2F_CR_pt_M_xFF"]->Fill( lvecM2.pt(), aWeight*ff2 );
+                  histo1d_["2P2F_CR_dr_M_xFF"]->Fill( drFake2, aWeight*ff2 );
+                }
+              } // CR
+            }
           }
         } // paired
       } // 2P2F

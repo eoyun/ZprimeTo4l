@@ -1,59 +1,175 @@
 #include "ZprimeTo4l/Analysis/interface/MuonCorrectionHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
-MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath, const edm::FileInPath& trigSFpath, const std::string& trigHistName) {
+#include <cmath>
+
+MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
+                                           const edm::FileInPath& muonTrigSFpath) {
   rochester_.init(rochesterPath.fullPath());
-  triggerSFfile_ = std::make_unique<TFile>(trigSFpath.fullPath().c_str(),"READ");
-  triggerSF_ = static_cast<TH2D*>(triggerSFfile_->Get(trigHistName.c_str()));
+
+  trigSF_ = std::move(correction::CorrectionSet::from_file(muonTrigSFpath.fullPath()));
 }
 
 MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
-                                           const edm::FileInPath& trigSFpath,
-                                           const edm::FileInPath& muonIdSFpath,
-                                           const edm::FileInPath& muonIsoSFpath,
-                                           const std::string& trigHistName) {
+                                           const edm::FileInPath& muonTrigSFpath,
+                                           const edm::FileInPath& muonIdIsoSFpath,
+                                           const edm::FileInPath& muonRecoSFpath) {
   rochester_.init(rochesterPath.fullPath());
-  triggerSFfile_ = std::make_unique<TFile>(trigSFpath.fullPath().c_str(),"READ");
-  triggerSF_ = static_cast<TH2D*>(triggerSFfile_->Get(trigHistName.c_str()));
 
-  idSFfile_ = std::make_unique<TFile>(muonIdSFpath.fullPath().c_str(),"READ");
-  isoSFfile_ = std::make_unique<TFile>(muonIsoSFpath.fullPath().c_str(),"READ");
+  recoSF_ = std::move(correction::CorrectionSet::from_file(muonRecoSFpath.fullPath()));
+  trigSF_ = std::move(correction::CorrectionSet::from_file(muonTrigSFpath.fullPath()));
+  idisoSF_ = std::move(correction::CorrectionSet::from_file(muonIdIsoSFpath.fullPath()));
 }
 
-MuonCorrectionHelper::~MuonCorrectionHelper() {
-  triggerSFfile_->Close();
-  idSFfile_->Close();
-  isoSFfile_->Close();
+bool MuonCorrectionHelper::checkIso(const pat::MuonRef& mu,
+                                    const reco::TrackRef& trk,
+                                    const reco::BeamSpot& bs) {
+  const double dr2 = reco::deltaR2(mu->eta(),mu->phi(),trk->eta(),trk->phi());
+
+  if (dr2 > 0.09 || dr2 < 0.0001)
+    return false;
+
+  if ( std::abs(mu->vz() - trk->vz()) > 0.2 )
+    return false;
+
+  if ( trk->dxy( bs.position() ) > 0.1 )
+    return false;
+
+  return true;
 }
 
-double MuonCorrectionHelper::triggerSF(const pat::MuonRef& mu) {
-  double apt = mu->pt() > 200. ? 199.9 : mu->pt();
-  return triggerSF_->GetBinContent( triggerSF_->FindBin(mu->eta(),apt) );
+double MuonCorrectionHelper::recoSF(const pat::MuonRef& mu) {
+  double momentum = std::min(std::max(mu->tunePMuonBestTrack()->p(),50.001),3500.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  return recoSF_->at("NUM_GlobalMuons_DEN_TrackerMuonProbes")->evaluate({std::abs(eta),momentum,"nominal"});
 }
 
-double MuonCorrectionHelper::idSF(const pat::MuonRef& mu, const std::string& name) {
-  double apt = mu->pt() > 120. ? 119.9 : mu->pt();
-  TH2D* ahist = static_cast<TH2D*>(idSFfile_->Get(name.c_str()));
+double MuonCorrectionHelper::recoSFsyst(const pat::MuonRef& mu) {
+  double momentum = std::min(std::max(mu->tunePMuonBestTrack()->p(),50.001),3500.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
 
-  return ahist->GetBinContent( ahist->FindBin(std::abs(mu->eta()),apt) );
+  double stat = recoSF_->at("NUM_GlobalMuons_DEN_TrackerMuonProbes")->evaluate({std::abs(eta),momentum,"stat"});
+  double syst = recoSF_->at("NUM_GlobalMuons_DEN_TrackerMuonProbes")->evaluate({std::abs(eta),momentum,"syst"});
+
+  return std::hypot(stat,syst);
 }
 
-double MuonCorrectionHelper::isoSF(const pat::MuonRef& mu, const std::string& name) {
-  double apt = mu->pt() > 120. ? 119.9 : mu->pt();
-  TH2D* ahist = static_cast<TH2D*>(isoSFfile_->Get(name.c_str()));
+double MuonCorrectionHelper::trigSFtracker(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
 
-  return ahist->GetBinContent( ahist->FindBin(std::abs(mu->eta()),apt) );
+  return trigSF_->at("NUM_HLT_DEN_TrkHighPtLooseRelIsoProbes")->evaluate({std::abs(eta),pt,"nominal"});
 }
+
+double MuonCorrectionHelper::trigSFtrackerSyst(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  double stat = trigSF_->at("NUM_HLT_DEN_TrkHighPtLooseRelIsoProbes")->evaluate({std::abs(eta),pt,"stat"});
+  double syst = trigSF_->at("NUM_HLT_DEN_TrkHighPtLooseRelIsoProbes")->evaluate({std::abs(eta),pt,"syst"});
+
+  return std::hypot(stat,syst);
+}
+
+double MuonCorrectionHelper::trigSFglobal(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  return trigSF_->at("NUM_HLT_DEN_HighPtLooseRelIsoProbes")->evaluate({std::abs(eta),pt,"nominal"});
+}
+
+double MuonCorrectionHelper::trigSFglobalSyst(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  double stat = trigSF_->at("NUM_HLT_DEN_HighPtLooseRelIsoProbes")->evaluate({std::abs(eta),pt,"stat"});
+  double syst = trigSF_->at("NUM_HLT_DEN_HighPtLooseRelIsoProbes")->evaluate({std::abs(eta),pt,"syst"});
+
+  return std::hypot(stat,syst);
+}
+
+double MuonCorrectionHelper::highptIdSF(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  return idisoSF_->at("NUM_HighPtID_DEN_GlobalMuonProbes")->evaluate({std::abs(eta),pt,"nominal"});
+}
+
+double MuonCorrectionHelper::highptIdSFsyst(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  double stat = idisoSF_->at("NUM_HighPtID_DEN_GlobalMuonProbes")->evaluate({std::abs(eta),pt,"stat"});
+  double syst = idisoSF_->at("NUM_HighPtID_DEN_GlobalMuonProbes")->evaluate({std::abs(eta),pt,"syst"});
+
+  return std::hypot(stat,syst);
+}
+
+double MuonCorrectionHelper::trkHighptIdSF(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  return idisoSF_->at("NUM_TrkHighPtID_DEN_GlobalMuonProbes")->evaluate({std::abs(eta),pt,"nominal"});
+}
+
+double MuonCorrectionHelper::trkHighptIdSFsyst(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  double stat = idisoSF_->at("NUM_TrkHighPtID_DEN_GlobalMuonProbes")->evaluate({std::abs(eta),pt,"stat"});
+  double syst = idisoSF_->at("NUM_TrkHighPtID_DEN_GlobalMuonProbes")->evaluate({std::abs(eta),pt,"syst"});
+
+  return std::hypot(stat,syst);
+}
+
+double MuonCorrectionHelper::looseIsoSF(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  return idisoSF_->at("NUM_probe_LooseRelTkIso_DEN_HighPtProbes")->evaluate({std::abs(eta),pt,"nominal"});
+}
+
+double MuonCorrectionHelper::looseIsoSFsyst(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  double stat = idisoSF_->at("NUM_probe_LooseRelTkIso_DEN_HighPtProbes")->evaluate({std::abs(eta),pt,"stat"});
+  double syst = idisoSF_->at("NUM_probe_LooseRelTkIso_DEN_HighPtProbes")->evaluate({std::abs(eta),pt,"syst"});
+
+  return std::hypot(stat,syst);
+}
+
+double MuonCorrectionHelper::looseIsoSFtracker(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  return idisoSF_->at("NUM_probe_LooseRelTkIso_DEN_TrkHighPtProbes")->evaluate({std::abs(eta),pt,"nominal"});
+}
+
+double MuonCorrectionHelper::looseIsoSFtrackerSyst(const pat::MuonRef& mu) {
+  double pt = std::min(std::max(mu->tunePMuonBestTrack()->pt(),50.001),1000.-1e-3);
+  double eta = mu->tunePMuonBestTrack()->eta();
+
+  double stat = idisoSF_->at("NUM_probe_LooseRelTkIso_DEN_TrkHighPtProbes")->evaluate({std::abs(eta),pt,"stat"});
+  double syst = idisoSF_->at("NUM_probe_LooseRelTkIso_DEN_TrkHighPtProbes")->evaluate({std::abs(eta),pt,"syst"});
+
+  return std::hypot(stat,syst);
+}
+
 
 double MuonCorrectionHelper::rochesterData(const pat::MuonRef& mu) const {
-  return rochester_.kScaleDT(mu->charge(), mu->pt(), mu->eta(), mu->phi());
+  return rochester_.kScaleDT(mu->tunePMuonBestTrack()->charge(),
+                             mu->tunePMuonBestTrack()->pt(),
+                             mu->tunePMuonBestTrack()->eta(),
+                             mu->tunePMuonBestTrack()->phi());
 }
 
 double MuonCorrectionHelper::rochesterMC(const pat::MuonRef& mu, const edm::Handle<edm::View<reco::GenParticle>>& ahandle) {
   std::vector<reco::GenParticleRef> matched;
 
   auto sortByClosestPt = [&mu](const reco::GenParticleRef& a, const reco::GenParticleRef& b) {
-    return std::abs( mu->pt() - a->pt() ) < std::abs( mu->pt() - b->pt() );
+    return std::abs( mu->tunePMuonBestTrack()->pt() - a->pt() ) < std::abs( mu->tunePMuonBestTrack()->pt() - b->pt() );
   };
 
   // try prompt muon first
@@ -64,7 +180,11 @@ double MuonCorrectionHelper::rochesterMC(const pat::MuonRef& mu, const edm::Hand
       continue;
 
     if ( genptc->isPromptFinalState() ) {
-      if ( reco::deltaR2(mu->eta(),mu->phi(),genptc->eta(),genptc->phi()) < 0.09 )
+      const double dr2 = reco::deltaR2(mu->tunePMuonBestTrack()->eta(),
+                                       mu->tunePMuonBestTrack()->phi(),
+                                       genptc->eta(),
+                                       genptc->phi());
+      if ( dr2 < 0.01 )
         matched.push_back( genptc.castTo<reco::GenParticleRef>() );
     }
   }
@@ -77,7 +197,12 @@ double MuonCorrectionHelper::rochesterMC(const pat::MuonRef& mu, const edm::Hand
       if ( std::abs(genptc->pdgId())!=13 || genptc->status()!=1 )
         continue;
 
-      if ( reco::deltaR2(mu->eta(),mu->phi(),genptc->eta(),genptc->phi()) < 0.09 )
+      const double dr2 = reco::deltaR2(mu->tunePMuonBestTrack()->eta(),
+                                       mu->tunePMuonBestTrack()->phi(),
+                                       genptc->eta(),
+                                       genptc->phi());
+
+      if ( dr2 < 0.01 )
         matched.push_back( genptc.castTo<reco::GenParticleRef>() );
     }
   }
@@ -86,17 +211,90 @@ double MuonCorrectionHelper::rochesterMC(const pat::MuonRef& mu, const edm::Hand
     // GEN matched
     std::sort(matched.begin(),matched.end(),sortByClosestPt);
 
-    return rochester_.kSpreadMC(mu->charge(), mu->pt(), mu->eta(), mu->phi(), matched.front()->pt());
+    return rochester_.kSpreadMC(mu->tunePMuonBestTrack()->charge(),
+                                mu->tunePMuonBestTrack()->pt(),
+                                mu->tunePMuonBestTrack()->eta(),
+                                mu->tunePMuonBestTrack()->phi(),
+                                matched.front()->pt());
   }
 
   if (!mu->isTrackerMuon()) // ???
     return 1.;
 
   // no GEN matched muon found
-  return rochester_.kSmearMC(mu->charge(),
-                             mu->pt(),
-                             mu->eta(),
-                             mu->phi(),
+  return rochester_.kSmearMC(mu->tunePMuonBestTrack()->charge(),
+                             mu->tunePMuonBestTrack()->pt(),
+                             mu->tunePMuonBestTrack()->eta(),
+                             mu->tunePMuonBestTrack()->phi(),
                              mu->innerTrack()->hitPattern().trackerLayersWithMeasurement(),
                              rng_.Uniform());
+}
+
+double MuonCorrectionHelper::nominalData(const pat::MuonRef&mu) const {
+  if (mu->tunePMuonBestTrack()->pt() <= 200.)
+    return rochesterData(mu);
+
+  return 1.;
+}
+
+double MuonCorrectionHelper::nominalMC(const pat::MuonRef& mu, const edm::Handle<edm::View<reco::GenParticle>>& ahandle) {
+  if (mu->tunePMuonBestTrack()->pt() <= 200.)
+    return rochesterMC(mu,ahandle);
+
+  return 1.;
+}
+
+double MuonCorrectionHelper::altScale(const pat::MuonRef&mu, const std::vector<double>& kb, bool isMC) const {
+  if (mu->tunePMuonBestTrack()->pt() <= 200.)
+    return 1.;
+
+  if (isMC)
+    return 1.;
+
+  const auto tp = mu->tunePMuonBestTrack();
+  int col = -1, row = -1;
+
+  if (tp->eta() < -2.1)
+    col = 0;
+  else if (tp->eta() < -1.2)
+    col = 1;
+  else if (tp->eta() < 0.)
+    col = 2;
+  else if (tp->eta() < 1.2)
+    col = 3;
+  else if (tp->eta() < 2.1)
+    col = 4;
+  else
+    col = 5;
+
+  if (tp->phi() < -M_PI/3.)
+    row = 0;
+  else if (tp->phi() < M_PI/3.)
+    row = 1;
+  else
+    row = 2;
+
+  unsigned idx = 6*row + col;
+  const double bias = kb.at(idx);
+
+  return std::max(1./(1.+static_cast<double>(tp->charge())*tp->pt()*bias),0.);
+}
+
+double MuonCorrectionHelper::smear(const pat::MuonRef& mu,
+                                   const std::vector<double>& params,
+                                   const std::vector<double>& factors,
+                                   bool isMC) {
+  if (!isMC)
+    return 1.;
+
+  const bool isMB = std::abs(mu->tunePMuonBestTrack()->eta()) < 1.2;
+  const double mom = mu->tunePMuonBestTrack()->p();
+  const double p0 = isMB ? params.at(0) : params.at(4);
+  const double p1 = isMB ? params.at(1) : params.at(5);
+  const double p2 = isMB ? params.at(2) : params.at(6);
+  const double p3 = isMB ? params.at(3) : params.at(7);
+  const double sigma = p0 + p1*mom + p2*mom*mom + p3*mom*mom*mom;
+  const double factor = isMB ? factors.at(0) : factors.at(1);
+
+  return (1. + rng_.Gaus(0.,sigma)*factor);
 }

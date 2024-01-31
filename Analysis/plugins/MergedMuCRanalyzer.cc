@@ -27,8 +27,10 @@
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 
 #include "ZprimeTo4l/Analysis/interface/MuonCorrectionHelper.h"
+#include "ZprimeTo4l/Analysis/interface/XYMETCorrection.h"
 
 #include "TF1.h"
+#include "TH2D.h"
 #include "TFitResult.h"
 
 class MergedMuCRanalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
@@ -59,20 +61,17 @@ private:
   const std::vector<std::string> METfilterList_;
   const std::vector<std::string> trigList_;
 
-  const std::string trigHistName_;
-  const std::string idHistName_;
-  const std::string idHistNameTrkHighPt_;
-  const std::string isoHistName_;
-  const std::string isoHistNameTrkHighPt_;
   const edm::FileInPath MMFFpath_;
   const edm::FileInPath rochesterPath_;
   const edm::FileInPath triggerSFpath_;
-  const edm::FileInPath muonIdSFpath_;
-  const edm::FileInPath muonIsoSFpath_;
+  const edm::FileInPath muonIdIsoSFpath_;
+  const edm::FileInPath muonRecoSFpath_;
   const edm::FileInPath purwgtPath_;
 
   std::unique_ptr<TFile> purwgtFile_;
   TH1D* purwgt_;
+
+  const std::string year_;
 
   const double ptThres_;
   const double ptMuThres_;
@@ -107,24 +106,20 @@ metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("src
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
-trigHistName_(iConfig.getParameter<std::string>("trigHistName")),
-idHistName_(iConfig.getParameter<std::string>("idHistName")),
-idHistNameTrkHighPt_(iConfig.getParameter<std::string>("idHistNameTrkHighPt")),
-isoHistName_(iConfig.getParameter<std::string>("isoHistName")),
-isoHistNameTrkHighPt_(iConfig.getParameter<std::string>("isoHistNameTrkHighPt")),
 MMFFpath_(iConfig.getParameter<edm::FileInPath>("MMFFpath")),
 rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
 triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
-muonIdSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdSFpath")),
-muonIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIsoSFpath")),
+muonIdIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdIsoSFpath")),
+muonRecoSFpath_(iConfig.getParameter<edm::FileInPath>("muonRecoSFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
+year_(iConfig.getParameter<std::string>("year")),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 ptMuThres_(iConfig.getParameter<double>("ptMuThres")),
 drThres_(iConfig.getParameter<double>("drThres")),
 drThresCR_(iConfig.getParameter<double>("drThresCR")),
 ratioThresLo_(iConfig.getParameter<double>("ratioThresLo")),
 ratioThresHi_(iConfig.getParameter<double>("ratioThresHi")),
-mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdSFpath_,muonIsoSFpath_,trigHistName_) {
+mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonRecoSFpath_) {
   usesResource("TFileService");
 }
 
@@ -162,6 +157,18 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_MET_phi"] = fs->make<TH1D>("3M_MET_phi","Phi;#phi;",128,-3.2,3.2);
   histo1d_["3M_MET_dphi"] = fs->make<TH1D>("3M_MET_dphi","dPhi;#Delta#phi;",128,-3.2,3.2);
   histo1d_["3M_mt"] = fs->make<TH1D>("3M_mt","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_idUp"] = fs->make<TH1D>("3M_mt_idUp","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_idDn"] = fs->make<TH1D>("3M_mt_idDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_isoUp"] = fs->make<TH1D>("3M_mt_isoUp","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_isoDn"] = fs->make<TH1D>("3M_mt_isoDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_trigUp"] = fs->make<TH1D>("3M_mt_trigUp","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_trigDn"] = fs->make<TH1D>("3M_mt_trigDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_recoUp"] = fs->make<TH1D>("3M_mt_recoUp","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_recoDn"] = fs->make<TH1D>("3M_mt_recoDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_JESup"] = fs->make<TH1D>("3M_mt_JESup","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_JESdn"] = fs->make<TH1D>("3M_mt_JESdn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_JERup"] = fs->make<TH1D>("3M_mt_JERup","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_JERdn"] = fs->make<TH1D>("3M_mt_JERdn","m_{T};m_{T};",500,0.,2500.);
 
   histo1d_["3M_antiRpt_MM_pt"] = fs->make<TH1D>("3M_antiRpt_MM_pt","Pt;p_{T};",200,0.,500.);
   histo1d_["3M_antiRpt_MM_pt_xFF"] = fs->make<TH1D>("3M_antiRpt_MM_pt_xFF","Pt;p_{T};",200,0.,500.);
@@ -174,7 +181,9 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_antiRpt_mt_xFF"] = fs->make<TH1D>("3M_antiRpt_mt_xFF","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_antiRpt_mt_xFF_up"] = fs->make<TH1D>("3M_antiRpt_mt_xFF_up","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_antiRpt_mt_xFF_dn"] = fs->make<TH1D>("3M_antiRpt_mt_xFF_dn","m_{T};m_{T};",500,0.,2500.);
-  histo1d_["3M_antiDphi_MET_ratioPt"] = fs->make<TH1D>("3M_antiDphi_MET_ratioPt","p_{T} ratio;R(p_{T});",200,0.,5.);
+  histo1d_["3M_antiRpt_MET_ratioPt"] = fs->make<TH1D>("3M_antiRpt_MET_ratioPt","p_{T} ratio;R(p_{T});",200,0.,5.);
+  histo1d_["3M_antiRpt_mt_JESup_xFF"] = fs->make<TH1D>("3M_antiRpt_mt_JESup_xFF","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_antiRpt_mt_JESdn_xFF"] = fs->make<TH1D>("3M_antiRpt_mt_JESdn_xFF","m_{T};m_{T};",500,0.,2500.);
 
   histo1d_["3M_CRdphi_MM_pt"] = fs->make<TH1D>("3M_CRdphi_MM_pt","Pt;p_{T};",200,0.,500.);
   histo1d_["3M_CRdphi_MM_eta"] = fs->make<TH1D>("3M_CRdphi_MM_eta","3Eta;#eta;",200,-2.5,2.5);
@@ -192,6 +201,8 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_CRdphi_MET_phi"] = fs->make<TH1D>("3M_CRdphi_MET_phi","Phi;#phi;",128,-3.2,3.2);
   histo1d_["3M_CRdphi_MET_dphi"] = fs->make<TH1D>("3M_CRdphi_MET_dphi","dPhi;#Delta#phi;",128,-3.2,3.2);
   histo1d_["3M_CRdphi_mt"] = fs->make<TH1D>("3M_CRdphi_mt","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_CRdphi_mt_JESup"] = fs->make<TH1D>("3M_CRdphi_mt_JESup","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_CRdphi_mt_JESdn"] = fs->make<TH1D>("3M_CRdphi_mt_JESdn","m_{T};m_{T};",500,0.,2500.);
 
   histo1d_["3M_CRdphi_antiRpt_MM_pt"] = fs->make<TH1D>("3M_CRdphi_antiRpt_MM_pt","Pt;p_{T};",200,0.,500.);
   histo1d_["3M_CRdphi_antiRpt_MM_pt_xFF"] = fs->make<TH1D>("3M_CRdphi_antiRpt_MM_pt_xFF","Pt;p_{T};",200,0.,500.);
@@ -205,6 +216,8 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_CRdphi_antiRpt_mt_xFF_up"] = fs->make<TH1D>("3M_CRdphi_antiRpt_mt_xFF_up","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_CRdphi_antiRpt_mt_xFF_dn"] = fs->make<TH1D>("3M_CRdphi_antiRpt_mt_xFF_dn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_CRdphi_antiDphi_MET_ratioPt"] = fs->make<TH1D>("3M_CRdphi_antiDphi_MET_ratioPt","p_{T} ratio;R(p_{T});",200,0.,5.);
+  histo1d_["3M_CRdphi_antiRpt_mt_xFF_JESup"] = fs->make<TH1D>("3M_CRdphi_antiRpt_mt_xFF_JESup","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_CRdphi_antiRpt_mt_xFF_JESdn"] = fs->make<TH1D>("3M_CRdphi_antiRpt_mt_xFF_JESdn","m_{T};m_{T};",500,0.,2500.);
 
   histo1d_["3M_antiDphi_MM_pt"] = fs->make<TH1D>("3M_antiDphi_MM_pt","Pt;p_{T};",200,0.,500.);
   histo1d_["3M_antiDphi_MM_eta"] = fs->make<TH1D>("3M_antiDphi_MM_eta","3Eta;#eta;",200,-2.5,2.5);
@@ -223,6 +236,8 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_antiDphi_MET_dphi"] = fs->make<TH1D>("3M_antiDphi_MET_dphi","dPhi;#Delta#phi;",128,-3.2,3.2);
   histo1d_["3M_antiDphi_MET_ratioPt"] = fs->make<TH1D>("3M_antiDphi_MET_ratioPt","p_{T} ratio;R(p_{T});",200,0.,5.);
   histo1d_["3M_antiDphi_mt"] = fs->make<TH1D>("3M_antiDphi_mt","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_antiDphi_mt_JESup"] = fs->make<TH1D>("3M_antiDphi_mt_JESup","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_antiDphi_mt_JESdn"] = fs->make<TH1D>("3M_antiDphi_mt_JESdn","m_{T};m_{T};",500,0.,2500.);
 
   histo1d_["3M_antiDphi_M1M2_dR"] = fs->make<TH1D>("3M_antiDphi_M1M2_dR","#Delta R(M1,M2);#Delta R;",100,0.,0.5);
   histo1d_["3M_antiDphi_M1MM_dR"] = fs->make<TH1D>("3M_antiDphi_M1MM_dR","#Delta R(M1,MM);#Delta R;",128,0.,6.4);
@@ -243,6 +258,8 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_antiDphi_antiRpt_mt_xFF_up"] = fs->make<TH1D>("3M_antiDphi_antiRpt_mt_xFF_up","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_antiDphi_antiRpt_mt_xFF_dn"] = fs->make<TH1D>("3M_antiDphi_antiRpt_mt_xFF_dn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_antiDphi_antiDphi_MET_ratioPt"] = fs->make<TH1D>("3M_antiDphi_antiDphi_MET_ratioPt","p_{T} ratio;R(p_{T});",200,0.,5.);
+  histo1d_["3M_antiDphi_antiRpt_mt_xFF_JESup"] = fs->make<TH1D>("3M_antiDphi_antiRpt_mt_xFF_JESup","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_antiDphi_antiRpt_mt_xFF_JESdn"] = fs->make<TH1D>("3M_antiDphi_antiRpt_mt_xFF_JESdn","m_{T};m_{T};",500,0.,2500.);
 
   histo1d_["3M_ABCD_MET_dphi"] = fs->make<TH1D>("3M_ABCD_MET_dphi","dPhi;#Delta#phi;",128,-3.2,3.2);
   histo1d_["3M_ABCD_MET_ratioPt"] = fs->make<TH1D>("3M_ABCD_MET_ratioPt","p_{T} ratio;R(p_{T});",200,0.,5.);
@@ -445,25 +462,23 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
       if (firstMuon==secondMuon)
         continue;
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
       const auto& secondMuon = highPtTrackerMuons.at(jdx);
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
 
     if (!isoCands.empty())
-      if ( reco::deltaR2(firstMuon->innerTrack()->eta(),firstMuon->innerTrack()->phi(),
-                         isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
-        firstIso -= isoCands.front()->innerTrack()->pt();
+      firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->pt() < 0.1 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
       isolatedHighPtMuons.push_back(firstMuon);
   }
 
@@ -479,25 +494,23 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
       if (firstMuon==secondMuon)
         continue;
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
       const auto& secondMuon = highPtMuons.at(jdx);
 
-      if ( reco::deltaR2(firstMuon->eta(),firstMuon->phi(),secondMuon->eta(),secondMuon->phi()) < 0.09 )
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
         isoCands.push_back(secondMuon);
     }
 
     std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
 
     if (!isoCands.empty())
-      if ( reco::deltaR2(firstMuon->innerTrack()->eta(),firstMuon->innerTrack()->phi(),
-                         isoCands.front()->innerTrack()->eta(),isoCands.front()->innerTrack()->phi()) > 0.0001 )
-        firstIso -= isoCands.front()->innerTrack()->pt();
+      firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->pt() < 0.1 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
       isolatedHighPtTrackerMuons.push_back(firstMuon);
   }
 
@@ -507,24 +520,58 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   if ( isolatedHighPtMuons.size() < 2 )
     return;
 
-  if ( isolatedHighPtMuons.front()->pt() < 52. )
+  // concatenate(-ish) highPtMuons & highPtTrackerMuons - order is important!
+  std::vector<pat::MuonRef> allHighPtMuons(isolatedHighPtMuons);
+  allHighPtMuons.insert( allHighPtMuons.end(), isolatedHighPtTrackerMuons.begin(), isolatedHighPtTrackerMuons.end() );
+  std::vector<pat::MuonRef> sortedHighPtMuons(allHighPtMuons);
+  std::sort(sortedHighPtMuons.begin(),sortedHighPtMuons.end(),sortByTuneP);
+
+  unsigned int nHighPtMuons = allHighPtMuons.size();
+
+  if ( sortedHighPtMuons.front()->tunePMuonBestTrack()->pt() < 52. )
     return;
 
   histo1d_["cutflow_4M"]->Fill( 3.5, aWeight );
   histo1d_["cutflow_3M"]->Fill( 3.5, aWeight );
 
   bool trigMatched = false;
+  std::vector<double> trigSyst;
 
   for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
     const auto& trigObj = trigObjs.at(idx);
 
-    if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),isolatedHighPtMuons.front()->eta(),isolatedHighPtMuons.front()->phi()) < 0.01 ) {
-      trigMatched = true;
+    if (!isolatedHighPtMuons.empty()) {
+      if ( reco::deltaR2(trigObj->eta(),
+                         trigObj->phi(),
+                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->eta(),
+                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
+        trigMatched = true;
 
-      if (isMC_)
-        aWeight *= mucorrHelper_.triggerSF(isolatedHighPtMuons.front());
+        if (isMC_) {
+          aWeight *= mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front());
+          trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(isolatedHighPtMuons.front()) /
+                              mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front()) );
+        }
 
-      break;
+        break;
+      }
+    }
+
+    if (!isolatedHighPtTrackerMuons.empty()) {
+      if ( reco::deltaR2(trigObj->eta(),
+                         trigObj->phi(),
+                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->eta(),
+                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
+        trigMatched = true;
+
+        if (isMC_) {
+          aWeight *= mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front());
+          trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(isolatedHighPtTrackerMuons.front()) /
+                              mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front()) );
+        }
+
+        break;
+      }
     }
   }
 
@@ -534,23 +581,40 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   histo1d_["cutflow_4M"]->Fill( 4.5, aWeight );
   histo1d_["cutflow_3M"]->Fill( 4.5, aWeight );
 
+  std::vector<double> idSyst;
+  std::vector<double> isoSyst;
+  std::vector<double> recoSyst;
+
+  auto systSFratio = [] (const std::vector<double>& vec) -> std::pair<double,double> {
+    double up = 1., dn = 1.;
+
+    for (const auto& systOverSF : vec) {
+      up *= (1.+systOverSF);
+      dn *= std::max(1.-systOverSF,0.);
+    }
+
+    return std::make_pair(up,dn); // ratio to the nominal
+  };
+
   if (isMC_) {
     for (const auto& aMu : isolatedHighPtMuons) {
-      aWeight *= mucorrHelper_.idSF(aMu,idHistName_);
-      aWeight *= mucorrHelper_.isoSF(aMu,isoHistName_);
+      aWeight *= mucorrHelper_.highptIdSF(aMu);
+      aWeight *= mucorrHelper_.looseIsoSF(aMu);
+      aWeight *= mucorrHelper_.recoSF(aMu);
+      idSyst.push_back( mucorrHelper_.highptIdSFsyst(aMu)/mucorrHelper_.highptIdSF(aMu) );
+      isoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
+      recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
     }
 
     for (const auto& aMu : isolatedHighPtTrackerMuons) {
-      aWeight *= mucorrHelper_.idSF(aMu,idHistNameTrkHighPt_);
-      aWeight *= mucorrHelper_.isoSF(aMu,isoHistNameTrkHighPt_);
+      aWeight *= mucorrHelper_.trkHighptIdSF(aMu);
+      aWeight *= mucorrHelper_.looseIsoSFtracker(aMu);
+      aWeight *= mucorrHelper_.recoSF(aMu);
+      idSyst.push_back( mucorrHelper_.trkHighptIdSFsyst(aMu)/mucorrHelper_.trkHighptIdSF(aMu) );
+      isoSyst.push_back( mucorrHelper_.looseIsoSFtrackerSyst(aMu)/mucorrHelper_.looseIsoSFtracker(aMu) );
+      recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
     }
   }
-
-  // concatenate(-ish) highPtMuons & highPtTrackerMuons - order is important!
-  std::vector<pat::MuonRef> allHighPtMuons(isolatedHighPtMuons);
-  allHighPtMuons.insert( allHighPtMuons.end(), isolatedHighPtTrackerMuons.begin(), isolatedHighPtTrackerMuons.end() );
-
-  unsigned int nHighPtMuons = allHighPtMuons.size();
 
   if ( nHighPtMuons==4 )
     histo1d_["cutflow_4M"]->Fill( 5.5, aWeight );
@@ -674,13 +738,13 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
         edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
         iEvent.getByToken(genptcToken_, genptcHandle);
 
-        momcorr1 = mucorrHelper_.rochesterMC(firstMuon,genptcHandle);
-        momcorr2 = mucorrHelper_.rochesterMC(secondMuon,genptcHandle);
-        momcorrMM = mucorrHelper_.rochesterMC(mergedMuon,genptcHandle);
+        momcorr1 = mucorrHelper_.nominalMC(firstMuon,genptcHandle);
+        momcorr2 = mucorrHelper_.nominalMC(secondMuon,genptcHandle);
+        momcorrMM = mucorrHelper_.nominalMC(mergedMuon,genptcHandle);
       } else {
-        momcorr1 = mucorrHelper_.rochesterData(firstMuon);
-        momcorr2 = mucorrHelper_.rochesterData(secondMuon);
-        momcorrMM = mucorrHelper_.rochesterData(mergedMuon);
+        momcorr1 = mucorrHelper_.nominalData(firstMuon);
+        momcorr2 = mucorrHelper_.nominalData(secondMuon);
+        momcorrMM = mucorrHelper_.nominalData(mergedMuon);
       }
 
       const auto lvecFirst = math::PtEtaPhiMLorentzVector(firstMuon->tunePMuonBestTrack()->pt(),
@@ -718,8 +782,20 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
                                                                     secondMuon->trackIso() - firstMuon->innerTrack()->pt() , aWeight );
 
       const auto& aMET = metHandle->at(0);
-      const auto tpMET = aMET.p4() - firstP4 - secondP4 - mergedP4
-                                   + firstMuon->p4() + secondMuon->p4() + mergedMuon->p4();
+      // const auto corrMET = METXYCorr_Met_MetPhi(aMET.pt(),aMET.phi(),
+      //                                           iEvent.id().run(),TString(year_),isMC_,
+      //                                           pvHandle->size(), true, false);
+      const auto metp4 = aMET.p4(); // math::PtEtaPhiMLorentzVector(corrMET.first,aMET.p4().eta(),corrMET.second,aMET.p4().M());
+      const auto tpMET = metp4 - firstP4 - secondP4 - mergedP4
+                               + firstMuon->p4() + secondMuon->p4() + mergedMuon->p4();
+      const auto jesUp = math::PtEtaPhiMLorentzVector(aMET.shiftedPt(pat::MET::JetEnUp),0.,aMET.shiftedPhi(pat::MET::JetEnUp),0.);
+      const auto jesDn = math::PtEtaPhiMLorentzVector(aMET.shiftedPt(pat::MET::JetEnDown),0.,aMET.shiftedPhi(pat::MET::JetEnDown),0.);
+      const auto deltaJESup = jesUp - aMET.p4();
+      const auto deltaJESdn = jesDn - aMET.p4();
+      const auto jerUp = math::PtEtaPhiMLorentzVector(aMET.shiftedPt(pat::MET::JetResUp),0.,aMET.shiftedPhi(pat::MET::JetResUp),0.);
+      const auto jerDn = math::PtEtaPhiMLorentzVector(aMET.shiftedPt(pat::MET::JetResDown),0.,aMET.shiftedPhi(pat::MET::JetResDown),0.);
+      const auto deltaJERup = jerUp - aMET.p4();
+      const auto deltaJERdn = jerDn - aMET.p4();
 
       if ( tpMET.pt() > ptThres_ ) {
         histo1d_["cutflow_3M"]->Fill( 8.5, aWeight );
@@ -727,6 +803,10 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
         double dphi = reco::deltaPhi(mergedP4.phi(),tpMET.phi());
         auto p4 = firstP4 + secondP4 + mergedP4 + tpMET;
         double mt = p4.mt();
+        const double mtJESup = (p4+deltaJESup).mt();
+        const double mtJESdn = (p4+deltaJESdn).mt();
+        const double mtJERup = (p4+deltaJERup).mt();
+        const double mtJERdn = (p4+deltaJERdn).mt();
 
         bool passDPhi = std::abs(dphi) < drThres_;
         bool passDPhiCR = (std::abs(dphi) < drThresCR_) && !passDPhi;
@@ -774,6 +854,18 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
             histo1d_["3M_MET_dphi"]->Fill( dphi, aWeight );
             histo1d_["3M_mt"]->Fill( mt, aWeight );
+            histo1d_["3M_mt_idUp"]->Fill( mt, aWeight*systSFratio(idSyst).first );
+            histo1d_["3M_mt_idDn"]->Fill( mt, aWeight*systSFratio(idSyst).second );
+            histo1d_["3M_mt_isoUp"]->Fill( mt, aWeight*systSFratio(isoSyst).first );
+            histo1d_["3M_mt_isoDn"]->Fill( mt, aWeight*systSFratio(isoSyst).second );
+            histo1d_["3M_mt_trigUp"]->Fill( mt, aWeight*systSFratio(trigSyst).first );
+            histo1d_["3M_mt_trigDn"]->Fill( mt, aWeight*systSFratio(trigSyst).second );
+            histo1d_["3M_mt_recoUp"]->Fill( mt, aWeight*systSFratio(recoSyst).first );
+            histo1d_["3M_mt_recoDn"]->Fill( mt, aWeight*systSFratio(recoSyst).second );
+            histo1d_["3M_mt_JESup"]->Fill( mtJESup, aWeight );
+            histo1d_["3M_mt_JESdn"]->Fill( mtJESdn, aWeight );
+            histo1d_["3M_mt_JERup"]->Fill( mtJERup, aWeight );
+            histo1d_["3M_mt_JERdn"]->Fill( mtJERdn, aWeight );
           }
         } else if ( passDPhi && !passRatioPt ) {
           histo1d_["3M_antiRpt_MM_pt"]->Fill( mergedP4.pt(), aWeight );
@@ -787,7 +879,9 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
           histo1d_["3M_antiRpt_mt_xFF"]->Fill( mt, aWeight*ffMM );
           histo1d_["3M_antiRpt_mt_xFF_up"]->Fill( mt, aWeight*(ffMM+ciMM[0]) );
           histo1d_["3M_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-std::min(ciMM[0],ffMM)) );
-          histo1d_["3M_antiDphi_MET_ratioPt"]->Fill( ratioPt, aWeight );
+          histo1d_["3M_antiRpt_mt_JESup_xFF"]->Fill( mtJESup, aWeight );
+          histo1d_["3M_antiRpt_mt_JESdn_xFF"]->Fill( mtJESdn, aWeight );
+          histo1d_["3M_antiRpt_MET_ratioPt"]->Fill( ratioPt, aWeight );
         } else if ( passDPhiCR && passRatioPt ) {
           histo1d_["3M_CRdphi_MM_pt"]->Fill( mergedP4.pt(), aWeight );
           histo1d_["3M_CRdphi_MM_eta"]->Fill( mergedP4.eta(), aWeight );
@@ -806,6 +900,8 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
           histo1d_["3M_CRdphi_MET_dphi"]->Fill( dphi, aWeight );
           histo1d_["3M_CRdphi_mt"]->Fill( mt, aWeight );
+          histo1d_["3M_CRdphi_mt_JESup"]->Fill( mtJESup, aWeight );
+          histo1d_["3M_CRdphi_mt_JESdn"]->Fill( mtJESdn, aWeight );
         } else if ( passDPhiCR && !passRatioPt ) {
           histo1d_["3M_CRdphi_antiRpt_MM_pt"]->Fill( mergedP4.pt(), aWeight );
           histo1d_["3M_CRdphi_antiRpt_MM_pt_xFF"]->Fill( mergedP4.pt(), aWeight*ffMM );
@@ -819,6 +915,8 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
           histo1d_["3M_CRdphi_antiRpt_mt_xFF_up"]->Fill( mt, aWeight*(ffMM+ciMM[0]) );
           histo1d_["3M_CRdphi_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-std::min(ciMM[0],ffMM)) );
           histo1d_["3M_CRdphi_antiDphi_MET_ratioPt"]->Fill( ratioPt, aWeight );
+          histo1d_["3M_CRdphi_antiRpt_mt_xFF_JESup"]->Fill( mtJESup, aWeight*ffMM );
+          histo1d_["3M_CRdphi_antiRpt_mt_xFF_JESdn"]->Fill( mtJESdn, aWeight*ffMM );
         } else if ( !passDPhi && !passDPhiCR && passRatioPt ) {
           histo1d_["3M_antiDphi_MM_pt"]->Fill( mergedP4.pt(), aWeight );
           histo1d_["3M_antiDphi_MM_eta"]->Fill( mergedP4.eta(), aWeight );
@@ -838,6 +936,8 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
           histo1d_["3M_antiDphi_MET_dphi"]->Fill( dphi, aWeight );
           histo1d_["3M_antiDphi_MET_ratioPt"]->Fill( ratioPt, aWeight );
           histo1d_["3M_antiDphi_mt"]->Fill( mt, aWeight );
+          histo1d_["3M_antiDphi_mt_JESup"]->Fill( mtJESup, aWeight );
+          histo1d_["3M_antiDphi_mt_JESdn"]->Fill( mtJESdn, aWeight );
 
           histo1d_["3M_antiDphi_M1M2_invM"]->Fill( (firstP4+secondP4).M() , aWeight );
           histo1d_["3M_antiDphi_M1M2_invM_zoomed"]->Fill( (firstP4+secondP4).M() , aWeight );
@@ -856,6 +956,8 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
           histo1d_["3M_antiDphi_antiRpt_MET_dphi"]->Fill( dphi, aWeight );
           histo1d_["3M_antiDphi_antiRpt_mt"]->Fill( mt, aWeight );
           histo1d_["3M_antiDphi_antiRpt_mt_xFF"]->Fill( mt, aWeight*ffMM );
+          histo1d_["3M_antiDphi_antiRpt_mt_xFF_JESup"]->Fill( mtJESup, aWeight*ffMM );
+          histo1d_["3M_antiDphi_antiRpt_mt_xFF_JESdn"]->Fill( mtJESdn, aWeight*ffMM );
           histo1d_["3M_antiDphi_antiRpt_mt_xFF_up"]->Fill( mt, aWeight*(ffMM+ciMM[0]) );
           histo1d_["3M_antiDphi_antiRpt_mt_xFF_dn"]->Fill( mt, aWeight*(ffMM-std::min(ciMM[0],ffMM)) );
           histo1d_["3M_antiDphi_antiDphi_MET_ratioPt"]->Fill( ratioPt, aWeight );

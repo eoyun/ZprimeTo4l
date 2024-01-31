@@ -10,7 +10,7 @@ mergedMuCRanalyzer = cms.EDAnalyzer("MergedMuCRanalyzer",
   triggerObjects = cms.InputTag("slimmedPatTrigger"),
   METfilters = cms.InputTag("TriggerResults","","PAT"),
   pileupSummary = cms.InputTag("slimmedAddPileupInfo"),
-  srcMET = cms.InputTag("slimmedMETsPuppi"),
+  srcMET = cms.InputTag("slimmedMETs"),
   beamSpot = cms.InputTag("offlineBeamSpot"),
   METfilterList = cms.vstring(
     "Flag_goodVertices",
@@ -29,22 +29,18 @@ mergedMuCRanalyzer = cms.EDAnalyzer("MergedMuCRanalyzer",
     "HLT_TkMu50_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL16.root"),
-  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2016bUL.txt"),
-  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2016_UL_SingleMuonTriggers.root"),
-  trigHistName = cms.string("NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL16.root"),
-  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2016_UL_ID.root"),
-  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
-  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
-  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2016_UL_ISO.root"),
-  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
-  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt"),
+  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2016bUL.txt"),
+  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2016_schemaV2.json"),
+  muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2016_schemaV2.json"),
+  muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2016_schemaV2.json"),
   ptThres = cms.double(50.),
   ptMuThres = cms.double(20.),
   drThres = cms.double(0.3),
   drThresCR = cms.double(0.6),
   ratioThresLo = cms.double(0.5),
-  ratioThresHi = cms.double(1.5)
+  ratioThresHi = cms.double(1.5),
+  year = cms.string("2016nonAPV")
 )
 
 mergedMuCRanalyzer20UL16APV = mergedMuCRanalyzer.clone(
@@ -64,16 +60,12 @@ mergedMuCRanalyzer20UL16APV = mergedMuCRanalyzer.clone(
     "HLT_TkMu50_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL16APV.root"),
-  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2016aUL.txt"),
-  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_SingleMuonTriggers.root"),
-  trigHistName = cms.string("NUM_Mu50_or_TkMu50_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL16.root"),
-  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ID.root"),
-  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
-  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
-  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2016_UL_HIPM_ISO.root"),
-  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
-  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt")
+  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2016aUL.txt"),
+  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2016_preVFP_schemaV2.json"),
+  muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2016_preVFP_schemaV2.json"),
+  muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2016_preVFP_schemaV2.json"),
+  year = cms.string("2016APV")
 )
 
 mergedMuCRanalyzer20UL17 = mergedMuCRanalyzer.clone(
@@ -95,16 +87,12 @@ mergedMuCRanalyzer20UL17 = mergedMuCRanalyzer.clone(
     "HLT_TkMu100_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL17.root"),
-  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2017UL.txt"),
-  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_SingleMuonTriggers.root"),
-  trigHistName = cms.string("NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL17.root"),
-  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_ID.root"),
-  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
-  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
-  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2017_UL_ISO.root"),
-  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
-  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt")
+  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2017UL.txt"),
+  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2017_schemaV2.json"),
+  muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2017_schemaV2.json"),
+  muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2017_schemaV2.json"),
+  year = cms.string("2017")
 )
 
 mergedMuCRanalyzer20UL18 = mergedMuCRanalyzer.clone(
@@ -126,14 +114,10 @@ mergedMuCRanalyzer20UL18 = mergedMuCRanalyzer.clone(
     "HLT_TkMu100_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL18.root"),
-  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2018UL.txt"),
-  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_SingleMuonTriggers.root"),
-  trigHistName = cms.string("NUM_Mu50_or_OldMu100_or_TkMu100_DEN_CutBasedIdGlobalHighPt_and_TkIsoLoose_eta_pt"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL18.root"),
-  muonIdSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_ID.root"),
-  idHistName = cms.string("NUM_HighPtID_DEN_TrackerMuons_abseta_pt"),
-  idHistNameTrkHighPt = cms.string("NUM_TrkHighPtID_DEN_TrackerMuons_abseta_pt"),
-  muonIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/Efficiencies_muon_generalTracks_Z_Run2018_UL_ISO.root"),
-  isoHistName = cms.string("NUM_LooseRelTkIso_DEN_HighPtIDandIPCut_abseta_pt"),
-  isoHistNameTrkHighPt = cms.string("NUM_LooseRelTkIso_DEN_TrkHighPtIDandIPCut_abseta_pt")
+  rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2018UL.txt"),
+  triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2018_schemaV2.json"),
+  muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2018_schemaV2.json"),
+  muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2018_schemaV2.json"),
+  year = cms.string("2018")
 )

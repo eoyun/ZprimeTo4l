@@ -7,6 +7,7 @@
 #include "TFile.h"
 #include "TH2D.h"
 #include "TF1.h"
+#include "TRandom3.h"
 
 class ElectronSystematicsHelper {
 public:
@@ -28,6 +29,9 @@ public:
 
   double GetMergedEleSF(const pat::ElectronRef& aEle) const;
   std::pair<double,double> GetMergedEleSFcl95UpDn(const pat::ElectronRef& aEle, const double u5x5Et);
+
+  double mergedEleScale(const pat::ElectronRef& aEle) const;
+  double mergedEleSmear(const pat::ElectronRef& aEle, const double u5x5En);
 
 private:
   double modHeepSFmuEB1_ = 0.;
@@ -56,6 +60,8 @@ private:
 
   std::unique_ptr<TF1> mergedElePolHasTrk_;
   std::unique_ptr<TF1> mergedElePolNoTrk_;
+
+  TRandom3 rng_ = TRandom3(0);
 };
 
 #endif

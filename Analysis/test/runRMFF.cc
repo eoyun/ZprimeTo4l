@@ -19,7 +19,7 @@ static double retrieveLumi(const std::string& anlyzrEra) {
   return 0.;
 }
 
-void runREMuFF(TString era) {
+void runRMFF(TString era) {
   setTDRStyle();
 
   writeExtraText = true;       // if extra text
@@ -51,8 +51,8 @@ void runREMuFF(TString era) {
     std::cout << "check era..." << std::endl;
   }
 
-  static TString anlyzrMC = "resolvedEMuCRanalyzer"+postfix;
-  static TString anlyzrData = "resolvedEMuCRanalyzerData";
+  static TString anlyzrMC = "resolvedMuCRanalyzer"+postfix;
+  static TString anlyzrData = "resolvedMuCRanalyzerData";
 
   int iPeriod = 4;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
   int iPos = 0;
@@ -224,7 +224,7 @@ void runREMuFF(TString era) {
   p1->SetFrameBorderMode(0);
   p1->SetTickx(0);
   p1->SetTicky(0);
-  p1->SetBottomMargin(0.00);
+  p1->SetBottomMargin(0.0);
   p1->SetLeftMargin( L/W );
   p1->SetRightMargin( R/W );
   p1->Draw();
@@ -279,9 +279,9 @@ void runREMuFF(TString era) {
       datafile_ = adatafile;
       WZfile_ = aWZfile;
       ZZfile_ = aZZfile;
-    };
+    }
 
-    ~HistLoaderBase() {};
+    ~HistLoaderBase()=default;
 
     TH1D* variateDn(TH1D* nominal, TH1D* up) const {
       TH1D* dn = (TH1D*)nominal->Clone();
@@ -322,8 +322,10 @@ void runREMuFF(TString era) {
       if (dataHist_)
         delete dataHist_, WZHist_, ZZHist_, FFHist_;
 
-      if (FFHist_ffUp_)
-        delete WZHist_idUp_, ZZHist_idUp_, WZHist_idDn_, ZZHist_idDn_, FFHist_ffUp_, FFHist_ffDn_, FFHist_ffUpM_, FFHist_ffDnM_;
+      if (FFHist_ffUp_) {
+        delete FFHist_ffUp_, FFHist_ffDn_;
+        FFHist_ffUp_ = nullptr;
+      }
     }
 
   private:
@@ -331,15 +333,8 @@ void runREMuFF(TString era) {
     TH1D* WZHist_ = nullptr;
     TH1D* ZZHist_ = nullptr;
     TH1D* FFHist_ = nullptr;
-
-    TH1D* WZHist_idUp_ = nullptr;
-    TH1D* ZZHist_idUp_ = nullptr;
-    TH1D* WZHist_idDn_ = nullptr;
-    TH1D* ZZHist_idDn_ = nullptr;
     TH1D* FFHist_ffUp_ = nullptr;
     TH1D* FFHist_ffDn_ = nullptr;
-    TH1D* FFHist_ffUpM_ = nullptr;
-    TH1D* FFHist_ffDnM_ = nullptr;
 
   public:
     void add(const HistLoader3P1F& other) {
@@ -349,14 +344,8 @@ void runREMuFF(TString era) {
       this->FFHist_->Add(other.FFHist_);
 
       if (FFHist_ffUp_) {
-        this->WZHist_idUp_->Add(other.WZHist_idUp_);
-        this->ZZHist_idUp_->Add(other.ZZHist_idUp_);
-        this->WZHist_idDn_->Add(other.WZHist_idDn_);
-        this->ZZHist_idDn_->Add(other.ZZHist_idDn_);
         this->FFHist_ffUp_->Add(other.FFHist_ffUp_);
         this->FFHist_ffDn_->Add(other.FFHist_ffDn_);
-        this->FFHist_ffUpM_->Add(other.FFHist_ffUpM_);
-        this->FFHist_ffDnM_->Add(other.FFHist_ffDnM_);
       }
     }
 
@@ -365,34 +354,16 @@ void runREMuFF(TString era) {
         delete dataHist_, WZHist_, ZZHist_, FFHist_;
 
       if (FFHist_ffUp_) {
-        delete WZHist_idUp_, ZZHist_idUp_, WZHist_idDn_, ZZHist_idDn_, FFHist_ffUp_, FFHist_ffDn_, FFHist_ffUpM_, FFHist_ffDnM_;
-
+        delete FFHist_ffUp_, FFHist_ffDn_;
         FFHist_ffUp_ = nullptr;
       }
 
       dataHist_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+nameNum).c_str() )->Clone();
-      WZHist_ = (TH1D*)WZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/")+nameNum).c_str() )->Clone();
-      ZZHist_ = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/")+nameNum).c_str() )->Clone();
+      WZHist_ = (TH1D*)WZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/")+nameNum).c_str() )->Clone();
+      ZZHist_ = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/")+nameNum).c_str() )->Clone();
       FFHist_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+name).c_str() )->Clone();
 
       const double lumi = retrieveLumi(anlyzrEra);
-
-      if (TString(nameNum).Contains("llll_invM")) {
-        WZHist_idUp_ = (TH1D*)WZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/")+nameNum+"_idUp").c_str() )->Clone();
-        ZZHist_idUp_ = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/")+nameNum+"_idUp").c_str() )->Clone();
-        WZHist_idDn_ = (TH1D*)WZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/")+nameNum+"_idDn").c_str() )->Clone();
-        ZZHist_idDn_ = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/")+nameNum+"_idDn").c_str() )->Clone();
-        FFHist_ffUp_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+name+"_ffUpE").c_str() )->Clone();
-        FFHist_ffDn_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+name+"_ffDnE").c_str() )->Clone();
-        FFHist_ffUpM_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+name+"_ffUpM").c_str() )->Clone();
-        FFHist_ffDnM_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+name+"_ffDnM").c_str() )->Clone();
-
-        WZHist_idUp_->Scale( WZxsec_*lumi*1000./ ((TH1D*)WZfile_->Get("evtCounter/h_sumW"))->GetBinContent(1) );
-        WZHist_idDn_->Scale( WZxsec_*lumi*1000./ ((TH1D*)WZfile_->Get("evtCounter/h_sumW"))->GetBinContent(1) );
-        ZZHist_idUp_->Scale( ZZxsec_*lumi*1000./ ((TH1D*)ZZfile_->Get("evtCounter/h_sumW"))->GetBinContent(1) );
-        ZZHist_idDn_->Scale( ZZxsec_*lumi*1000./ ((TH1D*)ZZfile_->Get("evtCounter/h_sumW"))->GetBinContent(1) );
-      }
-
       WZHist_->Scale( WZxsec_*lumi*1000./ ((TH1D*)WZfile_->Get("evtCounter/h_sumW"))->GetBinContent(1) );
       ZZHist_->Scale( ZZxsec_*lumi*1000./ ((TH1D*)ZZfile_->Get("evtCounter/h_sumW"))->GetBinContent(1) );
       WZHist_->SetFillColor(kViolet+1);
@@ -401,6 +372,11 @@ void runREMuFF(TString era) {
       ZZHist_->SetLineWidth(0);
       FFHist_->SetFillColor(33);
       FFHist_->SetLineWidth(0);
+
+      if (TString(nameNum).Contains("llll_invM")) {
+        FFHist_ffUp_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+name+"_ffUp").c_str() )->Clone();
+        FFHist_ffDn_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/")+name+"_ffDn").c_str() )->Clone();
+      }
     };
 
     void compareAndRatio(TPad* padUp, TPad* padDn, int rebin=1) {
@@ -411,8 +387,6 @@ void runREMuFF(TString era) {
         if (FFHist_ffUp_) {
           FFHist_ffUp_->Rebin( FFHist_ffUp_->GetNbinsX()/dataHist_->GetNbinsX() );
           FFHist_ffDn_->Rebin( FFHist_ffDn_->GetNbinsX()/dataHist_->GetNbinsX() );
-          FFHist_ffUpM_->Rebin( FFHist_ffUpM_->GetNbinsX()/dataHist_->GetNbinsX() );
-          FFHist_ffDnM_->Rebin( FFHist_ffDnM_->GetNbinsX()/dataHist_->GetNbinsX() );
         }
       }
 
@@ -422,14 +396,8 @@ void runREMuFF(TString era) {
       dataHist_->Rebin(rebin);
 
       if (FFHist_ffUp_) {
-        WZHist_idUp_->Rebin(rebin);
-        WZHist_idDn_->Rebin(rebin);
-        ZZHist_idUp_->Rebin(rebin);
-        ZZHist_idDn_->Rebin(rebin);
         FFHist_ffUp_->Rebin(rebin);
         FFHist_ffDn_->Rebin(rebin);
-        FFHist_ffUpM_->Rebin(rebin);
-        FFHist_ffDnM_->Rebin(rebin);
       }
 
       THStack* stack = new THStack( (std::string(dataHist_->GetName())+"_stack").c_str() , dataHist_->GetTitle() );
@@ -454,6 +422,7 @@ void runREMuFF(TString era) {
         dataHist_->GetXaxis()->SetRangeUser(0.,500.);
       }
 
+      // TLegend* legend = new TLegend(0.65,0.7,0.9,0.9);
       TLegend* legend = new TLegend(0.75,0.7,0.98,0.92);
       legend->SetBorderSize(0);
       legend->AddEntry(dataHist_,"Data");
@@ -487,21 +456,10 @@ void runREMuFF(TString era) {
       ratio->Draw("E1");
 
       if (FFHist_ffUp_) {
-        TH1D* idUp = (TH1D*)WZHist_idUp_->Clone();
-        idUp->Add(ZZHist_idUp_);
-        idUp->Add(FFHist_);
-        TH1D* idDn = (TH1D*)WZHist_idDn_->Clone();
-        idDn->Add(ZZHist_idDn_);
-        idDn->Add(FFHist_);
-
         FFHist_ffUp_->Add(WZHist_);
         FFHist_ffUp_->Add(ZZHist_);
         FFHist_ffDn_->Add(WZHist_);
         FFHist_ffDn_->Add(ZZHist_);
-        FFHist_ffUpM_->Add(WZHist_);
-        FFHist_ffUpM_->Add(ZZHist_);
-        FFHist_ffDnM_->Add(WZHist_);
-        FFHist_ffDnM_->Add(ZZHist_);
 
         std::vector<double> x0, y0, errx, erryDn, erryUp;
         std::vector<double> r0, errRdn, errRup;
@@ -510,28 +468,19 @@ void runREMuFF(TString era) {
           x0.push_back(tmpHist->GetBinCenter(idx));
           y0.push_back(tmpHist->GetBinContent(idx));
           errx.push_back(tmpHist->GetBinWidth(idx)/2.);
-
-          double valIdUp = idUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valIdDn = tmpHist->GetBinContent(idx) - idDn->GetBinContent(idx);
           double valFFup = FFHist_ffUp_->GetBinContent(idx) - tmpHist->GetBinContent(idx);
           double valFFdn = tmpHist->GetBinContent(idx) - FFHist_ffDn_->GetBinContent(idx);
-          double valFFupM = FFHist_ffUpM_->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valFFdnM = tmpHist->GetBinContent(idx) - FFHist_ffDnM_->GetBinContent(idx);
 
-          erryUp.push_back( std::sqrt(valIdUp*valIdUp + valFFup*valFFup + valFFupM*valFFupM) );
-          erryDn.push_back( std::sqrt(valIdDn*valIdDn + valFFdn*valFFdn + valFFdnM*valFFdnM) );
+          erryUp.push_back(valFFup);
+          erryDn.push_back(valFFdn);
 
           r0.push_back(1.);
 
-          double rIdUp = valIdUp/tmpHist->GetBinContent(idx);
-          double rIdDn = valIdDn/tmpHist->GetBinContent(idx);
           double rFFup = valFFup/tmpHist->GetBinContent(idx);
           double rFFdn = valFFdn/tmpHist->GetBinContent(idx);
-          double rFFupM = valFFupM/tmpHist->GetBinContent(idx);
-          double rFFdnM = valFFdnM/tmpHist->GetBinContent(idx);
 
-          errRup.push_back(std::hypot(std::hypot(rIdUp,rFFup),rFFupM));
-          errRdn.push_back(std::hypot(std::hypot(rIdDn,rFFdn),rFFdnM));
+          errRup.push_back(rFFup);
+          errRdn.push_back(rFFdn);
         }
 
         auto gr = new TGraphAsymmErrors(tmpHist->GetNbinsX(),&(x0[0]),&(y0[0]),&(errx[0]),&(errx[0]),&(erryDn[0]),&(erryUp[0]));
@@ -558,7 +507,6 @@ void runREMuFF(TString era) {
   auto aloader3P1F1 = HistLoader3P1F(datafile1,WZfile1,ZZfile1);
   auto aloader3P1F2 = HistLoader3P1F(datafile2,WZfile2,ZZfile2);
   auto aloader3P1F3 = HistLoader3P1F(datafile3,WZfile3,ZZfile3);
-
   aloader3P1F.load("3P1F_CR_llll_invM","2P2F_CR_llll_invM_xFF",postfix.Data());
 
   if (era.Contains("run2")) {
@@ -571,7 +519,7 @@ void runREMuFF(TString era) {
   }
 
   aloader3P1F.compareAndRatio(p1,p2,2);
-  SaveAs(canvas_2,"REMuFF_3P1F_CR_llll_invM.eps",p1);
+  SaveAs(canvas_2,"RMFF_3P1F_CR_llll_invM.eps",p1);
 
   aloader3P1F.load("3P1F_CR_ll1ll2_dr","2P2F_CR_ll1ll2_dr_xFF",postfix.Data());
 
@@ -585,7 +533,7 @@ void runREMuFF(TString era) {
   }
 
   aloader3P1F.compareAndRatio(p1,p2);
-  SaveAs(canvas_2,"REMuFF_3P1F_CR_ll1ll2_dr.png",p1);
+  SaveAs(canvas_2,"RMFF_3P1F_CR_ll1ll2_dr.png",p1);
 
   aloader3P1F.load("3P1F_CR_ll1_invM","2P2F_CR_ll1_invM_xFF",postfix.Data());
 
@@ -599,7 +547,7 @@ void runREMuFF(TString era) {
   }
 
   aloader3P1F.compareAndRatio(p1,p2,2);
-  SaveAs(canvas_2,"REMuFF_3P1F_CR_ll1_invM.png",p1);
+  SaveAs(canvas_2,"RMFF_3P1F_CR_ll1_invM.png",p1);
 
   aloader3P1F.load("3P1F_CR_ll1_dr","2P2F_CR_ll1_dr_xFF",postfix.Data());
 
@@ -613,7 +561,7 @@ void runREMuFF(TString era) {
   }
 
   aloader3P1F.compareAndRatio(p1,p2,2);
-  SaveAs(canvas_2,"REMuFF_3P1F_CR_ll1_dr.png",p1);
+  SaveAs(canvas_2,"RMFF_3P1F_CR_ll1_dr.png",p1);
 
   aloader3P1F.load("3P1F_CR_ll2_invM","2P2F_CR_ll2_invM_xFF",postfix.Data());
 
@@ -627,7 +575,7 @@ void runREMuFF(TString era) {
   }
 
   aloader3P1F.compareAndRatio(p1,p2,2);
-  SaveAs(canvas_2,"REMuFF_3P1F_CR_ll2_invM.png",p1);
+  SaveAs(canvas_2,"RMFF_3P1F_CR_ll2_invM.png",p1);
 
   aloader3P1F.load("3P1F_CR_ll2_dr","2P2F_CR_ll2_dr_xFF",postfix.Data());
 
@@ -641,7 +589,7 @@ void runREMuFF(TString era) {
   }
 
   aloader3P1F.compareAndRatio(p1,p2,2);
-  SaveAs(canvas_2,"REMuFF_3P1F_CR_ll2_dr.png",p1);
+  SaveAs(canvas_2,"RMFF_3P1F_CR_ll2_dr.png",p1);
 
   // 4P0F CR
 
@@ -720,8 +668,8 @@ void runREMuFF(TString era) {
         syst_.clear();
 
       dataHist_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/4P0F_CR_")+name).c_str() )->Clone();
-      ZZ3P1FHist_ = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF").c_str() )->Clone();
-      ZZ4P0FHist_ = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name).c_str() )->Clone();
+      ZZ3P1FHist_ = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF").c_str() )->Clone();
+      ZZ4P0FHist_ = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name).c_str() )->Clone();
       FF3P1FHist_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_xFF").c_str() )->Clone();
       FF2P2FHist_ = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_xFF2").c_str() )->Clone();
 
@@ -731,64 +679,42 @@ void runREMuFF(TString era) {
       double sigLumi = 0.001;
 
       if ( TString(name).Contains("llll_invM") ) {
-        TH1D* ZZ3P1FHist_idUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_idUp").c_str() )->Clone();
-        TH1D* ZZ3P1FHist_idDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_idDn").c_str() )->Clone();
-        syst_["ZZ3P1FHist_idEl"] = SystVariation(ZZ3P1FHist_idUp,ZZ3P1FHist_idDn);
-        TH1D* ZZ4P0FHist_idUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idUp").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_idDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idDn").c_str() )->Clone();
-        syst_["ZZ4P0FHist_idEl"] = SystVariation(ZZ4P0FHist_idUp,ZZ4P0FHist_idDn);
-        TH1D* ZZ3P1FHist_ffUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_ffUpE").c_str() )->Clone();
-        TH1D* ZZ3P1FHist_ffDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_ffDnE").c_str() )->Clone();
-        syst_["ZZ3P1FHist_ffEl"] = SystVariation(ZZ3P1FHist_ffUp,ZZ3P1FHist_ffDn);
-        TH1D* FF3P1FHist_ffUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_xFF_ffUpE").c_str() )->Clone();
-        TH1D* FF3P1FHist_ffDn = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_xFF_ffDnE").c_str() )->Clone();
-        syst_["FF3P1FHist_ffEl"] = SystVariation(FF3P1FHist_ffUp,FF3P1FHist_ffDn);
-        TH1D* FF2P2FHist_ffUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_xFF2_ffUpE").c_str() )->Clone();
-        TH1D* FF2P2FHist_ffDn = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_xFF2_ffDnE").c_str() )->Clone();
-        syst_["FF2P2FHist_ffEl"] = SystVariation(FF2P2FHist_ffUp,FF2P2FHist_ffDn);
-        TH1D* ZZ3P1FHist_ffUpM = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_ffUpM").c_str() )->Clone();
-        TH1D* ZZ3P1FHist_ffDnM = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_ffDnM").c_str() )->Clone();
-        syst_["ZZ3P1FHist_ffMu"] = SystVariation(ZZ3P1FHist_ffUpM,ZZ3P1FHist_ffDnM);
-        TH1D* FF3P1FHist_ffUpM = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_xFF_ffUpM").c_str() )->Clone();
-        TH1D* FF3P1FHist_ffDnM = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_xFF_ffDnM").c_str() )->Clone();
-        syst_["FF3P1FHist_ffMu"] = SystVariation(FF3P1FHist_ffUpM,FF3P1FHist_ffDnM);
-        TH1D* FF2P2FHist_ffUpM = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_xFF2_ffUpM").c_str() )->Clone();
-        TH1D* FF2P2FHist_ffDnM = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_xFF2_ffDnM").c_str() )->Clone();
-        syst_["FF2P2FHist_ffMu"] = SystVariation(FF2P2FHist_ffUpM,FF2P2FHist_ffDnM);
-
-        TH1D* ZZ3P1FHist_muScaleUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_altMuScale_xFF").c_str() )->Clone();
-        TH1D* ZZ3P1FHist_muScaleDn = variateDn(ZZ3P1FHist_,ZZ3P1FHist_muScaleUp);
-        syst_["ZZ3P1FHist_muScale"] = SystVariation(ZZ3P1FHist_muScaleUp,ZZ3P1FHist_muScaleDn);
-        TH1D* FF3P1FHist_muScaleUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_altMuScale_xFF").c_str() )->Clone();
-        TH1D* FF3P1FHist_muScaleDn = variateDn(FF3P1FHist_,FF3P1FHist_muScaleUp);
-        syst_["FF3P1FHist_muScale"] = SystVariation(FF3P1FHist_muScaleUp,FF3P1FHist_muScaleDn);
-        TH1D* FF2P2FHist_muScaleUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_altMuScale_xFF2").c_str() )->Clone();
-        TH1D* FF2P2FHist_muScaleDn = variateDn(FF2P2FHist_,FF2P2FHist_muScaleUp);
-        syst_["FF2P2FHist_muScale"] = SystVariation(FF2P2FHist_muScaleUp,FF2P2FHist_muScaleDn);
-        TH1D* ZZ4P0FHist_muScaleUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuScale").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_muScaleDn = variateDn(ZZ4P0FHist_,ZZ4P0FHist_muScaleUp);
-        syst_["ZZ4P0FHist_muScale"] = SystVariation(ZZ4P0FHist_muScaleUp,ZZ4P0FHist_muScaleDn);
-        TH1D* ZZ4P0FHist_muSmearUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuSmear").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_muSmearDn = variateDn(ZZ4P0FHist_,ZZ4P0FHist_muSmearUp);
-        syst_["ZZ4P0FHist_muSmear"] = SystVariation(ZZ4P0FHist_muSmearUp,ZZ4P0FHist_muSmearDn);
-        TH1D* ZZ4P0FHist_muIdUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIdUp").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_muIdDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIdDn").c_str() )->Clone();
-        syst_["ZZ4P0FHist_muId"] = SystVariation(ZZ4P0FHist_muIdUp,ZZ4P0FHist_muIdDn);
-        TH1D* ZZ4P0FHist_muIsoUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIsoUp").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_muIsoDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIsoDn").c_str() )->Clone();
-        syst_["ZZ4P0FHist_muIso"] = SystVariation(ZZ4P0FHist_muIsoUp,ZZ4P0FHist_muIsoDn);
-        TH1D* ZZ4P0FHist_trigUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigUp").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_trigDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigDn").c_str() )->Clone();
+        TH1D* ZZ3P1FHist_ffUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_ffUp").c_str() )->Clone();
+        TH1D* ZZ3P1FHist_ffDn = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_xFF_ffDn").c_str() )->Clone();
+        syst_["ZZ3P1FHist_ff"] = SystVariation(ZZ3P1FHist_ffUp,ZZ3P1FHist_ffDn);
+        TH1D* FF3P1FHist_ffUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_xFF_ffUp").c_str() )->Clone();
+        TH1D* FF3P1FHist_ffDn = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_xFF_ffDn").c_str() )->Clone();
+        syst_["FF3P1FHist_ff"] = SystVariation(FF3P1FHist_ffUp,FF3P1FHist_ffDn);
+        TH1D* FF2P2FHist_ffUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_xFF2_ffUp").c_str() )->Clone();
+        TH1D* FF2P2FHist_ffDn = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_xFF2_ffDn").c_str() )->Clone();
+        syst_["FF2P2FHist_ff"] = SystVariation(FF2P2FHist_ffUp,FF2P2FHist_ffDn);
+        TH1D* ZZ3P1FHist_scaleUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/3P1F_CR_")+name+"_altMuScale_xFF").c_str() )->Clone();
+        TH1D* ZZ3P1FHist_scaleDn = variateDn(ZZ3P1FHist_,ZZ3P1FHist_scaleUp);
+        syst_["ZZ3P1FHist_scale"] = SystVariation(ZZ3P1FHist_scaleUp,ZZ3P1FHist_scaleDn);
+        TH1D* FF3P1FHist_scaleUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/3P1F_CR_")+name+"_altMuScale_xFF").c_str() )->Clone();
+        TH1D* FF3P1FHist_scaleDn = variateDn(FF3P1FHist_,FF3P1FHist_scaleUp);
+        syst_["FF3P1FHist_scale"] = SystVariation(FF3P1FHist_scaleUp,FF3P1FHist_scaleDn);
+        TH1D* FF2P2FHist_scaleUp = (TH1D*)datafile_->Get( (std::string(anlyzrData+"/2P2F_CR_")+name+"_altMuScale_xFF2").c_str() )->Clone();
+        TH1D* FF2P2FHist_scaleDn = variateDn(FF2P2FHist_,FF2P2FHist_scaleUp);
+        syst_["FF2P2FHist_scale"] = SystVariation(FF2P2FHist_scaleUp,FF2P2FHist_scaleDn);
+        TH1D* ZZ4P0FHist_scaleUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuScale").c_str() )->Clone();
+        TH1D* ZZ4P0FHist_scaleDn = variateDn(ZZ4P0FHist_,ZZ4P0FHist_scaleUp);
+        syst_["ZZ4P0FHist_scale"] = SystVariation(ZZ4P0FHist_scaleUp,ZZ4P0FHist_scaleDn);
+        TH1D* ZZ4P0FHist_smearUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuSmear").c_str() )->Clone();
+        TH1D* ZZ4P0FHist_smearDn = variateDn(ZZ4P0FHist_,ZZ4P0FHist_smearUp);
+        syst_["ZZ4P0FHist_smear"] = SystVariation(ZZ4P0FHist_smearUp,ZZ4P0FHist_smearDn);
+        TH1D* ZZ4P0FHist_idUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idUp").c_str() )->Clone();
+        TH1D* ZZ4P0FHist_idDn = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idDn").c_str() )->Clone();
+        syst_["ZZ4P0FHist_id"] = SystVariation(ZZ4P0FHist_idUp,ZZ4P0FHist_idDn);
+        TH1D* ZZ4P0FHist_isoUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_isoUp").c_str() )->Clone();
+        TH1D* ZZ4P0FHist_isoDn = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_isoDn").c_str() )->Clone();
+        syst_["ZZ4P0FHist_iso"] = SystVariation(ZZ4P0FHist_isoUp,ZZ4P0FHist_isoDn);
+        TH1D* ZZ4P0FHist_trigUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigUp").c_str() )->Clone();
+        TH1D* ZZ4P0FHist_trigDn = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigDn").c_str() )->Clone();
         syst_["ZZ4P0FHist_trig"] = SystVariation(ZZ4P0FHist_trigUp,ZZ4P0FHist_trigDn);
-        TH1D* ZZ4P0FHist_muRecoUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muRecoUp").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_muRecoDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muRecoDn").c_str() )->Clone();
-        syst_["ZZ4P0FHist_muReco"] = SystVariation(ZZ4P0FHist_muRecoUp,ZZ4P0FHist_muRecoDn);
-        TH1D* ZZ4P0FHist_elScaleUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elScaleUp").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_elScaleDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elScaleDn").c_str() )->Clone();
-        syst_["ZZ4P0FHist_elScale"] = SystVariation(ZZ4P0FHist_elScaleUp,ZZ4P0FHist_elScaleDn);
-        TH1D* ZZ4P0FHist_elSigmaUp = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elSigmaUp").c_str() )->Clone();
-        TH1D* ZZ4P0FHist_elSigmaDn = (TH1D*)ZZfile_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elSigmaDn").c_str() )->Clone();
-        syst_["ZZ4P0FHist_elSigma"] = SystVariation(ZZ4P0FHist_elSigmaUp,ZZ4P0FHist_elSigmaDn);
+        TH1D* ZZ4P0FHist_recoUp = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_recoUp").c_str() )->Clone();
+        TH1D* ZZ4P0FHist_recoDn = (TH1D*)ZZfile_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_recoDn").c_str() )->Clone();
+        syst_["ZZ4P0FHist_reco"] = SystVariation(ZZ4P0FHist_recoUp,ZZ4P0FHist_recoDn);
 
         for (const auto& element : syst_) {
           if (TString(element.first).Contains("ZZ")) {
@@ -798,39 +724,30 @@ void runREMuFF(TString era) {
         }
 
         for (unsigned idx=0; idx<sigFiles_.size(); idx++) {
-          sigHist_.push_back( (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name).c_str() )->Clone() );
+          sigHist_.push_back( (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name).c_str() )->Clone() );
           sigHist_.back()->SetLineWidth(2);
           sigHist_.back()->SetLineColor(kRed);
 
           std::map<std::string,SystVariation> init;
 
-          TH1D* sigHist_idUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idUp").c_str() )->Clone();
-          TH1D* sigHist_idDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idDn").c_str() )->Clone();
-          init["sigHist_idEl"] = SystVariation(sigHist_idUp,sigHist_idDn);
-          TH1D* sigHist_muScaleUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuScale").c_str() )->Clone();
-          TH1D* sigHist_muScaleDn = variateDn(sigHist_.back(),sigHist_muScaleUp);
-          init["sigHist_muScale"] = SystVariation(sigHist_muScaleUp,sigHist_muScaleDn);
-          TH1D* sigHist_muSmearUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuSmear").c_str() )->Clone();
-          TH1D* sigHist_muSmearDn = variateDn(sigHist_.back(),sigHist_muSmearUp);
-          init["sigHist_muSmear"] = SystVariation(sigHist_muSmearUp,sigHist_muSmearDn);
-          TH1D* sigHist_muIdUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIdUp").c_str() )->Clone();
-          TH1D* sigHist_muIdDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIdDn").c_str() )->Clone();
-          init["sigHist_muId"] = SystVariation(sigHist_muIdUp,sigHist_muIdDn);
-          TH1D* sigHist_muIsoUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIsoUp").c_str() )->Clone();
-          TH1D* sigHist_muIsoDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muIsoDn").c_str() )->Clone();
-          init["sigHist_muIso"] = SystVariation(sigHist_muIsoUp,sigHist_muIsoDn);
-          TH1D* sigHist_trigUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigUp").c_str() )->Clone();
-          TH1D* sigHist_trigDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigDn").c_str() )->Clone();
+          TH1D* sigHist_scaleUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuScale").c_str() )->Clone();
+          TH1D* sigHist_scaleDn = variateDn(sigHist_.back(),sigHist_scaleUp);
+          init["sigHist_scale"] = SystVariation(sigHist_scaleUp,sigHist_scaleDn);
+          TH1D* sigHist_smearUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_altMuSmear").c_str() )->Clone();
+          TH1D* sigHist_smearDn = variateDn(sigHist_.back(),sigHist_smearUp);
+          init["sigHist_smear"] = SystVariation(sigHist_smearUp,sigHist_smearDn);
+          TH1D* sigHist_idUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idUp").c_str() )->Clone();
+          TH1D* sigHist_idDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_idDn").c_str() )->Clone();
+          init["sigHist_id"] = SystVariation(sigHist_idUp,sigHist_idDn);
+          TH1D* sigHist_isoUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_isoUp").c_str() )->Clone();
+          TH1D* sigHist_isoDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_isoDn").c_str() )->Clone();
+          init["sigHist_iso"] = SystVariation(sigHist_isoUp,sigHist_isoDn);
+          TH1D* sigHist_trigUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigUp").c_str() )->Clone();
+          TH1D* sigHist_trigDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_trigDn").c_str() )->Clone();
           init["sigHist_trig"] = SystVariation(sigHist_trigUp,sigHist_trigDn);
-          TH1D* sigHist_muRecoUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muRecoUp").c_str() )->Clone();
-          TH1D* sigHist_muRecoDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_muRecoDn").c_str() )->Clone();
-          init["sigHist_muReco"] = SystVariation(sigHist_muRecoUp,sigHist_muRecoDn);
-          TH1D* sigHist_elScaleUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elScaleUp").c_str() )->Clone();
-          TH1D* sigHist_elScaleDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elScaleDn").c_str() )->Clone();
-          init["sigHist_elScale"] = SystVariation(sigHist_elScaleUp,sigHist_elScaleDn);
-          TH1D* sigHist_elSigmaUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elSigmaUp").c_str() )->Clone();
-          TH1D* sigHist_elSigmaDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedEMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_elSigmaDn").c_str() )->Clone();
-          init["sigHist_elSigma"] = SystVariation(sigHist_elSigmaUp,sigHist_elSigmaDn);
+          TH1D* sigHist_recoUp = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_recoUp").c_str() )->Clone();
+          TH1D* sigHist_recoDn = (TH1D*)sigFiles_.at(idx).file_->Get( (std::string("resolvedMuCRanalyzer"+anlyzrEra+"/4P0F_CR_")+name+"_recoDn").c_str() )->Clone();
+          init["sigHist_reco"] = SystVariation(sigHist_recoUp,sigHist_recoDn);
 
           for (const auto& element : init) {
             element.second.up_->Scale( lumi*1000.*sigLumi / ( (TH1D*)sigFiles_.at(idx).file_->Get( std::string("evtCounter/h_sumW").c_str() ) )->GetBinContent(1) );
@@ -947,114 +864,78 @@ void runREMuFF(TString era) {
           }
         }
 
-        //legend->AddEntry(sigHist_.at(3),"H250/750/2000A1");
+        // legend->AddEntry(sigHist_.at(3),"H250/750/2000A1");
         legend->AddEntry(sigHist_.at(0),"X750Y100");
       }
 
       legend->Draw();
 
       if (!syst_.empty()) {
-        TH1D* FF3P1Fsubtracted_idUp = subtract(subtract(FF3P1FHist_,syst_.at("ZZ3P1FHist_idEl").up_),FF2P2FHist_);
-        TH1D* FF3P1Fsubtracted_idDn = subtract(subtract(FF3P1FHist_,syst_.at("ZZ3P1FHist_idEl").dn_),FF2P2FHist_);
-        TH1D* idUp = (TH1D*)syst_.at("ZZ4P0FHist_idEl").up_->Clone();
-        TH1D* idDn = (TH1D*)syst_.at("ZZ4P0FHist_idEl").dn_->Clone();
-        idUp->Add(FF3P1Fsubtracted_idUp);
-        idDn->Add(FF3P1Fsubtracted_idDn);
-
-        TH1D* FF3P1Fsubtracted_ffUp = subtract(subtract(syst_.at("FF3P1FHist_ffEl").up_,syst_.at("ZZ3P1FHist_ffEl").up_),syst_.at("FF2P2FHist_ffEl").up_);
-        TH1D* FF3P1Fsubtracted_ffDn = subtract(subtract(syst_.at("FF3P1FHist_ffEl").dn_,syst_.at("ZZ3P1FHist_ffEl").dn_),syst_.at("FF2P2FHist_ffEl").dn_);
+        TH1D* FF3P1Fsubtracted_ffUp = subtract(subtract(syst_.at("FF3P1FHist_ff").up_,syst_.at("ZZ3P1FHist_ff").up_),syst_.at("FF2P2FHist_ff").up_);
+        TH1D* FF3P1Fsubtracted_ffDn = subtract(subtract(syst_.at("FF3P1FHist_ff").dn_,syst_.at("ZZ3P1FHist_ff").dn_),syst_.at("FF2P2FHist_ff").dn_);
         TH1D* ffUpAdded = (TH1D*)FF3P1Fsubtracted_ffUp->Clone();
         TH1D* ffDnAdded = (TH1D*)FF3P1Fsubtracted_ffDn->Clone();
         ffUpAdded->Add(ZZ4P0FHist_);
         ffDnAdded->Add(ZZ4P0FHist_);
 
-        TH1D* FF3P1Fsubtracted_ffUpM = subtract(subtract(syst_.at("FF3P1FHist_ffMu").up_,syst_.at("ZZ3P1FHist_ffMu").up_),syst_.at("FF2P2FHist_ffMu").up_);
-        TH1D* FF3P1Fsubtracted_ffDnM = subtract(subtract(syst_.at("FF3P1FHist_ffMu").dn_,syst_.at("ZZ3P1FHist_ffMu").dn_),syst_.at("FF2P2FHist_ffMu").dn_);
-        TH1D* ffUpMAdded = (TH1D*)FF3P1Fsubtracted_ffUpM->Clone();
-        TH1D* ffDnMAdded = (TH1D*)FF3P1Fsubtracted_ffDnM->Clone();
-        ffUpMAdded->Add(ZZ4P0FHist_);
-        ffDnMAdded->Add(ZZ4P0FHist_);
+        TH1D* FF3P1Fsubtracted_scaleUp = subtract(subtract(syst_.at("FF3P1FHist_scale").up_,syst_.at("ZZ3P1FHist_scale").up_),syst_.at("FF2P2FHist_scale").up_);
+        TH1D* FF3P1Fsubtracted_scaleDn = subtract(subtract(syst_.at("FF3P1FHist_scale").dn_,syst_.at("ZZ3P1FHist_scale").dn_),syst_.at("FF2P2FHist_scale").dn_);
+        TH1D* scaleUpAdded = (TH1D*)FF3P1Fsubtracted_scaleUp->Clone();
+        TH1D* scaleDnAdded = (TH1D*)FF3P1Fsubtracted_scaleDn->Clone();
+        scaleUpAdded->Add(syst_.at("ZZ4P0FHist_scale").up_);
+        scaleDnAdded->Add(syst_.at("ZZ4P0FHist_scale").dn_);
 
-        TH1D* FF3P1Fsubtracted_muScaleUp = subtract(subtract(syst_.at("FF3P1FHist_muScale").up_,syst_.at("ZZ3P1FHist_muScale").up_),syst_.at("FF2P2FHist_muScale").up_);
-        TH1D* FF3P1Fsubtracted_muScaleDn = subtract(subtract(syst_.at("FF3P1FHist_muScale").dn_,syst_.at("ZZ3P1FHist_muScale").dn_),syst_.at("FF2P2FHist_muScale").dn_);
-        TH1D* muScaleUpAdded = (TH1D*)FF3P1Fsubtracted_muScaleUp->Clone();
-        TH1D* muScaleDnAdded = (TH1D*)FF3P1Fsubtracted_muScaleDn->Clone();
-        muScaleUpAdded->Add(syst_.at("ZZ4P0FHist_muScale").up_);
-        muScaleDnAdded->Add(syst_.at("ZZ4P0FHist_muScale").dn_);
+        TH1D* smearUp = (TH1D*)syst_.at("ZZ4P0FHist_smear").up_->Clone();
+        TH1D* smearDn = (TH1D*)syst_.at("ZZ4P0FHist_smear").dn_->Clone();
+        smearUp->Add(FFsubtractedFinal_copy);
+        smearDn->Add(FFsubtractedFinal_copy);
 
-        TH1D* muSmearUp = (TH1D*)syst_.at("ZZ4P0FHist_muSmear").up_->Clone();
-        TH1D* muSmearDn = (TH1D*)syst_.at("ZZ4P0FHist_muSmear").dn_->Clone();
-        muSmearUp->Add(FFsubtractedFinal_copy);
-        muSmearDn->Add(FFsubtractedFinal_copy);
+        TH1D* idUp = (TH1D*)syst_.at("ZZ4P0FHist_id").up_->Clone();
+        TH1D* idDn = (TH1D*)syst_.at("ZZ4P0FHist_id").dn_->Clone();
+        idUp->Add(FFsubtractedFinal_copy);
+        idDn->Add(FFsubtractedFinal_copy);
 
-        TH1D* muIdUp = (TH1D*)syst_.at("ZZ4P0FHist_muId").up_->Clone();
-        TH1D* muIdDn = (TH1D*)syst_.at("ZZ4P0FHist_muId").dn_->Clone();
-        muIdUp->Add(FFsubtractedFinal_copy);
-        muIdDn->Add(FFsubtractedFinal_copy);
+        TH1D* isoUp = (TH1D*)syst_.at("ZZ4P0FHist_iso").up_->Clone();
+        TH1D* isoDn = (TH1D*)syst_.at("ZZ4P0FHist_iso").dn_->Clone();
+        isoUp->Add(FFsubtractedFinal_copy);
+        isoDn->Add(FFsubtractedFinal_copy);
 
-        TH1D* muIsoUp = (TH1D*)syst_.at("ZZ4P0FHist_muIso").up_->Clone();
-        TH1D* muIsoDn = (TH1D*)syst_.at("ZZ4P0FHist_muIso").dn_->Clone();
-        muIsoUp->Add(FFsubtractedFinal_copy);
-        muIsoDn->Add(FFsubtractedFinal_copy);
+        TH1D* trigUp = (TH1D*)syst_.at("ZZ4P0FHist_trig").up_->Clone();
+        TH1D* trigDn = (TH1D*)syst_.at("ZZ4P0FHist_trig").dn_->Clone();
+        trigUp->Add(FFsubtractedFinal_copy);
+        trigDn->Add(FFsubtractedFinal_copy);
 
-        TH1D* muTrigUp = (TH1D*)syst_.at("ZZ4P0FHist_trig").up_->Clone();
-        TH1D* muTrigDn = (TH1D*)syst_.at("ZZ4P0FHist_trig").dn_->Clone();
-        muTrigUp->Add(FFsubtractedFinal_copy);
-        muTrigDn->Add(FFsubtractedFinal_copy);
-
-        TH1D* muRecoUp = (TH1D*)syst_.at("ZZ4P0FHist_muReco").up_->Clone();
-        TH1D* muRecoDn = (TH1D*)syst_.at("ZZ4P0FHist_muReco").dn_->Clone();
-        muRecoUp->Add(FFsubtractedFinal_copy);
-        muRecoDn->Add(FFsubtractedFinal_copy);
-
-        TH1D* elScaleUp = (TH1D*)syst_.at("ZZ4P0FHist_elScale").up_->Clone();
-        TH1D* elScaleDn = (TH1D*)syst_.at("ZZ4P0FHist_elScale").dn_->Clone();
-        elScaleUp->Add(FFsubtractedFinal_copy);
-        elScaleDn->Add(FFsubtractedFinal_copy);
-
-        TH1D* elSigmaUp = (TH1D*)syst_.at("ZZ4P0FHist_elSigma").up_->Clone();
-        TH1D* elSigmaDn = (TH1D*)syst_.at("ZZ4P0FHist_elSigma").dn_->Clone();
-        elSigmaUp->Add(FFsubtractedFinal_copy);
-        elSigmaDn->Add(FFsubtractedFinal_copy);
+        TH1D* recoUp = (TH1D*)syst_.at("ZZ4P0FHist_reco").up_->Clone();
+        TH1D* recoDn = (TH1D*)syst_.at("ZZ4P0FHist_reco").dn_->Clone();
+        recoUp->Add(FFsubtractedFinal_copy);
+        recoDn->Add(FFsubtractedFinal_copy);
 
         std::vector<double> x0, y0, errx, erryDn, erryUp;
-
-        auto sq = [] (const double val) { return val*val; };
 
         for (unsigned idx = 1; idx <= tmpHist->GetNbinsX(); idx++) {
           x0.push_back(tmpHist->GetBinCenter(idx));
           y0.push_back(tmpHist->GetBinContent(idx));
           errx.push_back(tmpHist->GetBinWidth(idx)/2.);
 
-          double valIdUp = idUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valIdDn = tmpHist->GetBinContent(idx) - idDn->GetBinContent(idx);
           double valFFup = ffUpAdded->GetBinContent(idx) - tmpHist->GetBinContent(idx);
           double valFFdn = tmpHist->GetBinContent(idx) - ffDnAdded->GetBinContent(idx);
-          double valFFupM = ffUpMAdded->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valFFdnM = tmpHist->GetBinContent(idx) - ffDnMAdded->GetBinContent(idx);
-          double valMuScaleUp = muScaleUpAdded->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valMuScaleDn = tmpHist->GetBinContent(idx) - muScaleDnAdded->GetBinContent(idx);
-          double valMuSmearUp = muSmearUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valMuSmearDn = tmpHist->GetBinContent(idx) - muSmearDn->GetBinContent(idx);
-          double valMuIdUp = muIdUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valMuIdDn = tmpHist->GetBinContent(idx) - muIdDn->GetBinContent(idx);
-          double valMuIsoUp = muIsoUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valMuIsoDn = tmpHist->GetBinContent(idx) - muIsoDn->GetBinContent(idx);
-          double valTrigUp = muTrigUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valTrigDn = tmpHist->GetBinContent(idx) - muTrigDn->GetBinContent(idx);
-          double valMuRecoUp = muRecoUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valMuRecoDn = tmpHist->GetBinContent(idx) - muRecoDn->GetBinContent(idx);
-          double valElScaleUp = elScaleUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valElScaleDn = tmpHist->GetBinContent(idx) - elScaleDn->GetBinContent(idx);
-          double valElSigmaUp = elSigmaUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
-          double valElSigmaDn = tmpHist->GetBinContent(idx) - elSigmaDn->GetBinContent(idx);
+          double scaleUp = scaleUpAdded->GetBinContent(idx) - tmpHist->GetBinContent(idx);
+          double scaleDn = tmpHist->GetBinContent(idx) - scaleDnAdded->GetBinContent(idx);
+          double valSmearUp = smearUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
+          double valSmearDn = tmpHist->GetBinContent(idx) - smearDn->GetBinContent(idx);
+          double valIdUp = idUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
+          double valIdDn = tmpHist->GetBinContent(idx) - idDn->GetBinContent(idx);
+          double valIsoUp = isoUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
+          double valIsoDn = tmpHist->GetBinContent(idx) - isoDn->GetBinContent(idx);
+          double valTrigUp = trigUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
+          double valTrigDn = tmpHist->GetBinContent(idx) - trigDn->GetBinContent(idx);
+          double valRecoUp = recoUp->GetBinContent(idx) - tmpHist->GetBinContent(idx);
+          double valRecoDn = tmpHist->GetBinContent(idx) - recoDn->GetBinContent(idx);
 
-          erryUp.push_back( std::sqrt( sq(valIdUp) + sq(valFFup) + sq(valFFupM) + sq(valMuScaleUp)
-                                       + sq(valMuSmearUp) + sq(valMuIdUp) + sq(valMuIsoUp) + sq(valTrigUp)
-                                       + sq(valMuRecoUp) + sq(valElScaleUp) + sq(valElSigmaUp) ) );
-          erryDn.push_back( std::sqrt( sq(valIdDn) + sq(valFFdn) + sq(valFFdnM) + sq(valMuScaleDn)
-                                       + sq(valMuSmearDn) + sq(valMuIdDn) + sq(valMuIsoDn) + sq(valTrigDn)
-                                       + sq(valMuRecoDn) + sq(valElScaleDn) + sq(valElSigmaDn) ) );
+          erryUp.push_back( std::sqrt(valFFup*valFFup + scaleUp*scaleUp + valSmearUp*valSmearUp
+                                      + valIdUp*valIdUp + valIsoUp*valIsoUp + valTrigUp*valTrigUp + valRecoUp*valRecoUp) );
+          erryDn.push_back( std::sqrt(valFFdn*valFFdn + scaleDn*scaleDn + valSmearDn*valSmearDn
+                                      + valIdDn*valIdDn + valIsoDn*valIsoDn + valTrigDn*valTrigDn + valRecoDn*valRecoDn) );
         }
 
         auto gr = new TGraphAsymmErrors(tmpHist->GetNbinsX(),&(x0[0]),&(y0[0]),&(errx[0]),&(errx[0]),&(erryDn[0]),&(erryUp[0]));
@@ -1069,59 +950,41 @@ void runREMuFF(TString era) {
           dir_->WriteTObject(FF3P1Fsubtracted,"3P1F");
           dir_->WriteTObject(ZZ4P0FHist_,"ZZ");
 
-          dir_->WriteTObject(FF3P1Fsubtracted_ffUp,"3P1F_resolvedEleFakeFactorUp");
-          dir_->WriteTObject(FF3P1Fsubtracted_ffDn,"3P1F_resolvedEleFakeFactorDown");
-          dir_->WriteTObject(syst_.at("FF2P2FHist_ffEl").up_,"2P2F_resolvedEleFakeFactorUp");
-          dir_->WriteTObject(syst_.at("FF2P2FHist_ffEl").dn_,"2P2F_resolvedEleFakeFactorDown");
-          dir_->WriteTObject(FF3P1Fsubtracted_ffUpM,"3P1F_resolvedMuFakeFactorUp");
-          dir_->WriteTObject(FF3P1Fsubtracted_ffDnM,"3P1F_resolvedMuFakeFactorDown");
-          dir_->WriteTObject(syst_.at("FF2P2FHist_ffMu").up_,"2P2F_resolvedMuFakeFactorUp");
-          dir_->WriteTObject(syst_.at("FF2P2FHist_ffMu").dn_,"2P2F_resolvedMuFakeFactorDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_idEl").up_,"ZZ_modHeepIdUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_idEl").dn_,"ZZ_modHeepIdDown");
-          dir_->WriteTObject(FF3P1Fsubtracted_idUp,"3P1F_modHeepIdUp");
-          dir_->WriteTObject(FF3P1Fsubtracted_idDn,"3P1F_modHeepIdDown");
-          dir_->WriteTObject(FF3P1Fsubtracted_muScaleUp,"3P1F_muMomentumScaleUp");
-          dir_->WriteTObject(FF3P1Fsubtracted_muScaleDn,"3P1F_muMomentumScaleDown");
-          dir_->WriteTObject(syst_.at("FF2P2FHist_muScale").up_,"2P2F_muMomentumScaleUp");
-          dir_->WriteTObject(syst_.at("FF2P2FHist_muScale").dn_,"2P2F_muMomentumScaleDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muScale").up_,"ZZ_muMomentumScaleUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muScale").dn_,"ZZ_muMomentumScaleDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muSmear").up_,"ZZ_muMomentumSmearUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muSmear").dn_,"ZZ_muMomentumSmearDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muId").up_,"ZZ_highPtIdUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muId").dn_,"ZZ_highPtIdDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muIso").up_,"ZZ_muLooseIsoUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muIso").dn_,"ZZ_muLooseIsoDown");
+          dir_->WriteTObject(FF3P1Fsubtracted_ffUp,"3P1F_resolvedMuFakeFactorUp");
+          dir_->WriteTObject(FF3P1Fsubtracted_ffDn,"3P1F_resolvedMuFakeFactorDown");
+          dir_->WriteTObject(syst_.at("FF2P2FHist_ff").up_,"2P2F_resolvedMuFakeFactorUp");
+          dir_->WriteTObject(syst_.at("FF2P2FHist_ff").dn_,"2P2F_resolvedMuFakeFactorDown");
+          dir_->WriteTObject(FF3P1Fsubtracted_scaleUp,"3P1F_muMomentumScaleUp");
+          dir_->WriteTObject(FF3P1Fsubtracted_scaleDn,"3P1F_muMomentumScaleDown");
+          dir_->WriteTObject(syst_.at("FF2P2FHist_scale").up_,"2P2F_muMomentumScaleUp");
+          dir_->WriteTObject(syst_.at("FF2P2FHist_scale").dn_,"2P2F_muMomentumScaleDown");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_scale").up_,"ZZ_muMomentumScaleUp");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_scale").dn_,"ZZ_muMomentumScaleDown");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_smear").up_,"ZZ_muMomentumSmearUp");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_smear").dn_,"ZZ_muMomentumSmearDown");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_id").up_,"ZZ_highPtIdUp");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_id").dn_,"ZZ_highPtIdDown");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_iso").up_,"ZZ_muLooseIsoUp");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_iso").dn_,"ZZ_muLooseIsoDown");
           dir_->WriteTObject(syst_.at("ZZ4P0FHist_trig").up_,"ZZ_muTrigUp");
           dir_->WriteTObject(syst_.at("ZZ4P0FHist_trig").dn_,"ZZ_muTrigDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muReco").up_,"ZZ_muRecoUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_muReco").dn_,"ZZ_muRecoDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_elScale").up_,"ZZ_elEnergyScaleUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_elScale").dn_,"ZZ_elEnergyScaleDown");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_elSigma").up_,"ZZ_elEnergySigmaUp");
-          dir_->WriteTObject(syst_.at("ZZ4P0FHist_elSigma").dn_,"ZZ_elEnergySigmaDown");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_reco").up_,"ZZ_muRecoUp");
+          dir_->WriteTObject(syst_.at("ZZ4P0FHist_reco").dn_,"ZZ_muRecoDown");
 
           for (unsigned idx=0; idx<sigHist_.size(); idx++) {
             dir_->WriteTObject(sigHist_.at(idx),sigFiles_.at(idx).name_);
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_idEl").up_,sigFiles_.at(idx).name_+"_modHeepIdUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_idEl").dn_,sigFiles_.at(idx).name_+"_modHeepIdDown");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muScale").up_,sigFiles_.at(idx).name_+"_muMomentumScaleUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muScale").dn_,sigFiles_.at(idx).name_+"_muMomentumScaleDown");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muSmear").up_,sigFiles_.at(idx).name_+"_muMomentumSmearUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muSmear").dn_,sigFiles_.at(idx).name_+"_muMomentumSmearDown");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muId").up_,sigFiles_.at(idx).name_+"_highPtIdUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muId").dn_,sigFiles_.at(idx).name_+"_highPtIdDown");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muIso").up_,sigFiles_.at(idx).name_+"_muLooseIsoUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muIso").dn_,sigFiles_.at(idx).name_+"_muLooseIsoDown");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_scale").up_,sigFiles_.at(idx).name_+"_muMomentumScaleUp");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_scale").dn_,sigFiles_.at(idx).name_+"_muMomentumScaleDown");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_smear").up_,sigFiles_.at(idx).name_+"_muMomentumSmearUp");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_smear").dn_,sigFiles_.at(idx).name_+"_muMomentumSmearDown");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_id").up_,sigFiles_.at(idx).name_+"_highPtIdUp");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_id").dn_,sigFiles_.at(idx).name_+"_highPtIdDown");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_iso").up_,sigFiles_.at(idx).name_+"_muLooseIsoUp");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_iso").dn_,sigFiles_.at(idx).name_+"_muLooseIsoDown");
             dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_trig").up_,sigFiles_.at(idx).name_+"_muTrigUp");
             dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_trig").dn_,sigFiles_.at(idx).name_+"_muTrigDown");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muReco").up_,sigFiles_.at(idx).name_+"_muRecoUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_muReco").dn_,sigFiles_.at(idx).name_+"_muRecoDown");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_elScale").up_,sigFiles_.at(idx).name_+"_elEnergyScaleUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_elScale").dn_,sigFiles_.at(idx).name_+"_elEnergyScaleDown");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_elSigma").up_,sigFiles_.at(idx).name_+"_elEnergySigmaUp");
-            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_elSigma").dn_,sigFiles_.at(idx).name_+"_elEnergySigmaDown");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_reco").up_,sigFiles_.at(idx).name_+"_muRecoUp");
+            dir_->WriteTObject(sigSyst_.at(idx).at("sigHist_reco").dn_,sigFiles_.at(idx).name_+"_muRecoDown");
           }
         }
       }
@@ -1144,9 +1007,9 @@ void runREMuFF(TString era) {
     aloader4P0F.add(aloader4P0F3);
   }
 
-  aloader4P0F.preparecard("REMuFF_"+era+"_datacard.root","resolvedEMu");
+  aloader4P0F.preparecard("RMFF_"+era+"_datacard.root","resolvedMu");
   aloader4P0F.compare(canvas_1,2);
-  SaveAs(canvas_1,"REMuFF_4P0F_CR_llll_invM_zoomed.eps");
+  SaveAs(canvas_1,"RMFF_4P0F_CR_llll_invM_zoomed.eps");
   aloader4P0F.close();
 
   p1->SetLogy(0);
@@ -1157,14 +1020,14 @@ void runREMuFF(TString era) {
   if (era.Contains("run2")) {
     aloader4P0F1.load("ll1ll2_dr","20UL16APV");
     aloader4P0F2.load("ll1ll2_dr","20UL17");
-    aloader4P0F3.load("ll1ll2_dr","20UL18");
+   aloader4P0F3.load("ll1ll2_dr","20UL18");
     aloader4P0F.add(aloader4P0F1);
     aloader4P0F.add(aloader4P0F2);
     aloader4P0F.add(aloader4P0F3);
   }
 
   aloader4P0F.compare(canvas_1);
-  SaveAs(canvas_1,"REMuFF_4P0F_CR_ll1ll2_dr.png");
+  SaveAs(canvas_1,"RMFF_4P0F_CR_ll1ll2_dr.png");
 
   aloader4P0F.load("ll1_invM",postfix.Data());
 
@@ -1178,7 +1041,7 @@ void runREMuFF(TString era) {
   }
 
   aloader4P0F.compare(canvas_1,2);
-  SaveAs(canvas_1,"REMuFF_4P0F_CR_ll1_invM.png");
+  SaveAs(canvas_1,"RMFF_4P0F_CR_ll1_invM.png");
 
   aloader4P0F.load("ll1_dr",postfix.Data());
 
@@ -1192,7 +1055,7 @@ void runREMuFF(TString era) {
   }
 
   aloader4P0F.compare(canvas_1,2);
-  SaveAs(canvas_1,"REMuFF_4P0F_CR_ll1_dr.png");
+  SaveAs(canvas_1,"RMFF_4P0F_CR_ll1_dr.png");
 
   aloader4P0F.load("ll2_invM",postfix.Data());
 
@@ -1202,11 +1065,11 @@ void runREMuFF(TString era) {
     aloader4P0F3.load("ll2_invM","20UL18");
     aloader4P0F.add(aloader4P0F1);
     aloader4P0F.add(aloader4P0F2);
-    aloader4P0F.add(aloader4P0F3);
+   aloader4P0F.add(aloader4P0F3);
   }
 
   aloader4P0F.compare(canvas_1,2);
-  SaveAs(canvas_1,"REMuFF_4P0F_CR_ll2_invM.png");
+  SaveAs(canvas_1,"RMFF_4P0F_CR_ll2_invM.png");
 
   aloader4P0F.load("ll2_dr",postfix.Data());
 
@@ -1220,7 +1083,7 @@ void runREMuFF(TString era) {
   }
 
   aloader4P0F.compare(canvas_1,2);
-  SaveAs(canvas_1,"REMuFF_4P0F_CR_ll2_dr.png");
+  SaveAs(canvas_1,"RMFF_4P0F_CR_ll2_dr.png");
 
   return;
 }

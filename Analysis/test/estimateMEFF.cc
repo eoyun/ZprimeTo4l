@@ -9,7 +9,7 @@
 
 void estimateMEFF(TString era) {
   setTDRStyle();
-  // gStyle->SetLineWidth(2);
+  gStyle->SetOptFit(0);
 
   writeExtraText = true;       // if extra text
   extraText  = "Work in progress";  // default extra text is "Preliminary"
@@ -49,7 +49,7 @@ void estimateMEFF(TString era) {
   float R = 0.04*W_ref;
 
   // EB
-  TFile* datafile = new TFile("EleAnalyzer_"+era+"_data.root","READ");
+  TFile* datafile = new TFile("MergedEleCR_"+era+"_data.root","READ");
 
   auto estimateCenter = [] (const std::vector<double>& vec) -> std::vector<double> {
     std::vector<double> out;
@@ -111,33 +111,20 @@ void estimateMEFF(TString era) {
 
   auto errSS = new TGraphErrors(nbinsSS,&(xcenSS[0]),ybinSS,&(xbinwSS[0]),ciSS);
   errSS->SetFillColor(kBlue);
-  errSS->SetFillStyle(3003);
-
-  TF1* osboth = new TF1("osboth","[0]+[1]*x+[2]/sqrt(x)",50,1000);
-  osboth->SetLineColor(kRed);
-  osboth->SetLineWidth(2);
-  osboth->SetLineStyle(2);
-  TFitResultPtr fitOS = OSnum_rebin->Fit(osboth,"RS");
-  fitOS->SetName("fitOS");
-  double ciOS[nbinsOS];
-  fitOS->GetConfidenceIntervals(nbinsOS,1,0,&(xcenOS[0]),ciOS,0.95,false);
-  std::vector<double> xbinwOS = estimateWidth(xbinsOS);
-  double ybinOS[nbinsOS];
-
-  for (unsigned idx = 0; idx < nbinsOS; idx++) {
-    ybinOS[idx] = osboth->Eval(xcenOS[idx]);
-  }
-
-  auto errOS = new TGraphErrors(nbinsOS,&(xcenOS[0]),ybinOS,&(xbinwOS[0]),ciOS);
-  errOS->SetFillColor(kRed);
-  errOS->SetFillStyle(3001);
+  errSS->SetFillStyle(3004);
 
   TH1D* OSnumEta = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_eta_OSCR_EB_mixedME")->Clone();
   TH1D* OSdenomEta = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_eta_OSCR_EB_antiME")->Clone();
 
   OSnumEta->Divide( OSdenomEta );
-  TF1* osEta = new TF1("osEta","[0]",-1.5,1.5);
-  OSnumEta->Fit(osEta,"RS");
+
+  TH1D* SSnumEta = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_mixedME_SSll_eta")->Clone();
+  TH1D* SSdenomEta = (TH1D*)datafile->Get("mergedEleCRanalyzerData/2E_antiME_SSll_eta")->Clone();
+  SSdenomEta->Rebin(SSdenomEta->GetNbinsX()/SSnumEta->GetNbinsX());
+  SSdenomEta->Rebin(5);
+  SSnumEta->Rebin(5);
+
+  SSnumEta->Divide( SSdenomEta );
 
   TH2D* OSnum2d = (TH2D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_eta_OSCR_EB_mixedME")->Clone();
   TH2D* OSdenom2d = (TH2D*)datafile->Get("mergedEleCRanalyzerData/2E_Et_eta_OSCR_EB_antiME")->Clone();
@@ -153,20 +140,48 @@ void estimateMEFF(TString era) {
   os2d->SetParLimits(1,-0.001,0.001);
   OSnum2d->FitSlicesY(os2d,0,-1,0,"QNR",&aSlices);
 
-  TF1* par2 = new TF1("par2","[0]",-1.5,1.5);
-  ((TH1D*)aSlices.At(2))->Fit(par2,"RS");
-  OSnumEta->Scale(par2->GetParameter(0)/osEta->GetParameter(0)); // par2->GetParameter(0)
+  TF2* osboth = new TF2("osboth","[0]+[1]*y+[2]*sqrt(cosh(x)/y)",-1.4442,1.4442,50.,1000.);
+  osboth->SetLineColor(kRed);
+  osboth->SetLineWidth(2);
+  osboth->SetLineStyle(2);
+  TFitResultPtr fitOS = OSnum2d->Fit(osboth,"RS+");
+  fitOS->SetName("fitOS");
+  double ciOS[nbinsOS];
+  std::vector<double> xycenOS;
+  const double projectX = 0.75;
+  TString formula_projected;
+  formula_projected.Form("[0]+[1]*x+[2]*sqrt(cosh(%.2g)/x)",projectX);
+  TF1* osboth_projected = new TF1("osboth_projected",formula_projected,50.,1000.);
+  osboth_projected->SetLineColor(kRed);
+  osboth_projected->SetLineWidth(2);
+  osboth_projected->SetLineStyle(2);
+  osboth_projected->SetParameters(osboth->GetParameters());
+
+  for (const auto& xcen : xcenOS) {
+    xycenOS.push_back(projectX);
+    xycenOS.push_back(xcen);
+  }
+
+  fitOS->GetConfidenceIntervals(nbinsOS,2,1,&(xycenOS[0]),ciOS,0.95,false);
+  std::vector<double> xbinwOS = estimateWidth(xbinsOS);
+  double ybinOS[nbinsOS];
+
+  for (unsigned idx = 0; idx < nbinsOS; idx++) {
+    ybinOS[idx] = osboth->Eval(projectX,xcenOS[idx]);
+  }
+
+  auto errOS = new TGraphErrors(nbinsOS,&(xcenOS[0]),ybinOS,&(xbinwOS[0]),ciOS);
+  errOS->SetFillColor(kRed);
+  errOS->SetFillStyle(3005);
 
   // save file
   TFile* outfile = new TFile("MEFF_"+era+".root","RECREATE");
   SSnum_rebin->Write();
-  OSnum_rebin->Write();
-  OSnumEta->Write();
+  OSnum2d->Write();
   ssboth->Write();
   osboth->Write();
   fitSS->Write();
   fitOS->Write();
-  aSlices.At(2)->Write();
   outfile->Close();
 
   auto* canvas = new TCanvas("canvas","canvas",50,50,W,H);
@@ -183,7 +198,7 @@ void estimateMEFF(TString era) {
   canvas->SetTicky(0);
 
   // EB
-  auto legend = std::make_unique<TLegend>(0.85,0.8,0.95,0.9);
+  auto legend = std::make_unique<TLegend>(0.8,0.75,0.95,0.9);
   legend->SetBorderSize(0);
   legend->AddEntry(SSnum_rebin,"SS");
   legend->AddEntry(OSnum_rebin,"OS");
@@ -195,6 +210,7 @@ void estimateMEFF(TString era) {
   OSnum_rebin->SetStats(0);
   OSnum_rebin->SetLineColor(kRed);
   OSnum_rebin->Draw("E1");
+  osboth_projected->Draw("same");
 
   SSnum_rebin->SetLineColor(kBlue);
   SSnum_rebin->SetLineWidth(2);
@@ -203,7 +219,7 @@ void estimateMEFF(TString era) {
   errOS->Draw("3");
   legend->Draw();
 
-  TPaveText* textlow = new TPaveText(0.12,0.65,0.3,0.69,"NDC");
+  TPaveText* textlow = new TPaveText(0.12,0.65,0.28,0.69,"NDC");
   textlow->SetBorderSize(0);
   textlow->SetFillStyle(3025);
   textlow->SetFillColor(0);
@@ -212,18 +228,13 @@ void estimateMEFF(TString era) {
   textlow->AddText(textsslow);
   ((TText*)textlow->GetListOfLines()->Last())->SetTextColor(kBlue);
   ((TText*)textlow->GetListOfLines()->Last())->SetTextAlign(12);
-  //TString textsshigh;
-  //textsshigh.Form("(%.3g#pm%.3g) #times E_{T} + %.3f#pm%.3f (< 100 GeV)", ssboth->GetParameter(2), ssboth->GetParError(2), ssboth->GetParameter(3), ssboth->GetParError(3));
-  //textlow->AddText(textsshigh);
-  //((TText*)textlow->GetListOfLines()->Last())->SetTextColor(kBlue);
-  //((TText*)textlow->GetListOfLines()->Last())->SetTextAlign(32);
 
-  TPaveText* texthigh = new TPaveText(0.3,0.645,0.95,0.685,"NDC");
+  TPaveText* texthigh = new TPaveText(0.28,0.645,0.965,0.685,"NDC");
   texthigh->SetBorderSize(0);
   texthigh->SetFillColor(0);
   texthigh->SetFillStyle(3025);
   TString textoslow;
-  textoslow.Form("%.3f#pm%.3f + (%.3g#pm%.3g)#timesE_{T} + (%.3g#pm%.3g)/#surd E_{T}", osboth->GetParameter(0), osboth->GetParError(0),osboth->GetParameter(1), osboth->GetParError(1), osboth->GetParameter(2), osboth->GetParError(2));
+  textoslow.Form("%.3f#pm%.3f + (%.3g#pm%.3g)#timesp_{T} + (%.3g#pm%.3g)/#surdE", osboth->GetParameter(0), osboth->GetParError(0),osboth->GetParameter(1), osboth->GetParError(1), osboth->GetParameter(2), osboth->GetParError(2));
   texthigh->AddText(textoslow);
   ((TText*)texthigh->GetListOfLines()->Last())->SetTextColor(kRed);
   ((TText*)texthigh->GetListOfLines()->Last())->SetTextAlign(12);
@@ -239,7 +250,7 @@ void estimateMEFF(TString era) {
   canvas->Update();
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
-  canvas->SaveAs("FF_2E.png");
+  canvas->SaveAs("MEFF_Et_"+era+".pdf");
 
   OSnumEta->GetYaxis()->SetRangeUser(0.,1.0);
   OSnumEta->SetLineWidth(2);
@@ -247,15 +258,75 @@ void estimateMEFF(TString era) {
   OSnumEta->GetXaxis()->SetTitle("#eta_{SC}");
   OSnumEta->SetLineColor(kRed);
   OSnumEta->Draw("E1");
+  SSnumEta->SetLineWidth(2);
+  SSnumEta->SetLineColor(kBlue);
+  SSnumEta->Draw("E1&same");
+  OSnumEta->Draw("E1&same");
+  legend->Draw();
+
+  double projectY = 65.;
+  TString formula_eta;
+  formula_eta.Form("[0]+[1]*%.3g+[2]*sqrt(cosh(x)/%.3g)",projectY,projectY);
+  TF1* osboth_eta = new TF1("osboth_eta",formula_eta,-1.4442,1.4442);
+  osboth_eta->SetLineColor(kRed);
+  osboth_eta->SetLineWidth(2);
+  osboth_eta->SetLineStyle(2);
+  osboth_eta->SetParameters(osboth->GetParameters());
+  osboth_eta->Draw("same");
+
+  const int binstart = OSnumEta->FindFixBin(-1.5);
+  const int binend = OSnumEta->FindFixBin(1.5);
+  const unsigned nbinsEta = binend-binstart+1;
+  std::vector<double> etaCenter, etaCenterXY, xbinwEta;
+  double ciOSeta[nbinsEta];
+
+  for (int bin=binstart; bin<=binend; bin++) {
+    etaCenter.push_back(OSnumEta->GetBinCenter(bin));
+    etaCenterXY.push_back(OSnumEta->GetBinCenter(bin));
+    etaCenterXY.push_back(projectY);
+    xbinwEta.push_back(0.);
+  }
+
+  fitOS->GetConfidenceIntervals(nbinsEta,2,1,&(etaCenterXY[0]),ciOSeta,0.95,false);
+  double ybinOSeta[nbinsEta];
+
+  for (unsigned idx = 0; idx < nbinsEta; idx++) {
+    ybinOSeta[idx] = osboth->Eval(etaCenter.at(idx),projectY);
+  }
+
+  auto errOSeta = new TGraphErrors(nbinsEta,&(etaCenter[0]),ybinOSeta,&(xbinwEta[0]),ciOSeta);
+  errOSeta->SetFillColor(kRed);
+  errOSeta->SetFillStyle(3005);
+  errOSeta->Draw("3");
+
+  TF1* ssEta = new TF1("ssEta","[0]",-1.4442,1.4442);
+  ssEta->SetLineColor(kBlue);
+  ssEta->SetLineWidth(2);
+  ssEta->SetLineStyle(2);
+  ssEta->SetParameters(ssboth->GetParameters());
+  ssEta->Draw("same");
+
+  double etaSS[2] = {-1.4442,1.4442};
+  double ybinSSeta[2] = {ssEta->GetParameter(0),ssEta->GetParameter(0)};
+  double ciSSeta[2] = {ciSS[0],ciSS[0]};
+  auto errSSeta = new TGraphErrors(2,etaSS,ybinSSeta,&(xbinwEta[0]),ciSSeta);
+  errSSeta->SetFillColor(kBlue);
+  errSSeta->SetFillStyle(3004);
+  errSSeta->Draw("3");
 
   CMS_lumi( canvas, iPeriod, iPos );
 
   canvas->Update();
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
-  canvas->SaveAs("FF_eta.png");
+  canvas->SaveAs("MEFF_eta_"+era+".pdf");
 
-  OSnum2d->Draw("colz");
+  CMS_lumi( canvas, iPeriod, iPos );
+
+  extraText = "Internal";
+
+  OSnum2d->Draw("col");
+  CMS_lumi( canvas, iPeriod, iPos );
   canvas->SaveAs("FF_2d.png");
 
   TF1* par0 = new TF1("par0","[0]",-1.5,1.5);
@@ -265,7 +336,7 @@ void estimateMEFF(TString era) {
   canvas->Update();
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
-  canvas->SaveAs("FF_slice0.png");
+  canvas->SaveAs("MEFF_slice0_"+era+".pdf");
 
   TF1* par1 = new TF1("par1","[0]",-1.5,1.5);
   ((TH1D*)aSlices.At(1))->Fit(par1,"RS");
@@ -274,22 +345,23 @@ void estimateMEFF(TString era) {
   canvas->Update();
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
-  canvas->SaveAs("FF_slice1.png");
+  canvas->SaveAs("MEFF_slice1_"+era+".pdf");
 
+  TF1* par2cosh = new TF1("par2cosh","[0]*sqrt(cosh(x))",-1.5,1.5);
+  ((TH1D*)aSlices.At(2))->Fit(par2cosh,"RS");
   aSlices.At(2)->Draw("E1");
-  OSnumEta->Draw("E1&same");
   CMS_lumi( canvas, iPeriod, iPos );
   canvas->Update();
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
-  canvas->SaveAs("FF_slice2.png");
+  canvas->SaveAs("MEFF_slice2_"+era+".pdf");
 
   aSlices.At(3)->Draw("E1");
   CMS_lumi( canvas, iPeriod, iPos );
   canvas->Update();
   canvas->RedrawAxis();
   canvas->GetFrame()->Draw();
-  canvas->SaveAs("FF_slice3.png");
+  canvas->SaveAs("MEFF_slice3_"+era+".pdf");
 
   return;
 }
