@@ -10,6 +10,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -24,6 +25,7 @@
 
 #include "ZprimeTo4l/Analysis/interface/PairingHelper.h"
 #include "ZprimeTo4l/Analysis/interface/ElectronSystematicsHelper.h"
+#include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
 
 #include "TH2D.h"
 #include "TF1.h"
@@ -43,6 +45,7 @@ private:
   bool isMC_;
 
   const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
+  const edm::EDGetTokenT<edm::View<pat::Muon>> srcMuon_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
@@ -54,20 +57,17 @@ private:
 
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
 
-  const edm::FileInPath recoSFpath_;
   const edm::FileInPath FFpath_;
   const edm::FileInPath purwgtPath_;
   const std::vector<std::string> METfilterList_;
-  const std::vector<std::string> trigList_;
+  const std::vector<std::string> trigFilters_;
+  const std::vector<std::string> trigUnseededFilters_;
   const double etThres1_;
   const double etThres2_;
   const double ffSystCL95_;
 
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,TH2*> histo2d_;
-
-  std::unique_ptr<TFile> recoSFfile_;
-  TH2D* recoSF_;
 
   std::unique_ptr<TFile> FFfile_;
   TF1* ff_dr_;
@@ -77,11 +77,24 @@ private:
   TH1D* purwgt_;
 
   ElectronSystematicsHelper systHelperEle_;
+
+  TTree* numerTree_ = nullptr;
+  float numerPt_ = -1.;
+  float numerDr_ = -1.;
+  float numerWgt_ = 0.;
+  int numerIsEB_ = -1;
+
+  TTree* denomTree_ = nullptr;
+  float denomPt_ = -1.;
+  float denomDr_ = -1.;
+  float denomWgt_ = 0.;
+  int denomIsEB_ = -1;
 };
 
 ResolvedEleCRanalyzer::ResolvedEleCRanalyzer(const edm::ParameterSet& iConfig) :
 isMC_(iConfig.getParameter<bool>("isMC")),
 srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
+srcMuon_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
@@ -90,15 +103,18 @@ METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
 addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
-recoSFpath_(iConfig.getParameter<edm::FileInPath>("recoSFpath")),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
-trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
+trigFilters_(iConfig.getParameter<std::vector<std::string>>("trigFilters")),
+trigUnseededFilters_(iConfig.getParameter<std::vector<std::string>>("trigUnseededFilters")),
 etThres1_(iConfig.getParameter<double>("etThres1")),
 etThres2_(iConfig.getParameter<double>("etThres2")),
 ffSystCL95_(iConfig.getParameter<double>("ffSystCL95")),
-systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("modHeepSFpath"))) {
+systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("modHeepSFpath"),
+                                         iConfig.getParameter<edm::FileInPath>("recoSFpath"),
+                                         iConfig.getParameter<edm::FileInPath>("trigSFpath"),
+                                         iConfig.getParameter<edm::FileInPath>("trigUnseededSFpath"))) {
   usesResource("TFileService");
 
   systHelperEle_.SetModifiedHeepSF(iConfig.getParameter<double>("modHeepSFmuEB1"),
@@ -113,14 +129,29 @@ systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("
   systHelperEle_.SetModifiedHeepPol1(iConfig.getParameter<std::string>("modHeepPolEB1str"),
                                      iConfig.getParameter<std::string>("modHeepPolEB2str"),
                                      iConfig.getParameter<std::string>("modHeepPolEEstr"));
+
+  std::vector<double> trigSF = iConfig.getParameter<std::vector<double>>("trigSF");
+  std::vector<double> trigSFcl95 = iConfig.getParameter<std::vector<double>>("trigSFcl95");
+  std::vector<double> trigSFupper = iConfig.getParameter<std::vector<double>>("trigSFupper");
+  std::vector<std::string> trigPol = iConfig.getParameter<std::vector<std::string>>("trigPol");
+  systHelperEle_.SetTrigSF(trigSF.at(0), trigSF.at(1), trigSF.at(2));
+  systHelperEle_.SetTrigSFcl95(trigSFcl95.at(0), trigSFcl95.at(1), trigSFcl95.at(2));
+  systHelperEle_.SetTrigSFupper(trigSFupper.at(0), trigSFupper.at(1), trigSFupper.at(2));
+  systHelperEle_.SetTrigPol1(trigPol.at(0), trigPol.at(1), trigPol.at(2));
+
+  std::vector<double> trigUnseededSF = iConfig.getParameter<std::vector<double>>("trigUnseededSF");
+  std::vector<double> trigUnseededSFcl95 = iConfig.getParameter<std::vector<double>>("trigUnseededSFcl95");
+  std::vector<double> trigUnseededSFupper = iConfig.getParameter<std::vector<double>>("trigUnseededSFupper");
+  std::vector<std::string> trigUnseededPol = iConfig.getParameter<std::vector<std::string>>("trigUnseededPol");
+  systHelperEle_.SetTrigUnseededSF(trigUnseededSF.at(0), trigUnseededSF.at(1), trigUnseededSF.at(2));
+  systHelperEle_.SetTrigUnseededSFcl95(trigUnseededSFcl95.at(0), trigUnseededSFcl95.at(1), trigUnseededSFcl95.at(2));
+  systHelperEle_.SetTrigUnseededSFupper(trigUnseededSFupper.at(0), trigUnseededSFupper.at(1), trigUnseededSFupper.at(2));
+  systHelperEle_.SetTrigUnseededPol1(trigUnseededPol.at(0), trigUnseededPol.at(1), trigUnseededPol.at(2));
 }
 
 void ResolvedEleCRanalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
-
-  recoSFfile_ = std::make_unique<TFile>(recoSFpath_.fullPath().c_str(),"READ");
-  recoSF_ = static_cast<TH2D*>(recoSFfile_->Get("EGamma_SF2D"));
 
   FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
   ff_dr_ = static_cast<TF1*>(FFfile_->FindObjectAny("REFF_dr_all"));
@@ -154,6 +185,10 @@ void ResolvedEleCRanalyzer::beginJob() {
 
   histo1d_["3P0F_dr_EB"] = fs->make<TH1D>("3P0F_dr_EB","3P0F Pass min dR(ll) (EB)",128,0.,6.4);
   histo1d_["3P0F_dr_EE"] = fs->make<TH1D>("3P0F_dr_EE","3P0F Pass min dR(ll) (EE)",128,0.,6.4);
+  histo1d_["3P0F_dr_EEneg_preHEM"] = fs->make<TH1D>("3P0F_dr_EEneg_preHEM","3P0F Pass min dR(ll) (EE)",128,0.,6.4);
+  histo1d_["3P0F_dr_EEneg_postHEM"] = fs->make<TH1D>("3P0F_dr_EEneg_postHEM","3P0F Pass min dR(ll) (EE)",128,0.,6.4);
+  histo1d_["3P0F_dr_preHEM"] = fs->make<TH1D>("3P0F_dr_preHEM","3P0F Pass min dR(ll)",128,0.,6.4);
+  histo1d_["3P0F_dr_postHEM"] = fs->make<TH1D>("3P0F_dr_postHEM","3P0F Pass min dR(ll)",128,0.,6.4);
   histo1d_["3P0F_dr"] = fs->make<TH1D>("3P0F_dr","3P0F Pass min dR(ll)",128,0.,6.4);
 
   // 2P1F
@@ -178,6 +213,10 @@ void ResolvedEleCRanalyzer::beginJob() {
 
   histo1d_["2P1F_dr_EB"] = fs->make<TH1D>("2P1F_dr_EB","2P1F Fail min dR(ll) (EB)",128,0.,6.4);
   histo1d_["2P1F_dr_EE"] = fs->make<TH1D>("2P1F_dr_EE","2P1F Fail min dR(ll) (EE)",128,0.,6.4);
+  histo1d_["2P1F_dr_EEneg_preHEM"] = fs->make<TH1D>("2P1F_dr_EEneg_preHEM","2P1F Fail min dR(ll) (EE)",128,0.,6.4);
+  histo1d_["2P1F_dr_EEneg_postHEM"] = fs->make<TH1D>("2P1F_dr_EEneg_postHEM","2P1F Fail min dR(ll) (EE)",128,0.,6.4);
+  histo1d_["2P1F_dr_preHEM"] = fs->make<TH1D>("2P1F_dr_preHEM","2P1F Fail min dR(ll)",128,0.,6.4);
+  histo1d_["2P1F_dr_postHEM"] = fs->make<TH1D>("2P1F_dr_postHEM","2P1F Fail min dR(ll)",128,0.,6.4);
   histo1d_["2P1F_dr"] = fs->make<TH1D>("2P1F_dr","2P1F Fail min dR(ll)",128,0.,6.4);
 
   // 2P2F
@@ -339,6 +378,10 @@ void ResolvedEleCRanalyzer::beginJob() {
   histo1d_["4P0F_CR_llll_invM_sigmaDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_sigmaDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_idUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_idUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_idDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_idDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elRecoUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_elRecoUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elRecoDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_elRecoDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elTrigUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_elTrigUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_elTrigDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_elTrigDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_pt"] = fs->make<TH1D>("4P0F_CR_llll_pt","4P0F CR p_{T}(4l);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll1ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll1ll2_dr","4P0F CR dR(ll1ll2)",64,0.,6.4);
   histo1d_["4P0F_CR_ll1_invM"] = fs->make<TH1D>("4P0F_CR_ll1_invM","4P0F CR M(ll1);M [GeV];",100,0.,200.);
@@ -347,10 +390,21 @@ void ResolvedEleCRanalyzer::beginJob() {
   histo1d_["4P0F_CR_ll2_invM"] = fs->make<TH1D>("4P0F_CR_ll2_invM","4P0F CR M(ll2);M [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll2_pt"] = fs->make<TH1D>("4P0F_CR_ll2_pt","4P0F CR p_{T}(ll2);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll2_dr","4P0F CR dR(ll2)",64,0.,6.4);
+
+  numerTree_ = fs->make<TTree>("numerTree","numerTree");
+  numerTree_->Branch("pt",&numerPt_,"pt/F");
+  numerTree_->Branch("dr",&numerDr_,"dr/F");
+  numerTree_->Branch("wgt",&numerWgt_,"wgt/F");
+  numerTree_->Branch("isEB",&numerIsEB_,"isEB/I");
+
+  denomTree_ = fs->make<TTree>("denomTree","denomTree");
+  denomTree_->Branch("pt",&denomPt_,"pt/F");
+  denomTree_->Branch("dr",&denomDr_,"dr/F");
+  denomTree_->Branch("wgt",&denomWgt_,"wgt/F");
+  denomTree_->Branch("isEB",&denomIsEB_,"isEB/I");
 }
 
 void ResolvedEleCRanalyzer::endJob() {
-  recoSFfile_->Close();
   FFfile_->Close();
   purwgtFile_->Close();
 }
@@ -400,25 +454,6 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<edm::View<pat::TriggerObjectStandAlone>> trigObjHandle;
   iEvent.getByToken(triggerobjectsToken_, trigObjHandle);
 
-  const unsigned int nTrig = trigResultHandle.product()->size();
-  std::vector<std::pair<std::string, int>> indices;
-  edm::TriggerNames trigList = iEvent.triggerNames(*trigResultHandle);
-
-  bool isFired = false;
-
-  for (unsigned int iTrig = 0; iTrig != nTrig; iTrig++) {
-    std::string trigName = trigList.triggerName(iTrig);
-    for (unsigned int jTrig = 0; jTrig != trigList_.size(); jTrig++) {
-      if (trigName.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos) {
-        if (trigResultHandle.product()->accept(iTrig))
-          isFired = true;
-      }
-    } // wanted triggers
-  } // fired triggers
-
-  if (!isFired)
-    return;
-
   histo1d_["cutflow_4E"]->Fill(1.5,aWeight);
 
   edm::Handle<edm::TriggerResults> METfilterHandle;
@@ -444,21 +479,22 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   histo1d_["cutflow_4E"]->Fill(2.5,aWeight);
 
   std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> trigObjs;
+  std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> trigObjsUnseeded;
 
   for (unsigned iTrig = 0; iTrig < trigObjHandle->size(); iTrig++) {
     const auto& trigObj = trigObjHandle->refAt(iTrig);
     auto trigObjInst = trigObjHandle->at(iTrig); // workaround for copy
-    trigObjInst.unpackPathNames(trigList);
-    const auto& pathNames = trigObjInst.pathNames();
+    trigObjInst.unpackFilterLabels(iEvent, *trigResultHandle);
 
-    for (const auto name : pathNames) {
-      for (unsigned int jTrig = 0; jTrig < trigList_.size(); jTrig++) {
-        if ( name.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos &&
-             trigObjInst.hasPathName(name,true,true) ) {
-          trigObjs.push_back(trigObj);
-        }
-      } // wanted triggers
-    } // fired triggers
+    for (const auto& aname : trigFilters_) {
+      if (trigObjInst.hasFilterLabel(aname))
+        trigObjs.push_back(trigObj);
+    }
+
+    for (const auto& aname : trigUnseededFilters_) {
+      if (trigObjInst.hasFilterLabel(aname))
+        trigObjsUnseeded.push_back(trigObj);
+    }
   } // trigger objs
 
   edm::Ptr<reco::Vertex> primaryVertex;
@@ -496,9 +532,16 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       selected = true;
     }
 
-    if (!selected && aEle->et() > etThres2_ && aEle->ecalDriven()) {
-      auto castEle = aEle.castTo<pat::ElectronRef>();
-      nonHeepEles.push_back(castEle);
+    if (!selected) {
+      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
+      int32_t mask = 0x000007B0; // = 0111 1011 0000
+      int32_t pass = bitmap | mask;
+      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+
+      if (passMaskedId) {
+        auto castEle = aEle.castTo<pat::ElectronRef>();
+        nonHeepEles.push_back(castEle);
+      }
     }
   }
 
@@ -517,17 +560,38 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if (!accepted)
     return;
 
+  edm::Handle<edm::View<pat::Muon>> muonHandle;
+  iEvent.getByToken(srcMuon_, muonHandle);
+
+  std::vector<pat::MuonRef> highPtMuons;
+  std::vector<pat::MuonRef> highPtTrackerMuons;
+
+  for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
+    const auto& aMuon = muonHandle->refAt(idx);
+
+    if ( aMuon->tunePMuonBestTrack()->pt() < 20. || std::abs(aMuon->eta()) > 2.4 )
+      continue;
+
+    if ( muon::isHighPtMuon(*aMuon,*primaryVertex) )
+      highPtMuons.push_back(aMuon.castTo<pat::MuonRef>());
+    else if ( muon::isTrackerHighPtMuon(*aMuon,*primaryVertex) )
+      highPtTrackerMuons.push_back(aMuon.castTo<pat::MuonRef>());
+  }
+
+  if ( !highPtMuons.empty() || !highPtTrackerMuons.empty() )
+    return;
+
   histo1d_["cutflow_4E"]->Fill(4.5,aWeight);
 
   bool trigMatched1 = false;
   bool trigMatched2 = false;
 
-  for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
-    const auto& trigObj = trigObjs.at(idx);
-
+  for (const auto& trigObj : trigObjs) {
     if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),acceptEles.front()->eta(),acceptEles.front()->phi()) < 0.01 )
       trigMatched1 = true;
+  }
 
+  for (const auto& trigObj : trigObjsUnseeded) {
     if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),acceptEles.at(1)->eta(),acceptEles.at(1)->phi()) < 0.01 )
       trigMatched2 = true;
   }
@@ -535,24 +599,24 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   if ( !trigMatched1 || !trigMatched2 )
     return;
 
+  // SF
+  if (isMC_) {
+    aWeight *= systHelperEle_.GetTrigSF(acceptEles.front());
+    aWeight *= systHelperEle_.GetTrigUnseededSF(acceptEles.at(1));
+
+    for (const auto& aEle : acceptEles) {
+      aWeight *= systHelperEle_.GetRecoSF(aEle);
+      aWeight *= systHelperEle_.GetModifiedHeepSF(aEle);
+    }
+
+    for (const auto& aEle : nonHeepEles)
+      aWeight *= systHelperEle_.GetRecoSF(aEle);
+  }
+
   histo1d_["cutflow_4E"]->Fill(5.5,aWeight);
 
   if ( acceptEles.size()==4 )
     histo1d_["cutflow_4E"]->Fill(6.5,aWeight);
-
-  // SF
-  if (isMC_) {
-    for (const auto& aEle : acceptEles) {
-      double apt = aEle->pt() >= 500. ? 499.999 : aEle->pt();
-      aWeight *= recoSF_->GetBinContent( recoSF_->FindBin(aEle->superCluster()->eta(), apt ) );
-      aWeight *= systHelperEle_.GetModifiedHeepSF(aEle);
-    }
-
-    for (const auto& aEle : nonHeepEles) {
-      double apt = aEle->pt() >= 500. ? 499.999 : aEle->pt();
-      aWeight *= recoSF_->GetBinContent( recoSF_->FindBin(aEle->superCluster()->eta(), apt ) );
-    }
-  }
 
   auto modHeepSFcl95 = [this,&acceptEles] (const double wgt) -> std::pair<double,double> {
     if (!isMC_)
@@ -570,6 +634,32 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     return std::make_pair(wgtUp,wgtDn);
   };
 
+  auto recoSFcl95 = [this,&acceptEles,&nonHeepEles] (const double wgt, bool ignore=true) -> std::pair<double,double> {
+    if (!isMC_)
+      return std::make_pair(wgt,wgt);
+
+    double wgtUp = wgt;
+    double wgtDn = wgt;
+
+    for (const auto& aEle : acceptEles) {
+      double nominal = systHelperEle_.GetRecoSF(aEle);
+      double err = systHelperEle_.GetRecoSFerr(aEle);
+      wgtUp *= (nominal+err)/nominal;
+      wgtDn *= (nominal-err)/nominal;
+    } // acceptEles
+
+    if (!ignore) {
+      for (const auto& aEle : nonHeepEles) {
+        double nominal = systHelperEle_.GetRecoSF(aEle);
+        double err = systHelperEle_.GetRecoSFerr(aEle);
+        wgtUp *= (nominal+err)/nominal;
+        wgtDn *= (nominal-err)/nominal;
+      }
+    }
+
+    return std::make_pair(wgtUp,wgtDn);
+  };
+
   auto ciFF = [this] (const double dr) {
     const double ff = ff_dr_->Eval(dr);
     const double xval[1] = {dr};
@@ -577,6 +667,12 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     ffFitResult_->GetConfidenceIntervals(1,1,0,xval,ci,0.95,false);
 
     return std::hypot(ci[0],ff*ffSystCL95_);
+  };
+
+  auto isMergedEle = [this,&eleHandle,&addGsfTrkMap] (const pat::ElectronRef& aEle) {
+    bool isNotMerged = MergedLeptonHelperFct::isNotMerged(aEle,eleHandle,(*addGsfTrkMap)[aEle]);
+
+    return aEle->electronID("mvaMergedElectron") && !isNotMerged;
   };
 
   switch (acceptEles.size()) {
@@ -642,6 +738,12 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             histo1d_["4P0F_CR_llll_invM_sigmaDn"]->Fill(m4l_sigmaDn, aWeight);
             histo1d_["4P0F_CR_llll_invM_idUp"]->Fill(m4l, modHeepSFcl95(aWeight).first);
             histo1d_["4P0F_CR_llll_invM_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second);
+            histo1d_["4P0F_CR_llll_invM_elRecoUp"]->Fill(m4l, recoSFcl95(aWeight).first);
+            histo1d_["4P0F_CR_llll_invM_elRecoDn"]->Fill(m4l, recoSFcl95(aWeight).second);
+            histo1d_["4P0F_CR_llll_invM_elTrigUp"]->Fill(m4l, aWeight*systHelperEle_.GetTrigSFcl95UpDn(acceptEles.front()).first
+                                                                     *systHelperEle_.GetTrigUnseededSFcl95UpDn(acceptEles.front()).first);
+            histo1d_["4P0F_CR_llll_invM_elTrigDn"]->Fill(m4l, aWeight*systHelperEle_.GetTrigSFcl95UpDn(acceptEles.front()).second
+                                                                     *systHelperEle_.GetTrigUnseededSFcl95UpDn(acceptEles.front()).second);
           }
 
           if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
@@ -688,7 +790,9 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           const double mll = lvecll.M();
           const double dr2ll = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
 
-          if ( mll > 84.19 && mll < 98.19 && first->charge()*second->charge() < 0 ) {
+          bool hasMergedEle = isMergedEle(first) || isMergedEle(second) || isMergedEle(probe);
+
+          if ( mll > 84.19 && mll < 98.19 && first->charge()*second->charge() < 0 && !hasMergedEle ) {
             histo1d_["3P0F_P1_Et"]->Fill(first->et(), aWeight);
             histo1d_["3P0F_P1_eta"]->Fill(first->eta(), aWeight);
             histo1d_["3P0F_P1_phi"]->Fill(first->phi(), aWeight);
@@ -709,6 +813,11 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
             histo1d_["3P0F_dr"]->Fill( std::sqrt(mindr2), aWeight );
 
+            if (iEvent.id().run() < 319077)
+              histo1d_["3P0F_dr_preHEM"]->Fill( std::sqrt(mindr2), aWeight );
+            else
+              histo1d_["3P0F_dr_postHEM"]->Fill( std::sqrt(mindr2), aWeight );
+
             if ( std::abs( probe->superCluster()->eta() ) < 1.5 ) {
               histo1d_["3P0F_Et_EB"]->Fill(probe->et(), aWeight);
               histo1d_["3P0F_dr_EB"]->Fill( std::sqrt(mindr2), aWeight );
@@ -716,6 +825,19 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
               histo1d_["3P0F_Et_EE"]->Fill(probe->et(), aWeight);
               histo1d_["3P0F_dr_EE"]->Fill( std::sqrt(mindr2), aWeight );
             }
+
+            if ( probe->superCluster()->eta() < -1.566 ) {
+              if (iEvent.id().run() < 319077)
+                histo1d_["3P0F_dr_EEneg_preHEM"]->Fill( std::sqrt(mindr2), aWeight );
+              else
+                histo1d_["3P0F_dr_EEneg_postHEM"]->Fill( std::sqrt(mindr2), aWeight );
+            }
+
+            numerPt_ = probe->et();
+            numerDr_ = std::sqrt(mindr2);
+            numerWgt_ = aWeight;
+            numerIsEB_ = static_cast<int>( std::abs( probe->superCluster()->eta() ) < 1.5 );
+            numerTree_->Fill();
           } // Z tagging ( M_Z - 7 < M < M_Z + 7 )
         } else {
           for (unsigned idx = 0; idx < acceptEles.size(); idx++) {
@@ -729,7 +851,9 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             const double mll = lvecll.M();
             const double dr2ll = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
 
-            if ( mll > 84.19 && mll < 98.19 && first->charge()*second->charge() < 0 ) {
+            bool hasMergedEle = isMergedEle(first) || isMergedEle(second) || isMergedEle(probe);
+
+            if ( mll > 84.19 && mll < 98.19 && first->charge()*second->charge() < 0 && !hasMergedEle ) {
               histo1d_["3P0F_P1_Et"]->Fill(first->et(), aWeight);
               histo1d_["3P0F_P1_eta"]->Fill(first->eta(), aWeight);
               histo1d_["3P0F_P1_phi"]->Fill(first->phi(), aWeight);
@@ -750,6 +874,11 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
               histo1d_["3P0F_dr"]->Fill( std::sqrt(mindr2), aWeight );
 
+              if (iEvent.id().run() < 319077)
+                histo1d_["3P0F_dr_preHEM"]->Fill( std::sqrt(mindr2), aWeight );
+              else
+                histo1d_["3P0F_dr_postHEM"]->Fill( std::sqrt(mindr2), aWeight );
+
               if ( std::abs( probe->superCluster()->eta() ) < 1.5 ) {
                 histo1d_["3P0F_Et_EB"]->Fill(probe->et(), aWeight);
                 histo1d_["3P0F_dr_EB"]->Fill( std::sqrt(mindr2), aWeight );
@@ -757,6 +886,19 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
                 histo1d_["3P0F_Et_EE"]->Fill(probe->et(), aWeight);
                 histo1d_["3P0F_dr_EE"]->Fill( std::sqrt(mindr2), aWeight );
               }
+
+              if ( probe->superCluster()->eta() < -1.566 ) {
+                if (iEvent.id().run() < 319077)
+                  histo1d_["3P0F_dr_EEneg_preHEM"]->Fill( std::sqrt(mindr2), aWeight );
+                else
+                  histo1d_["3P0F_dr_EEneg_postHEM"]->Fill( std::sqrt(mindr2), aWeight );
+              }
+
+              numerPt_ = probe->et();
+              numerDr_ = std::sqrt(mindr2);
+              numerWgt_ = aWeight;
+              numerIsEB_ = static_cast<int>( std::abs( probe->superCluster()->eta() ) < 1.5 );
+              numerTree_->Fill();
             } // Z tagging ( M_Z - 7 < M < M_Z + 7 )
           } // Z candidate combination
         }
@@ -872,7 +1014,9 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const double mll = lvecll.M();
         const double dr2ll = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
 
-        if ( mll > 84.19 && mll < 98.19 && acceptEles.front()->charge()*acceptEles.at(1)->charge() < 0 ) {
+        bool hasMergedEle = isMergedEle(acceptEles.at(0)) || isMergedEle(acceptEles.at(1)) || isMergedEle(nonHeepEles.front());
+
+        if ( mll > 84.19 && mll < 98.19 && acceptEles.front()->charge()*acceptEles.at(1)->charge() < 0 && !hasMergedEle ) {
           histo1d_["2P1F_P1_Et"]->Fill(acceptEles.front()->et(), aWeight);
           histo1d_["2P1F_P1_eta"]->Fill(acceptEles.front()->eta(), aWeight);
           histo1d_["2P1F_P1_phi"]->Fill(acceptEles.front()->phi(), aWeight);
@@ -893,6 +1037,18 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
           histo1d_["2P1F_dr"]->Fill(std::sqrt(mindr2), aWeight);
 
+          if (iEvent.id().run() < 319077)
+            histo1d_["2P1F_dr_preHEM"]->Fill( std::sqrt(mindr2), aWeight );
+          else
+            histo1d_["2P1F_dr_postHEM"]->Fill( std::sqrt(mindr2), aWeight );
+
+          if ( nonHeepEles.front()->superCluster()->eta() < -1.566 ) {
+            if (iEvent.id().run() < 319077)
+              histo1d_["2P1F_dr_EEneg_preHEM"]->Fill( std::sqrt(mindr2), aWeight );
+            else
+              histo1d_["2P1F_dr_EEneg_postHEM"]->Fill( std::sqrt(mindr2), aWeight );
+          }
+
           if ( std::abs( nonHeepEles.front()->superCluster()->eta() ) < 1.5 ) {
             histo1d_["2P1F_Et_EB"]->Fill(nonHeepEles.front()->et(), aWeight);
             histo1d_["2P1F_dr_EB"]->Fill(std::sqrt(mindr2), aWeight);
@@ -900,6 +1056,12 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             histo1d_["2P1F_Et_EE"]->Fill(nonHeepEles.front()->et(), aWeight);
             histo1d_["2P1F_dr_EE"]->Fill(std::sqrt(mindr2), aWeight);
           }
+
+          denomPt_ = nonHeepEles.front()->et();
+          denomDr_ = std::sqrt(mindr2);
+          denomWgt_ = aWeight;
+          denomIsEB_ = static_cast<int>( std::abs( nonHeepEles.front()->superCluster()->eta() ) < 1.5 );
+          denomTree_->Fill();
         } // Z tagging ( M_Z - 7 < M < M_Z + 7 )
       } // 2P1F
 

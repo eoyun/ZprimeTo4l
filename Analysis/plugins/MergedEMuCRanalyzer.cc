@@ -73,13 +73,13 @@ private:
   const std::vector<std::string> METfilterList_;
   const std::vector<std::string> trigList_;
 
-  const edm::FileInPath recoSFpath_;
   const edm::FileInPath FFpath_;
   const edm::FileInPath MMFFpath_;
 
   const edm::FileInPath rochesterPath_;
   const edm::FileInPath triggerSFpath_;
   const edm::FileInPath muonIdIsoSFpath_;
+  const edm::FileInPath muonBoostIsoSFpath_;
   const edm::FileInPath muonRecoSFpath_;
   const edm::FileInPath purwgtPath_;
 
@@ -99,9 +99,6 @@ private:
 
   MuonCorrectionHelper mucorrHelper_;
   ElectronSystematicsHelper systHelperEle_;
-
-  std::unique_ptr<TFile> recoSFfile_;
-  TH2D* recoSF_;
 
   std::unique_ptr<TFile> purwgtFile_;
   TH1D* purwgt_;
@@ -141,12 +138,12 @@ union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::In
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
-recoSFpath_(iConfig.getParameter<edm::FileInPath>("recoSFpath")),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
 MMFFpath_(iConfig.getParameter<edm::FileInPath>("MMFFpath")),
 rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
 triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
 muonIdIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdIsoSFpath")),
+muonBoostIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonBoostIsoSFpath")),
 muonRecoSFpath_(iConfig.getParameter<edm::FileInPath>("muonRecoSFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 muScaleBias_(iConfig.getParameter<std::vector<double>>("muScaleBias")),
@@ -159,8 +156,9 @@ drThres_(iConfig.getParameter<double>("drThres")),
 drThresCR_(iConfig.getParameter<double>("drThresCR")),
 ratioThresLo_(iConfig.getParameter<double>("ratioThresLo")),
 ratioThresHi_(iConfig.getParameter<double>("ratioThresHi")),
-mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonRecoSFpath_),
-systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("modHeepSFpath"))) {
+mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonBoostIsoSFpath_,muonRecoSFpath_),
+systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("modHeepSFpath"),
+                                         iConfig.getParameter<edm::FileInPath>("recoSFpath"))) {
   usesResource("TFileService");
 
   systHelperEle_.SetModifiedHeepSF(iConfig.getParameter<double>("modHeepSFmuEB1"),
@@ -184,14 +182,15 @@ systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("
                                      iConfig.getParameter<double>("mergedEleSFupperNoTrk"));
   systHelperEle_.SetMergedElePol1(iConfig.getParameter<std::string>("mergedElePolHasTrkStr"),
                                   iConfig.getParameter<std::string>("mergedElePolNoTrkStr"));
+
+  systHelperEle_.SetAbcdScaleSmear(iConfig.getParameter<double>("abcdScaleAbove"),
+                                   iConfig.getParameter<double>("abcdScaleBelow"),
+                                   iConfig.getParameter<double>("abcdSmear"));
 }
 
 void MergedEMuCRanalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
-
-  recoSFfile_ = std::make_unique<TFile>(recoSFpath_.fullPath().c_str(),"READ");
-  recoSF_ = static_cast<TH2D*>(recoSFfile_->Get("EGamma_SF2D"));
 
   purwgtFile_ = std::make_unique<TFile>(purwgtPath_.fullPath().c_str(),"READ");
   purwgt_ = static_cast<TH1D*>(purwgtFile_->Get("PUrwgt"));
@@ -237,12 +236,16 @@ void MergedEMuCRanalyzer::beginJob() {
   histo1d_["2M_CRME_lll_invM_altMuSmear"] = fs->make<TH1D>("2M_CRME_lll_invM_altMuSmear",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_heepIdUp"] = fs->make<TH1D>("2M_CRME_lll_invM_heepIdUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_heepIdDn"] = fs->make<TH1D>("2M_CRME_lll_invM_heepIdDn",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_CRME_lll_invM_elRecoUp"] = fs->make<TH1D>("2M_CRME_lll_invM_elRecoUp",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_CRME_lll_invM_elRecoDn"] = fs->make<TH1D>("2M_CRME_lll_invM_elRecoDn",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_mergedEleIdUp"] = fs->make<TH1D>("2M_CRME_lll_invM_mergedEleIdUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_mergedEleIdDn"] = fs->make<TH1D>("2M_CRME_lll_invM_mergedEleIdDn",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_muIdUp"] = fs->make<TH1D>("2M_CRME_lll_invM_muIdUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_muIdDn"] = fs->make<TH1D>("2M_CRME_lll_invM_muIdDn",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_muIsoUp"] = fs->make<TH1D>("2M_CRME_lll_invM_muIsoUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_muIsoDn"] = fs->make<TH1D>("2M_CRME_lll_invM_muIsoDn",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_CRME_lll_invM_muBoostIsoUp"] = fs->make<TH1D>("2M_CRME_lll_invM_muBoostIsoUp",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_CRME_lll_invM_muBoostIsoDn"] = fs->make<TH1D>("2M_CRME_lll_invM_muBoostIsoDn",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_trigUp"] = fs->make<TH1D>("2M_CRME_lll_invM_trigUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_trigDn"] = fs->make<TH1D>("2M_CRME_lll_invM_trigDn",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_muRecoUp"] = fs->make<TH1D>("2M_CRME_lll_invM_muRecoUp",";M(3l);",1000,0.,2500.);
@@ -275,14 +278,22 @@ void MergedEMuCRanalyzer::beginJob() {
   histo1d_["2M_antiME_lll_invM_CR"] = fs->make<TH1D>("2M_antiME_lll_invM_CR",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_heepIdUp"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_heepIdUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_heepIdDn"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_heepIdDn",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_elRecoUp"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_elRecoUp",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_elRecoDn"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_elRecoDn",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_altMuScale_xSSFF"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_altMuScale_xSSFF",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xSSFF"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xSSFF_heepIdUp"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF_heepIdUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xSSFF_heepIdDn"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF_heepIdDn",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_xSSFF_elRecoUp"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF_elRecoUp",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_xSSFF_elRecoDn"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF_elRecoDn",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_xSSFF_preCorr"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF_preCorr",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xOSFF"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xOSFF",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_altMuScale_xOSFF"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_altMuScale_xOSFF",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xOSFF_heepIdUp"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xOSFF_heepIdUp",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xOSFF_heepIdDn"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xOSFF_heepIdDn",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_xOSFF_elRecoUp"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xOSFF_elRecoUp",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_xOSFF_elRecoDn"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xOSFF_elRecoDn",";M(3l);",1000,0.,2500.);
+  histo1d_["2M_antiME_lll_invM_CR_xOSFF_preCorr"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xOSFF_preCorr",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xSSFF_up"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF_up",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xOSFF_up"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xOSFF_up",";M(3l);",1000,0.,2500.);
   histo1d_["2M_antiME_lll_invM_CR_xSSFF_dn"] = fs->make<TH1D>("2M_antiME_lll_invM_CR_xSSFF_dn",";M(3l);",1000,0.,2500.);
@@ -351,12 +362,16 @@ void MergedEMuCRanalyzer::beginJob() {
   histo1d_["1M_CRME_mt"] = fs->make<TH1D>("1M_CRME_mt","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_heepIdUp"] = fs->make<TH1D>("1M_CRME_mt_heepIdUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_heepIdDn"] = fs->make<TH1D>("1M_CRME_mt_heepIdDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["1M_CRME_mt_elRecoUp"] = fs->make<TH1D>("1M_CRME_mt_elRecoUp","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["1M_CRME_mt_elRecoDn"] = fs->make<TH1D>("1M_CRME_mt_elRecoDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_mergedEleIdUp"] = fs->make<TH1D>("1M_CRME_mt_mergedEleIdUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_mergedEleIdDn"] = fs->make<TH1D>("1M_CRME_mt_mergedEleIdDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muIdUp"] = fs->make<TH1D>("1M_CRME_mt_muIdUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muIdDn"] = fs->make<TH1D>("1M_CRME_mt_muIdDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muIsoUp"] = fs->make<TH1D>("1M_CRME_mt_muIsoUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muIsoDn"] = fs->make<TH1D>("1M_CRME_mt_muIsoDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["1M_CRME_mt_muBoostIsoUp"] = fs->make<TH1D>("1M_CRME_mt_muBoostIsoUp","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["1M_CRME_mt_muBoostIsoDn"] = fs->make<TH1D>("1M_CRME_mt_muBoostIsoDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_trigUp"] = fs->make<TH1D>("1M_CRME_mt_trigUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_trigDn"] = fs->make<TH1D>("1M_CRME_mt_trigDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muRecoUp"] = fs->make<TH1D>("1M_CRME_mt_muRecoUp","m_{T};m_{T};",500,0.,2500.);
@@ -480,7 +495,6 @@ void MergedEMuCRanalyzer::beginJob() {
 }
 
 void MergedEMuCRanalyzer::endJob() {
-  recoSFfile_->Close();
   FFfile_->Close();
   MMFFfile_->Close();
   purwgtFile_->Close();
@@ -647,6 +661,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   std::vector<pat::MuonRef> isolatedHighPtMuons;
   std::vector<pat::MuonRef> isolatedHighPtTrackerMuons;
+  std::vector<pat::MuonRef> boostedMuons;
 
   auto sortByTuneP = [](const pat::MuonRef& a, const pat::MuonRef& b) {
     return a->tunePMuonBestTrack()->pt() > b->tunePMuonBestTrack()->pt();
@@ -680,8 +695,12 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if (!isoCands.empty())
       firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
       isolatedHighPtMuons.push_back(firstMuon);
+
+      if (!isoCands.empty())
+        boostedMuons.push_back(firstMuon);
+    }
   }
 
   for (unsigned idx = 0; idx < highPtTrackerMuons.size(); idx++) {
@@ -712,8 +731,12 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if (!isoCands.empty())
       firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
       isolatedHighPtTrackerMuons.push_back(firstMuon);
+
+      if (!isoCands.empty())
+        boostedMuons.push_back(firstMuon);
+    }
   }
 
   std::sort(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),sortByTuneP);
@@ -741,42 +764,61 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
     const auto& trigObj = trigObjs.at(idx);
 
-    if (!isolatedHighPtMuons.empty()) {
-      if ( reco::deltaR2(trigObj->eta(),
-                         trigObj->phi(),
-                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->eta(),
-                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
-        trigMatched = true;
+    const auto& leadMu = allHighPtMuons.front();
+    const bool isGlobal = std::find(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),leadMu)!=isolatedHighPtMuons.end();
 
-        if (isMC_) {
-          aWeight *= mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front());
-          trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(isolatedHighPtMuons.front()) /
-                              mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front()) );
+    if ( reco::deltaR2(trigObj->eta(),
+                       trigObj->phi(),
+                       leadMu->tunePMuonBestTrack()->eta(),
+                       leadMu->tunePMuonBestTrack()->phi()) < 0.01 ) {
+      trigMatched = true;
+
+      if (isMC_) {
+        if (isGlobal) {
+          aWeight *= mucorrHelper_.trigSFglobal(leadMu);
+          trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(leadMu) /
+                              mucorrHelper_.trigSFglobal(leadMu) );
+        } else {
+          aWeight *= mucorrHelper_.trigSFtracker(leadMu);
+          trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(leadMu) /
+                              mucorrHelper_.trigSFtracker(leadMu) );
         }
-
-        break;
       }
-    }
 
-    if (!isolatedHighPtTrackerMuons.empty()) {
-      if ( reco::deltaR2(trigObj->eta(),
-                         trigObj->phi(),
-                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->eta(),
-                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
-        trigMatched = true;
-
-        if (isMC_) {
-          aWeight *= mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front());
-          trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(isolatedHighPtTrackerMuons.front()) /
-                              mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front()) );
-        }
-
-        break;
-      }
+      break;
     }
   }
 
   if ( !trigMatched )
+    return;
+
+  std::vector<pat::MuonRef> nonHighPtMuons;
+
+  for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
+    const auto& aMuon = muonHandle->refAt(idx);
+
+    if ( !aMuon->isTrackerMuon() || aMuon->track().isNull() )
+      continue;
+
+    if ( aMuon->tunePMuonBestTrack()->pt() < ptMuThres_ || std::abs(aMuon->eta()) > 2.4 )
+      continue;
+
+    const auto castMu = aMuon.castTo<pat::MuonRef>();
+
+    if ( std::find( allHighPtMuons.begin(), allHighPtMuons.end(), castMu ) != allHighPtMuons.end() )
+      continue;
+
+    bool hits = aMuon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5
+                && aMuon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
+
+    bool ip = std::abs(aMuon->innerTrack()->dxy(primaryVertex.position())) < 0.2
+              && std::abs(aMuon->innerTrack()->dz(primaryVertex.position())) < 0.5;
+
+    if ( aMuon->numberOfMatchedStations() >= 1 && hits && ip )
+      nonHighPtMuons.push_back(castMu);
+  }
+
+  if (!nonHighPtMuons.empty())
     return;
 
   histo1d_["cutflow_2M"]->Fill( 4.5, aWeight );
@@ -802,6 +844,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   iEvent.getByToken(union5x5EnergyToken_, union5x5EnergyHandle);
 
   std::vector<pat::ElectronRef> acceptEles;
+  std::vector<pat::ElectronRef> nonHeepEles;
 
   auto sortByEt = [](const pat::ElectronRef& a, const pat::ElectronRef& b) {
     return a->et() > b->et();
@@ -817,15 +860,33 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if ( std::abs(aEle->superCluster()->eta()) > 1.4442 && std::abs(aEle->superCluster()->eta()) < 1.566 )
       continue;
 
+    bool selected = false;
+
     if ( aEle->electronID("modifiedHeepElectronID") ) {
       auto castEle = aEle.castTo<pat::ElectronRef>();
       acceptEles.push_back(castEle);
+      selected = true;
+    }
+
+    if (!selected) {
+      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
+      int32_t mask = 0x000007B0; // = 0111 1011 0000
+      int32_t pass = bitmap | mask;
+      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+
+      if (passMaskedId) {
+        auto castEle = aEle.castTo<pat::ElectronRef>();
+        nonHeepEles.push_back(castEle);
+      }
     }
   }
 
   std::sort(acceptEles.begin(),acceptEles.end(),sortByEt);
 
   if ( acceptEles.empty() )
+    return;
+
+  if ( !nonHeepEles.empty() )
     return;
 
   std::vector<pat::ElectronRef> CRMEs;
@@ -899,8 +960,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   // recoSF
   if (isMC_) {
     for (const auto& aEle : acceptEles) {
-      double apt = aEle->pt() >= 500. ? 499.999 : aEle->pt();
-      aWeight *= recoSF_->GetBinContent( recoSF_->FindBin(aEle->superCluster()->eta(), apt ) );
+      aWeight *= systHelperEle_.GetRecoSF(aEle);
       aWeight *= systHelperEle_.GetModifiedHeepSF(aEle);
     }
 
@@ -909,8 +969,10 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       aWeight *= mucorrHelper_.looseIsoSF(aMu);
       aWeight *= mucorrHelper_.recoSF(aMu);
       muIdSyst.push_back( mucorrHelper_.highptIdSFsyst(aMu)/mucorrHelper_.highptIdSF(aMu) );
-      muIsoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
       muRecoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
+
+      if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
+        muIsoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
     }
 
     for (const auto& aMu : isolatedHighPtTrackerMuons) {
@@ -918,8 +980,10 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       aWeight *= mucorrHelper_.looseIsoSFtracker(aMu);
       aWeight *= mucorrHelper_.recoSF(aMu);
       muIdSyst.push_back( mucorrHelper_.trkHighptIdSFsyst(aMu)/mucorrHelper_.trkHighptIdSF(aMu) );
-      muIsoSyst.push_back( mucorrHelper_.looseIsoSFtrackerSyst(aMu)/mucorrHelper_.looseIsoSFtracker(aMu) );
       muRecoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
+
+      if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
+        muIsoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
     }
 
     for (const auto& aEle : CRMEs)
@@ -954,6 +1018,39 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       wgtUp *= apair.first;
       wgtDn *= apair.second;
     } // acceptEles
+
+    return std::make_pair(wgtUp,wgtDn);
+  };
+
+  auto recoSFcl95 = [this,&acceptEles] (const double wgt) -> std::pair<double,double> {
+    if (!isMC_)
+      return std::make_pair(wgt,wgt);
+
+    double wgtUp = wgt;
+    double wgtDn = wgt;
+
+    for (const auto& aEle : acceptEles) {
+      double nominal = systHelperEle_.GetRecoSF(aEle);
+      double err = systHelperEle_.GetRecoSFerr(aEle);
+      wgtUp *= (nominal+err)/nominal;
+      wgtDn *= (nominal-err)/nominal;
+    } // acceptEles
+
+    return std::make_pair(wgtUp,wgtDn);
+  };
+
+  auto boostIsoSFupdn = [this,&boostedMuons,&primaryVertex] (const double wgt) -> std::pair<double,double> {
+    if (!isMC_)
+      return std::make_pair(wgt,wgt);
+
+    double wgtUp = wgt;
+    double wgtDn = wgt;
+
+    for (const auto& aMu : boostedMuons) {
+      auto apair = mucorrHelper_.boostIsoSFupdn(aMu,primaryVertex);
+      wgtUp *= apair.first;
+      wgtDn *= apair.second;
+    }
 
     return std::make_pair(wgtUp,wgtDn);
   };
@@ -1032,12 +1129,16 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         histo1d_["2M_CRME_lll_invM_altMuSmear"]->Fill(mlllSmear,aWeight);
         histo1d_["2M_CRME_lll_invM_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first);
         histo1d_["2M_CRME_lll_invM_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second);
+        histo1d_["2M_CRME_lll_invM_elRecoUp"]->Fill(mlll,recoSFcl95(aWeight).first);
+        histo1d_["2M_CRME_lll_invM_elRecoDn"]->Fill(mlll,recoSFcl95(aWeight).second);
         histo1d_["2M_CRME_lll_invM_mergedEleIdUp"]->Fill(mlll,mergedEleSFcl95(aWeight).first);
         histo1d_["2M_CRME_lll_invM_mergedEleIdDn"]->Fill(mlll,mergedEleSFcl95(aWeight).second);
         histo1d_["2M_CRME_lll_invM_muIdUp"]->Fill(mlll,aWeight*systSFratio(muIdSyst).first);
         histo1d_["2M_CRME_lll_invM_muIdDn"]->Fill(mlll,aWeight*systSFratio(muIdSyst).second);
         histo1d_["2M_CRME_lll_invM_muIsoUp"]->Fill(mlll,aWeight*systSFratio(muIsoSyst).first);
         histo1d_["2M_CRME_lll_invM_muIsoDn"]->Fill(mlll,aWeight*systSFratio(muIsoSyst).second);
+        histo1d_["2M_CRME_lll_invM_muBoostIsoUp"]->Fill(mlll,boostIsoSFupdn(aWeight).first);
+        histo1d_["2M_CRME_lll_invM_muBoostIsoDn"]->Fill(mlll,boostIsoSFupdn(aWeight).second);
         histo1d_["2M_CRME_lll_invM_trigUp"]->Fill(mlll,aWeight*systSFratio(trigSyst).first);
         histo1d_["2M_CRME_lll_invM_trigDn"]->Fill(mlll,aWeight*systSFratio(trigSyst).second);
         histo1d_["2M_CRME_lll_invM_muRecoUp"]->Fill(mlll,aWeight*systSFratio(muRecoSyst).first);
@@ -1085,13 +1186,16 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     } // CRMEs.size()==1
 
     if ( CRMEs.size()==0 && antiMEs.size()==1 ) {
-      const auto lvecAME = lvecME(antiMEs.front());
+      const auto lvecAMEpreCorr = lvecME(antiMEs.front());
+      const auto lvecAME = systHelperEle_.GetSingleAbcdScaleSmear(lvecAMEpreCorr)*lvecAMEpreCorr;
+      const auto lvecAllMEpreCorr = lvecAMEpreCorr + lvecMa + lvecMb;
       const auto lvecAllME = lvecAME + lvecMa + lvecMb;
       const auto lvecll = lvecMa + lvecMb;
       const double dr2l1ME = reco::deltaR2(lvecAME.eta(),lvecAME.phi(),lvecMa.eta(),lvecMa.phi());
       const double dr2l2ME = reco::deltaR2(lvecAME.eta(),lvecAME.phi(),lvecMb.eta(),lvecMb.phi());
       const double dr2l1l2 = reco::deltaR2(lvecMa.eta(),lvecMa.phi(),lvecMb.eta(),lvecMb.phi());
       const double mlll = lvecAllME.M();
+      const double mlllPreCorr = lvecAllMEpreCorr.M();
       const double mlllAltMu = (lvecM1alt + lvecM2alt + lvecAME).M();
 
       if (mlll > 50.) {
@@ -1120,17 +1224,25 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
         double ffSS = 0., ffOS = 0.;
         auto ci = ciSSOS(antiMEs.front(),ffSS,ffOS);
-        histo1d_["2M_antiME_lll_invM_CR"]->Fill(mlll,aWeight);
-        histo1d_["2M_antiME_lll_invM_CR_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first);
-        histo1d_["2M_antiME_lll_invM_CR_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second);
+        histo1d_["2M_antiME_lll_invM_CR"]->Fill(mlllPreCorr,aWeight);
+        histo1d_["2M_antiME_lll_invM_CR_heepIdUp"]->Fill(mlllPreCorr,modHeepSFcl95(aWeight).first);
+        histo1d_["2M_antiME_lll_invM_CR_heepIdDn"]->Fill(mlllPreCorr,modHeepSFcl95(aWeight).second);
+        histo1d_["2M_antiME_lll_invM_CR_elRecoUp"]->Fill(mlllPreCorr,recoSFcl95(aWeight).first);
+        histo1d_["2M_antiME_lll_invM_CR_elRecoDn"]->Fill(mlllPreCorr,recoSFcl95(aWeight).second);
         histo1d_["2M_antiME_lll_invM_CR_altMuScale_xOSFF"]->Fill(mlllAltMu,aWeight*ffOS);
         histo1d_["2M_antiME_lll_invM_CR_xOSFF"]->Fill(mlll,aWeight*ffOS);
+        histo1d_["2M_antiME_lll_invM_CR_xOSFF_preCorr"]->Fill(mlllPreCorr,aWeight*ffOS);
         histo1d_["2M_antiME_lll_invM_CR_xOSFF_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first*ffOS);
         histo1d_["2M_antiME_lll_invM_CR_xOSFF_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second*ffOS);
+        histo1d_["2M_antiME_lll_invM_CR_xOSFF_elRecoUp"]->Fill(mlll,recoSFcl95(aWeight).first*ffOS);
+        histo1d_["2M_antiME_lll_invM_CR_xOSFF_elRecoDn"]->Fill(mlll,recoSFcl95(aWeight).second*ffOS);
         histo1d_["2M_antiME_lll_invM_CR_xSSFF"]->Fill(mlll,aWeight*ffSS);
+        histo1d_["2M_antiME_lll_invM_CR_xSSFF_preCorr"]->Fill(mlllPreCorr,aWeight*ffSS);
         histo1d_["2M_antiME_lll_invM_CR_altMuScale_xSSFF"]->Fill(mlllAltMu,aWeight*ffSS);
         histo1d_["2M_antiME_lll_invM_CR_xSSFF_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first*ffSS);
         histo1d_["2M_antiME_lll_invM_CR_xSSFF_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second*ffSS);
+        histo1d_["2M_antiME_lll_invM_CR_xSSFF_elRecoUp"]->Fill(mlll,recoSFcl95(aWeight).first*ffSS);
+        histo1d_["2M_antiME_lll_invM_CR_xSSFF_elRecoDn"]->Fill(mlll,recoSFcl95(aWeight).second*ffSS);
         histo1d_["2M_antiME_lll_invM_CR_xOSFF_up"]->Fill(mlll,aWeight*(ffOS+ci.second));
         histo1d_["2M_antiME_lll_invM_CR_xSSFF_up"]->Fill(mlll,aWeight*(ffSS+ci.first));
         histo1d_["2M_antiME_lll_invM_CR_xOSFF_dn"]->Fill(mlll,aWeight*(ffOS-ci.second));
@@ -1295,12 +1407,16 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             histo1d_["1M_CRME_mt"]->Fill( mtllMET, aWeight );
             histo1d_["1M_CRME_mt_heepIdUp"]->Fill( mtllMET, modHeepSFcl95(aWeight).first );
             histo1d_["1M_CRME_mt_heepIdDn"]->Fill( mtllMET, modHeepSFcl95(aWeight).second );
+            histo1d_["1M_CRME_mt_elRecoUp"]->Fill( mtllMET, recoSFcl95(aWeight).first );
+            histo1d_["1M_CRME_mt_elRecoDn"]->Fill( mtllMET, recoSFcl95(aWeight).second );
             histo1d_["1M_CRME_mt_mergedEleIdUp"]->Fill( mtllMET, mergedEleSFcl95(aWeight).first );
             histo1d_["1M_CRME_mt_mergedEleIdDn"]->Fill( mtllMET, mergedEleSFcl95(aWeight).second );
             histo1d_["1M_CRME_mt_muIdUp"]->Fill( mtllMET, aWeight*systSFratio(muIdSyst).first );
             histo1d_["1M_CRME_mt_muIdDn"]->Fill( mtllMET, aWeight*systSFratio(muIdSyst).second );
             histo1d_["1M_CRME_mt_muIsoUp"]->Fill( mtllMET, aWeight*systSFratio(muIsoSyst).first );
             histo1d_["1M_CRME_mt_muIsoDn"]->Fill( mtllMET, aWeight*systSFratio(muIsoSyst).second );
+            histo1d_["1M_CRME_mt_muBoostIsoUp"]->Fill( mtllMET, boostIsoSFupdn(aWeight).first );
+            histo1d_["1M_CRME_mt_muBoostIsoDn"]->Fill( mtllMET, boostIsoSFupdn(aWeight).second );
             histo1d_["1M_CRME_mt_trigUp"]->Fill( mtllMET, aWeight*systSFratio(trigSyst).first );
             histo1d_["1M_CRME_mt_trigDn"]->Fill( mtllMET, aWeight*systSFratio(trigSyst).second );
             histo1d_["1M_CRME_mt_muRecoUp"]->Fill( mtllMET, aWeight*systSFratio(muRecoSyst).first );

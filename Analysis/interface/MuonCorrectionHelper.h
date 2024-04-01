@@ -7,17 +7,19 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
 #include "TRandom3.h"
+#include "TH2D.h"
+#include "TFile.h"
 
 #include "ZprimeTo4l/Analysis/interface/RoccoR.h"
 #include "correction.h"
 
 class MuonCorrectionHelper {
 public:
-  MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
-                       const edm::FileInPath& muonTrigSFpath);
+  MuonCorrectionHelper(const edm::FileInPath& rochesterPath);
   MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
                        const edm::FileInPath& muonTrigSFpath,
                        const edm::FileInPath& muonIdIsoSFpath,
+                       const edm::FileInPath& muonBoostIsoSFpath,
                        const edm::FileInPath& muonRecoSFpath);
   ~MuonCorrectionHelper()=default;
 
@@ -43,6 +45,9 @@ public:
   double looseIsoSFtracker(const pat::MuonRef& mu);
   double looseIsoSFtrackerSyst(const pat::MuonRef& mu);
 
+  double boostIsoSF(const pat::MuonRef& mu, const reco::Vertex& pv);
+  std::pair<double,double> boostIsoSFupdn(const pat::MuonRef& mu, const reco::Vertex& pv);
+
   bool checkIso(const pat::MuonRef& mu, const reco::TrackRef& trk, const reco::BeamSpot& bs);
 
 private:
@@ -52,6 +57,14 @@ private:
   std::unique_ptr<correction::CorrectionSet> recoSF_;
   std::unique_ptr<correction::CorrectionSet> trigSF_;
   std::unique_ptr<correction::CorrectionSet> idisoSF_;
+
+  std::unique_ptr<TFile> boostIsoFile_;
+  TH2D* boostIsoSF_;
+  TH2D* boostIsoSFup_;
+  TH2D* boostIsoSFdn_;
+  TH2D* boostIsoTrackerSF_;
+  TH2D* boostIsoTrackerSFup_;
+  TH2D* boostIsoTrackerSFdn_;
 };
 
 #endif

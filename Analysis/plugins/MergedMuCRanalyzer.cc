@@ -16,6 +16,7 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -54,6 +55,7 @@ private:
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
 
   const edm::EDGetTokenT<edm::View<pat::Muon>> muonToken_;
+  const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<edm::View<pat::MET>> metToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
@@ -65,6 +67,7 @@ private:
   const edm::FileInPath rochesterPath_;
   const edm::FileInPath triggerSFpath_;
   const edm::FileInPath muonIdIsoSFpath_;
+  const edm::FileInPath muonBoostIsoSFpath_;
   const edm::FileInPath muonRecoSFpath_;
   const edm::FileInPath purwgtPath_;
 
@@ -101,6 +104,7 @@ triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.g
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
 muonToken_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
+srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("srcMET"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
@@ -110,6 +114,7 @@ MMFFpath_(iConfig.getParameter<edm::FileInPath>("MMFFpath")),
 rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
 triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
 muonIdIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdIsoSFpath")),
+muonBoostIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonBoostIsoSFpath")),
 muonRecoSFpath_(iConfig.getParameter<edm::FileInPath>("muonRecoSFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 year_(iConfig.getParameter<std::string>("year")),
@@ -119,7 +124,7 @@ drThres_(iConfig.getParameter<double>("drThres")),
 drThresCR_(iConfig.getParameter<double>("drThresCR")),
 ratioThresLo_(iConfig.getParameter<double>("ratioThresLo")),
 ratioThresHi_(iConfig.getParameter<double>("ratioThresHi")),
-mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonRecoSFpath_) {
+mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonBoostIsoSFpath_,muonRecoSFpath_) {
   usesResource("TFileService");
 }
 
@@ -137,6 +142,11 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["totWeightedSum_4M"] = fs->make<TH1D>("totWeightedSum_4M","totWeightedSum_4M",1,0.,1.);
   histo1d_["nPV"] = fs->make<TH1D>("nPV","nPV",99,0.,99.);
+
+  histo1d_["resolved_trig_denom"] = fs->make<TH1D>("resolved_trig_denom",";p_{T};",1000,0.,2000.);
+  histo1d_["resolved_trig_numer"] = fs->make<TH1D>("resolved_trig_numer",";p_{T};",1000,0.,2000.);
+  histo1d_["merged_trig_denom"] = fs->make<TH1D>("merged_trig_denom",";p_{T};",1000,0.,2000.);
+  histo1d_["merged_trig_numer"] = fs->make<TH1D>("merged_trig_numer",";p_{T};",1000,0.,2000.);
 
   histo1d_["cutflow_4M"] = fs->make<TH1D>("cutflow_4M","cutflow",10,0.,10.);
   histo1d_["cutflow_3M"] = fs->make<TH1D>("cutflow_3M","cutflow",15,0.,15.);
@@ -161,6 +171,8 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_mt_idDn"] = fs->make<TH1D>("3M_mt_idDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_mt_isoUp"] = fs->make<TH1D>("3M_mt_isoUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_mt_isoDn"] = fs->make<TH1D>("3M_mt_isoDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_muBoostIsoUp"] = fs->make<TH1D>("3M_mt_muBoostIsoUp","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["3M_mt_muBoostIsoDn"] = fs->make<TH1D>("3M_mt_muBoostIsoDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_mt_trigUp"] = fs->make<TH1D>("3M_mt_trigUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_mt_trigDn"] = fs->make<TH1D>("3M_mt_trigDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_mt_recoUp"] = fs->make<TH1D>("3M_mt_recoUp","m_{T};m_{T};",500,0.,2500.);
@@ -169,6 +181,12 @@ void MergedMuCRanalyzer::beginJob() {
   histo1d_["3M_mt_JESdn"] = fs->make<TH1D>("3M_mt_JESdn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_mt_JERup"] = fs->make<TH1D>("3M_mt_JERup","m_{T};m_{T};",500,0.,2500.);
   histo1d_["3M_mt_JERdn"] = fs->make<TH1D>("3M_mt_JERdn","m_{T};m_{T};",500,0.,2500.);
+
+  histo1d_["3M_GEN_ratioPt"] = fs->make<TH1D>("3M_GEN_ratioPt",";R(p_{T}^{reco}/p_{T}^{GEN});",250,0.,5.);
+  histo1d_["3M_GEN_ratioMET"] = fs->make<TH1D>("3M_GEN_ratioMET",";R(MET/p_{T}^{GEN});",250,0.,5.);
+  histo1d_["3M_GEN_ratioPtSum"] = fs->make<TH1D>("3M_GEN_ratioPtSum",";R(p_{T}^{reco}+MET / #Sigma p_{T}^{GEN});",250,0.,5.);
+  histo1d_["3M_GEN_ratioPtResolved1"] = fs->make<TH1D>("3M_GEN_ratioPtResolved1",";R(p_{T}^{reco}/p_{T}^{GEN});",250,0.,5.);
+  histo1d_["3M_GEN_ratioPtResolved2"] = fs->make<TH1D>("3M_GEN_ratioPtResolved2",";R(p_{T}^{reco}/p_{T}^{GEN});",250,0.,5.);
 
   histo1d_["3M_antiRpt_MM_pt"] = fs->make<TH1D>("3M_antiRpt_MM_pt","Pt;p_{T};",200,0.,500.);
   histo1d_["3M_antiRpt_MM_pt_xFF"] = fs->make<TH1D>("3M_antiRpt_MM_pt_xFF","Pt;p_{T};",200,0.,500.);
@@ -301,6 +319,8 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
+  std::vector<reco::GenParticleRef> promptMuons;
+
   double aWeight = 1.;
 
   if (isMC_) {
@@ -331,8 +351,6 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
     iEvent.getByToken(genptcToken_, genptcHandle);
-
-    std::vector<reco::GenParticleRef> promptMuons;
 
     for (unsigned int idx = 0; idx < genptcHandle->size(); ++idx) {
       const auto& genptc = genptcHandle->refAt(idx);
@@ -445,6 +463,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   std::vector<pat::MuonRef> isolatedHighPtMuons;
   std::vector<pat::MuonRef> isolatedHighPtTrackerMuons;
+  std::vector<pat::MuonRef> boostedMuons;
 
   auto sortByTuneP = [](const pat::MuonRef& a, const pat::MuonRef& b) {
     return a->tunePMuonBestTrack()->pt() > b->tunePMuonBestTrack()->pt();
@@ -478,8 +497,12 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     if (!isoCands.empty())
       firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
       isolatedHighPtMuons.push_back(firstMuon);
+
+      if (!isoCands.empty())
+        boostedMuons.push_back(firstMuon);
+    }
   }
 
   for (unsigned idx = 0; idx < highPtTrackerMuons.size(); idx++) {
@@ -510,8 +533,12 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     if (!isoCands.empty())
       firstIso -= isoCands.front()->innerTrack()->pt();
 
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
       isolatedHighPtTrackerMuons.push_back(firstMuon);
+
+      if (!isoCands.empty())
+        boostedMuons.push_back(firstMuon);
+    }
   }
 
   std::sort(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),sortByTuneP);
@@ -540,46 +567,87 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
   for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
     const auto& trigObj = trigObjs.at(idx);
 
-    if (!isolatedHighPtMuons.empty()) {
-      if ( reco::deltaR2(trigObj->eta(),
-                         trigObj->phi(),
-                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->eta(),
-                         isolatedHighPtMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
-        trigMatched = true;
+    const auto& leadMu = sortedHighPtMuons.front();
+    const bool isGlobal = std::find(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),leadMu)!=isolatedHighPtMuons.end();
 
-        if (isMC_) {
-          aWeight *= mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front());
-          trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(isolatedHighPtMuons.front()) /
-                              mucorrHelper_.trigSFglobal(isolatedHighPtMuons.front()) );
+    if ( reco::deltaR2(trigObj->eta(),
+                       trigObj->phi(),
+                       leadMu->tunePMuonBestTrack()->eta(),
+                       leadMu->tunePMuonBestTrack()->phi()) < 0.01 ) {
+      trigMatched = true;
+
+      if (isMC_) {
+        if (isGlobal) {
+          aWeight *= mucorrHelper_.trigSFglobal(leadMu);
+          trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(leadMu) /
+                              mucorrHelper_.trigSFglobal(leadMu) );
+        } else {
+          aWeight *= mucorrHelper_.trigSFtracker(leadMu);
+          trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(leadMu) /
+                              mucorrHelper_.trigSFtracker(leadMu) );
         }
-
-        break;
       }
-    }
 
-    if (!isolatedHighPtTrackerMuons.empty()) {
-      if ( reco::deltaR2(trigObj->eta(),
-                         trigObj->phi(),
-                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->eta(),
-                         isolatedHighPtTrackerMuons.front()->tunePMuonBestTrack()->phi()) < 0.01 ) {
-        trigMatched = true;
-
-        if (isMC_) {
-          aWeight *= mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front());
-          trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(isolatedHighPtTrackerMuons.front()) /
-                              mucorrHelper_.trigSFtracker(isolatedHighPtTrackerMuons.front()) );
-        }
-
-        break;
-      }
+      break;
     }
   }
 
   if ( !trigMatched )
     return;
 
+  std::vector<pat::MuonRef> nonHighPtMuons;
+
+  for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
+    const auto& aMuon = muonHandle->refAt(idx);
+
+    if ( !aMuon->isTrackerMuon() || aMuon->track().isNull() )
+      continue;
+
+    if ( aMuon->tunePMuonBestTrack()->pt() < ptMuThres_ || std::abs(aMuon->eta()) > 2.4 )
+      continue;
+
+    const auto castMu = aMuon.castTo<pat::MuonRef>();
+
+    if ( std::find( allHighPtMuons.begin(), allHighPtMuons.end(), castMu ) != allHighPtMuons.end() )
+      continue;
+
+    bool hits = aMuon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5
+                && aMuon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
+
+    bool ip = std::abs(aMuon->innerTrack()->dxy(primaryVertex.position())) < 0.2
+              && std::abs(aMuon->innerTrack()->dz(primaryVertex.position())) < 0.5;
+
+    if ( aMuon->numberOfMatchedStations() >= 1 && hits && ip )
+      nonHighPtMuons.push_back(castMu);
+  }
+
+  if (!nonHighPtMuons.empty())
+    return;
+
   histo1d_["cutflow_4M"]->Fill( 4.5, aWeight );
   histo1d_["cutflow_3M"]->Fill( 4.5, aWeight );
+
+  edm::Handle<edm::View<pat::Electron>> eleHandle;
+  iEvent.getByToken(srcEle_, eleHandle);
+
+  bool hasEle = false;
+
+  for (unsigned int idx = 0; idx < eleHandle->size(); idx++) {
+    const auto& aEle = eleHandle->refAt(idx);
+
+    if ( std::abs(aEle->superCluster()->eta()) > 2.5 )
+      continue;
+
+    // veto EBEE gap
+    if ( std::abs(aEle->superCluster()->eta()) > 1.4442 && std::abs(aEle->superCluster()->eta()) < 1.566 )
+      continue;
+
+    if ( aEle->electronID("modifiedHeepElectronID") )
+      hasEle = true;
+  }
+
+  if (hasEle)
+    return;
 
   std::vector<double> idSyst;
   std::vector<double> isoSyst;
@@ -596,14 +664,32 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     return std::make_pair(up,dn); // ratio to the nominal
   };
 
+  auto boostIsoSFupdn = [this,&boostedMuons,&primaryVertex] (const double wgt) -> std::pair<double,double> {
+    if (!isMC_)
+      return std::make_pair(wgt,wgt);
+
+    double wgtUp = wgt;
+    double wgtDn = wgt;
+
+    for (const auto& aMu : boostedMuons) {
+      auto apair = mucorrHelper_.boostIsoSFupdn(aMu,primaryVertex);
+      wgtUp *= apair.first;
+      wgtDn *= apair.second;
+    }
+
+    return std::make_pair(wgtUp,wgtDn);
+  };
+
   if (isMC_) {
     for (const auto& aMu : isolatedHighPtMuons) {
       aWeight *= mucorrHelper_.highptIdSF(aMu);
       aWeight *= mucorrHelper_.looseIsoSF(aMu);
       aWeight *= mucorrHelper_.recoSF(aMu);
       idSyst.push_back( mucorrHelper_.highptIdSFsyst(aMu)/mucorrHelper_.highptIdSF(aMu) );
-      isoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
       recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
+
+      if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
+        isoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
     }
 
     for (const auto& aMu : isolatedHighPtTrackerMuons) {
@@ -611,8 +697,10 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
       aWeight *= mucorrHelper_.looseIsoSFtracker(aMu);
       aWeight *= mucorrHelper_.recoSF(aMu);
       idSyst.push_back( mucorrHelper_.trkHighptIdSFsyst(aMu)/mucorrHelper_.trkHighptIdSF(aMu) );
-      isoSyst.push_back( mucorrHelper_.looseIsoSFtrackerSyst(aMu)/mucorrHelper_.looseIsoSFtracker(aMu) );
       recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
+
+      if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
+        isoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
     }
   }
 
@@ -858,6 +946,8 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
             histo1d_["3M_mt_idDn"]->Fill( mt, aWeight*systSFratio(idSyst).second );
             histo1d_["3M_mt_isoUp"]->Fill( mt, aWeight*systSFratio(isoSyst).first );
             histo1d_["3M_mt_isoDn"]->Fill( mt, aWeight*systSFratio(isoSyst).second );
+            histo1d_["3M_mt_muBoostIsoUp"]->Fill( mt, boostIsoSFupdn(aWeight).first );
+            histo1d_["3M_mt_muBoostIsoDn"]->Fill( mt, boostIsoSFupdn(aWeight).second );
             histo1d_["3M_mt_trigUp"]->Fill( mt, aWeight*systSFratio(trigSyst).first );
             histo1d_["3M_mt_trigDn"]->Fill( mt, aWeight*systSFratio(trigSyst).second );
             histo1d_["3M_mt_recoUp"]->Fill( mt, aWeight*systSFratio(recoSyst).first );
@@ -866,6 +956,84 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
             histo1d_["3M_mt_JESdn"]->Fill( mtJESdn, aWeight );
             histo1d_["3M_mt_JERup"]->Fill( mtJERup, aWeight );
             histo1d_["3M_mt_JERdn"]->Fill( mtJERdn, aWeight );
+
+            if (isMC_) {
+              float ptGen = 1e-3, ptsumGen = 1e-3, diff = std::numeric_limits<float>::max();
+              float ptGen1 = 1e-3, diff1 = std::numeric_limits<float>::max();
+              float ptGen2 = 1e-3, diff2 = std::numeric_limits<float>::max();
+              reco::GenParticleRef mergedMuonRef, cleanedMuRef;
+              std::vector<reco::GenParticleRef> mergedPair;
+
+              for (const auto muGen : promptMuons) {
+                if (reco::deltaR(mergedP4.eta(),mergedP4.phi(),muGen->eta(),muGen->phi()) < 0.3) {
+                  ptsumGen += muGen->pt();
+                  mergedPair.push_back(muGen);
+
+                  if ( std::abs(muGen->pt() - mergedP4.pt()) < diff ) {
+                    ptGen = muGen->pt();
+                    diff = std::abs(muGen->pt() - mergedP4.pt());
+                    mergedMuonRef = muGen;
+                  }
+                }
+
+                if (reco::deltaR(firstP4.eta(),firstP4.phi(),muGen->eta(),muGen->phi()) < 0.3) {
+                  if ( std::abs(muGen->pt() - firstP4.pt()) < diff1 ) {
+                    ptGen1 = muGen->pt();
+                    diff1 = std::abs(muGen->pt() - firstP4.pt());
+                  }
+                }
+
+                if (reco::deltaR(secondP4.eta(),secondP4.phi(),muGen->eta(),muGen->phi()) < 0.3) {
+                  if ( std::abs(muGen->pt() - secondP4.pt()) < diff2 ) {
+                    ptGen2 = muGen->pt();
+                    diff2 = std::abs(muGen->pt() - secondP4.pt());
+                  }
+                }
+              }
+
+              for (const auto& muGen : mergedPair) {
+                if (muGen!=mergedMuonRef) {
+                  cleanedMuRef = muGen;
+                  break;
+                }
+              }
+
+              if (ptGen > 200.)
+                histo1d_["3M_GEN_ratioPt"]->Fill(mergedP4.pt()/ptGen, aWeight);
+
+              if (!cleanedMuRef.isNull() && cleanedMuRef->pt() > 200.)
+                histo1d_["3M_GEN_ratioMET"]->Fill(tpMET.pt()/cleanedMuRef->pt(), aWeight);
+
+              if (ptGen1 > 200.)
+                histo1d_["3M_GEN_ratioPtResolved1"]->Fill(firstP4.pt()/ptGen1, aWeight);
+
+              if (ptGen2 > 200.)
+                histo1d_["3M_GEN_ratioPtResolved2"]->Fill(secondP4.pt()/ptGen2, aWeight);
+
+              histo1d_["3M_GEN_ratioPtSum"]->Fill((mergedP4.pt()+tpMET.pt())/ptsumGen, aWeight);
+            }
+
+            auto checkTrig = [&trigObjs] (const math::PtEtaPhiMLorentzVector& aLvec) -> bool {
+              for (const auto& trigObj : trigObjs) {
+                if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),aLvec.eta(),aLvec.phi()) < 0.01 )
+                  return true;
+              }
+
+              return false;
+            };
+
+            histo1d_["resolved_trig_denom"]->Fill(firstP4.pt(), aWeight);
+            histo1d_["resolved_trig_denom"]->Fill(secondP4.pt(), aWeight);
+            histo1d_["merged_trig_denom"]->Fill(mergedP4.pt(), aWeight);
+
+            if (checkTrig(firstP4))
+              histo1d_["resolved_trig_numer"]->Fill(firstP4.pt(), aWeight);
+
+            if (checkTrig(secondP4))
+              histo1d_["resolved_trig_numer"]->Fill(secondP4.pt(), aWeight);
+
+            if (checkTrig(mergedP4))
+              histo1d_["merged_trig_numer"]->Fill(mergedP4.pt(), aWeight);
           }
         } else if ( passDPhi && !passRatioPt ) {
           histo1d_["3M_antiRpt_MM_pt"]->Fill( mergedP4.pt(), aWeight );

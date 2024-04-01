@@ -42,6 +42,7 @@ mergedEMuCRanalyzer = cms.EDAnalyzer("MergedEMuCRanalyzer",
   triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2016_schemaV2.json"),
   muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2016_schemaV2.json"),
   muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2016_schemaV2.json"),
+  muonBoostIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/muIso20UL16.root"),
   ptThres = cms.double(50.),
   ptMuThres = cms.double(20.),
   drThres = cms.double(0.3),
@@ -74,7 +75,10 @@ mergedEMuCRanalyzer = cms.EDAnalyzer("MergedEMuCRanalyzer",
                             0.026, -0.142, 0.039, 0.000, 0.003, -0.091 ),
   muSmearFactors = cms.vdouble(0.,0.),
   muSmearParams = cms.vdouble(0.0102, 6.77e-05, -3.72e-08, 8.53e-12, 0.0129, 6.48e-05, -3.04e-08, 6.63e-12),
-  year = cms.string("2016nonAPV")
+  year = cms.string("2016nonAPV"),
+  abcdScaleAbove = cms.double(0.9964),
+  abcdScaleBelow = cms.double(1.032),
+  abcdSmear = cms.double(0.0158),
 )
 
 mergedEMuCRanalyzer20UL16APV = mergedEMuCRanalyzer.clone(
@@ -104,7 +108,10 @@ mergedEMuCRanalyzer20UL16APV = mergedEMuCRanalyzer.clone(
                             -0.007, 0.003, -0.015, -0.003, 0.060, -0.196 ),
   muSmearFactors = cms.vdouble(0.,0.),
   muSmearParams = cms.vdouble(0.011, 6.87e-05, -3.88e-08, 9.03e-12, 0.013, 6.93e-05, -3.46e-08, 7.72e-12),
-  year = cms.string("2016APV")
+  year = cms.string("2016APV"),
+  abcdScaleAbove = cms.double(0.9962),
+  abcdScaleBelow = cms.double(1.024),
+  abcdSmear = cms.double(0.0175),
 )
 
 mergedEMuCRanalyzer20UL17 = mergedEMuCRanalyzer.clone(
@@ -151,7 +158,10 @@ mergedEMuCRanalyzer20UL17 = mergedEMuCRanalyzer.clone(
                             -0.025, -0.019, -0.049, 0.018, 0.000, 0.004 ),
   muSmearFactors = cms.vdouble(0.,0.3202),
   muSmearParams = cms.vdouble(0.0104, 6.11e-05, -3.31e-08, 6.73e-12, 0.0121, 5.92e-05, -2.61e-08, 5.11e-12),
-  year = cms.string("2017")
+  year = cms.string("2017"),
+  abcdScaleAbove = cms.double(0.9952),
+  abcdScaleBelow = cms.double(1.03),
+  abcdSmear = cms.double(0.0165),
 )
 
 mergedEMuCRanalyzer20UL18 = mergedEMuCRanalyzer.clone(
@@ -198,5 +208,8 @@ mergedEMuCRanalyzer20UL18 = mergedEMuCRanalyzer.clone(
                             0.149, 0.021, -0.028, 0.000, -0.059, 0.025),
   muSmearFactors = cms.vdouble(0.,0.46),
   muSmearParams = cms.vdouble(0.0108, 5.93e-05, -3.08e-08, 6.04e-12, 0.0136, 5.47e-05, -2.3e-08, 4.66e-12),
-  year = cms.string("2018")
+  year = cms.string("2018"),
+  abcdScaleAbove = cms.double(0.9965),
+  abcdScaleBelow = cms.double(1.03),
+  abcdSmear = cms.double(0.0165),
 )

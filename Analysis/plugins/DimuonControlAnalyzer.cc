@@ -14,11 +14,19 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Photon.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+
+#include "ZprimeTo4l/Analysis/interface/MuonCorrectionHelper.h"
+
+#include "TTree.h"
 
 class DimuonControlAnalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
@@ -30,53 +38,107 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override {}
 
-  bool isMC_;
+  math::PtEtaPhiMLorentzVector lvecFromTuneP(const pat::MuonRef& aMu);
+
+  const bool isMC_;
 
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
+  const edm::EDGetTokenT<edm::View<reco::GenParticle>> genptcToken_;
   const edm::EDGetTokenT<double> prefweight_token;
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> triggerobjectsToken_;
+  const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
+  const edm::EDGetTokenT<edm::TriggerResults> METfilterToken_;
 
   const edm::EDGetTokenT<edm::View<pat::Muon>> muonToken_;
+  const edm::EDGetTokenT<edm::View<pat::Photon>> photonToken_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
+  const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
 
   const double ptThres_;
+  const std::vector<std::string> METfilterList_;
+  const std::vector<std::string> trigList_;
+  const edm::FileInPath rochesterPath_;
+  const edm::FileInPath purwgtPath_;
+
+  MuonCorrectionHelper mucorrHelper_;
+
+  std::unique_ptr<TFile> purwgtFile_;
+  TH1D* purwgt_;
 
   std::map<std::string,TH1*> histo1d_;
+
+  TTree* tree_ = nullptr;
+  float invM_ = -1.;
+  float invMfsr_ = -1.;
+  float pt_ = -1.;
+  float ptll_ = -1.;
+  float eta_ = std::numeric_limits<float>::max();
+  float dr_ = -1.;
+  float wgt_ = 0.;
+  int charge_ = 0;
+  int passIso_ = -1;
+  int passHighPt_ = -1;
+  int passTrkHighPt_ = -1;
+
+  const double mumass_ = 0.1056583745;
 };
 
 DimuonControlAnalyzer::DimuonControlAnalyzer(const edm::ParameterSet& iConfig) :
-isMC_(iConfig.getUntrackedParameter<bool>("isMC")),
+isMC_(iConfig.getParameter<bool>("isMC")),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
+genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genptc"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
+pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
+METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 muonToken_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
+photonToken_(consumes<edm::View<pat::Photon>>(iConfig.getParameter<edm::InputTag>("srcPhoton"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
-ptThres_(iConfig.getParameter<double>("ptThres")) {
+beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
+ptThres_(iConfig.getParameter<double>("ptThres")),
+METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
+trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
+rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
+purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
+mucorrHelper_(rochesterPath_) {
   usesResource("TFileService");
+}
+
+math::PtEtaPhiMLorentzVector DimuonControlAnalyzer::lvecFromTuneP(const pat::MuonRef& aMu) {
+  return math::PtEtaPhiMLorentzVector(aMu->tunePMuonBestTrack()->pt(),
+                                      aMu->tunePMuonBestTrack()->eta(),
+                                      aMu->tunePMuonBestTrack()->phi(),
+                                      mumass_);
 }
 
 void DimuonControlAnalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
+
+  purwgtFile_ = std::make_unique<TFile>(purwgtPath_.fullPath().c_str(),"READ");
+  purwgt_ = static_cast<TH1D*>(purwgtFile_->Get("PUrwgt"));
+
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
+  histo1d_["pileup_nPU"] = fs->make<TH1D>("pileup_nPU","pileup_nPU",99,0.,99.);
+  histo1d_["pileup_nPUtrue"] = fs->make<TH1D>("pileup_nPUtrue","pileup_nPU",99,0.,99.);
+  histo1d_["nPV"] = fs->make<TH1D>("nPV","nPV",99,0.,99.);
 
   histo1d_["cutflow_2M"] = fs->make<TH1D>("cutflow_2M","cutflow",10,0.,10.);
 
-  histo1d_["pt_M1"] = fs->make<TH1D>("pt_M1","Pt",500,0.,500.);
-  histo1d_["eta_M1"] = fs->make<TH1D>("eta_M1","Eta",200,-2.5,2.5);
-  histo1d_["phi_M1"] = fs->make<TH1D>("phi_M1","Phi",128,-3.2,3.2);
-
-  histo1d_["pt_M2"] = fs->make<TH1D>("pt_M2","Pt",500,0.,500.);
-  histo1d_["eta_M2"] = fs->make<TH1D>("eta_M2","Eta",200,-2.5,2.5);
-  histo1d_["phi_M2"] = fs->make<TH1D>("phi_M2","Phi",128,-3.2,3.2);
-
-  histo1d_["invM_ll"] = fs->make<TH1D>("invM_ll","M(ll)",500,0.,500.);
-  histo1d_["invM_window_ll"] = fs->make<TH1D>("invM_window_ll","M(ll)",200,70,120.);
-  histo1d_["rap_ll"] = fs->make<TH1D>("rap_ll","rapidity(ll)",200,-2.5,2.5);
-  histo1d_["pt_ll"] = fs->make<TH1D>("pt_ll","Pt(ll)",500,0.,500.);
-  histo1d_["dr_ll"] = fs->make<TH1D>("dr_ll","dR(ll)",128,0.,6.4);
+  tree_ = fs->make<TTree>("dimuTree","dimuTree");
+  tree_->Branch("invM",&invM_,"invM/F");
+  tree_->Branch("invM_FSR",&invMfsr_,"invM_FSR/F");
+  tree_->Branch("pt",&pt_,"pt/F");
+  tree_->Branch("ptll",&ptll_,"ptll/F");
+  tree_->Branch("eta",&eta_,"eta/F");
+  tree_->Branch("dr",&dr_,"dr/F");
+  tree_->Branch("wgt",&wgt_,"wgt/F");
+  tree_->Branch("chargeProduct",&charge_,"chargeProduct/I");
+  tree_->Branch("passIso",&passIso_,"passIso/I");
+  tree_->Branch("passHighPt",&passHighPt_,"passHighPt/I");
+  tree_->Branch("passTrkHighPt",&passTrkHighPt_,"passTrkHighPt/I");
 }
 
 void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -85,6 +147,9 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
+
+  edm::Handle<reco::BeamSpot> beamSpotHandle;
+  iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
   double aWeight = 1.;
 
@@ -98,6 +163,23 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     double mcweight = genInfo->weight();
 
     aWeight = prefiringweight*mcweight/std::abs(mcweight);
+
+    edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
+    iEvent.getByToken(pileupToken_, pusummary);
+
+    for (unsigned int idx = 0; idx < pusummary->size(); ++idx) {
+      const auto& apu = pusummary->refAt(idx);
+
+      int bx = apu->getBunchCrossing();
+
+      if (bx==0) { // in-time PU only
+        aWeight *= purwgt_->GetBinContent( purwgt_->FindBin(apu->getTrueNumInteractions()) );
+        histo1d_["pileup_nPU"]->Fill(static_cast<double>(apu->getPU_NumInteractions()),aWeight);
+        histo1d_["pileup_nPUtrue"]->Fill(apu->getTrueNumInteractions(),aWeight);
+
+        break;
+      }
+    }
   }
 
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
@@ -108,15 +190,6 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<edm::View<pat::TriggerObjectStandAlone>> trigObjHandle;
   iEvent.getByToken(triggerobjectsToken_, trigObjHandle);
 
-  std::string trigs[] = {
-    // https://docs.google.com/spreadsheets/d/1Yy1VYIp-__pVUDFUs6JDNUh4XGlL2SlOsqXjdCsNiGU/edit#gid=663660886
-    // https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary
-    // https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLT2016
-    "HLT_Mu50_v*",
-    "HLT_TkMu50_v*"
-  };
-
-  const unsigned int nTrigs = sizeof(trigs)/sizeof(*trigs);
   const unsigned int nTrig = trigResultHandle.product()->size();
   const edm::TriggerNames trigList = iEvent.triggerNames(*trigResultHandle);
 
@@ -124,8 +197,8 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 
   for (unsigned int iTrig = 0; iTrig != nTrig; iTrig++) {
     const std::string& trigName = trigList.triggerName(iTrig);
-    for (unsigned int jTrig = 0; jTrig != nTrigs; jTrig++) {
-      if (trigName.find(trigs[jTrig].substr(0, trigs[jTrig].find("*"))) != std::string::npos) {
+    for (unsigned int jTrig = 0; jTrig != trigList_.size(); jTrig++) {
+      if (trigName.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos) {
         if (trigResultHandle.product()->accept(iTrig))
           isFired = true;
       }
@@ -141,8 +214,8 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     const auto& pathNames = trigObjInst.pathNames();
 
     for (const auto name : pathNames) {
-      for (unsigned int jTrig = 0; jTrig < nTrigs; jTrig++) {
-        if ( name.find(trigs[jTrig].substr(0, trigs[jTrig].find("*"))) != std::string::npos &&
+      for (unsigned int jTrig = 0; jTrig < trigList_.size(); jTrig++) {
+        if ( name.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos &&
              trigObjInst.hasPathName(name,true,true) ) {
           trigObjs.push_back(trigObj);
         }
@@ -164,71 +237,222 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   else
     return;
 
-  std::vector<edm::RefToBase<pat::Muon>> highPtMuons;
+  edm::Handle<edm::TriggerResults> METfilterHandle;
+  iEvent.getByToken(METfilterToken_,METfilterHandle);
+  edm::TriggerNames METfilters = iEvent.triggerNames(*METfilterHandle);
+
+  unsigned int nPassedFilters = 0;
+
+  for (unsigned int iTrig = 0; iTrig < METfilterHandle.product()->size(); iTrig++) {
+    const std::string trigname = METfilters.triggerName(iTrig);
+
+    if (METfilterHandle.product()->accept(iTrig)) {
+      for (const auto& filterName : METfilterList_) {
+        if (trigname.find(filterName) != std::string::npos)
+          nPassedFilters++;
+      }
+    }
+  }
+
+  if (nPassedFilters!=METfilterList_.size())
+    return;
+
+  std::vector<pat::MuonRef> highPtMuons;
+  std::vector<pat::MuonRef> highPtTrackerMuons;
 
   for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
     const auto& aMuon = muonHandle->refAt(idx);
 
-    if ( aMuon->pt() < ptThres_ )
+    if ( aMuon->tunePMuonBestTrack()->pt() < ptThres_ || std::abs(aMuon->eta()) > 2.4 )
       continue;
 
-    if ( aMuon->isHighPtMuon(primaryVertex) )
-      highPtMuons.push_back(aMuon);
+    if ( muon::isHighPtMuon(*aMuon,primaryVertex) )
+      highPtMuons.push_back(aMuon.castTo<pat::MuonRef>());
+    else if ( muon::isTrackerHighPtMuon(*aMuon,primaryVertex) )
+      highPtTrackerMuons.push_back(aMuon.castTo<pat::MuonRef>());
   }
 
-  std::vector<edm::RefToBase<pat::Muon>> isolatedHighPtMuons;
+  std::vector<pat::MuonRef> tagMuons;
+
+  for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
+    const auto& trigObj = trigObjs.at(idx);
+
+    for (const auto& aMu : highPtMuons) {
+      if ( aMu->tunePMuonBestTrack()->pt() > 52.
+           && reco::deltaR2(trigObj->eta(),trigObj->phi(),
+                            aMu->tunePMuonBestTrack()->eta(),aMu->tunePMuonBestTrack()->phi()) < 0.01 )
+        tagMuons.push_back(aMu);
+    }
+
+    for (const auto& aMu : highPtTrackerMuons) {
+      if ( aMu->tunePMuonBestTrack()->pt() > 52.
+           && reco::deltaR2(trigObj->eta(),trigObj->phi(),
+                            aMu->tunePMuonBestTrack()->eta(),aMu->tunePMuonBestTrack()->phi()) < 0.01 )
+        tagMuons.push_back(aMu);
+    }
+  }
+
+  if (tagMuons.empty())
+    return;
+
+  histo1d_["cutflow_2M"]->Fill( 2.5, aWeight );
+
+  std::vector<pat::MuonRef> isolatedHighPtMuons;
+  std::vector<pat::MuonRef> isolatedHighPtTrackerMuons;
+
+  auto sortByTuneP = [](const pat::MuonRef& a, const pat::MuonRef& b) {
+    return a->tunePMuonBestTrack()->pt() > b->tunePMuonBestTrack()->pt();
+  };
 
   for (unsigned idx = 0; idx < highPtMuons.size(); idx++) {
     const auto& firstMuon = highPtMuons.at(idx);
     double firstIso = firstMuon->trackIso();
 
-    if ( firstIso/firstMuon->pt() < 0.05 )
+    std::vector<pat::MuonRef> isoCands;
+
+    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
+      const auto& secondMuon = highPtMuons.at(jdx);
+
+      if (firstMuon==secondMuon)
+        continue;
+
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
+        isoCands.push_back(secondMuon);
+    }
+
+    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
+      const auto& secondMuon = highPtTrackerMuons.at(jdx);
+
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
+        isoCands.push_back(secondMuon);
+    }
+
+    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
+
+    if (!isoCands.empty())
+      firstIso -= isoCands.front()->innerTrack()->pt();
+
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
       isolatedHighPtMuons.push_back(firstMuon);
   }
 
-  auto sortByPt = [](const edm::RefToBase<pat::Muon> a, const edm::RefToBase<pat::Muon> b) {
-    return a->pt() > b->pt();
-  };
+  for (unsigned idx = 0; idx < highPtTrackerMuons.size(); idx++) {
+    const auto& firstMuon = highPtTrackerMuons.at(idx);
+    double firstIso = firstMuon->trackIso();
 
-  std::sort(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),sortByPt);
+    std::vector<pat::MuonRef> isoCands;
 
-  if ( isolatedHighPtMuons.size() < 2 || isolatedHighPtMuons.front()->pt() < 52. )
-    return;
+    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
+      const auto& secondMuon = highPtTrackerMuons.at(jdx);
 
-  histo1d_["cutflow_2M"]->Fill( 2.5, aWeight );
+      if (firstMuon==secondMuon)
+        continue;
 
-  bool trigMatched = false;
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
+        isoCands.push_back(secondMuon);
+    }
 
-  for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
-    const auto& trigObj = trigObjs.at(idx);
+    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
+      const auto& secondMuon = highPtMuons.at(jdx);
 
-    if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),isolatedHighPtMuons.front()->eta(),isolatedHighPtMuons.front()->phi()) < 0.09 )
-      trigMatched = true;
+      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
+        isoCands.push_back(secondMuon);
+    }
+
+    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
+
+    if (!isoCands.empty())
+      firstIso -= isoCands.front()->innerTrack()->pt();
+
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 )
+      isolatedHighPtTrackerMuons.push_back(firstMuon);
   }
 
-  if ( !trigMatched )
-    return;
+  std::sort(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),sortByTuneP);
+  std::sort(isolatedHighPtTrackerMuons.begin(),isolatedHighPtTrackerMuons.end(),sortByTuneP);
+
+  edm::Handle<edm::View<pat::Photon>> photonHandle;
+  iEvent.getByToken(photonToken_, photonHandle);
+
+  for (const auto& aMu : tagMuons) {
+    for (const auto& bMu : highPtMuons) {
+      if (aMu==bMu || aMu->tunePMuonBestTrack()->charge()*bMu->tunePMuonBestTrack()->charge() > 0)
+        continue;
+
+      const auto lvec1 = lvecFromTuneP(aMu);
+      const auto lvec2 = lvecFromTuneP(bMu);
+      auto lvecFSR1 = lvec1;
+      auto lvecFSR2 = lvec2;
+
+      for (unsigned idx = 0; idx < photonHandle->size(); idx++) {
+        const auto& aPho = photonHandle->refAt(idx);
+
+        if ( aPho->pt() < 10. )
+          continue;
+
+        if ( !aPho->photonID("cutBasedPhotonID-Fall17-94X-V2-loose") )
+          continue;
+
+        if ( reco::deltaR2(lvec1.eta(),lvec1.phi(),aPho->eta(),aPho->phi()) < 0.01 )
+          lvecFSR1 += aPho->p4();
+
+        if ( reco::deltaR2(lvec2.eta(),lvec2.phi(),aPho->eta(),aPho->phi()) < 0.01 )
+          lvecFSR2 += aPho->p4();
+      }
+
+      double invM = (lvec1 + lvec2).M();
+      double invMfsr = (lvecFSR1 + lvecFSR2).M();
+
+      if ( (2.5 < invM && invM < 4.5) || (60. < invM && invM < 200.) ) {
+        if ( mucorrHelper_.checkIso(bMu,aMu->innerTrack(),*beamSpotHandle) ) {
+          invM_ = invM;
+          invMfsr_ = invMfsr;
+          pt_ = bMu->tunePMuonBestTrack()->pt();
+          ptll_ = (lvec1 + lvec2).pt();
+          eta_ = bMu->tunePMuonBestTrack()->eta();
+          dr_ = reco::deltaR(lvec1.eta(),lvec1.phi(),lvec2.eta(),lvec2.phi());
+          charge_ = aMu->tunePMuonBestTrack()->charge()*bMu->tunePMuonBestTrack()->charge();
+          wgt_ = aWeight;
+          passIso_ = static_cast<int>(std::find(isolatedHighPtMuons.begin(),
+                                                isolatedHighPtMuons.end(),
+                                                bMu) != isolatedHighPtMuons.end());
+          passHighPt_ = 1;
+          passTrkHighPt_ = static_cast<int>(muon::isTrackerHighPtMuon(*bMu,primaryVertex));
+          tree_->Fill();
+        }
+      }
+    }
+
+    for (const auto& bMu : highPtTrackerMuons) {
+      if (aMu==bMu || aMu->tunePMuonBestTrack()->charge()*bMu->tunePMuonBestTrack()->charge() > 0)
+        continue;
+
+      const auto lvec1 = lvecFromTuneP(aMu);
+      const auto lvec2 = lvecFromTuneP(bMu);
+      double invM = (lvec1 + lvec2).M();
+
+      if ( (2.5 < invM && invM < 4.5) || (60. < invM && invM < 200.) ) {
+        if ( mucorrHelper_.checkIso(bMu,aMu->innerTrack(),*beamSpotHandle) ) {
+          invM_ = invM;
+          pt_ = bMu->tunePMuonBestTrack()->pt();
+          ptll_ = (lvec1 + lvec2).pt();
+          eta_ = bMu->tunePMuonBestTrack()->eta();
+          dr_ = reco::deltaR(lvec1.eta(),lvec1.phi(),lvec2.eta(),lvec2.phi());
+          charge_ = aMu->tunePMuonBestTrack()->charge()*bMu->tunePMuonBestTrack()->charge();
+          wgt_ = aWeight;
+          passIso_ = static_cast<int>(std::find(isolatedHighPtTrackerMuons.begin(),
+                                                isolatedHighPtTrackerMuons.end(),
+                                                bMu) != isolatedHighPtTrackerMuons.end());
+          passHighPt_ = 0;
+          passTrkHighPt_ = 1;
+          tree_->Fill();
+        }
+      }
+    }
+  }
 
   histo1d_["cutflow_2M"]->Fill( 3.5, aWeight );
-
-  histo1d_["pt_M1"]->Fill( isolatedHighPtMuons.front()->pt(), aWeight );
-  histo1d_["eta_M1"]->Fill( isolatedHighPtMuons.front()->eta(), aWeight );
-  histo1d_["phi_M1"]->Fill( isolatedHighPtMuons.front()->phi(), aWeight );
-
-  histo1d_["pt_M2"]->Fill( isolatedHighPtMuons.at(1)->pt(), aWeight );
-  histo1d_["eta_M2"]->Fill( isolatedHighPtMuons.at(1)->eta(), aWeight );
-  histo1d_["phi_M2"]->Fill( isolatedHighPtMuons.at(1)->phi(), aWeight );
-
-  const auto& lvecM1 = isolatedHighPtMuons.front()->polarP4();
-  const auto& lvecM2 = isolatedHighPtMuons.at(1)->polarP4();
-  const auto lvecll = lvecM1 + lvecM2;
-  const double dr2ll = reco::deltaR2(lvecM1.eta(),lvecM1.phi(),lvecM2.eta(),lvecM2.phi());
-
-  histo1d_["invM_ll"]->Fill( lvecll.M(), aWeight );
-  histo1d_["invM_window_ll"]->Fill( lvecll.M(), aWeight );
-  histo1d_["rap_ll"]->Fill( lvecll.Rapidity(), aWeight );
-  histo1d_["pt_ll"]->Fill( lvecll.pt(), aWeight );
-  histo1d_["dr_ll"]->Fill( std::sqrt(dr2ll), aWeight );
+  histo1d_["nPV"]->Fill( static_cast<float>(pvHandle->size())+0.5, aWeight );
 
   return;
 }

@@ -129,8 +129,16 @@ private:
   TTree* tree_ = nullptr;
   float invM_ = -1.;
   float u5x5Et_ = -1.;
+  float et_ = -1.;
   float wgt_ = 0.;
   int passME_ = -1;
+  int passModHeep_ = -1;
+  int passTrig25_ = -1;
+  int passTrig25unseeded_ = -1;
+  int passTrig25HE_ = -1.;
+  int passTrig25caloIdL_ = -1;
+  int passTrig33_ = -1;
+  int passTrig33unseeded_ = -1;
 
   TTree* Btree_ = nullptr;
   float BinvMtrk_ = -1.;
@@ -273,8 +281,16 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   tree_ = fs->make<TTree>("dielTree","dielTree");
   tree_->Branch("invM",&invM_,"invM/F");
   tree_->Branch("u5x5Et",&u5x5Et_,"u5x5Et/F");
+  tree_->Branch("Et",&et_,"Et/F");
   tree_->Branch("wgt",&wgt_,"wgt/F");
   tree_->Branch("passME",&passME_,"passME/I");
+  tree_->Branch("passModHeep",&passModHeep_,"passModHeep/I");
+  tree_->Branch("passTrig25",&passTrig25_,"passTrig25/I");
+  tree_->Branch("passTrig25unseeded",&passTrig25unseeded_,"passTrig25unseeded/I");
+  tree_->Branch("passTrig25HE",&passTrig25HE_,"passTrig25HE/I");
+  tree_->Branch("passTrig25caloIdL",&passTrig25caloIdL_,"passTrig25caloIdL/I");
+  tree_->Branch("passTrig33",&passTrig33_,"passTrig33/I");
+  tree_->Branch("passTrig33unseeded",&passTrig33unseeded_,"passTrig33unseeded/I");
 
   Btree_ = fs->make<TTree>("BmesonTree","BmesonTree");
   Btree_->Branch("invMtrk",&BinvMtrk_,"invMtrk/F");
@@ -569,13 +585,18 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::TriggerNames trigList = iEvent.triggerNames(*trigResultHandle);
 
   bool isFired = false;
+  bool isFired_mu9 = false;
 
   for (unsigned int iTrig = 0; iTrig != nTrig; iTrig++) {
     std::string trigName = trigList.triggerName(iTrig);
     for (unsigned int jTrig = 0; jTrig != trigList_.size(); jTrig++) {
       if (trigName.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos) {
-        if (trigResultHandle.product()->accept(iTrig))
+        if (trigResultHandle.product()->accept(iTrig)) {
           isFired = true;
+
+          if (trigList_.at(jTrig)=="HLT_Mu9_IP6_part*")
+            isFired_mu9 = true;
+        }
       }
     } // wanted triggers
   } // fired triggers
@@ -586,23 +607,54 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   histo1d_["cutflow"]->Fill(1.5,aWeight);
   histo1d_["nPV"]->Fill( static_cast<float>(pvHandle->size())+0.5, aWeight );
 
-  std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> trigObjs;
+  auto retrieveTrigObj = [&trigObjHandle,&trigResultHandle,&trigList,&iEvent] (const std::vector<std::string>& alist, bool useFilters=false)
+                         -> std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> {
+    std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> trigObjs;
 
-  for (unsigned iTrig = 0; iTrig < trigObjHandle->size(); iTrig++) {
-    const auto& trigObj = trigObjHandle->refAt(iTrig);
-    auto trigObjInst = trigObjHandle->at(iTrig); // workaround for copy
-    trigObjInst.unpackPathNames(trigList);
-    const auto& pathNames = trigObjInst.pathNames();
+    for (unsigned iTrig = 0; iTrig < trigObjHandle->size(); iTrig++) {
+      const auto& trigObj = trigObjHandle->refAt(iTrig);
+      auto trigObjInst = trigObjHandle->at(iTrig); // workaround for copy
+      trigObjInst.unpackPathNames(trigList);
+      trigObjInst.unpackFilterLabels(iEvent, *trigResultHandle);
+      const auto& pathNames = trigObjInst.pathNames();
 
-    for (const auto name : pathNames) {
-      for (unsigned int jTrig = 0; jTrig < trigList_.size(); jTrig++) {
-        if ( name.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos &&
-             trigObjInst.hasPathName(name,true,true) ) {
-          trigObjs.push_back(trigObj);
+      if (useFilters) {
+        for (const auto& aname : alist) {
+          if (trigObjInst.hasFilterLabel(aname))
+            trigObjs.push_back(trigObj);
         }
-      } // wanted triggers
-    } // fired triggers
-  } // trigger objs
+      } else {
+        for (const auto name : pathNames) {
+          for (unsigned int jTrig = 0; jTrig < alist.size(); jTrig++) {
+            if ( name.find(alist.at(jTrig).substr(0, alist.at(jTrig).find("*"))) != std::string::npos &&
+                 trigObjInst.hasPathName(name,true,true) ) {
+              trigObjs.push_back(trigObj);
+            }
+          } // wanted triggers
+        } // fired triggers
+      }
+    } // trigger objs
+
+    return trigObjs;
+  };
+
+  auto matchTrigObj = [] (const math::XYZTLorentzVectorD& p4,
+                          std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>>& trigObjs) {
+    for (const auto& trigObj : trigObjs) {
+      if ( reco::deltaR2(p4.eta(),p4.phi(),trigObj->eta(),trigObj->phi()) < 0.01 )
+        return true;
+    }
+
+    return false;
+  };
+
+  auto trigObjs = retrieveTrigObj(trigList_);
+  auto trigObjs_doubleEle25 = retrieveTrigObj({"hltEle25CaloIdLMWPMS2Filter"},true);
+  auto trigObjs_doubleEle25unseeded = retrieveTrigObj({"hltDiEle25CaloIdLMWPMS2UnseededFilter"},true);
+  auto trigObjs_doubleEle25HE = retrieveTrigObj({"hltEG25HEFilter"},true);
+  auto trigObjs_doubleEle25caloIdL = retrieveTrigObj({"hltEG25CaloIdLClusterShapeFilter"},true);
+  auto trigObjs_doubleEle33 = retrieveTrigObj({"hltEle33CaloIdLMWPMS2Filter"},true);
+  auto trigObjs_doubleEle33unseeded = retrieveTrigObj({"hltDiEle33CaloIdLMWPMS2UnseededFilter"},true);
 
   // preselections motivated from R(K) analysis i.e. BPH-22-005
   // first select trigger muon
@@ -629,7 +681,8 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     const double ipSig = dxy/dxyErr;
 
     if ( aMu->pt() > ptThresTag_ && std::abs(aMu->eta()) < 1.5 && std::abs(ipSig) > IPthresTag_ )
-      mediumMuons.push_back(aMu.castTo<pat::MuonRef>());
+      if ( isFired_mu9 || aMu->pt() > 12. )
+        mediumMuons.push_back(aMu.castTo<pat::MuonRef>());
   }
 
   if (mediumMuons.empty())
@@ -638,12 +691,10 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   bool matched = false;
   std::vector<pat::MuonRef> trigMuons;
 
-  for (const auto& trigObj : trigObjs) {
-    for (const auto& aMu : mediumMuons) {
-      if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),aMu->eta(),aMu->phi()) < 0.01 ) {
-        trigMuons.push_back(aMu);
-        matched = true;
-      }
+  for (const auto& aMu : mediumMuons) {
+    if ( matchTrigObj(aMu->p4(),trigObjs) ) {
+      trigMuons.push_back(aMu);
+      matched = true;
     }
   }
 
@@ -903,8 +954,16 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
       invM_ = Jpsis.front().dielectronState.mass();
       u5x5Et_ = u5x5Et;
+      et_ = Jpsis.front().dielec.firstEle->et();
       wgt_ = aWeight;
       passME_ = static_cast<int>(passMergedElectronID);
+      passModHeep_ = static_cast<int>(Jpsis.front().dielec.firstEle->electronID("modifiedHeepElectronID"));
+      passTrig25_ = static_cast<int>(matchTrigObj(Jpsis.front().dielec.firstEle->p4(),trigObjs_doubleEle25));
+      passTrig25unseeded_ = static_cast<int>(matchTrigObj(Jpsis.front().dielec.firstEle->p4(),trigObjs_doubleEle25unseeded));
+      passTrig25HE_ = static_cast<int>(matchTrigObj(Jpsis.front().dielec.firstEle->p4(),trigObjs_doubleEle25HE));
+      passTrig25caloIdL_ = static_cast<int>(matchTrigObj(Jpsis.front().dielec.firstEle->p4(),trigObjs_doubleEle25caloIdL));
+      passTrig33_ = static_cast<int>(matchTrigObj(Jpsis.front().dielec.firstEle->p4(),trigObjs_doubleEle33));
+      passTrig33unseeded_ = static_cast<int>(matchTrigObj(Jpsis.front().dielec.firstEle->p4(),trigObjs_doubleEle33unseeded));
       tree_->Fill();
 
       if (u5x5Et >= 20. && u5x5Et < 25.)

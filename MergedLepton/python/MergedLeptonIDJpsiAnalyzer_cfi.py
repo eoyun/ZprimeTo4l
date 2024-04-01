@@ -26,9 +26,10 @@ mergedLeptonIDJpsiAnalyzer = cms.EDAnalyzer("MergedLeptonIDJpsiAnalyzer",
   triggerResults = cms.InputTag("TriggerResults","","HLT"),
   triggerObjects = cms.InputTag("slimmedPatTrigger"),
   trigList = cms.vstring(
-    "HLT_Mu9_IP6_part*"
+    "HLT_Mu9_IP6_part*",
+    "HLT_Mu12_IP6_part*"
   ),
-  PUrwgt = cms.FileInPath("ZprimeTo4l/MergedLepton/data/BPH_Mu9_IP6_PUrwgt.root"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/MergedLepton/data/BPH_Mu9_or_Mu12_IP6_PUrwgt.root"),
   IPthresTag = cms.double(6.),
   dzThres = cms.double(0.1),
   d0Thres = cms.double(0.06),

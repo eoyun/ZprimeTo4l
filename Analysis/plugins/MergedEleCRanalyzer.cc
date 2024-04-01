@@ -10,6 +10,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
@@ -51,6 +52,7 @@ private:
   const double maxVpT_;
 
   const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
+  const edm::EDGetTokenT<edm::View<pat::Muon>> srcMuon_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
@@ -70,18 +72,15 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
 
-  const edm::FileInPath recoSFpath_;
   const edm::FileInPath FFpath_;
   const edm::FileInPath purwgtPath_;
-  const std::vector<std::string> trigList_;
+  const std::vector<std::string> trigFilters_;
+  const std::vector<std::string> trigUnseededFilters_;
   const std::vector<std::string> METfilterList_;
   const double etThres1_;
 
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,TH2*> histo2d_;
-
-  std::unique_ptr<TFile> recoSFfile_;
-  TH2D* recoSF_;
 
   std::unique_ptr<TFile> purwgtFile_;
   TH1D* purwgt_;
@@ -93,6 +92,39 @@ private:
   TFitResultPtr osFit_;
 
   ElectronSystematicsHelper systHelperEle_;
+
+  TTree* SRtree_ = nullptr;
+  float SRinvM_ = -1.;
+  float SRwgt_ = 0.;
+  int SRisOS_ = -1;
+  float SRpt1_ = -1.;
+  float SReta1_ = std::numeric_limits<float>::max();
+  float SRphi1_ = std::numeric_limits<float>::max();
+  float SRpt2_ = -1.;
+  float SReta2_ = std::numeric_limits<float>::max();
+  float SRphi2_ = std::numeric_limits<float>::max();
+
+  TTree* mixedCRtree_ = nullptr;
+  float mixedCRinvM_ = -1.;
+  float mixedCRwgt_ = 0.;
+  int mixedCRisOS_ = -1;
+  float mixedCRpt1_ = -1.;
+  float mixedCReta1_ = std::numeric_limits<float>::max();
+  float mixedCRphi1_ = std::numeric_limits<float>::max();
+  float mixedCRpt2_ = -1.;
+  float mixedCReta2_ = std::numeric_limits<float>::max();
+  float mixedCRphi2_ = std::numeric_limits<float>::max();
+
+  TTree* antiCRtree_ = nullptr;
+  float antiCRinvM_ = -1.;
+  float antiCRwgt_ = 0.;
+  int antiCRisOS_ = -1;
+  float antiCRpt1_ = -1.;
+  float antiCReta1_ = std::numeric_limits<float>::max();
+  float antiCRphi1_ = std::numeric_limits<float>::max();
+  float antiCRpt2_ = -1.;
+  float antiCReta2_ = std::numeric_limits<float>::max();
+  float antiCRphi2_ = std::numeric_limits<float>::max();
 };
 
 MergedEleCRanalyzer::MergedEleCRanalyzer(const edm::ParameterSet& iConfig) :
@@ -102,6 +134,7 @@ selectZpT_(iConfig.getParameter<bool>("selectZpT")),
 maxHT_(iConfig.getParameter<double>("maxHT")),
 maxVpT_(iConfig.getParameter<double>("maxVpT")),
 srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
+srcMuon_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 srcGenPtc_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("srcGenPtc"))),
@@ -116,13 +149,16 @@ addPackedCandToken_(consumes<edm::ValueMap<pat::PackedCandidateRef>>(iConfig.get
 union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dEtaIn"))),
 union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
-recoSFpath_(iConfig.getParameter<edm::FileInPath>("recoSFpath")),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
-trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
+trigFilters_(iConfig.getParameter<std::vector<std::string>>("trigFilters")),
+trigUnseededFilters_(iConfig.getParameter<std::vector<std::string>>("trigUnseededFilters")),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 etThres1_(iConfig.getParameter<double>("etThres1")),
-systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("modHeepSFpath"))) {
+systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("modHeepSFpath"),
+                                         iConfig.getParameter<edm::FileInPath>("recoSFpath"),
+                                         iConfig.getParameter<edm::FileInPath>("trigSFpath"),
+                                         iConfig.getParameter<edm::FileInPath>("trigUnseededSFpath"))) {
   usesResource("TFileService");
 
   systHelperEle_.SetModifiedHeepSF(iConfig.getParameter<double>("modHeepSFmuEB1"),
@@ -146,14 +182,36 @@ systHelperEle_(ElectronSystematicsHelper(iConfig.getParameter<edm::FileInPath>("
                                      iConfig.getParameter<double>("mergedEleSFupperNoTrk"));
   systHelperEle_.SetMergedElePol1(iConfig.getParameter<std::string>("mergedElePolHasTrkStr"),
                                   iConfig.getParameter<std::string>("mergedElePolNoTrkStr"));
+
+  std::vector<double> trigSF = iConfig.getParameter<std::vector<double>>("trigSF");
+  std::vector<double> trigSFcl95 = iConfig.getParameter<std::vector<double>>("trigSFcl95");
+  std::vector<double> trigSFupper = iConfig.getParameter<std::vector<double>>("trigSFupper");
+  std::vector<std::string> trigPol = iConfig.getParameter<std::vector<std::string>>("trigPol");
+  systHelperEle_.SetTrigSF(trigSF.at(0), trigSF.at(1), trigSF.at(2));
+  systHelperEle_.SetTrigSFcl95(trigSFcl95.at(0), trigSFcl95.at(1), trigSFcl95.at(2));
+  systHelperEle_.SetTrigSFupper(trigSFupper.at(0), trigSFupper.at(1), trigSFupper.at(2));
+  systHelperEle_.SetTrigPol1(trigPol.at(0), trigPol.at(1), trigPol.at(2));
+
+  std::vector<double> trigUnseededSF = iConfig.getParameter<std::vector<double>>("trigUnseededSF");
+  std::vector<double> trigUnseededSFcl95 = iConfig.getParameter<std::vector<double>>("trigUnseededSFcl95");
+  std::vector<double> trigUnseededSFupper = iConfig.getParameter<std::vector<double>>("trigUnseededSFupper");
+  std::vector<std::string> trigUnseededPol = iConfig.getParameter<std::vector<std::string>>("trigUnseededPol");
+  systHelperEle_.SetTrigUnseededSF(trigUnseededSF.at(0), trigUnseededSF.at(1), trigUnseededSF.at(2));
+  systHelperEle_.SetTrigUnseededSFcl95(trigUnseededSFcl95.at(0), trigUnseededSFcl95.at(1), trigUnseededSFcl95.at(2));
+  systHelperEle_.SetTrigUnseededSFupper(trigUnseededSFupper.at(0), trigUnseededSFupper.at(1), trigUnseededSFupper.at(2));
+  systHelperEle_.SetTrigUnseededPol1(trigUnseededPol.at(0), trigUnseededPol.at(1), trigUnseededPol.at(2));
+
+  systHelperEle_.SetTrigMergedSFandErr(iConfig.getParameter<double>("mergedTrigSF"),
+                                       iConfig.getParameter<double>("mergedTrigSFerr"));
+
+  systHelperEle_.SetAbcdScaleSmear(iConfig.getParameter<double>("abcdScaleAbove"),
+                                   iConfig.getParameter<double>("abcdScaleBelow"),
+                                   iConfig.getParameter<double>("abcdSmear"));
 }
 
 void MergedEleCRanalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
-
-  recoSFfile_ = std::make_unique<TFile>(recoSFpath_.fullPath().c_str(),"READ");
-  recoSF_ = static_cast<TH2D*>(recoSFfile_->Get("EGamma_SF2D"));
 
   FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
   ssboth_ = static_cast<TF1*>(FFfile_->FindObjectAny("ssboth"));
@@ -210,6 +268,10 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_CRME_SSll_invM_heepIdDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_heepIdDn","SS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_SSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleIdUp","SS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_SSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleIdDn","SS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_SSll_invM_elRecoUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_elRecoUp","SS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_SSll_invM_elRecoDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_elRecoDn","SS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_SSll_invM_elTrigUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_elTrigUp","SS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_SSll_invM_elTrigDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_elTrigDn","SS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_SSll_pt"] = fs->make<TH1D>("2E_CRME_SSll_pt","SS CR p_{T}(ll);GeV;",100,0.,500.);
   histo1d_["2E_CRME_SSll_dr"] = fs->make<TH1D>("2E_CRME_SSll_dr","SS CR dR(ll)",64,0.,6.4);
   histo1d_["2E_CRME_SSll_Et"] = fs->make<TH1D>("2E_CRME_SSll_Et","SS CR ME E_{T};GeV;",100,0.,500.);
@@ -220,6 +282,10 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_CRME_OSll_invM_mergedEleSmear"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleSmear","OS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_OSll_invM_heepIdUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_heepIdUp","OS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_OSll_invM_heepIdDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_heepIdDn","OS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_OSll_invM_elRecoUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_elRecoUp","OS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_OSll_invM_elRecoDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_elRecoDn","OS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_OSll_invM_elTrigUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_elTrigUp","OS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_OSll_invM_elTrigDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_elTrigDn","OS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_OSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleIdUp","OS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_OSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleIdDn","OS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_CRME_OSll_pt"] = fs->make<TH1D>("2E_CRME_OSll_pt","OS CR p_{T}(ll);GeV;",100,0.,500.);
@@ -249,6 +315,7 @@ void MergedEleCRanalyzer::beginJob() {
 
   histo1d_["2E_mixedME_SSll_invM"] = fs->make<TH1D>("2E_mixedME_SSll_invM","mixed SS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_SSll_invM_xFF"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF","mixed SS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["2E_mixedME_SSll_invM_xFF_preCorr"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_preCorr","mixed SS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_SSll_invM_xFF_up"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_up","mixed SS CR M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_SSll_invM_xFF_dn"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_dn","mixed SS CR M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_SSll_invM_heepIdUp"] = fs->make<TH1D>("2E_mixedME_SSll_invM_heepIdUp","mixed SS CR M(ll);GeV;",1000,0.,2500.);
@@ -269,6 +336,7 @@ void MergedEleCRanalyzer::beginJob() {
 
   histo1d_["2E_mixedME_OSll_invM"] = fs->make<TH1D>("2E_mixedME_OSll_invM","mixed OS CR M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_OSll_invM_xFF"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF","mixed OS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["2E_mixedME_OSll_invM_xFF_preCorr"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_preCorr","mixed OS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_OSll_invM_xFF_up"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_up","mixed OS CR M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_OSll_invM_xFF_dn"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_dn","mixed OS CR M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
   histo1d_["2E_mixedME_OSll_invM_heepIdUp"] = fs->make<TH1D>("2E_mixedME_OSll_invM_heepIdUp","mixed OS CR M(ll);GeV;",1000,0.,2500.);
@@ -309,6 +377,7 @@ void MergedEleCRanalyzer::beginJob() {
 
   histo1d_["2E_antiME_SSll_invM_CR"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR","SS anti M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_SSll_invM_CR_xFF"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF","SS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["2E_antiME_SSll_invM_CR_xFF_preCorr"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_preCorr","SS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_SSll_invM_CR_xFF_up"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_up","SS anti M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_SSll_invM_CR_xFF_dn"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_dn","SS anti M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_SSll_pt"] = fs->make<TH1D>("2E_antiME_SSll_pt","SS anti p_{T}(ll);GeV;",200,0.,1000.);
@@ -324,6 +393,7 @@ void MergedEleCRanalyzer::beginJob() {
 
   histo1d_["2E_antiME_OSll_invM_CR"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR","OS anti M(ll);GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_OSll_invM_CR_xFF"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF","OS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["2E_antiME_OSll_invM_CR_xFF_preCorr"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_preCorr","OS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_OSll_invM_CR_xFF_up"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_up","OS anti M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_OSll_invM_CR_xFF_dn"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_dn","OS anti M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
   histo1d_["2E_antiME_OSll_pt"] = fs->make<TH1D>("2E_antiME_OSll_pt","OS anti p_{T}(ll);GeV;",200,0.,1000.);
@@ -428,6 +498,10 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["3E_CRME_lll_invM_sigmaDn"] = fs->make<TH1D>("3E_CRME_lll_invM_sigmaDn","CR M(lll);GeV;",1000,0.,2500.);
   histo1d_["3E_CRME_lll_invM_heepIdUp"] = fs->make<TH1D>("3E_CRME_lll_invM_heepIdUp","CR M(lll);GeV;",1000,0.,2500.);
   histo1d_["3E_CRME_lll_invM_heepIdDn"] = fs->make<TH1D>("3E_CRME_lll_invM_heepIdDn","CR M(lll);GeV;",1000,0.,2500.);
+  histo1d_["3E_CRME_lll_invM_elRecoUp"] = fs->make<TH1D>("3E_CRME_lll_invM_elRecoUp","CR M(lll);GeV;",1000,0.,2500.);
+  histo1d_["3E_CRME_lll_invM_elRecoDn"] = fs->make<TH1D>("3E_CRME_lll_invM_elRecoDn","CR M(lll);GeV;",1000,0.,2500.);
+  histo1d_["3E_CRME_lll_invM_elTrigUp"] = fs->make<TH1D>("3E_CRME_lll_invM_elTrigUp","CR M(lll);GeV;",1000,0.,2500.);
+  histo1d_["3E_CRME_lll_invM_elTrigDn"] = fs->make<TH1D>("3E_CRME_lll_invM_elTrigDn","CR M(lll);GeV;",1000,0.,2500.);
   histo1d_["3E_CRME_lll_invM_mergedEleIdUp"] = fs->make<TH1D>("3E_CRME_lll_invM_mergedEleIdUp","CR M(lll);GeV;",1000,0.,2500.);
   histo1d_["3E_CRME_lll_invM_mergedEleIdDn"] = fs->make<TH1D>("3E_CRME_lll_invM_mergedEleIdDn","CR M(lll);GeV;",1000,0.,2500.);
   histo1d_["3E_CRME_lll_pt"] = fs->make<TH1D>("3E_CRME_lll_pt","p_{T}(lll);GeV;",100,0.,500.);
@@ -455,11 +529,21 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["3E_antiME_lll_invM_CR_heepIdUp"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_heepIdUp","CR M(lll);GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_heepIdDn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_heepIdDn","CR M(lll);GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xSSFF"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xSSFF_preCorr"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_preCorr","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xSSFF_heepIdUp"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_heepIdUp","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xSSFF_heepIdDn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_heepIdDn","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xSSFF_elRecoUp"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_elRecoUp","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xSSFF_elRecoDn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_elRecoDn","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xSSFF_elTrigUp"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_elTrigUp","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xSSFF_elTrigDn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_elTrigDn","CR M(lll) x SS Fake factor;GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xOSFF"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xOSFF_preCorr"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_preCorr","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xOSFF_heepIdUp"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_heepIdUp","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xOSFF_heepIdDn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_heepIdDn","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xOSFF_elRecoUp"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_elRecoUp","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xOSFF_elRecoDn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_elRecoDn","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xOSFF_elTrigUp"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_elTrigUp","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
+  histo1d_["3E_antiME_lll_invM_CR_xOSFF_elTrigDn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_elTrigDn","CR M(lll) x OS Fake factor;GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xSSFF_up"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_up","CR M(lll) x SS Fake factor (up);GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xOSFF_up"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xOSFF_up","CR M(lll) x OS Fake factor (up);GeV;",1000,0.,2500.);
   histo1d_["3E_antiME_lll_invM_CR_xSSFF_dn"] = fs->make<TH1D>("3E_antiME_lll_invM_CR_xSSFF_dn","CR M(lll) x SS Fake factor (down);GeV;",1000,0.,2500.);
@@ -490,10 +574,42 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["3E_Et_CR_EB_antiME_xOSFF_dn"] = fs->make<TH1D>("3E_Et_CR_EB_antiME_xOSFF_dn",";GeV;",200,0.,1000.);
   histo1d_["3E_Et_CR_EB_CRME"] = fs->make<TH1D>("3E_Et_CR_EB_CRME","3EVR EB numerator E_{T};GeV;",200,0.,1000.);
   histo1d_["3E_eta_CR_EB_CRME"] = fs->make<TH1D>("3E_eta_CR_EB_CRME",";#eta;",100,-2.5,2.5);
+
+  SRtree_ = fs->make<TTree>("SRtree","SRtree");
+  SRtree_->Branch("invM",&SRinvM_,"invM/F");
+  SRtree_->Branch("wgt",&SRwgt_,"wgt/F");
+  SRtree_->Branch("isOS",&SRisOS_,"isOS/I");
+  SRtree_->Branch("pt1",&SRpt1_,"pt1/F");
+  SRtree_->Branch("eta1",&SReta1_,"eta1/F");
+  SRtree_->Branch("phi1",&SRphi1_,"phi1/F");
+  SRtree_->Branch("pt2",&SRpt2_,"pt2/F");
+  SRtree_->Branch("eta2",&SReta2_,"eta2/F");
+  SRtree_->Branch("phi2",&SRphi2_,"phi2/F");
+
+  mixedCRtree_ = fs->make<TTree>("mixedCRtree","mixedCRtree");
+  mixedCRtree_->Branch("invM",&mixedCRinvM_,"invM/F");
+  mixedCRtree_->Branch("wgt",&mixedCRwgt_,"wgt/F");
+  mixedCRtree_->Branch("isOS",&mixedCRisOS_,"isOS/I");
+  mixedCRtree_->Branch("pt1",&mixedCRpt1_,"pt1/F");
+  mixedCRtree_->Branch("eta1",&mixedCReta1_,"eta1/F");
+  mixedCRtree_->Branch("phi1",&mixedCRphi1_,"phi1/F");
+  mixedCRtree_->Branch("pt2",&mixedCRpt2_,"pt2/F");
+  mixedCRtree_->Branch("eta2",&mixedCReta2_,"eta2/F");
+  mixedCRtree_->Branch("phi2",&mixedCRphi2_,"phi2/F");
+
+  antiCRtree_ = fs->make<TTree>("antiCRtree","antiCRtree");
+  antiCRtree_->Branch("invM",&antiCRinvM_,"invM/F");
+  antiCRtree_->Branch("wgt",&antiCRwgt_,"wgt/F");
+  antiCRtree_->Branch("isOS",&antiCRisOS_,"isOS/I");
+  antiCRtree_->Branch("pt1",&antiCRpt1_,"pt1/F");
+  antiCRtree_->Branch("eta1",&antiCReta1_,"eta1/F");
+  antiCRtree_->Branch("phi1",&antiCRphi1_,"phi1/F");
+  antiCRtree_->Branch("pt2",&antiCRpt2_,"pt2/F");
+  antiCRtree_->Branch("eta2",&antiCReta2_,"eta2/F");
+  antiCRtree_->Branch("phi2",&antiCRphi2_,"phi2/F");
 }
 
 void MergedEleCRanalyzer::endJob() {
-  recoSFfile_->Close();
   FFfile_->Close();
 }
 
@@ -596,45 +712,27 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::View<pat::TriggerObjectStandAlone>> trigObjHandle;
   iEvent.getByToken(triggerobjectsToken_, trigObjHandle);
 
-  const unsigned int nTrig = trigResultHandle.product()->size();
-  std::vector<std::pair<std::string, int>> indices;
-  edm::TriggerNames trigList = iEvent.triggerNames(*trigResultHandle);
-
-  bool isFired = false;
-
-  for (unsigned int iTrig = 0; iTrig != nTrig; iTrig++) {
-    std::string trigName = trigList.triggerName(iTrig);
-    for (unsigned int jTrig = 0; jTrig != trigList_.size(); jTrig++) {
-      if (trigName.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos) {
-        if (trigResultHandle.product()->accept(iTrig))
-          isFired = true;
-      }
-    } // wanted triggers
-  } // fired triggers
-
   histo1d_["cutflow_4E"]->Fill( 0.5, aWeight );
   histo1d_["cutflow_3E"]->Fill( 0.5, aWeight );
   histo1d_["cutflow_2E"]->Fill( 0.5, aWeight );
 
-  if (!isFired)
-    return;
-
   std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> trigObjs;
+  std::vector<edm::RefToBase<pat::TriggerObjectStandAlone>> trigObjsUnseeded;
 
   for (unsigned iTrig = 0; iTrig < trigObjHandle->size(); iTrig++) {
     const auto& trigObj = trigObjHandle->refAt(iTrig);
     auto trigObjInst = trigObjHandle->at(iTrig); // workaround for copy
-    trigObjInst.unpackPathNames(trigList);
-    const auto& pathNames = trigObjInst.pathNames();
+    trigObjInst.unpackFilterLabels(iEvent, *trigResultHandle);
 
-    for (const auto name : pathNames) {
-      for (unsigned int jTrig = 0; jTrig < trigList_.size(); jTrig++) {
-        if ( name.find(trigList_.at(jTrig).substr(0, trigList_.at(jTrig).find("*"))) != std::string::npos &&
-             trigObjInst.hasPathName(name,true,true) ) {
-          trigObjs.push_back(trigObj);
-        }
-      } // wanted triggers
-    } // fired triggers
+    for (const auto& aname : trigFilters_) {
+      if (trigObjInst.hasFilterLabel(aname))
+        trigObjs.push_back(trigObj);
+    }
+
+    for (const auto& aname : trigUnseededFilters_) {
+      if (trigObjInst.hasFilterLabel(aname))
+        trigObjsUnseeded.push_back(trigObj);
+    }
   } // trigger objs
 
   edm::Ptr<reco::Vertex> primaryVertex;
@@ -685,6 +783,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   // first two (modified)HEEP electrons should be Et > 35 GeV
   std::vector<pat::ElectronRef> acceptEles;
+  std::vector<pat::ElectronRef> nonHeepEles;
 
   auto sortByEt = [](const pat::ElectronRef& a, const pat::ElectronRef& b) {
     return a->et() > b->et();
@@ -729,9 +828,24 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         histo1d_[strHEEP]->Fill(jdx, aWeight);
     }
 
+    bool selected = false;
+
     if ( aEle->electronID("modifiedHeepElectronID") ) {
       auto castEle = aEle.castTo<pat::ElectronRef>();
       acceptEles.push_back(castEle);
+      selected = true;
+    }
+
+    if (!selected) {
+      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
+      int32_t mask = 0x000007B0; // = 0111 1011 0000
+      int32_t pass = bitmap | mask;
+      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+
+      if (passMaskedId) {
+        auto castEle = aEle.castTo<pat::ElectronRef>();
+        nonHeepEles.push_back(castEle);
+      }
     }
   }
 
@@ -747,15 +861,39 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   if (!accepted)
     return;
 
+  if (!nonHeepEles.empty())
+    return;
+
+  edm::Handle<edm::View<pat::Muon>> muonHandle;
+  iEvent.getByToken(srcMuon_, muonHandle);
+
+  std::vector<pat::MuonRef> highPtMuons;
+  std::vector<pat::MuonRef> highPtTrackerMuons;
+
+  for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
+    const auto& aMuon = muonHandle->refAt(idx);
+
+    if ( aMuon->tunePMuonBestTrack()->pt() < 20. || std::abs(aMuon->eta()) > 2.4 )
+      continue;
+
+    if ( muon::isHighPtMuon(*aMuon,*primaryVertex) )
+      highPtMuons.push_back(aMuon.castTo<pat::MuonRef>());
+    else if ( muon::isTrackerHighPtMuon(*aMuon,*primaryVertex) )
+      highPtTrackerMuons.push_back(aMuon.castTo<pat::MuonRef>());
+  }
+
+  if ( !highPtMuons.empty() || !highPtTrackerMuons.empty() )
+    return;
+
   bool trigMatched1 = false;
   bool trigMatched2 = false;
 
-  for (unsigned idx = 0; idx < trigObjs.size(); idx++) {
-    const auto& trigObj = trigObjs.at(idx);
-
+  for (const auto& trigObj : trigObjs) {
     if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),acceptEles.front()->eta(),acceptEles.front()->phi()) < 0.01 )
       trigMatched1 = true;
+  }
 
+  for (const auto& trigObj : trigObjsUnseeded) {
     if ( reco::deltaR2(trigObj->eta(),trigObj->phi(),acceptEles.at(1)->eta(),acceptEles.at(1)->phi()) < 0.01 )
       trigMatched2 = true;
   }
@@ -843,11 +981,13 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   std::sort(CRMEs.begin(),CRMEs.end(),sortByEt);
   std::sort(antiMEs.begin(),antiMEs.end(),sortByEt);
 
-  // recoSF
+  // SF
   if (isMC_) {
+    aWeight *= systHelperEle_.GetTrigSF(acceptEles.front());
+    aWeight *= systHelperEle_.GetTrigUnseededSF(acceptEles.at(1));
+
     for (const auto& aEle : acceptEles) {
-      double apt = aEle->pt() >= 500. ? 499.999 : aEle->pt();
-      aWeight *= recoSF_->GetBinContent( recoSF_->FindBin(aEle->superCluster()->eta(), apt ) );
+      aWeight *= systHelperEle_.GetRecoSF(aEle);
       aWeight *= systHelperEle_.GetModifiedHeepSF(aEle);
     }
 
@@ -883,6 +1023,56 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       wgtUp *= apair.first;
       wgtDn *= apair.second;
     } // acceptEles
+
+    return std::make_pair(wgtUp,wgtDn);
+  };
+
+  auto recoSFcl95 = [this,&acceptEles] (const double wgt) -> std::pair<double,double> {
+    if (!isMC_)
+      return std::make_pair(wgt,wgt);
+
+    double wgtUp = wgt;
+    double wgtDn = wgt;
+
+    for (const auto& aEle : acceptEles) {
+      double nominal = systHelperEle_.GetRecoSF(aEle);
+      double err = systHelperEle_.GetRecoSFerr(aEle);
+      wgtUp *= (nominal+err)/nominal;
+      wgtDn *= (nominal-err)/nominal;
+    } // acceptEles
+
+    return std::make_pair(wgtUp,wgtDn);
+  };
+
+  auto trigSFcl95 = [this,&acceptEles,&CRMEs] (const double wgt) -> std::pair<double,double> {
+    if (!isMC_)
+      return std::make_pair(wgt,wgt);
+
+    double wgtUp = wgt;
+    double wgtDn = wgt;
+
+    std::pair<double,double> pair1, pair2;
+
+    if (CRMEs.size()==1) {
+      if (CRMEs.front()==acceptEles.front()) {
+        pair1 = systHelperEle_.GetTrigSFMergedUpDn(acceptEles.front());
+        pair2 = systHelperEle_.GetTrigUnseededSFcl95UpDn(acceptEles.at(1));
+      } else if (CRMEs.front()==acceptEles.at(1)) {
+        pair1 = systHelperEle_.GetTrigSFcl95UpDn(acceptEles.front());
+        pair2 = systHelperEle_.GetTrigSFMergedUpDn(acceptEles.at(1));
+      }
+    } else if (CRMEs.size()==2) {
+      pair1 = systHelperEle_.GetTrigSFMergedUpDn(acceptEles.front());
+      pair2 = systHelperEle_.GetTrigSFMergedUpDn(acceptEles.at(1));
+    } else {
+      pair1 = systHelperEle_.GetTrigSFcl95UpDn(acceptEles.front());
+      pair2 = systHelperEle_.GetTrigUnseededSFcl95UpDn(acceptEles.at(1));
+    }
+
+    wgtUp *= pair1.first;
+    wgtUp *= pair2.first;
+    wgtDn *= pair1.second;
+    wgtDn *= pair2.second;
 
     return std::make_pair(wgtUp,wgtDn);
   };
@@ -958,6 +1148,10 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           histo1d_["3E_CRME_lll_invM_sigmaDn"]->Fill(mlll_sigmaDn,aWeight);
           histo1d_["3E_CRME_lll_invM_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first);
           histo1d_["3E_CRME_lll_invM_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second);
+          histo1d_["3E_CRME_lll_invM_elRecoUp"]->Fill(mlll,recoSFcl95(aWeight).first);
+          histo1d_["3E_CRME_lll_invM_elRecoDn"]->Fill(mlll,recoSFcl95(aWeight).second);
+          histo1d_["3E_CRME_lll_invM_elTrigUp"]->Fill(mlll,trigSFcl95(aWeight).first);
+          histo1d_["3E_CRME_lll_invM_elTrigDn"]->Fill(mlll,trigSFcl95(aWeight).second);
           histo1d_["3E_CRME_lll_invM_mergedEleIdUp"]->Fill(mlll,mergedEleSFcl95(aWeight).first);
           histo1d_["3E_CRME_lll_invM_mergedEleIdDn"]->Fill(mlll,mergedEleSFcl95(aWeight).second);
         }
@@ -1005,7 +1199,8 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             nonMEs.push_back(aEle);
         }
 
-        const auto lvecAME = lvecME(antiMEs.front());
+        const auto lvecAMEpreCorr = lvecME(antiMEs.front());
+        const auto lvecAME = systHelperEle_.GetSingleAbcdScaleSmear(lvecAMEpreCorr)*lvecAMEpreCorr;
         const auto lvecNME1 = nonMEs.front()->polarP4()*nonMEs.front()->userFloat("ecalTrkEnergyPostCorr")/nonMEs.front()->energy();
         const auto lvecNME2 = nonMEs.at(1)->polarP4()*nonMEs.at(1)->userFloat("ecalTrkEnergyPostCorr")/nonMEs.at(1)->energy();
         const auto lvecAllME = lvecAME + lvecNME1 + lvecNME2;
@@ -1013,6 +1208,9 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         const double dr2l2ME = reco::deltaR2(lvecAME.eta(),lvecAME.phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
         const double dr2l1l2 = reco::deltaR2(nonMEs.front()->eta(),nonMEs.front()->phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
         const double mlll = lvecAllME.M();
+
+        const auto lvecAllMEpreCorr = lvecAMEpreCorr + lvecNME1 + lvecNME2;
+        const auto mlllPreCorr = lvecAllMEpreCorr.M();
 
         if (mlll > 50.) {
           if ( antiMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
@@ -1040,15 +1238,25 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
           double ffSS = 0., ffOS = 0.;
           auto ci = ciSSOS(antiMEs.front(),ffSS,ffOS);
-          histo1d_["3E_antiME_lll_invM_CR"]->Fill(mlll,aWeight);
-          histo1d_["3E_antiME_lll_invM_CR_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first);
-          histo1d_["3E_antiME_lll_invM_CR_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second);
+          histo1d_["3E_antiME_lll_invM_CR"]->Fill(mlllPreCorr,aWeight);
+          histo1d_["3E_antiME_lll_invM_CR_heepIdUp"]->Fill(mlllPreCorr,modHeepSFcl95(aWeight).first);
+          histo1d_["3E_antiME_lll_invM_CR_heepIdDn"]->Fill(mlllPreCorr,modHeepSFcl95(aWeight).second);
           histo1d_["3E_antiME_lll_invM_CR_xOSFF"]->Fill(mlll,aWeight*ffOS);
+          histo1d_["3E_antiME_lll_invM_CR_xOSFF_preCorr"]->Fill(mlllPreCorr,aWeight*ffOS);
           histo1d_["3E_antiME_lll_invM_CR_xOSFF_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first*ffOS);
           histo1d_["3E_antiME_lll_invM_CR_xOSFF_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second*ffOS);
+          histo1d_["3E_antiME_lll_invM_CR_xOSFF_elRecoUp"]->Fill(mlll,recoSFcl95(aWeight).first*ffOS);
+          histo1d_["3E_antiME_lll_invM_CR_xOSFF_elRecoDn"]->Fill(mlll,recoSFcl95(aWeight).second*ffOS);
+          histo1d_["3E_antiME_lll_invM_CR_xOSFF_elTrigUp"]->Fill(mlll,trigSFcl95(aWeight).first*ffOS);
+          histo1d_["3E_antiME_lll_invM_CR_xOSFF_elTrigDn"]->Fill(mlll,trigSFcl95(aWeight).second*ffOS);
           histo1d_["3E_antiME_lll_invM_CR_xSSFF"]->Fill(mlll,aWeight*ffSS);
+          histo1d_["3E_antiME_lll_invM_CR_xSSFF_preCorr"]->Fill(mlllPreCorr,aWeight*ffSS);
           histo1d_["3E_antiME_lll_invM_CR_xSSFF_heepIdUp"]->Fill(mlll,modHeepSFcl95(aWeight).first*ffSS);
           histo1d_["3E_antiME_lll_invM_CR_xSSFF_heepIdDn"]->Fill(mlll,modHeepSFcl95(aWeight).second*ffSS);
+          histo1d_["3E_antiME_lll_invM_CR_xSSFF_elRecoUp"]->Fill(mlll,recoSFcl95(aWeight).first*ffSS);
+          histo1d_["3E_antiME_lll_invM_CR_xSSFF_elRecoDn"]->Fill(mlll,recoSFcl95(aWeight).second*ffSS);
+          histo1d_["3E_antiME_lll_invM_CR_xSSFF_elTrigUp"]->Fill(mlll,trigSFcl95(aWeight).first*ffSS);
+          histo1d_["3E_antiME_lll_invM_CR_xSSFF_elTrigDn"]->Fill(mlll,trigSFcl95(aWeight).second*ffSS);
           histo1d_["3E_antiME_lll_invM_CR_xOSFF_up"]->Fill(mlll,aWeight*(ffOS+ci.second));
           histo1d_["3E_antiME_lll_invM_CR_xSSFF_up"]->Fill(mlll,aWeight*(ffSS+ci.first));
           histo1d_["3E_antiME_lll_invM_CR_xOSFF_dn"]->Fill(mlll,aWeight*(ffOS-ci.second));
@@ -1108,23 +1316,46 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         if ( mll > 50. && (mll < 200. || isMC_) ) {
           histo1d_["2E_CRME_ll_invM"]->Fill( mll, aWeight );
 
+          SRinvM_ = mll;
+          SRwgt_ = aWeight;
+          SRpt1_ = lvecCRME1.pt();
+          SReta1_ = lvecCRME1.eta();
+          SRphi1_ = lvecCRME1.phi();
+          SRpt2_ = lvecCRME2.pt();
+          SReta2_ = lvecCRME2.eta();
+          SRphi2_ = lvecCRME2.phi();
+
           if ( CRMEs.front()->charge()*CRMEs.at(1)->charge() < 0. ) { // OS
             histo1d_["2E_CRME_OSll_invM"]->Fill( mll, aWeight );
             histo1d_["2E_CRME_OSll_invM_mergedEleScale"]->Fill( mll_scale, aWeight );
             histo1d_["2E_CRME_OSll_invM_mergedEleSmear"]->Fill( mll_smear, aWeight );
             histo1d_["2E_CRME_OSll_invM_heepIdUp"]->Fill( mll, modHeepSFcl95(aWeight).first );
             histo1d_["2E_CRME_OSll_invM_heepIdDn"]->Fill( mll, modHeepSFcl95(aWeight).second );
+            histo1d_["2E_CRME_OSll_invM_elRecoUp"]->Fill( mll, recoSFcl95(aWeight).first );
+            histo1d_["2E_CRME_OSll_invM_elRecoDn"]->Fill( mll, recoSFcl95(aWeight).second );
+            histo1d_["2E_CRME_OSll_invM_elTrigUp"]->Fill( mll, trigSFcl95(aWeight).first );
+            histo1d_["2E_CRME_OSll_invM_elTrigDn"]->Fill( mll, trigSFcl95(aWeight).second );
             histo1d_["2E_CRME_OSll_invM_mergedEleIdUp"]->Fill( mll, mergedEleSFcl95(aWeight).first );
             histo1d_["2E_CRME_OSll_invM_mergedEleIdDn"]->Fill( mll, mergedEleSFcl95(aWeight).second );
+
+            SRisOS_ = 1;
           } else if ( CRMEs.front()->charge()*CRMEs.at(1)->charge() > 0. ) { // SS
             histo1d_["2E_CRME_SSll_invM"]->Fill( mll, aWeight );
             histo1d_["2E_CRME_SSll_invM_mergedEleScale"]->Fill( mll_scale, aWeight );
             histo1d_["2E_CRME_SSll_invM_mergedEleSmear"]->Fill( mll_smear, aWeight );
             histo1d_["2E_CRME_SSll_invM_heepIdUp"]->Fill( mll, modHeepSFcl95(aWeight).first );
             histo1d_["2E_CRME_SSll_invM_heepIdDn"]->Fill( mll, modHeepSFcl95(aWeight).second );
+            histo1d_["2E_CRME_SSll_invM_elRecoUp"]->Fill( mll, recoSFcl95(aWeight).first );
+            histo1d_["2E_CRME_SSll_invM_elRecoDn"]->Fill( mll, recoSFcl95(aWeight).second );
+            histo1d_["2E_CRME_SSll_invM_elTrigUp"]->Fill( mll, trigSFcl95(aWeight).first );
+            histo1d_["2E_CRME_SSll_invM_elTrigDn"]->Fill( mll, trigSFcl95(aWeight).second );
             histo1d_["2E_CRME_SSll_invM_mergedEleIdUp"]->Fill( mll, mergedEleSFcl95(aWeight).first );
             histo1d_["2E_CRME_SSll_invM_mergedEleIdDn"]->Fill( mll, mergedEleSFcl95(aWeight).second );
+
+            SRisOS_ = 0;
           }
+
+          SRtree_->Fill();
         }
 
         if ( mll > 50. && mll < 200. ) {
@@ -1193,10 +1424,14 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       if (CRMEs.size()==1 && antiMEs.size()==1) {
         const auto lvecCRME = lvecME(CRMEs.front());
-        const auto lvecAnME = lvecME(antiMEs.front());
+        const auto lvecAnMEpreCorr = lvecME(antiMEs.front());
+        const auto lvecAnME = systHelperEle_.GetAbcdScaleSmear(lvecCRME,lvecAnMEpreCorr).second*lvecAnMEpreCorr;
         const auto lvecMixedll = lvecCRME + lvecAnME;
         const double dr2mixedll = reco::deltaR2(lvecCRME.eta(),lvecCRME.phi(),lvecAnME.eta(),lvecAnME.phi());
         const double mll = lvecMixedll.M();
+
+        const auto lvecMixedllpreCorr = lvecCRME + lvecAnMEpreCorr;
+        const auto mllPreCorr = lvecMixedllpreCorr.M();
 
         double ffSS = 0., ffOS = 0.;
         auto ci = ciSSOS(antiMEs.front(),ffSS,ffOS);
@@ -1204,25 +1439,44 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         if ( mll > 50. ) {
           histo1d_["2E_mixedME_ll_invM"]->Fill( mll, aWeight );
 
+          mixedCRinvM_ = mllPreCorr;
+          mixedCRwgt_ = aWeight;
+          mixedCRpt1_ = lvecCRME.pt();
+          mixedCReta1_ = lvecCRME.eta();
+          mixedCRphi1_ = lvecCRME.phi();
+          mixedCRpt2_ = lvecAnMEpreCorr.pt();
+          mixedCReta2_ = lvecAnMEpreCorr.eta();
+          mixedCRphi2_ = lvecAnMEpreCorr.phi();
+
           if ( CRMEs.front()->charge()*antiMEs.front()->charge() < 0. ) { // OS
-            histo1d_["2E_mixedME_OSll_invM"]->Fill( mll, aWeight );
-            histo1d_["2E_mixedME_OSll_invM_heepIdUp"]->Fill( mll, modHeepSFcl95(aWeight).first );
-            histo1d_["2E_mixedME_OSll_invM_heepIdDn"]->Fill( mll, modHeepSFcl95(aWeight).second );
-            histo1d_["2E_mixedME_OSll_invM_mergedEleIdUp"]->Fill( mll, mergedEleSFcl95(aWeight).first );
-            histo1d_["2E_mixedME_OSll_invM_mergedEleIdDn"]->Fill( mll, mergedEleSFcl95(aWeight).second );
+            histo1d_["2E_mixedME_OSll_invM"]->Fill( mllPreCorr, aWeight );
+            histo1d_["2E_mixedME_OSll_invM_heepIdUp"]->Fill( mllPreCorr, modHeepSFcl95(aWeight).first );
+            histo1d_["2E_mixedME_OSll_invM_heepIdDn"]->Fill( mllPreCorr, modHeepSFcl95(aWeight).second );
+            histo1d_["2E_mixedME_OSll_invM_mergedEleIdUp"]->Fill( mllPreCorr, mergedEleSFcl95(aWeight).first );
+            histo1d_["2E_mixedME_OSll_invM_mergedEleIdDn"]->Fill( mllPreCorr, mergedEleSFcl95(aWeight).second );
             histo1d_["2E_mixedME_OSll_invM_xFF"]->Fill( mll, 0.5*aWeight*ffOS ); // double-counting
+            histo1d_["2E_mixedME_OSll_invM_xFF_preCorr"]->Fill( mllPreCorr, 0.5*aWeight*ffOS );
             histo1d_["2E_mixedME_OSll_invM_xFF_up"]->Fill( mll, 0.5*aWeight*(ffOS+ci.second) );
             histo1d_["2E_mixedME_OSll_invM_xFF_dn"]->Fill( mll, 0.5*aWeight*(ffOS-ci.second) );
+
+            mixedCRwgt_ *= (0.5*ffOS);
+            mixedCRisOS_ = 1;
           } else if ( CRMEs.front()->charge()*antiMEs.front()->charge() > 0. ) { // SS
-            histo1d_["2E_mixedME_SSll_invM"]->Fill( mll, aWeight );
-            histo1d_["2E_mixedME_SSll_invM_heepIdUp"]->Fill( mll, modHeepSFcl95(aWeight).first );
-            histo1d_["2E_mixedME_SSll_invM_heepIdDn"]->Fill( mll, modHeepSFcl95(aWeight).second );
-            histo1d_["2E_mixedME_SSll_invM_mergedEleIdUp"]->Fill( mll, mergedEleSFcl95(aWeight).first );
-            histo1d_["2E_mixedME_SSll_invM_mergedEleIdDn"]->Fill( mll, mergedEleSFcl95(aWeight).second );
+            histo1d_["2E_mixedME_SSll_invM"]->Fill( mllPreCorr, aWeight );
+            histo1d_["2E_mixedME_SSll_invM_heepIdUp"]->Fill( mllPreCorr, modHeepSFcl95(aWeight).first );
+            histo1d_["2E_mixedME_SSll_invM_heepIdDn"]->Fill( mllPreCorr, modHeepSFcl95(aWeight).second );
+            histo1d_["2E_mixedME_SSll_invM_mergedEleIdUp"]->Fill( mllPreCorr, mergedEleSFcl95(aWeight).first );
+            histo1d_["2E_mixedME_SSll_invM_mergedEleIdDn"]->Fill( mllPreCorr, mergedEleSFcl95(aWeight).second );
             histo1d_["2E_mixedME_SSll_invM_xFF"]->Fill( mll, 0.5*aWeight*ffSS ); // double-counting
+            histo1d_["2E_mixedME_SSll_invM_xFF_preCorr"]->Fill( mllPreCorr, 0.5*aWeight*ffSS );
             histo1d_["2E_mixedME_SSll_invM_xFF_up"]->Fill( mll, 0.5*aWeight*(ffSS+ci.first) );
             histo1d_["2E_mixedME_SSll_invM_xFF_dn"]->Fill( mll, 0.5*aWeight*(ffSS-ci.first) );
+
+            mixedCRwgt_ *= (0.5*ffSS);
+            mixedCRisOS_ = 0;
           }
+
+          mixedCRtree_->Fill();
         }
 
         if ( mll > 50. && mll < 200. ) {
@@ -1334,13 +1588,19 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       } // CRMEs.size()==1 && antiMEs.size()==1
 
       if (antiMEs.size()==2) {
-        const auto lvecAME1 = lvecME(antiMEs.at(0));
-        const auto lvecAME2 = lvecME(antiMEs.at(1));
-        const auto lvecAll = lvecAME1 + lvecAME2;
+        const auto lvecAME1preCorr = lvecME(antiMEs.at(0));
+        const auto lvecAME2preCorr = lvecME(antiMEs.at(1));
+        const auto lvecAME1 = systHelperEle_.GetAbcdScaleSmear(lvecAME1preCorr,lvecAME2preCorr).first*lvecAME1preCorr;
+        const auto lvecAME2 = systHelperEle_.GetAbcdScaleSmear(lvecAME1preCorr,lvecAME2preCorr).second*lvecAME2preCorr;
+        const auto lvecAll1 = lvecAME1 + lvecAME2preCorr;
+        const auto lvecAll2 = lvecAME1preCorr + lvecAME2;
+        const auto lvecAllPreCorr = lvecAME1preCorr + lvecAME2preCorr;
         const double dr2All = reco::deltaR2(lvecAME1.eta(),lvecAME1.phi(),lvecAME2.eta(),lvecAME2.phi());
-        const double mll = lvecAll.M();
+        const double mll1 = lvecAll1.M();
+        const double mll2 = lvecAll2.M();
+        const double mllPreCorr = lvecAllPreCorr.M();
 
-        if ( mll > 50. ) {
+        if ( mllPreCorr > 50. ) {
           if ( antiMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
             histo1d_["2E_antiME1_Et"]->Fill( lvecAME1.Et(), aWeight );
             histo1d_["2E_antiME1_eta"]->Fill( lvecAME1.eta(), aWeight );
@@ -1361,27 +1621,41 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             histo1d_["2E_antiME2_noGsf_phi"]->Fill( lvecAME2.phi(), aWeight );
           } else {}
 
-          histo1d_["2E_antiME_ll_invM"]->Fill( mll, aWeight );
-          histo1d_["2E_antiME_ll_pt"]->Fill( lvecAll.pt(), aWeight );
+          histo1d_["2E_antiME_ll_invM"]->Fill( mllPreCorr, aWeight );
+          histo1d_["2E_antiME_ll_pt"]->Fill( lvecAllPreCorr.pt(), aWeight );
           histo1d_["2E_antiME_ll_dr"]->Fill( std::sqrt(dr2All), aWeight );
 
           double ffSS1 = 0., ffOS1 = 0., ffSS2 = 0., ffOS2 = 0.;
           auto ci1 = ciSSOS(antiMEs.at(0),ffSS1,ffOS1);
           auto ci2 = ciSSOS(antiMEs.at(1),ffSS2,ffOS2);
 
-          if ( antiMEs.front()->charge()*antiMEs.at(1)->charge() < 0. ) { // OS
-            histo1d_["2E_antiME_OSll_invM_CR"]->Fill( mll, aWeight );
-            histo1d_["2E_antiME_OSll_invM_CR_xFF"]->Fill( mll, aWeight*ffOS1 );
-            histo1d_["2E_antiME_OSll_invM_CR_xFF"]->Fill( mll, aWeight*ffOS2 );
-            histo1d_["2E_antiME_OSll_invM_CR_xFF_up"]->Fill( mll, aWeight*(ffOS1+ci1.second) );
-            histo1d_["2E_antiME_OSll_invM_CR_xFF_up"]->Fill( mll, aWeight*(ffOS2+ci2.second) );
-            histo1d_["2E_antiME_OSll_invM_CR_xFF_dn"]->Fill( mll, aWeight*(ffOS1-ci1.second) );
-            histo1d_["2E_antiME_OSll_invM_CR_xFF_dn"]->Fill( mll, aWeight*(ffOS2-ci2.second) );
+          antiCRinvM_ = mllPreCorr;
+          antiCRwgt_ = aWeight;
+          antiCRpt1_ = lvecAME1preCorr.pt();
+          antiCReta1_ = lvecAME1preCorr.eta();
+          antiCRphi1_ = lvecAME1preCorr.phi();
+          antiCRpt2_ = lvecAME2preCorr.pt();
+          antiCReta2_ = lvecAME2preCorr.eta();
+          antiCRphi2_ = lvecAME2preCorr.phi();
 
-            histo1d_["2E_antiME_OSll_pt"]->Fill( lvecAll.pt(), aWeight );
+          if ( antiMEs.front()->charge()*antiMEs.at(1)->charge() < 0. ) { // OS
+            histo1d_["2E_antiME_OSll_invM_CR"]->Fill( mllPreCorr, aWeight );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF"]->Fill( mll1, aWeight*ffOS1 );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF"]->Fill( mll2, aWeight*ffOS2 );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF_preCorr"]->Fill( mllPreCorr, aWeight*ffOS1 );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF_preCorr"]->Fill( mllPreCorr, aWeight*ffOS2 );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF_up"]->Fill( mll1, aWeight*(ffOS1+ci1.second) );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF_up"]->Fill( mll2, aWeight*(ffOS2+ci2.second) );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF_dn"]->Fill( mll1, aWeight*(ffOS1-ci1.second) );
+            histo1d_["2E_antiME_OSll_invM_CR_xFF_dn"]->Fill( mll2, aWeight*(ffOS2-ci2.second) );
+
+            histo1d_["2E_antiME_OSll_pt"]->Fill( lvecAllPreCorr.pt(), aWeight );
             histo1d_["2E_antiME_OSll_dr"]->Fill( std::sqrt(dr2All), aWeight );
 
-            if (mll < 200.) {
+            antiCRwgt_ *= (ffOS1+ffOS2);
+            antiCRisOS_ = 1;
+
+            if (mllPreCorr < 200.) {
               for (const auto& aME : antiMEs) {
                 double ffSS = 0., ffOS = 0.;
                 auto aci = ciSSOS(aME,ffSS,ffOS);
@@ -1424,18 +1698,23 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
               }
             }
           } else if ( antiMEs.front()->charge()*antiMEs.at(1)->charge() > 0. ) { // SS
-            histo1d_["2E_antiME_SSll_invM_CR"]->Fill( mll, aWeight );
-            histo1d_["2E_antiME_SSll_invM_CR_xFF"]->Fill( mll, aWeight*ffSS1 );
-            histo1d_["2E_antiME_SSll_invM_CR_xFF"]->Fill( mll, aWeight*ffSS2 );
-            histo1d_["2E_antiME_SSll_invM_CR_xFF_up"]->Fill( mll, aWeight*(ffSS1+ci1.first) );
-            histo1d_["2E_antiME_SSll_invM_CR_xFF_up"]->Fill( mll, aWeight*(ffSS2+ci2.first) );
-            histo1d_["2E_antiME_SSll_invM_CR_xFF_dn"]->Fill( mll, aWeight*(ffSS1-ci1.first) );
-            histo1d_["2E_antiME_SSll_invM_CR_xFF_dn"]->Fill( mll, aWeight*(ffSS2-ci2.first) );
+            histo1d_["2E_antiME_SSll_invM_CR"]->Fill( mllPreCorr, aWeight );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF"]->Fill( mll1, aWeight*ffSS1 );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF"]->Fill( mll2, aWeight*ffSS2 );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF_preCorr"]->Fill( mllPreCorr, aWeight*ffSS1 );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF_preCorr"]->Fill( mllPreCorr, aWeight*ffSS2 );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF_up"]->Fill( mll1, aWeight*(ffSS1+ci1.first) );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF_up"]->Fill( mll2, aWeight*(ffSS2+ci2.first) );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF_dn"]->Fill( mll1, aWeight*(ffSS1-ci1.first) );
+            histo1d_["2E_antiME_SSll_invM_CR_xFF_dn"]->Fill( mll2, aWeight*(ffSS2-ci2.first) );
 
-            histo1d_["2E_antiME_SSll_pt"]->Fill( lvecAll.pt(), aWeight );
+            histo1d_["2E_antiME_SSll_pt"]->Fill( lvecAllPreCorr.pt(), aWeight );
             histo1d_["2E_antiME_SSll_dr"]->Fill( std::sqrt(dr2All), aWeight );
 
-            if (mll < 200.) {
+            antiCRwgt_ *= (ffSS1+ffSS2);
+            antiCRisOS_ = 0;
+
+            if (mllPreCorr < 200.) {
               for (const auto& aME : antiMEs) {
                 double ffSS = 0., ffOS = 0.;
                 auto aci = ciSSOS(aME,ffSS,ffOS);
@@ -1462,6 +1741,8 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
               }
             } // CR
           } // OSSS
+
+          antiCRtree_->Fill();
         } // mll > 50.
       } // antiME.size()==2
 

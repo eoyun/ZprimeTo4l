@@ -3,22 +3,62 @@
 
 #include <cmath>
 
-MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
-                                           const edm::FileInPath& muonTrigSFpath) {
+MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath) {
   rochester_.init(rochesterPath.fullPath());
-
-  trigSF_ = std::move(correction::CorrectionSet::from_file(muonTrigSFpath.fullPath()));
 }
 
 MuonCorrectionHelper::MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
                                            const edm::FileInPath& muonTrigSFpath,
                                            const edm::FileInPath& muonIdIsoSFpath,
+                                           const edm::FileInPath& muonBoostIsoSFpath,
                                            const edm::FileInPath& muonRecoSFpath) {
   rochester_.init(rochesterPath.fullPath());
 
   recoSF_ = std::move(correction::CorrectionSet::from_file(muonRecoSFpath.fullPath()));
   trigSF_ = std::move(correction::CorrectionSet::from_file(muonTrigSFpath.fullPath()));
   idisoSF_ = std::move(correction::CorrectionSet::from_file(muonIdIsoSFpath.fullPath()));
+
+  boostIsoFile_ = std::make_unique<TFile>(muonBoostIsoSFpath.fullPath().c_str(),"READ");
+  boostIsoSF_ = (TH2D*)boostIsoFile_->Get("passHighPt_2D");
+  boostIsoSFup_ = (TH2D*)boostIsoFile_->Get("passHighPt_2D_hi");
+  boostIsoSFdn_ = (TH2D*)boostIsoFile_->Get("passHighPt_2D_lo");
+  boostIsoTrackerSF_ = (TH2D*)boostIsoFile_->Get("passTrkHighPt_2D");
+  boostIsoTrackerSFup_ = (TH2D*)boostIsoFile_->Get("passTrkHighPt_2D_hi");
+  boostIsoTrackerSFdn_ = (TH2D*)boostIsoFile_->Get("passTrkHighPt_2D_lo");
+}
+
+double MuonCorrectionHelper::boostIsoSF(const pat::MuonRef& mu, const reco::Vertex& pv) {
+  TH2D* sf = nullptr;
+
+  if (muon::isHighPtMuon(*mu,pv))
+    sf = boostIsoSF_;
+  else if (muon::isTrackerHighPtMuon(*mu,pv))
+    sf = boostIsoTrackerSF_;
+  else
+    return 1.;
+
+  int ibin = sf->FindFixBin(std::abs(mu->tunePMuonBestTrack()->eta()),std::max(mu->tunePMuonBestTrack()->pt(),999.));
+
+  return sf->GetBinContent(ibin);
+}
+
+std::pair<double,double> MuonCorrectionHelper::boostIsoSFupdn(const pat::MuonRef& mu, const reco::Vertex& pv) {
+  TH2D* up = nullptr;
+  TH2D* dn = nullptr;
+  const double sf = boostIsoSF(mu,pv);
+
+  if (muon::isHighPtMuon(*mu,pv)) {
+    up = boostIsoSFup_;
+    dn = boostIsoSFdn_;
+  } else if (muon::isTrackerHighPtMuon(*mu,pv)) {
+    up = boostIsoTrackerSFup_;
+    dn = boostIsoTrackerSFdn_;
+  } else
+    return std::make_pair(0.,0.);
+
+  int ibin = up->FindFixBin(std::abs(mu->tunePMuonBestTrack()->eta()),std::max(mu->tunePMuonBestTrack()->pt(),999.));
+
+  return std::make_pair((sf+up->GetBinContent(ibin))/sf,(sf-dn->GetBinContent(ibin))/sf);
 }
 
 bool MuonCorrectionHelper::checkIso(const pat::MuonRef& mu,

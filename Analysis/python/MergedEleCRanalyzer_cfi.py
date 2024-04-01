@@ -7,6 +7,7 @@ mergedEleCRanalyzer = cms.EDAnalyzer("MergedEleCRanalyzer",
   maxHT = cms.double(70.),
   maxVpT = cms.double(50.),
   srcEle = cms.InputTag("slimmedElectrons"),
+  srcMuon = cms.InputTag("slimmedMuons"),
   srcPv = cms.InputTag("offlineSlimmedPrimaryVertices"),
   generator = cms.InputTag("generator"),
   srcGenPtc=cms.InputTag("prunedGenParticles"),
@@ -23,11 +24,13 @@ mergedEleCRanalyzer = cms.EDAnalyzer("MergedEleCRanalyzer",
   recoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_ptAbove20_EGM2D_UL2016postVFP.root"),
   FFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MEFF_20UL16.root"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL16.root"),
-  trigList = cms.vstring(
-  # https://docs.google.com/spreadsheets/d/1Yy1VYIp-__pVUDFUs6JDNUh4XGlL2SlOsqXjdCsNiGU/edit#gid=663660886
-  # https://twiki.cern.ch/twiki/bin/view/CMS/EgHLTRunIISummary
-    "HLT_DoubleEle33_CaloIdL_MW_v*",
-    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*"
+  trigFilters = cms.vstring(
+    "hltEG33CaloIdLMWPMS2Filter",
+    "hltEle33CaloIdLGsfTrkIdVLDPhiFilter"
+  ),
+  trigUnseededFilters = cms.vstring(
+    "hltDiEle33CaloIdLMWPMS2UnseededFilter",
+    "hltDiEle33CaloIdLGsfTrkIdVLDPhiUnseededFilter"
   ),
   METfilterList = cms.vstring(
     "Flag_goodVertices",
@@ -61,17 +64,28 @@ mergedEleCRanalyzer = cms.EDAnalyzer("MergedEleCRanalyzer",
   modHeepSFupperEE = cms.double(1.344),
   modHeepPolEB1str = cms.string("-7.294*0.000001*x+0.995"),
   modHeepPolEB2str = cms.string("-6.237*0.000001*x+1.012"),
-  modHeepPolEEstr = cms.string("7.755*0.00001*x+1.026")
+  modHeepPolEEstr = cms.string("7.755*0.00001*x+1.026"),
+  trigSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle33_EGM2D_UL2016postVFP.root"),
+  trigUnseededSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle33unseeded_EGM2D_UL2016postVFP.root"),
+  trigSF = cms.vdouble(0.994,1.000,0.996),
+  trigSFcl95 = cms.vdouble(0.00186,0.001916,0.001538),
+  trigSFupper = cms.vdouble(1.002,1.002,1.001),
+  trigPol = cms.vstring("4.807*0.000001*x+0.993","-4.856*0.000001*x+1.0","2.582*0.000001*x+0.995"),
+  trigUnseededSF = cms.vdouble(1.001,1.001,0.998),
+  trigUnseededSFcl95 = cms.vdouble(0.001568,0.00158,0.001541),
+  trigUnseededSFupper = cms.vdouble(1.002,1.001,1.001),
+  trigUnseededPol = cms.vstring("9.716*0.0000001*x+1.001","-6.5*0.000001*x+1.002","-7.114*0.0000001*x+0.999"),
+  mergedTrigSF = cms.double(1.042),
+  mergedTrigSFerr = cms.double(0.131),
+  abcdScaleAbove = cms.double(0.9964),
+  abcdScaleBelow = cms.double(1.032),
+  abcdSmear = cms.double(0.0158),
 )
 
 mergedEleCRanalyzer20UL16APV = mergedEleCRanalyzer.clone(
   recoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_ptAbove20_EGM2D_UL2016preVFP.root"),
   FFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MEFF_20UL16APV.root"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL16.root"),
-  trigList = cms.vstring(
-    "HLT_DoubleEle33_CaloIdL_MW_v*",
-    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*"
-  ),
   etThres1 = cms.double(35.),
   modHeepSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_modHeep_EGM2D_UL2016preVFP.root"),
   modHeepSFmuEB1 = cms.double(0.995),
@@ -85,15 +99,31 @@ mergedEleCRanalyzer20UL16APV = mergedEleCRanalyzer.clone(
   modHeepSFupperEE = cms.double(1.227),
   modHeepPolEB1str = cms.string("-1.039*0.00001*x+0.998"),
   modHeepPolEB2str = cms.string("-3.185*0.00001*x+1.012"),
-  modHeepPolEEstr = cms.string("7.773*0.000001*x+1.005")
+  modHeepPolEEstr = cms.string("7.773*0.000001*x+1.005"),
+  trigSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle33_EGM2D_UL2016preVFP.root"),
+  trigUnseededSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle33unseeded_EGM2D_UL2016preVFP.root"),
+  trigSF = cms.vdouble(0.988,0.998,0.997),
+  trigSFcl95 = cms.vdouble(0.001834,0.002808,0.001431),
+  trigSFupper = cms.vdouble(1.001,1.003,1.0),
+  trigPol = cms.vstring("2.616*0.000001*x+0.988","-5.892*0.000001*x+0.999","1.831*0.000001*x+0.997"),
+  trigUnseededSF = cms.vdouble(0.994,0.997,0.998),
+  trigUnseededSFcl95 = cms.vdouble(0.001532,0.001828,0.001396),
+  trigUnseededSFupper = cms.vdouble(1.001,1.002,1.0),
+  trigUnseededPol = cms.vstring("9.892*0.0000001*x+0.994","-3.34*0.000001*x+0.997","3.714*0.0000001*x+0.998"),
+  abcdScaleAbove = cms.double(0.9962),
+  abcdScaleBelow = cms.double(1.024),
+  abcdSmear = cms.double(0.0175),
 )
 
 mergedEleCRanalyzer20UL17 = mergedEleCRanalyzer.clone(
   recoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_ptAbove20_EGM2D_UL2017.root"),
   FFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MEFF_20UL17.root"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL17.root"),
-  trigList = cms.vstring(
-    "HLT_DoubleEle33_CaloIdL_MW_v*"
+  trigFilters = cms.vstring(
+    "hltEle33CaloIdLMWPMS2Filter",
+  ),
+  trigUnseededFilters = cms.vstring(
+    "hltDiEle33CaloIdLMWPMS2UnseededFilter",
   ),
   etThres1 = cms.double(35.),
   METfilterList = cms.vstring(
@@ -120,15 +150,31 @@ mergedEleCRanalyzer20UL17 = mergedEleCRanalyzer.clone(
   modHeepSFupperEE = cms.double(1.144),
   modHeepPolEB1str = cms.string("1.119*0.00001*x+1.012"),
   modHeepPolEB2str = cms.string("2.415*0.00001*x+0.995"),
-  modHeepPolEEstr = cms.string("2.153*0.00001*x+1.001")
+  modHeepPolEEstr = cms.string("2.153*0.00001*x+1.001"),
+  trigSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle33_EGM2D_UL2017.root"),
+  trigUnseededSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle33unseeded_EGM2D_UL2017.root"),
+  trigSF = cms.vdouble(0.981,0.986,0.990),
+  trigSFcl95 = cms.vdouble(0.002086,0.002322,0.003689),
+  trigSFupper = cms.vdouble(1.019,1.021,1.021),
+  trigPol = cms.vstring("1.319*0.00001*x+0.980","1.865*0.00001*x+0.984","3.452*0.000001*x+0.990"),
+  trigUnseededSF = cms.vdouble(0.99,0.991,0.999),
+  trigUnseededSFcl95 = cms.vdouble(0.002185,0.002036,0.002852),
+  trigUnseededSFupper = cms.vdouble(1.019,1.02,1.019),
+  trigUnseededPol = cms.vstring("1.945*0.000001*x+0.99","1.532*0.00001*x+0.989","-1.462*0.00001*x+1.0"),
+  abcdScaleAbove = cms.double(0.9952),
+  abcdScaleBelow = cms.double(1.03),
+  abcdSmear = cms.double(0.0165),
 )
 
 mergedEleCRanalyzer20UL18 = mergedEleCRanalyzer.clone(
   recoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_ptAbove20_EGM2D_UL2018.root"),
   FFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MEFF_20UL18.root"),
   PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL18.root"),
-  trigList = cms.vstring(
-    "HLT_DoubleEle25_CaloIdL_MW_v*"
+  trigFilters = cms.vstring(
+    "hltEle25CaloIdLMWPMS2Filter",
+  ),
+  trigUnseededFilters = cms.vstring(
+    "hltDiEle25CaloIdLMWPMS2UnseededFilter",
   ),
   METfilterList = cms.vstring(
     "Flag_goodVertices",
@@ -155,5 +201,18 @@ mergedEleCRanalyzer20UL18 = mergedEleCRanalyzer.clone(
   modHeepSFupperEE = cms.double(1.125),
   modHeepPolEB1str = cms.string("-8.873*0.000001*x+1.000"),
   modHeepPolEB2str = cms.string("2.09*0.000001*x+0.990"),
-  modHeepPolEEstr = cms.string("2.354*0.00001*x+0.999")
+  modHeepPolEEstr = cms.string("2.354*0.00001*x+0.999"),
+  trigSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle25_EGM2D_UL2018.root"),
+  trigUnseededSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/egammaEffi_passingDoubleEle25unseeded_EGM2D_UL2018.root"),
+  trigSF = cms.vdouble(0.988,0.990,1.001),
+  trigSFcl95 = cms.vdouble(0.001722,0.001864,0.002017),
+  trigSFupper = cms.vdouble(1.015,1.018,1.012),
+  trigPol = cms.vstring("2.307*0.00001*x+0.987","1.924*0.00001*x+0.988","-1.357*0.00001*x+1.002"),
+  trigUnseededSF = cms.vdouble(0.995,0.992,0.996),
+  trigUnseededSFcl95 = cms.vdouble(0.001518,0.001588,0.001743),
+  trigUnseededSFupper = cms.vdouble(1.015,1.019,1.011),
+  trigUnseededPol = cms.vstring("4.633*0.000001*x+0.995","1.639*0.00001*x+0.991","-6.461*0.000001*x+0.997"),
+  abcdScaleAbove = cms.double(0.9965),
+  abcdScaleBelow = cms.double(1.03),
+  abcdSmear = cms.double(0.0165),
 )
