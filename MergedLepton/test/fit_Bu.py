@@ -10,12 +10,14 @@ import math
 import ctypes
 
 import argparse
+import os
 
 import numpy as np
 
 parser = argparse.ArgumentParser(description="Histogram fitter")
 parser.add_argument("--sns",action="store_true",help="")
 parser.add_argument("--doFit",action="store_true",help="perform fit")
+parser.add_argument("--tdr",action="store_true",help="plot for paper")
 args = parser.parse_args()
 
 CMS_lumi.extraText = "Internal"
@@ -167,6 +169,108 @@ def drawEff1D(xlist, ylist, yerr, nameout, xtitle, ytitle, xMin=0., xMax=0.):
     CMS_lumi.CMS_lumi(c, 5, 10)
     c.SaveAs(nameout+'.pdf')
 
+def histPlotterTDR( filename, histname, plotDir, prefix='mergedLeptonIDJpsiAnalyzer/' ):
+    rootfile = ROOT.TFile(filename,"read")
+
+    pPass = rootfile.Get( '%s_plotData' % (prefix+histname).replace('/','') )
+    pFail = rootfile.Get( '%s_plotMC' % (prefix+histname).replace('/','') )
+
+    #set the tdr style
+    tdrstyle.setTDRStyle()
+
+    #change the CMS_lumi variables (see CMS_lumi.py)
+    CMS_lumi.writeExtraText = 1
+    CMS_lumi.extraText = "Work in progress"
+
+    CMS_lumi.lumi_sqrtS = "41.69 fb^{-1}"
+
+    iPos = 11
+    CMS_lumi.relPosX = 0.05
+
+    H_ref = 800;
+    W_ref = 800;
+    W = W_ref
+    H = H_ref
+
+    iPeriod = 0
+
+    # references for T, B, L, R
+    T = 0.08*H_ref
+    B = 0.12*H_ref
+    L = 0.12*W_ref
+    R = 0.04*W_ref
+
+    canvas = ROOT.TCanvas("c","c",50,50,W,H)
+    canvas.SetFillColor(0)
+    canvas.SetBorderMode(0)
+    canvas.SetFrameFillStyle(0)
+    canvas.SetFrameBorderMode(0)
+    canvas.SetLeftMargin( L/W )
+    canvas.SetRightMargin( R/W )
+    canvas.SetTopMargin( T/H )
+    canvas.SetBottomMargin( B/H )
+    canvas.SetTickx(0)
+    canvas.SetTicky(0)
+    canvas.cd()
+
+    subpad = ROOT.TPad("pad","pad",0.6,0.6,0.965,0.91)
+    subpad.SetFillColor(0);
+    subpad.SetBorderMode(0);
+    subpad.SetFrameFillStyle(0);
+    subpad.SetFrameBorderMode(0);
+    subpad.SetLeftMargin( 0.15 );
+    subpad.SetRightMargin( 0.05 );
+    subpad.SetTopMargin( 0 );
+    subpad.SetBottomMargin( 0.1 );
+    subpad.SetTickx(0);
+    subpad.SetTicky(0);
+
+    canvas.cd()
+    pPass.GetYaxis().SetRangeUser(0.,100.)
+    pPass.GetXaxis().SetTitle("M [GeV]")
+    pPass.SetMarkerSize(1.5)
+    pPass.Draw()
+
+    subpad.cd()
+    pFail.SetMarkerSize(0.05)
+    pFail.Draw()
+    pFail.GetYaxis().SetRangeUser(0.,105.)
+    pFail.GetXaxis().SetTitle("M [GeV]")
+    pFail.GetXaxis().SetTitleSize(0.05)
+    pFail.GetXaxis().SetLabelSize(0.05)
+    pFail.GetYaxis().SetLabelSize(0.05)
+    pFail.GetYaxis().SetTitle("")
+
+    canvas.Update()
+    canvas.cd()
+    subpad.Draw()
+
+    # legend = ROOT.TLegend(0.5,0.75,0.95,0.9)
+    legend = ROOT.TLegend(L/W+0.01,B/H+0.01,0.55,0.3)
+    legend.SetBorderSize(0);
+
+    legend.AddEntry("dataF","Data","P")
+    legend.AddEntry("sigF","Crystal Ball signal fit","LP")
+    legend.AddEntry("bkgF","Exponential background fit","LP")
+    legend.Draw()
+
+    ft = ROOT.TPaveText(0.66,0.85,0.83,0.91,"NDC");
+    ft.SetBorderSize(0);
+    ft.SetFillColor(0);
+    ft.SetFillStyle(0);
+    ft.AddText("Simulation");
+    ft.Draw();
+
+    #draw the lumi text on the canvas
+    CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+    canvas.cd()
+    canvas.Update()
+    canvas.RedrawAxis()
+    frame = canvas.GetFrame()
+    frame.Draw()
+
+    canvas.SaveAs( '%s/%s.pdf' % (plotDir,(prefix+histname).replace('/','')))
+
 if __name__ == "__main__":
     histname = "MergedEle_3trk_B_invM_u5x5"
     shortname = "res" # data or BuJpsiKee
@@ -195,14 +299,17 @@ if __name__ == "__main__":
         "kData[-1.,-2,-0.3]"
     ]
 
-    listscale = [1.0,0.995,0.992,0.99,0.988,0.985,0.98]
+    listscale = [1.01,1.008,1.005,1.002,1.0,0.998,0.995,0.992,0.99]
     listsmear = [0.015,0.02,0.022,0.024,0.025,0.026,0.028,0.03,0.035]
     listmeanr = []
     listmeanrErr = []
     listsigmar = []
     listsigmarErr = []
 
-    if args.doFit:
+    if args.doFit and not args.tdr:
+        if not os.path.exists(aplotDir):
+            os.makedirs(aplotDir)
+
         for idx in range(len(plotlist)):
             aplot = plotlist[idx]
             aprefix = aplot
@@ -215,10 +322,10 @@ if __name__ == "__main__":
 
                 for scale in listscale:
                     tnpWorkspaceParam = [
-                        "meanMC[5.28,5.18,5.38]","sigmaMC[0.05]","alphaMC[0.533]",'nMC[10]',
-                        "meanData[5.28,5.18,5.38]","sigmaData[0.05]","alphaData[0.533]",'nData[10]',
+                        "meanMC[5.28,5.18,5.38]","sigmaMC[0.053]","alphaMC[0.526]",'nMC[9.997]',
+                        "meanData[5.28,5.18,5.38]","sigmaData[0.053]","alphaData[0.526]",'nData[9.997]',
                         "kMC[-0.3]",
-                        "kData[-0.913]"
+                        "kData[-0.872]"
                     ]
 
                     aprefix = aplot + 'Scale' + str(scale)
@@ -230,10 +337,10 @@ if __name__ == "__main__":
 
                 for smear in listsmear:
                     tnpWorkspaceParam = [
-                        "meanMC[5.229]","sigmaMC[0.05,0.01,0.2]","alphaMC[0.533]",'nMC[10]',
-                        "meanData[5.229]","sigmaData[0.05,0.01,0.2]","alphaData[0.533]",'nData[10]',
+                        "meanMC[5.231]","sigmaMC[0.05,0.01,0.2]","alphaMC[0.526]",'nMC[9.997]',
+                        "meanData[5.231]","sigmaData[0.05,0.01,0.2]","alphaData[0.526]",'nData[9.997]',
                         "kMC[-0.3]",
-                        "kData[-0.913]"
+                        "kData[-0.872]"
                     ]
 
                     aprefix = aplot + 'Smear' + str(smear)
@@ -245,5 +352,10 @@ if __name__ == "__main__":
 
             drawEff1D(listscale,listmeanr,listmeanrErr, "gridscale", "scale", "#mu_{MC}/#mu_{Data}")
             drawEff1D(listsmear,listsigmar,listsigmarErr, "gridsmear", "smearing", "#sigma_{Data}/#sigma_{MC}")
+    elif args.tdr:
+        aplot = "JpsiPt30to100tdr"
+        aprefix = aplot
+        histFitter("MergedEleJpsiAnalyzer_20UL18_BuJpsiKee.root","MergedEleJpsiAnalyzer_20UL18_data.root", histname, tnpWorkspaceParam, tnpWorkspaceFunc, aplotDir, 30, 100, aprefix )
+        histPlotterTDR( aplotDir + '/MergedEleJpsiAnalyzer_20UL18_BuJpsiKee-%s.root' % (aprefix+histname).replace('/',''), histname, aplotDir, aprefix )
 
     print('Finished')

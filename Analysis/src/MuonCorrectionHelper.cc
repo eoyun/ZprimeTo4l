@@ -37,7 +37,7 @@ double MuonCorrectionHelper::boostIsoSF(const pat::MuonRef& mu, const reco::Vert
   else
     return 1.;
 
-  int ibin = sf->FindFixBin(std::abs(mu->tunePMuonBestTrack()->eta()),std::max(mu->tunePMuonBestTrack()->pt(),999.));
+  int ibin = sf->FindFixBin(std::abs(mu->tunePMuonBestTrack()->eta()),std::min(mu->tunePMuonBestTrack()->pt(),999.));
 
   return sf->GetBinContent(ibin);
 }
@@ -56,7 +56,7 @@ std::pair<double,double> MuonCorrectionHelper::boostIsoSFupdn(const pat::MuonRef
   } else
     return std::make_pair(0.,0.);
 
-  int ibin = up->FindFixBin(std::abs(mu->tunePMuonBestTrack()->eta()),std::max(mu->tunePMuonBestTrack()->pt(),999.));
+  int ibin = up->FindFixBin(std::abs(mu->tunePMuonBestTrack()->eta()),std::min(mu->tunePMuonBestTrack()->pt(),999.));
 
   return std::make_pair((sf+up->GetBinContent(ibin))/sf,(sf-dn->GetBinContent(ibin))/sf);
 }

@@ -1,10 +1,10 @@
 import ROOT
-ROOT.gROOT.LoadMacro('./histFitter.C+')
+ROOT.gROOT.LoadMacro('./histFitter_Jpsi.C+')
 ROOT.gROOT.LoadMacro('./RooCMSShape.cc+')
 ROOT.gROOT.LoadMacro('./RooCBExGaussShape.cc+')
 ROOT.gROOT.SetBatch(1)
 
-from ROOT import tnpFitter
+from ROOT import tnpFitterJpsi
 import CMS_lumi, tdrstyle
 
 import re
@@ -12,6 +12,7 @@ import math
 import ctypes
 
 import argparse
+import os
 
 parser = argparse.ArgumentParser(description="Histogram fitter")
 parser.add_argument("--nominal",action="store_true",help="nominal fit")
@@ -19,6 +20,7 @@ parser.add_argument("--altSig",action="store_true",help="altSig fit")
 parser.add_argument("--altBkg",action="store_true",help="altBkg fit")
 parser.add_argument("--doFit",action="store_true",help="perform fit")
 parser.add_argument("--sumUp",action="store_true",help="sum-up efficiencies")
+parser.add_argument("--tdr",action="store_true",help="plot for paper")
 args = parser.parse_args()
 
 class efficiency:
@@ -238,7 +240,7 @@ def drawEff1D(effList, nameout):
     fitPtrPol = grBinsSF.Fit(fitFuncPol,"SREX0+")
 
     lastbinMCeff = (grBinsEffMC.GetY())[grBinsEffMC.GetN()-1]
-    textbox_pol.AddText(r'%.4gE_{T}+%.3f #leq 1/eff_{MC} = %.3f' % (fitFuncPol.GetParameter(0), fitFuncPol.GetParameter(1), 1./lastbinMCeff))
+    textbox_pol.AddText(r'%.4gE_{T}+%.3f #leq 1/eff_{MC} = %.4g' % (fitFuncPol.GetParameter(0), fitFuncPol.GetParameter(1), 1./lastbinMCeff))
     lastText = textbox_pol.GetListOfLines().Last()
     lastText.SetTextColor(ROOT.kGray+1)
     lastText.SetTextAlign(12)
@@ -291,7 +293,7 @@ def histFitter( sample, histname, tnpWorkspaceParam, tnpWorkspaceFunc, plotDir, 
     # hP.Rebin(5)
     # hF.Rebin(5)
 
-    fitter = tnpFitter( hP, hF, (prefix+histname).replace('/','') )
+    fitter = tnpFitterJpsi( hP, hF, (prefix+histname).replace('/','') )
     infile.Close()
 
     ## setup
@@ -316,10 +318,118 @@ def histPlotter( filename, histname, plotDir, prefix='mergedLeptonIDJpsiAnalyzer
     c = rootfile.Get( '%s_Canv' % (prefix+histname).replace('/','') )
     c.Print( '%s/%s.png' % (plotDir,(prefix+histname).replace('/','')))
 
+def histPlotterTDR( filename, histname, plotDir, prefix='mergedLeptonIDJpsiAnalyzer/' ):
+    rootfile = ROOT.TFile(filename,"read")
+
+    pPass = rootfile.Get( '%s_plotP' % (prefix+histname).replace('/','') )
+    pFail = rootfile.Get( '%s_plotF' % (prefix+histname).replace('/','') )
+
+    #set the tdr style
+    tdrstyle.setTDRStyle()
+
+    #change the CMS_lumi variables (see CMS_lumi.py)
+    CMS_lumi.writeExtraText = 1
+    CMS_lumi.extraText = "Work in progress"
+
+    CMS_lumi.lumi_sqrtS = "41.69 fb^{-1}"
+
+    iPos = 11
+    CMS_lumi.relPosX = 0.05
+
+    H_ref = 800;
+    W_ref = 800;
+    W = W_ref
+    H = H_ref
+
+    iPeriod = 0
+
+    # references for T, B, L, R
+    T = 0.08*H_ref
+    B = 0.12*H_ref
+    L = 0.12*W_ref
+    R = 0.04*W_ref
+
+    canvas = ROOT.TCanvas("c","c",50,50,W,H)
+    canvas.SetFillColor(0)
+    canvas.SetBorderMode(0)
+    canvas.SetFrameFillStyle(0)
+    canvas.SetFrameBorderMode(0)
+    canvas.SetLeftMargin( L/W )
+    canvas.SetRightMargin( R/W )
+    canvas.SetTopMargin( T/H )
+    canvas.SetBottomMargin( B/H )
+    canvas.SetTickx(0)
+    canvas.SetTicky(0)
+    canvas.cd()
+
+    subpad = ROOT.TPad("pad","pad",0.6,0.6,0.965,0.91)
+    subpad.SetFillColor(0);
+    subpad.SetBorderMode(0);
+    subpad.SetFrameFillStyle(0);
+    subpad.SetFrameBorderMode(0);
+    subpad.SetLeftMargin( 0.15 );
+    subpad.SetRightMargin( 0.05 );
+    subpad.SetTopMargin( 0 );
+    subpad.SetBottomMargin( 0.1 );
+    subpad.SetTickx(0);
+    subpad.SetTicky(0);
+
+    canvas.cd()
+    pPass.GetYaxis().SetRangeUser(0.,550.)
+    pPass.GetXaxis().SetTitle("M [GeV]")
+    pPass.SetMarkerSize(1.5)
+    pPass.Draw()
+
+    subpad.cd()
+    pFail.SetMarkerSize(0.05)
+    pFail.Draw()
+    pFail.GetXaxis().SetTitle("M [GeV]")
+    pFail.GetXaxis().SetTitleSize(0.05)
+    pFail.GetXaxis().SetLabelSize(0.05)
+    pFail.GetYaxis().SetLabelSize(0.05)
+    pFail.GetYaxis().SetTitle("")
+
+    canvas.Update()
+    canvas.cd()
+    subpad.Draw()
+
+    # legend = ROOT.TLegend(0.5,0.75,0.95,0.9)
+    legend = ROOT.TLegend(L/W+0.01,B/H+0.01,0.55,0.3)
+    legend.SetBorderSize(0);
+
+    legend.AddEntry("dataP","Data","P")
+    legend.AddEntry("sigP","Gaussian signal fit","LP")
+    legend.AddEntry("bkgP","Exponential background fit","LP")
+    legend.Draw()
+
+    pt = ROOT.TPaveText(0.15,0.28,0.4,0.36,"NDC");
+    pt.SetBorderSize(0);
+    pt.SetFillColor(0);
+    pt.SetFillStyle(0);
+    pt.AddText("Passing region");
+    pt.Draw();
+
+    ft = ROOT.TPaveText(0.66,0.62,0.83,0.7,"NDC");
+    ft.SetBorderSize(0);
+    ft.SetFillColor(0);
+    ft.SetFillStyle(0);
+    ft.AddText("Failing region");
+    ft.Draw();
+
+    #draw the lumi text on the canvas
+    CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+    canvas.cd()
+    canvas.Update()
+    canvas.RedrawAxis()
+    frame = canvas.GetFrame()
+    frame.Draw()
+
+    canvas.SaveAs( '%s/%s.pdf' % (plotDir,(prefix+histname).replace('/','')))
+
 if __name__ == "__main__":
     histname = "MergedEle_2trk_diel_invM"
     prefix = "mergedLeptonIDJpsiAnalyzer/"
-    shortname = "BuJpsiKee" # data or BuJpsiKee
+    shortname = "data" # data or BuJpsiKee
 
     plotlist = [
         "JpsiPt20to25",
@@ -363,7 +473,7 @@ if __name__ == "__main__":
 
         tnpWorkspaceParam = [
             "meanP[0.1,-0.15,0.15]","sigmaP[0.06,0.025,0.15]",
-            "meanF[0.1,0,0.15]","sigmaF[0.025,0.025,0.15]",
+            "meanF[0.1,-0.15,0.15]","sigmaF[0.06,0.025,0.12]",
             "alphaP[-1.,-2,-0.65]",
             "alphaF[-1.,-2,-0.65]"
         ]
@@ -388,12 +498,20 @@ if __name__ == "__main__":
     else:
         pass
 
-    if args.doFit:
+    if args.doFit and not args.tdr:
+        if not os.path.exists(aplotDir):
+            os.makedirs(aplotDir)
+
         for idx in range(len(plotlist)):
             aplot = plotlist[idx]
             aprefix = prefix + aplot
             histFitter( "MergedEleJpsiAnalyzer_20UL18_%s.root" % shortname, histname, tnpWorkspaceParam, tnpWorkspaceFunc, aplotDir, binEdgeList[idx],binEdgeList[idx+1], aprefix )
             histPlotter( aplotDir + '/MergedEleJpsiAnalyzer_20UL18_%s-%s.root' % (shortname, (aprefix+histname).replace('/','')), histname, aplotDir, aprefix )
+    elif args.tdr:
+        aplot = "JpsiPt50toInf"
+        aprefix = prefix + aplot
+        histFitter( "MergedEleJpsiAnalyzer_20UL18_%s.root" % shortname, histname, tnpWorkspaceParam, tnpWorkspaceFunc, aplotDir, 50, 120, aprefix )
+        histPlotterTDR( aplotDir + '/MergedEleJpsiAnalyzer_20UL18_%s-%s.root' % (shortname, (aprefix+histname).replace('/','')), histname, aplotDir, aprefix )
     elif args.sumUp:
         effList = []
 

@@ -30,7 +30,8 @@ mergedMuCRanalyzer = cms.EDAnalyzer("MergedMuCRanalyzer",
     "HLT_TkMu50_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL16.root"),
-  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL16.root"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/puWeights20UL16.json"),
+  PUname = cms.string("Collisions16_UltraLegacy_goldenJSON"),
   rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2016bUL.txt"),
   triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2016_schemaV2.json"),
   muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2016_schemaV2.json"),
@@ -62,11 +63,13 @@ mergedMuCRanalyzer20UL16APV = mergedMuCRanalyzer.clone(
     "HLT_TkMu50_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL16APV.root"),
-  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL16.root"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/puWeights20UL16APV.json"),
+  PUname = cms.string("Collisions16_UltraLegacy_goldenJSON"),
   rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2016aUL.txt"),
   triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2016_preVFP_schemaV2.json"),
   muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2016_preVFP_schemaV2.json"),
   muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2016_preVFP_schemaV2.json"),
+  muonBoostIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/muIso20UL16APV.root"),
   year = cms.string("2016APV")
 )
 
@@ -89,11 +92,13 @@ mergedMuCRanalyzer20UL17 = mergedMuCRanalyzer.clone(
     "HLT_TkMu100_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL17.root"),
-  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL17.root"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/puWeights20UL17.json"),
+  PUname = cms.string("Collisions17_UltraLegacy_goldenJSON"),
   rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2017UL.txt"),
   triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2017_schemaV2.json"),
   muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2017_schemaV2.json"),
   muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2017_schemaV2.json"),
+  muonBoostIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/muIso20UL17.root"),
   year = cms.string("2017")
 )
 
@@ -116,10 +121,12 @@ mergedMuCRanalyzer20UL18 = mergedMuCRanalyzer.clone(
     "HLT_TkMu100_v*"
   ),
   MMFFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/MMFF_20UL18.root"),
-  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/PUrwgt20UL18.root"),
+  PUrwgt = cms.FileInPath("ZprimeTo4l/Analysis/data/puWeights20UL18.json"),
+  PUname = cms.string("Collisions18_UltraLegacy_goldenJSON"),
   rochesterPath = cms.FileInPath("ZprimeTo4l/Analysis/data/RoccoR2018UL.txt"),
   triggerSF = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_HLT_2018_schemaV2.json"),
   muonIdIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_IDISO_2018_schemaV2.json"),
   muonRecoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/ScaleFactors_Muon_highPt_RECO_2018_schemaV2.json"),
+  muonBoostIsoSFpath = cms.FileInPath("ZprimeTo4l/Analysis/data/muIso20UL18.root"),
   year = cms.string("2018")
 )

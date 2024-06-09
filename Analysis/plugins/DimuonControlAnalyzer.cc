@@ -15,6 +15,7 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
@@ -23,6 +24,11 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 
 #include "ZprimeTo4l/Analysis/interface/MuonCorrectionHelper.h"
 
@@ -52,6 +58,8 @@ private:
 
   const edm::EDGetTokenT<edm::View<pat::Muon>> muonToken_;
   const edm::EDGetTokenT<edm::View<pat::Photon>> photonToken_;
+  const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> candToken_;
+  const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> lostTrackToken_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
 
@@ -81,6 +89,15 @@ private:
   int passHighPt_ = -1;
   int passTrkHighPt_ = -1;
 
+  TTree* recoTree_ = nullptr;
+  float recoInvM_ = -1.;
+  float recoPt_ = -1.;
+  float recoPtll_ = -1.;
+  float recoEta_ = std::numeric_limits<float>::max();
+  float recoDr_ = -1.;
+  int recoCharge_ = 0;
+  int nTrackerMuon_ = -1;
+
   const double mumass_ = 0.1056583745;
 };
 
@@ -95,6 +112,8 @@ pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::In
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 muonToken_(consumes<edm::View<pat::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
 photonToken_(consumes<edm::View<pat::Photon>>(iConfig.getParameter<edm::InputTag>("srcPhoton"))),
+candToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("srcPackedCand"))),
+lostTrackToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("srcLostTracks"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 ptThres_(iConfig.getParameter<double>("ptThres")),
@@ -139,6 +158,16 @@ void DimuonControlAnalyzer::beginJob() {
   tree_->Branch("passIso",&passIso_,"passIso/I");
   tree_->Branch("passHighPt",&passHighPt_,"passHighPt/I");
   tree_->Branch("passTrkHighPt",&passTrkHighPt_,"passTrkHighPt/I");
+
+  recoTree_ = fs->make<TTree>("recoTree","recoTree");
+  recoTree_->Branch("invM",&recoInvM_,"invM/F");
+  recoTree_->Branch("pt",&recoPt_,"pt/F");
+  recoTree_->Branch("ptll",&recoPtll_,"ptll/F");
+  recoTree_->Branch("eta",&recoEta_,"eta/F");
+  recoTree_->Branch("dr",&recoDr_,"dr/F");
+  recoTree_->Branch("wgt",&wgt_,"wgt/F");
+  recoTree_->Branch("chargeProduct",&recoCharge_,"chargeProduct/I");
+  recoTree_->Branch("nTrackerMuon",&nTrackerMuon_,"nTrackerMuon/I");
 }
 
 void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -374,6 +403,7 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   edm::Handle<edm::View<pat::Photon>> photonHandle;
   iEvent.getByToken(photonToken_, photonHandle);
 
+  // isolation loop
   for (const auto& aMu : tagMuons) {
     for (const auto& bMu : highPtMuons) {
       if (aMu==bMu || aMu->tunePMuonBestTrack()->charge()*bMu->tunePMuonBestTrack()->charge() > 0)
@@ -448,6 +478,175 @@ void DimuonControlAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           tree_->Fill();
         }
       }
+    }
+  }
+
+  edm::Handle<edm::View<pat::PackedCandidate>> candHandle;
+  iEvent.getByToken(candToken_, candHandle);
+
+  edm::Handle<edm::View<pat::PackedCandidate>> lostTrackHandle;
+  iEvent.getByToken(lostTrackToken_, lostTrackHandle);
+
+  auto lvec = [this] (const pat::MuonRef& aMu) {
+    return math::PtEtaPhiMLorentzVector(aMu->innerTrack()->pt(),
+                                        aMu->innerTrack()->eta(),
+                                        aMu->innerTrack()->phi(),
+                                        mumass_);
+  };
+
+  std::vector<pat::PackedCandidateRef> candTracks;
+
+  for (unsigned icand = 0; icand < candHandle->size(); icand++) {
+    const auto& acand = candHandle->refAt(icand);
+
+    if ( !acand->hasTrackDetails() )
+      continue;
+
+    const reco::Track* atrack = acand->bestTrack();
+
+    if ( atrack->pt() < 20. )
+      continue;
+
+    if ( std::abs(atrack->eta()) > 2.4 )
+      continue;
+
+    candTracks.push_back(acand.castTo<pat::PackedCandidateRef>());
+  }
+
+  for (unsigned icand = 0; icand < lostTrackHandle->size(); icand++) {
+    const auto& acand = lostTrackHandle->refAt(icand);
+
+    if ( !acand->hasTrackDetails() )
+      continue;
+
+    const reco::Track* atrack = acand->bestTrack();
+
+    if ( atrack->pt() < 20. )
+      continue;
+
+    if ( std::abs(atrack->eta()) > 2.4 )
+      continue;
+
+    candTracks.push_back(acand.castTo<pat::PackedCandidateRef>());
+  }
+
+  // reco loop
+  for (const auto& aMu : tagMuons) {
+    bool isTagGlobal = false;
+
+    if (!aMu->isTrackerMuon())
+      continue;
+
+    for (const auto& bMu : highPtMuons) {
+      if (aMu==bMu) {
+        isTagGlobal = true;
+        break;
+      }
+    }
+
+    if (!isTagGlobal)
+      continue;
+
+    std::vector<pat::MuonRef> trackerMuons;
+
+    for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
+      const auto& bMu = muonHandle->refAt(idx).castTo<pat::MuonRef>();
+
+      if (aMu==bMu)
+        continue;
+
+      if (!bMu->isTrackerMuon())
+        continue;
+
+      if ( bMu->innerTrack()->pt() < 20. || std::abs(bMu->innerTrack()->eta()) > 2.4 )
+        continue;
+
+      if ( reco::deltaR2(aMu->innerTrack()->eta(),
+                         aMu->innerTrack()->phi(),
+                         bMu->innerTrack()->eta(),
+                         bMu->innerTrack()->phi()) > 0.01 )
+        continue;
+
+      double mass = ( lvec(aMu)+lvec(bMu) ).M();
+
+      if ( 2.5 < mass && mass < 4.0 )
+        trackerMuons.push_back(bMu);
+    }
+
+    edm::ESHandle<TransientTrackBuilder> TTbuilder;
+    auto fitter = KalmanVertexFitter();
+    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+    auto firstTrack = TTbuilder->build(aMu->innerTrack());
+
+    std::vector<std::pair<double,pat::PackedCandidateRef>> candFinal;
+
+    for (const auto& acand : candTracks) {
+      const reco::Track* atrack = acand->bestTrack();
+
+      if ( reco::deltaR2(aMu->eta(),aMu->phi(),atrack->eta(),atrack->phi()) > 0.01 )
+        continue;
+
+      if ( std::isnan(atrack->dzError()) || std::isinf(atrack->dzError()) )
+        continue;
+
+      if ( std::isnan(atrack->dxyError()) || std::isinf(atrack->dxyError()) )
+        continue;
+
+      if ( std::isnan(atrack->d0Error()) || std::isinf(atrack->d0Error()) )
+        continue;
+
+      std::vector<reco::TransientTrack> trackPair;
+      trackPair.push_back(firstTrack);
+      trackPair.push_back(TTbuilder->build(atrack));
+
+      auto aVtx = fitter.vertex(trackPair);
+      double prob = -1.;
+
+      if (aVtx.isValid()) {
+        prob = TMath::Prob(aVtx.totalChiSquared(),static_cast<int>(std::rint(aVtx.degreesOfFreedom())));
+
+        if (prob > 0.01) {
+          const auto lvecTag = lvec(aMu);
+          const auto lvecCand = math::PtEtaPhiMLorentzVector(atrack->pt(),
+                                                             atrack->eta(),
+                                                             atrack->phi(),
+                                                             mumass_);
+
+          const auto p4 = lvecTag + lvecCand;
+          double mass = p4.M();
+
+          if (2.5 < mass && mass < 4.0)
+            candFinal.push_back(std::make_pair(prob,acand));
+        }
+      }
+    }
+
+    auto sortByProb = [] (const std::pair<double,pat::PackedCandidateRef>& a, const std::pair<double,pat::PackedCandidateRef>&b) {
+      return a.first > b.first;
+    };
+
+    std::sort(candFinal.begin(),candFinal.end(),sortByProb);
+
+    if (!candFinal.empty()) {
+      const auto& acand = candFinal.front();
+      const auto lvecTag = lvec(aMu);
+      const reco::Track* atrack = acand.second->bestTrack();
+
+      const auto lvecCand = math::PtEtaPhiMLorentzVector(atrack->pt(),
+                                                         atrack->eta(),
+                                                         atrack->phi(),
+                                                         mumass_);
+
+      const auto p4 = lvecTag + lvecCand;
+
+      recoInvM_ = p4.M();
+      recoPt_ = atrack->pt();
+      recoPtll_ = p4.Pt();
+      recoEta_ = atrack->eta();
+      recoDr_ = reco::deltaR(lvecTag.eta(),lvecTag.phi(),lvecCand.eta(),lvecCand.phi());
+      recoCharge_ = aMu->innerTrack()->charge()*atrack->charge();
+      nTrackerMuon_ = trackerMuons.size();
+      recoTree_->Fill();
     }
   }
 

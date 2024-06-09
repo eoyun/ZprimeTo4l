@@ -361,14 +361,14 @@ double ElectronSystematicsHelper::mergedEleScale(const pat::ElectronRef& aEle) c
   if ( aEle->userInt("mvaMergedElectronCategories")==1 )
     return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
 
-  return 0.992;
+  return 1.003;
 }
 
 double ElectronSystematicsHelper::mergedEleSmear(const pat::ElectronRef& aEle, const double u5x5En) {
   if ( aEle->userInt("mvaMergedElectronCategories")==1 )
     return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
 
-  double corr = u5x5En + rng_.Gaus(0.,u5x5En*0.025);
+  double corr = u5x5En + rng_.Gaus(0.,u5x5En*0.02);
 
   return corr/u5x5En;
 }

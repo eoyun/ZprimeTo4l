@@ -20,6 +20,7 @@ parser.add_argument("--altBkg",action="store_true",help="altBkg fit")
 parser.add_argument("--doFit",action="store_true",help="perform fit")
 parser.add_argument("--sumUp",action="store_true",help="sum-up efficiencies")
 parser.add_argument("--era",dest="era",type=str,help="era (20UL16APV/20UL16/20UL17/20UL18/20UL3y)")
+parser.add_argument("--tdr",action="store_true",help="plot for paper")
 args = parser.parse_args()
 
 class efficiency:
@@ -347,6 +348,116 @@ def histPlotter( filename, histname, plotDir, era, prefix='mergedLeptonIDConvers
     c = rootfile.Get( '%s_Canv' % (prefix+histname).replace('/','') )
     c.Print( '%s/%s_%s.png' % (plotDir, era, (prefix+histname).replace('/','')))
 
+def histPlotterTDR( filename, histname, plotDir, era, prefix='mergedLeptonIDConversionAnalyzer/' ):
+    rootfile = ROOT.TFile(filename,"read")
+
+    pPass = rootfile.Get( '%s_plotP' % (prefix+histname).replace('/','') )
+    pFail = rootfile.Get( '%s_plotF' % (prefix+histname).replace('/','') )
+
+    #set the tdr style
+    tdrstyle.setTDRStyle()
+
+    #change the CMS_lumi variables (see CMS_lumi.py)
+    CMS_lumi.writeExtraText = 1
+    CMS_lumi.extraText = "Work in progress"
+
+    CMS_lumi.lumi_sqrtS = "137.6 fb^{-1}"
+
+    iPos = 11
+    CMS_lumi.relPosX = 0.05
+
+    H_ref = 800;
+    W_ref = 800;
+    W = W_ref
+    H = H_ref
+
+    iPeriod = 0
+
+    # references for T, B, L, R
+    T = 0.08*H_ref
+    B = 0.12*H_ref
+    L = 0.12*W_ref
+    R = 0.04*W_ref
+
+    canvas = ROOT.TCanvas("c","c",50,50,W,H)
+    canvas.SetFillColor(0)
+    canvas.SetBorderMode(0)
+    canvas.SetFrameFillStyle(0)
+    canvas.SetFrameBorderMode(0)
+    canvas.SetLeftMargin( L/W )
+    canvas.SetRightMargin( R/W )
+    canvas.SetTopMargin( T/H )
+    canvas.SetBottomMargin( B/H )
+    canvas.SetTickx(0)
+    canvas.SetTicky(0)
+    canvas.cd()
+
+    subpad = ROOT.TPad("pad","pad",0.6,0.6,0.965,0.91)
+    subpad.SetFillColor(0);
+    subpad.SetBorderMode(0);
+    subpad.SetFrameFillStyle(0);
+    subpad.SetFrameBorderMode(0);
+    subpad.SetLeftMargin( 0.15 );
+    subpad.SetRightMargin( 0.05 );
+    subpad.SetTopMargin( 0 );
+    subpad.SetBottomMargin( 0.1 );
+    subpad.SetTickx(0);
+    subpad.SetTicky(0);
+
+    canvas.cd()
+    pPass.GetYaxis().SetRangeUser(0.,31.)
+    pPass.GetXaxis().SetTitle("M [GeV]")
+    pPass.SetMarkerSize(1.5)
+    pPass.Draw()
+
+    subpad.cd()
+    pFail.SetMarkerSize(0.05)
+    pFail.Draw()
+    pFail.GetXaxis().SetTitle("M [GeV]")
+    pFail.GetXaxis().SetTitleSize(0.05)
+    pFail.GetXaxis().SetLabelSize(0.05)
+    pFail.GetYaxis().SetLabelSize(0.05)
+    pFail.GetYaxis().SetRangeUser(0.,27.)
+    pFail.GetYaxis().SetTitle("")
+
+    canvas.Update()
+    canvas.cd()
+    subpad.Draw()
+
+    # legend = ROOT.TLegend(0.5,0.75,0.95,0.9)
+    legend = ROOT.TLegend(L/W+0.01,0.6,0.55,0.77)
+    legend.SetBorderSize(0);
+    legend.SetFillStyle(0);
+
+    legend.AddEntry("dataP","Data","P")
+    legend.AddEntry("sigP","Gaussian signal fit","LP")
+    legend.AddEntry("bkgP","Exponential background fit","LP")
+    legend.Draw()
+
+    pt = ROOT.TPaveText(0.15,0.5,0.4,0.6,"NDC");
+    pt.SetBorderSize(0);
+    pt.SetFillColor(0);
+    pt.SetFillStyle(0);
+    pt.AddText("Passing region");
+    pt.Draw();
+
+    ft = ROOT.TPaveText(0.66,0.85,0.83,0.91,"NDC");
+    ft.SetBorderSize(0);
+    ft.SetFillColor(0);
+    ft.SetFillStyle(0);
+    ft.AddText("Failing region");
+    ft.Draw();
+
+    #draw the lumi text on the canvas
+    CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+    canvas.cd()
+    canvas.Update()
+    canvas.RedrawAxis()
+    frame = canvas.GetFrame()
+    frame.Draw()
+
+    canvas.SaveAs('%s/%s_%s.pdf' % (plotDir, era, (prefix+histname).replace('/','')))
+
 if __name__ == "__main__":
     histname = "MergedEle_probeEle_MMG_invM"
     prefix = "mergedLeptonIDConversionAnalyzer/singleLeg_"
@@ -421,12 +532,17 @@ if __name__ == "__main__":
     else:
         pass
 
-    if args.doFit:
+    if args.doFit and not args.tdr:
         for idx in range(len(plotlist)):
             aplot = plotlist[idx]
             aprefix = prefix + aplot
             histFitter( "MergedEleConvAnalyzer_%s_%s.root" % (args.era, shortname), histname, tnpWorkspaceParam, tnpWorkspaceFunc, aplotDir, binEdgeList[idx],binEdgeList[idx+1], aprefix )
             histPlotter( aplotDir + '/MergedEleConvAnalyzer_%s_%s-%s.root' % (args.era, shortname, (aprefix+histname).replace('/','')), histname, aplotDir, args.era, aprefix )
+    elif args.tdr:
+        aplot = "Et20toInfTDR_"
+        aprefix = prefix + aplot
+        histFitter( "MergedEleConvAnalyzer_%s_%s.root" % (args.era, shortname), histname, tnpWorkspaceParam, tnpWorkspaceFunc, aplotDir, 20, 70, aprefix )
+        histPlotterTDR( aplotDir + '/MergedEleConvAnalyzer_%s_%s-%s.root' % (args.era, shortname, (aprefix+histname).replace('/','')), histname, aplotDir, args.era, aprefix )
     elif args.sumUp:
         effList = []
 

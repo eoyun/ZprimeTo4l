@@ -30,12 +30,9 @@ public:
   void useMinos(bool minos = true) {_useMinos = minos;}
   void textParForCanvas(RooFitResult *resP, RooFitResult *resF, TPad *p);
 
-  void setFitRange(double xMin,double xMax) { _xFitMin = xMin; _xFitMax = xMax; }
+  void fixSigmaFtoSigmaP(bool fix=true) { _fixSigmaFtoSigmaP= fix;}
 
-  double meanRatio() { return meanRatio_; }
-  double sigmaRatio() { return sigmaRatio_; }
-  double meanRatioErr() { return meanRatioErr_; }
-  double sigmaRatioErr() { return sigmaRatioErr_; }
+  void setFitRange(double xMin,double xMax) { _xFitMin = xMin; _xFitMax = xMax; }
 
 private:
   RooWorkspace *_work;
@@ -43,15 +40,12 @@ private:
   TFile *_fOut;
   double _nTotP, _nTotF;
   bool _useMinos;
+  bool _fixSigmaFtoSigmaP;
   double _xFitMin,_xFitMax;
-  int _nBins = 100;
-  double meanRatio_ = 1.;
-  double sigmaRatio_ = 1.;
-  double meanRatioErr_ = 0.;
-  double sigmaRatioErr_ = 0.;
+  int _nBins = 1000;
 };
 
-tnpFitter::tnpFitter(TH1 *hPass, TH1 *hFail, std::string histname  ) : _useMinos(false) {
+tnpFitter::tnpFitter(TH1 *hPass, TH1 *hFail, std::string histname  ) : _useMinos(false),_fixSigmaFtoSigmaP(false) {
   RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING);
   _histname_base = histname;
 
@@ -59,14 +53,14 @@ tnpFitter::tnpFitter(TH1 *hPass, TH1 *hFail, std::string histname  ) : _useMinos
   _nTotF = hFail->Integral();
 
   _work = new RooWorkspace("w") ;
-  _work->factory("x[4.6,5.8]");
+  _work->factory("x[70,110]");
 
   RooDataHist rooPass("hPass","hPass",*_work->var("x"),hPass);
   RooDataHist rooFail("hFail","hFail",*_work->var("x"),hFail);
   _work->import(rooPass);
   _work->import(rooFail);
-  _xFitMin = 4.6;
-  _xFitMax = 5.8;
+  _xFitMin = 70.;
+  _xFitMax = 110.;
 }
 
 void tnpFitter::setWorkspace(std::vector<std::string> workspace) {
@@ -76,12 +70,14 @@ void tnpFitter::setWorkspace(std::vector<std::string> workspace) {
 
   _work->var("x")->setBins(_nBins, "cache");
 
-  _work->factory(TString::Format("nSigMC[%f,0.5,%f]",_nTotP*0.1,_nTotP*1.5));
-  _work->factory(TString::Format("nBkgMC[%f,0.5,%f]",_nTotP*0.9,_nTotP*1.5));
-  _work->factory(TString::Format("nSigData[%f,0.5,%f]",_nTotF*0.1,_nTotF*1.5));
-  _work->factory(TString::Format("nBkgData[%f,0.5,%f]",_nTotF*0.9,_nTotF*1.5));
-  _work->factory("SUM::pdfPass(nSigMC*sigResPass,nBkgMC*bkgPass)");
-  _work->factory("SUM::pdfFail(nSigData*sigResFail,nBkgData*bkgFail)");
+  _work->factory("FCONV::sigPass(x, Gaussian(x,91,1.), sigResPass)");
+  _work->factory("FCONV::sigFail(x, Gaussian(x,91,1.), sigResFail)");
+  _work->factory(TString::Format("nSigP[%f,0.5,%f]",_nTotP*0.1,_nTotP*1.5));
+  _work->factory(TString::Format("nBkgP[%f,0.5,%f]",_nTotP*0.9,_nTotP*1.5));
+  _work->factory(TString::Format("nSigF[%f,0.5,%f]",_nTotF*0.1,_nTotF*1.5));
+  _work->factory(TString::Format("nBkgF[%f,0.5,%f]",_nTotF*0.9,_nTotF*1.5));
+  _work->factory("SUM::pdfPass(nSigP*sigPass,nBkgP*bkgPass)");
+  _work->factory("SUM::pdfFail(nSigF*sigFail,nBkgF*bkgFail)");
   _work->Print();			         
 }
 
@@ -99,28 +95,30 @@ void tnpFitter::fits(string title) {
   _work->var("x")->setRange("fitMassRange",_xFitMin,_xFitMax);
   resPass = pdfPass->fitTo(*_work->data("hPass"), Minimizer("Minuit2", "MIGRAD"), Minos(_useMinos), Strategy(2), SumW2Error(kTRUE),Save(),Range("fitMassRange"));
 
-  _work->var("alphaData")->setVal( _work->var("alphaMC")->getVal() );
-  _work->var("alphaData")->setConstant();
-  _work->var("nData")->setVal( _work->var("nMC")->getVal() );
-  _work->var("nData")->setConstant();
+  if( _fixSigmaFtoSigmaP ) {
+    _work->var("sigmaF")->setVal( _work->var("sigmaP")->getVal() );
+    _work->var("sigmaF")->setConstant();
+  }
 
+  // _work->var("sigmaF")->setVal(_work->var("sigmaP")->getVal());
+  // _work->var("sigmaF")->setRange(0.5* _work->var("sigmaP")->getVal(), 1.5* _work->var("sigmaP")->getVal());
   resFail = pdfFail->fitTo(*_work->data("hFail"), Minimizer("Minuit2", "MIGRAD"), Minos(_useMinos), Strategy(2), SumW2Error(kTRUE),Save(),Range("fitMassRange"));
 
   RooPlot *pPass = _work->var("x")->frame(_xFitMin,_xFitMax);
   RooPlot *pFail = _work->var("x")->frame(_xFitMin,_xFitMax);
-  pPass->SetTitle("MC");
-  pFail->SetTitle("Data");
+  pPass->SetTitle("passing probe");
+  pFail->SetTitle("failing probe");
 
-  _work->data("hPass") ->plotOn( pPass,Name("dataP"), MarkerSize(0.5) );
+  _work->data("hPass") ->plotOn( pPass,Name("dataP") );
   _work->pdf("pdfPass")->plotOn( pPass,Name("sigP"), LineColor(kRed) );
   _work->pdf("pdfPass")->plotOn( pPass,Name("bkgP"), Components("bkgPass"),LineColor(kBlue),LineStyle(kDashed));
-  _work->data("hPass") ->plotOn( pPass, MarkerSize(0.5) );
+  _work->data("hPass") ->plotOn( pPass );
 
-  _work->data("hFail") ->plotOn( pFail,Name("dataF") );
+  _work->data("hFail") ->plotOn( pFail,Name("dataF"), MarkerSize(0.5) );
   _work->pdf("pdfFail")->plotOn( pFail,Name("sigF"), LineColor(kRed) );
   _work->pdf("pdfFail")->plotOn( pFail,Name("bkgF"), Components("bkgFail"),LineColor(kBlue),LineStyle(kDashed));
-  _work->data("hFail") ->plotOn( pFail );
-
+  _work->data("hFail") ->plotOn( pFail, MarkerSize(0.5) );
+ 
   TCanvas c("c","c",1100,450);
   c.Divide(3,1);
   TPad *padText = (TPad*)c.GetPad(1);
@@ -132,50 +130,42 @@ void tnpFitter::fits(string title) {
   c.Write(TString::Format("%s_Canv",_histname_base.c_str()),TObject::kOverwrite);
   resPass->Write(TString::Format("%s_resP",_histname_base.c_str()),TObject::kOverwrite);
   resFail->Write(TString::Format("%s_resF",_histname_base.c_str()),TObject::kOverwrite);
-  pPass->Write(TString::Format("%s_plotMC",_histname_base.c_str()),TObject::kOverwrite);
-  pFail->Write(TString::Format("%s_plotData",_histname_base.c_str()),TObject::kOverwrite);
+  pPass->Write(TString::Format("%s_plotP",_histname_base.c_str()),TObject::kOverwrite);
+  pFail->Write(TString::Format("%s_plotF",_histname_base.c_str()),TObject::kOverwrite);  
 }
 
 /////// Stupid parameter dumper /////////
 void tnpFitter::textParForCanvas(RooFitResult *resP, RooFitResult *resF,TPad *p) {
-  RooRealVar *meanMC = _work->var("meanMC");
-  RooRealVar *meanData = _work->var("meanData");
+  double eff = -1;
+  double e_eff = 0;
 
-  RooRealVar *sigmaMC = _work->var("sigmaMC");
-  RooRealVar *sigmaData = _work->var("sigmaData");
+  RooRealVar *nSigP = _work->var("nSigP");
+  RooRealVar *nSigF = _work->var("nSigF");
 
-  double mmc   = meanMC->getVal();
-  double e_mmc = meanMC->getError();
-  double mda   = meanData->getVal();
-  double e_mda = meanData->getError();
+  double nP   = nSigP->getVal();
+  double e_nP = nSigP->getError();
+  double nF   = nSigF->getVal();
+  double e_nF = nSigF->getError();
+  double nTot = nP+nF;
+  eff = nP / (nP+nF);
+  e_eff = 1./(nTot*nTot) * sqrt( nP*nP* e_nF*e_nF + nF*nF * e_nP*e_nP );
 
-  double smc   = sigmaMC->getVal();
-  double e_smc = sigmaMC->getError();
-  double sda   = sigmaData->getVal();
-  double e_sda = sigmaData->getError();
-
-  TPaveText *text1 = new TPaveText(0,0.75,1,1); // 0.9
+  TPaveText *text1 = new TPaveText(0,0.8,1,1);
   text1->SetFillColor(0);
   text1->SetBorderSize(0);
   text1->SetTextAlign(12);
 
-  meanRatio_ = mmc/mda;
-  sigmaRatio_ = sda/smc;
-  meanRatioErr_ = mmc/mda*std::hypot(e_mmc/mmc,e_mda/mda);
-  sigmaRatioErr_ = sda/smc*std::hypot(e_smc/smc,e_sda/sda);
-
-  text1->AddText(TString::Format("* Fit status MC: %d, Data: %d",resP->status(),resF->status()));
-  text1->AddText(TString::Format("* meanMC/meanData = %1.4f #pm %1.4f",meanRatio_,meanRatioErr_));
-  text1->AddText(TString::Format("* sigmaData/sigmaMC = %1.4f #pm %1.4f",sigmaRatio_,sigmaRatioErr_));
+  text1->AddText(TString::Format("* fit status pass: %d, fail : %d",resP->status(),resF->status()));
+  text1->AddText(TString::Format("* eff = %1.4f #pm %1.4f",eff,e_eff));
 
   // text->SetTextSize(0.06);
 
   // text->AddText("* Passing parameters");
-  TPaveText *text = new TPaveText(0,0,1,0.75);
+  TPaveText *text = new TPaveText(0,0,1,0.8);
   text->SetFillColor(0);
   text->SetBorderSize(0);
   text->SetTextAlign(12);
-  text->AddText("    --- parameters " );
+  text->AddText("    --- parmeters " );
   RooArgList listParFinalP = resP->floatParsFinal();
   for( int ip = 0; ip < listParFinalP.getSize(); ip++ ) {
     TString vName = listParFinalP[ip].GetName();

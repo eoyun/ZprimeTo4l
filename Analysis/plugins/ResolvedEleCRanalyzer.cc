@@ -32,6 +32,8 @@
 #include "TFile.h"
 #include "TFitResult.h"
 
+#include "correction.h"
+
 class ResolvedEleCRanalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit ResolvedEleCRanalyzer(const edm::ParameterSet&);
@@ -50,6 +52,8 @@ private:
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
   const edm::EDGetTokenT<double> prefweight_token;
+  const edm::EDGetTokenT<double> prefweightUp_token_;
+  const edm::EDGetTokenT<double> prefweightDn_token_;
 
   const edm::EDGetTokenT<edm::TriggerResults> METfilterToken_;
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
@@ -58,7 +62,10 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
 
   const edm::FileInPath FFpath_;
-  const edm::FileInPath purwgtPath_;
+
+  std::unique_ptr<correction::CorrectionSet> purwgt_;
+  const std::string puname_;
+
   const std::vector<std::string> METfilterList_;
   const std::vector<std::string> trigFilters_;
   const std::vector<std::string> trigUnseededFilters_;
@@ -72,9 +79,6 @@ private:
   std::unique_ptr<TFile> FFfile_;
   TF1* ff_dr_;
   TFitResultPtr ffFitResult_;
-
-  std::unique_ptr<TFile> purwgtFile_;
-  TH1D* purwgt_;
 
   ElectronSystematicsHelper systHelperEle_;
 
@@ -99,12 +103,15 @@ pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
+prefweightUp_token_(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbUp"))),
+prefweightDn_token_(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbDown"))),
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
 addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
-purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
+purwgt_(std::move(correction::CorrectionSet::from_file((iConfig.getParameter<edm::FileInPath>("PUrwgt")).fullPath()))),
+puname_(iConfig.getParameter<std::string>("PUname")),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigFilters_(iConfig.getParameter<std::vector<std::string>>("trigFilters")),
 trigUnseededFilters_(iConfig.getParameter<std::vector<std::string>>("trigUnseededFilters")),
@@ -156,9 +163,6 @@ void ResolvedEleCRanalyzer::beginJob() {
   FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
   ff_dr_ = static_cast<TF1*>(FFfile_->FindObjectAny("REFF_dr_all"));
   ffFitResult_ = (static_cast<TH1D*>(FFfile_->Get("all_dr_3P0F_rebin")))->Fit(ff_dr_,"RS");
-
-  purwgtFile_ = std::make_unique<TFile>(purwgtPath_.fullPath().c_str(),"READ");
-  purwgt_ = static_cast<TH1D*>(purwgtFile_->Get("PUrwgt"));
 
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["cutflow_4E"] = fs->make<TH1D>("cutflow_4E","cutflow (4E)",10,0.,10.);
@@ -382,6 +386,10 @@ void ResolvedEleCRanalyzer::beginJob() {
   histo1d_["4P0F_CR_llll_invM_elRecoDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_elRecoDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_elTrigUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_elTrigUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_elTrigDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_elTrigDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_PUrwgtUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_PUrwgtUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_PUrwgtDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_PUrwgtDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_prefireUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_prefireUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_prefireDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_prefireDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_pt"] = fs->make<TH1D>("4P0F_CR_llll_pt","4P0F CR p_{T}(4l);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll1ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll1ll2_dr","4P0F CR dR(ll1ll2)",64,0.,6.4);
   histo1d_["4P0F_CR_ll1_invM"] = fs->make<TH1D>("4P0F_CR_ll1_invM","4P0F CR M(ll1);M [GeV];",100,0.,200.);
@@ -406,7 +414,6 @@ void ResolvedEleCRanalyzer::beginJob() {
 
 void ResolvedEleCRanalyzer::endJob() {
   FFfile_->Close();
-  purwgtFile_->Close();
 }
 
 void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -417,17 +424,31 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   iEvent.getByToken(pvToken_, pvHandle);
 
   double aWeight = 1.;
+  double purwgtUp = 1.;
+  double purwgtDn = 1.;
+  double purwgtNo = 1.;
+  double prefireNo = 1.;
+  double prefireUp = 1.;
+  double prefireDn = 1.;
 
   if (isMC_) {
     edm::Handle<double> theprefweight;
     iEvent.getByToken(prefweight_token, theprefweight);
-    double prefiringweight = *theprefweight;
+    prefireNo = *theprefweight;
+
+    edm::Handle<double> theprefweightUp;
+    iEvent.getByToken(prefweightUp_token_, theprefweightUp);
+    prefireUp = *theprefweightUp;
+
+    edm::Handle<double> theprefweightDn;
+    iEvent.getByToken(prefweightDn_token_, theprefweightDn);
+    prefireDn = *theprefweightDn;
 
     edm::Handle<GenEventInfoProduct> genInfo;
     iEvent.getByToken(generatorToken_, genInfo);
     double mcweight = genInfo->weight();
 
-    aWeight = prefiringweight*mcweight/std::abs(mcweight);
+    aWeight = prefireNo*mcweight/std::abs(mcweight);
 
     edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
     iEvent.getByToken(pileupToken_, pusummary);
@@ -438,7 +459,11 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       int bx = apu->getBunchCrossing();
 
       if (bx==0) { // in-time PU only
-        aWeight *= purwgt_->GetBinContent( purwgt_->FindBin(apu->getTrueNumInteractions()) );
+        purwgtUp = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"up"});
+        purwgtDn = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"down"});
+        purwgtNo = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"nominal"});
+
+        aWeight *= purwgtNo;
 
         break;
       }
@@ -744,6 +769,10 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
                                                                      *systHelperEle_.GetTrigUnseededSFcl95UpDn(acceptEles.front()).first);
             histo1d_["4P0F_CR_llll_invM_elTrigDn"]->Fill(m4l, aWeight*systHelperEle_.GetTrigSFcl95UpDn(acceptEles.front()).second
                                                                      *systHelperEle_.GetTrigUnseededSFcl95UpDn(acceptEles.front()).second);
+            histo1d_["4P0F_CR_llll_invM_PUrwgtUp"]->Fill(m4l, aWeight*purwgtUp/purwgtNo);
+            histo1d_["4P0F_CR_llll_invM_PUrwgtDn"]->Fill(m4l, aWeight*purwgtDn/purwgtNo);
+            histo1d_["4P0F_CR_llll_invM_prefireUp"]->Fill(m4l, aWeight*prefireUp/prefireNo);
+            histo1d_["4P0F_CR_llll_invM_prefireDn"]->Fill(m4l, aWeight*prefireDn/prefireNo);
           }
 
           if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {

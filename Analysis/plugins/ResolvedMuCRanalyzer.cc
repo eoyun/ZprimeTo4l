@@ -33,6 +33,8 @@
 #include "TTree.h"
 #include "TFitResult.h"
 
+#include "correction.h"
+
 class ResolvedMuCRanalyzer : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   explicit ResolvedMuCRanalyzer(const edm::ParameterSet&);
@@ -56,6 +58,8 @@ private:
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
   const edm::EDGetTokenT<double> prefweight_token;
+  const edm::EDGetTokenT<double> prefweightUp_token_;
+  const edm::EDGetTokenT<double> prefweightDn_token_;
 
   const edm::EDGetTokenT<edm::TriggerResults> METfilterToken_;
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
@@ -68,9 +72,11 @@ private:
   const edm::FileInPath muonIdIsoSFpath_;
   const edm::FileInPath muonBoostIsoSFpath_;
   const edm::FileInPath muonRecoSFpath_;
-  const edm::FileInPath purwgtPath_;
 
   const edm::FileInPath FFpath_;
+
+  std::unique_ptr<correction::CorrectionSet> purwgt_;
+  const std::string puname_;
 
   const std::vector<double> muScaleBias_;
   const std::vector<double> muSmearFactors_;
@@ -81,9 +87,6 @@ private:
   const double ffSystCL95_;
 
   MuonCorrectionHelper mucorrHelper_;
-
-  std::unique_ptr<TFile> purwgtFile_;
-  TH1D* purwgt_;
 
   std::unique_ptr<TFile> FFfile_;
   TF1* drFF_;
@@ -118,6 +121,8 @@ generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
+prefweightUp_token_(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbUp"))),
+prefweightDn_token_(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbDown"))),
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
@@ -128,8 +133,9 @@ triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
 muonIdIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdIsoSFpath")),
 muonBoostIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonBoostIsoSFpath")),
 muonRecoSFpath_(iConfig.getParameter<edm::FileInPath>("muonRecoSFpath")),
-purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
+purwgt_(std::move(correction::CorrectionSet::from_file((iConfig.getParameter<edm::FileInPath>("PUrwgt")).fullPath()))),
+puname_(iConfig.getParameter<std::string>("PUname")),
 muScaleBias_(iConfig.getParameter<std::vector<double>>("muScaleBias")),
 muSmearFactors_(iConfig.getParameter<std::vector<double>>("muSmearFactors")),
 muSmearParams_(iConfig.getParameter<std::vector<double>>("muSmearParams")),
@@ -150,9 +156,6 @@ math::PtEtaPhiMLorentzVector ResolvedMuCRanalyzer::lvecFromTuneP(const pat::Muon
 void ResolvedMuCRanalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
-
-  purwgtFile_ = std::make_unique<TFile>(purwgtPath_.fullPath().c_str(),"READ");
-  purwgt_ = static_cast<TH1D*>(purwgtFile_->Get("PUrwgt"));
 
   FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
   drFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_dr_all"));
@@ -368,6 +371,10 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["4P0F_CR_llll_invM_trigDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_trigDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_recoUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_recoUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_recoDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_recoDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_PUrwgtUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_PUrwgtUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_PUrwgtDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_PUrwgtDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_prefireUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_prefireUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
+  histo1d_["4P0F_CR_llll_invM_prefireDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_prefireDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_pt"] = fs->make<TH1D>("4P0F_CR_llll_pt","4P0F CR p_{T}(4l);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll1ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll1ll2_dr","4P0F CR dR(ll1ll2)",64,0.,6.4);
   histo1d_["4P0F_CR_ll1_invM"] = fs->make<TH1D>("4P0F_CR_ll1_invM","4P0F CR M(ll1);M [GeV];",100,0.,200.);
@@ -391,7 +398,6 @@ void ResolvedMuCRanalyzer::beginJob() {
 }
 
 void ResolvedMuCRanalyzer::endJob() {
-  purwgtFile_->Close();
   FFfile_->Close();
 }
 
@@ -412,17 +418,31 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
   double aWeight = 1.;
+  double purwgtUp = 1.;
+  double purwgtDn = 1.;
+  double purwgtNo = 1.;
+  double prefireNo = 1.;
+  double prefireUp = 1.;
+  double prefireDn = 1.;
 
   if (isMC_) {
     edm::Handle<double> theprefweight;
     iEvent.getByToken(prefweight_token, theprefweight);
-    double prefiringweight = *theprefweight;
+    prefireNo = *theprefweight;
+
+    edm::Handle<double> theprefweightUp;
+    iEvent.getByToken(prefweightUp_token_, theprefweightUp);
+    prefireUp = *theprefweightUp;
+
+    edm::Handle<double> theprefweightDn;
+    iEvent.getByToken(prefweightDn_token_, theprefweightDn);
+    prefireDn = *theprefweightDn;
 
     edm::Handle<GenEventInfoProduct> genInfo;
     iEvent.getByToken(generatorToken_, genInfo);
     double mcweight = genInfo->weight();
 
-    aWeight = prefiringweight*mcweight/std::abs(mcweight);
+    aWeight = prefireNo*mcweight/std::abs(mcweight);
 
     edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
     iEvent.getByToken(pileupToken_, pusummary);
@@ -433,7 +453,11 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
       int bx = apu->getBunchCrossing();
 
       if (bx==0) { // in-time PU only
-        aWeight *= purwgt_->GetBinContent( purwgt_->FindBin(apu->getTrueNumInteractions()) );
+        purwgtUp = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"up"});
+        purwgtDn = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"down"});
+        purwgtNo = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"nominal"});
+
+        aWeight *= purwgtNo;
 
         break;
       }
@@ -756,7 +780,6 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
       aWeight *= mucorrHelper_.looseIsoSFtracker(aMu);
       aWeight *= mucorrHelper_.recoSF(aMu);
       idSyst.push_back( mucorrHelper_.trkHighptIdSFsyst(aMu)/mucorrHelper_.trkHighptIdSF(aMu) );
-      recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
 
       if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
         isoSyst.push_back( mucorrHelper_.looseIsoSFtrackerSyst(aMu)/mucorrHelper_.looseIsoSFtracker(aMu) );
@@ -854,6 +877,10 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
             histo1d_["4P0F_CR_llll_invM_trigDn"]->Fill(m4l, aWeight*systSFratio(trigSyst).second);
             histo1d_["4P0F_CR_llll_invM_recoUp"]->Fill(m4l, aWeight*systSFratio(recoSyst).first);
             histo1d_["4P0F_CR_llll_invM_recoDn"]->Fill(m4l, aWeight*systSFratio(recoSyst).second);
+            histo1d_["4P0F_CR_llll_invM_PUrwgtUp"]->Fill(m4l, aWeight*purwgtUp/purwgtNo);
+            histo1d_["4P0F_CR_llll_invM_PUrwgtDn"]->Fill(m4l, aWeight*purwgtDn/purwgtNo);
+            histo1d_["4P0F_CR_llll_invM_prefireUp"]->Fill(m4l, aWeight*prefireUp/prefireNo);
+            histo1d_["4P0F_CR_llll_invM_prefireDn"]->Fill(m4l, aWeight*prefireDn/prefireNo);
           }
 
           if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
