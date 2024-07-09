@@ -859,11 +859,11 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
           const double dr2ll1 = reco::deltaR2(lvecM1.eta(),lvecM1.phi(),lvecM2.eta(),lvecM2.phi());
           const double dr2ll2 = reco::deltaR2(lvecM3.eta(),lvecM3.phi(),lvecM4.eta(),lvecM4.phi());
           const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
-          const double m4l = lvec4l.M();
-          const double m4lAlt = (lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M();
-          const double m4lsmear = (lvecM1smear+lvecM2smear+lvecM3smear+lvecM4smear).M();
+          const double m4l = std::min(lvec4l.M(),2499.9); // truncate at 2.5 TeV
+          const double m4lAlt = std::min((lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M(),2499.9);
+          const double m4lsmear = std::min((lvecM1smear+lvecM2smear+lvecM3smear+lvecM4smear).M(),2499.9);
 
-          if ( m4l > 50. && (m4l < 200. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && (m4l < 500. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
             histo1d_["4P0F_CR_llll_invM_altMuScale"]->Fill(m4lAlt, aWeight);
             histo1d_["4P0F_CR_llll_invM_altMuSmear"]->Fill(m4lsmear, aWeight);
@@ -883,7 +883,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
             histo1d_["4P0F_CR_llll_invM_prefireDn"]->Fill(m4l, aWeight*prefireDn/prefireNo);
           }
 
-          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_P1_eta"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->eta(), aWeight);
             histo1d_["4P0F_CR_P1_phi"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->phi(), aWeight);
             histo1d_["4P0F_CR_P2_eta"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(), aWeight);
@@ -1117,7 +1117,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
             histo1d_["3P1F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff-std::min(ff,ci)));
           }
 
-          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             const auto& fakePair = ( nonHighPtMuons.front()==pair1.first || nonHighPtMuons.front()==pair1.second ) ? pair1 : pair2;
             const auto& passPartner = ( nonHighPtMuons.front()==fakePair.first ) ? fakePair.second : fakePair.first;
 
@@ -1323,7 +1323,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
               histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2)));
             }
 
-            if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
               histo1d_["2P2F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
               histo1d_["2P2F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
               histo1d_["2P2F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);

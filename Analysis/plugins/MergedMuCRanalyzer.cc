@@ -931,11 +931,11 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
 
         double dphi = reco::deltaPhi(mergedP4.phi(),tpMET.phi());
         auto p4 = firstP4 + secondP4 + mergedP4 + tpMET;
-        double mt = p4.mt();
-        const double mtJESup = (p4+deltaJESup).mt();
-        const double mtJESdn = (p4+deltaJESdn).mt();
-        const double mtJERup = (p4+deltaJERup).mt();
-        const double mtJERdn = (p4+deltaJERdn).mt();
+        double mt = std::min(p4.mt(),2499.9);
+        const double mtJESup = std::min((p4+deltaJESup).mt(),2499.9);
+        const double mtJESdn = std::min((p4+deltaJESdn).mt(),2499.9);
+        const double mtJERup = std::min((p4+deltaJERup).mt(),2499.9);
+        const double mtJERdn = std::min((p4+deltaJERdn).mt(),2499.9);
 
         bool passDPhi = std::abs(dphi) < drThres_;
         bool passDPhiCR = (std::abs(dphi) < drThresCR_) && !passDPhi;
@@ -965,7 +965,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
         if ( passDPhi && passRatioPt ) {
           histo1d_["cutflow_3M"]->Fill( 10.5, aWeight );
 
-          if (mt < 250. || isMC_) { // blinded
+          if (mt < 500. || isMC_) { // blinded
             histo1d_["3M_MM_pt"]->Fill( mergedP4.pt(), aWeight );
             histo1d_["3M_MM_eta"]->Fill( mergedP4.eta(), aWeight );
             histo1d_["3M_MM_phi"]->Fill( mergedP4.phi(), aWeight );

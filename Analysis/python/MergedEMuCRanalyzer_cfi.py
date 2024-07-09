@@ -18,6 +18,7 @@ mergedEMuCRanalyzer = cms.EDAnalyzer("MergedEMuCRanalyzer",
   union5x5dEtaIn = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","union5x5dEtaIn"),
   union5x5dPhiIn = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","union5x5dPhiIn"),
   union5x5Energy = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","union5x5Energy"),
+  modifiedTrkIso = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleTrkPtIso"),
   METfilterList = cms.vstring(
     "Flag_goodVertices",
     "Flag_globalSuperTightHalo2016Filter",

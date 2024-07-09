@@ -746,16 +746,16 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
           const double dr2ll1 = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
           const double dr2ll2 = reco::deltaR2(lvecE3.eta(),lvecE3.phi(),lvecE4.eta(),lvecE4.phi());
           const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
-          const double m4l = lvec4l.M();
-          const double m4l_scaleUp = (lvecE1_scaleUp+lvecE2_scaleUp+lvecE3_scaleUp+lvecE4_scaleUp).M();
-          const double m4l_scaleDn = (lvecE1_scaleDn+lvecE2_scaleDn+lvecE3_scaleDn+lvecE4_scaleDn).M();
-          const double m4l_sigmaUp = (lvecE1_sigmaUp+lvecE2_sigmaUp+lvecE3_sigmaUp+lvecE4_sigmaUp).M();
-          const double m4l_sigmaDn = (lvecE1_sigmaDn+lvecE2_sigmaDn+lvecE3_sigmaDn+lvecE4_sigmaDn).M();
+          const double m4l = std::min(lvec4l.M(),2499.9);
+          const double m4l_scaleUp = std::min((lvecE1_scaleUp+lvecE2_scaleUp+lvecE3_scaleUp+lvecE4_scaleUp).M(),2499.9);
+          const double m4l_scaleDn = std::min((lvecE1_scaleDn+lvecE2_scaleDn+lvecE3_scaleDn+lvecE4_scaleDn).M(),2499.9);
+          const double m4l_sigmaUp = std::min((lvecE1_sigmaUp+lvecE2_sigmaUp+lvecE3_sigmaUp+lvecE4_sigmaUp).M(),2499.9);
+          const double m4l_sigmaDn = std::min((lvecE1_sigmaDn+lvecE2_sigmaDn+lvecE3_sigmaDn+lvecE4_sigmaDn).M(),2499.9);
 
-          if ( m4l > 50. && m4l < 200. )
+          if ( m4l > 50. && m4l < 500. )
             histo1d_["cutflow_4E"]->Fill(9.5,aWeight);
 
-          if ( m4l > 50. && (m4l < 200. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && (m4l < 500. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
             histo1d_["4P0F_CR_llll_invM_scaleUp"]->Fill(m4l_scaleUp, aWeight);
             histo1d_["4P0F_CR_llll_invM_scaleDn"]->Fill(m4l_scaleDn, aWeight);
@@ -775,7 +775,7 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             histo1d_["4P0F_CR_llll_invM_prefireDn"]->Fill(m4l, aWeight*prefireDn/prefireNo);
           }
 
-          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["cutflow_4E"]->Fill(10.5,aWeight);
 
             histo1d_["4P0F_CR_P1_eta"]->Fill(acceptEles.front()->eta(), aWeight);
@@ -995,7 +995,7 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             histo1d_["3P1F_CR_llll_invM_xFF_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff);
           }
 
-          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             const auto& fakePair = ( nonHeepEles.front()==pair1.first || nonHeepEles.front()==pair1.second ) ? pair1 : pair2;
             const auto& passPartner = ( nonHeepEles.front()==fakePair.first ) ? fakePair.second : fakePair.first;
 
@@ -1177,7 +1177,7 @@ void ResolvedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
               histo1d_["2P2F_CR_llll_invM_xFF2_idDn"]->Fill(m4l, modHeepSFcl95(aWeight).second*ff1*ff2);
             }
 
-            if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
               histo1d_["2P2F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
               histo1d_["2P2F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
               histo1d_["2P2F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);

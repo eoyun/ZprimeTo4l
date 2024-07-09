@@ -913,18 +913,18 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         const double dr2ll1 = reco::deltaR2(lvecM1.eta(),lvecM1.phi(),lvecM2.eta(),lvecM2.phi());
         const double dr2ll2 = reco::deltaR2(lvecE1.eta(),lvecE1.phi(),lvecE2.eta(),lvecE2.phi());
         const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
-        const double m4l = lvec4l.M();
-        const double m4lAltMu = (lvecM1alt + lvecM2alt + lvecE1 + lvecE2).M();
-        const double m4lsmear = (lvecM1smear+lvecM2smear+lvecE1+lvecE2).M();
-        const double m4l_elScaleUp = (lvecM1 + lvecM2 + lvecE1_scaleUp + lvecE2_scaleUp).M();
-        const double m4l_elScaleDn = (lvecM1 + lvecM2 + lvecE1_scaleDn + lvecE2_scaleDn).M();
-        const double m4l_elSigmaUp = (lvecM1 + lvecM2 + lvecE1_sigmaUp + lvecE2_sigmaUp).M();
-        const double m4l_elSigmaDn = (lvecM1 + lvecM2 + lvecE1_sigmaDn + lvecE2_sigmaDn).M();
+        const double m4l = std::min(lvec4l.M(),2499.9);
+        const double m4lAltMu = std::min((lvecM1alt + lvecM2alt + lvecE1 + lvecE2).M(),2499.9);
+        const double m4lsmear = std::min((lvecM1smear+lvecM2smear+lvecE1+lvecE2).M(),2499.9);
+        const double m4l_elScaleUp = std::min((lvecM1 + lvecM2 + lvecE1_scaleUp + lvecE2_scaleUp).M(),2499.9);
+        const double m4l_elScaleDn = std::min((lvecM1 + lvecM2 + lvecE1_scaleDn + lvecE2_scaleDn).M(),2499.9);
+        const double m4l_elSigmaUp = std::min((lvecM1 + lvecM2 + lvecE1_sigmaUp + lvecE2_sigmaUp).M(),2499.9);
+        const double m4l_elSigmaDn = std::min((lvecM1 + lvecM2 + lvecE1_sigmaDn + lvecE2_sigmaDn).M(),2499.9);
 
         auto muPair = std::make_pair(allHighPtMuons.front(),allHighPtMuons.at(1));
 
         if ( !checkTrackerMuPair(muPair) ) {
-          if ( m4l > 50. && (m4l < 200. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && (m4l < 500. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
             histo1d_["4P0F_CR_llll_invM_elScaleUp"]->Fill(m4l_elScaleUp, aWeight);
             histo1d_["4P0F_CR_llll_invM_elScaleDn"]->Fill(m4l_elScaleDn, aWeight);
@@ -952,7 +952,7 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             histo1d_["4P0F_CR_llll_invM_prefireDn"]->Fill(m4l, aWeight*prefireDn/prefireNo);
           }
 
-          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_E_eta"]->Fill( acceptEles.front()->eta(), aWeight );
             histo1d_["4P0F_CR_E_phi"]->Fill( acceptEles.front()->phi(), aWeight );
             histo1d_["4P0F_CR_E_eta"]->Fill( acceptEles.at(1)->eta(), aWeight );
@@ -1077,7 +1077,7 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
             histo1d_["3P1F_CR_llll_invM_xFF_ffDnM"]->Fill(m4l, aWeight*(ff-std::min(ciM,ff)));
           }
 
-          if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["3P1F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
             histo1d_["3P1F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
             histo1d_["3P1F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);
@@ -1236,7 +1236,7 @@ void ResolvedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
                 histo1d_["2P2F_CR_llll_invM_xFF2_ffDnM"]->Fill(m4l, aWeight*ff1*(ff2-std::min(ff2,ci2M)));
               }
 
-              if ( m4l > 50. && m4l < 200. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+              if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
                 histo1d_["2P2F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
                 histo1d_["2P2F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
                 histo1d_["2P2F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);

@@ -72,6 +72,11 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
   const edm::EDGetTokenT<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandToken_;
 
+  const edm::EDGetTokenT<edm::ValueMap<float>> alphaTrackToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> alphaCaloToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> normDParaInToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> union5x5covIeIeToken_;
+
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dEtaInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
@@ -155,6 +160,10 @@ triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.g
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
 addPackedCandToken_(consumes<edm::ValueMap<pat::PackedCandidateRef>>(iConfig.getParameter<edm::InputTag>("addPackedCandMap"))),
+alphaTrackToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaTrack"))),
+alphaCaloToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaCalo"))),
+normDParaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("normalizedDParaIn"))),
+union5x5covIeIeToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5covIeIe"))),
 union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dEtaIn"))),
 union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
@@ -372,6 +381,84 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_mixedAntiME_OSll_eta_xFF_up"] = fs->make<TH1D>("2E_mixedAntiME_OSll_eta_xFF_up","mixed OS CR anti ME #eta x Fake factor (up)",100,-2.5,2.5);
   histo1d_["2E_mixedAntiME_OSll_Et_xFF_dn"] = fs->make<TH1D>("2E_mixedAntiME_OSll_Et_xFF_dn","mixed OS CR anti ME E_{T} x Fake factor (down);GeV;",100,0.,500.);
   histo1d_["2E_mixedAntiME_OSll_eta_xFF_dn"] = fs->make<TH1D>("2E_mixedAntiME_OSll_eta_xFF_dn","mixed OS CR anti ME #eta x Fake factor (down)",100,-2.5,2.5);
+
+  histo1d_["2E_mixedME_alphaTrk"] = fs->make<TH1D>("2E_mixedME_alphaTrk",";#alpha_{trk};",360,-1.8,1.8);
+  histo1d_["2E_mixedME_alphaCalo"] = fs->make<TH1D>("2E_mixedME_alphaCalo",";#alpha_{calo};",360,-1.8,1.8);
+  histo1d_["2E_mixedME_normDParaIn"] = fs->make<TH1D>("2E_mixedME_normDParaIn",";#Delta v_{in}/#Delta R;",200,-0.5,1.5);
+  histo1d_["2E_mixedME_u5x5dEtaIn"] = fs->make<TH1D>("2E_mixedME_u5x5dEtaIn",";#Delta #eta_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedME_u5x5dPhiIn"] = fs->make<TH1D>("2E_mixedME_u5x5dPhiIn",";#Delta #phi_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedME_covIeIe"] = fs->make<TH1D>("2E_mixedME_covIeIe",";#sigma_{i#eta i#eta};",400,0.,2.);
+  histo1d_["2E_mixedME_sigIeIe"] = fs->make<TH1D>("2E_mixedME_sigIeIe",";#sigma_{i#eta i#eta};",300,0.,0.03);
+  histo1d_["2E_mixedME_dEtaInSeed"] = fs->make<TH1D>("2E_mixedME_dEtaInSeed",";#Delta#eta_{in seed};",400,-0.05,0.05);
+  histo1d_["2E_mixedME_dPhiIn"] = fs->make<TH1D>("2E_mixedME_dPhiIn",";#Delta#phi_{in};",400,-0.1,0.1);
+  histo1d_["2E_mixedME_R9"] = fs->make<TH1D>("2E_mixedME_R9",";R9;",200,0.,1.);
+  histo1d_["2E_mixedME_E1x5oE5x5"] = fs->make<TH1D>("2E_mixedME_E1x5oE5x5",";E_{1x5}/E_{5x5};",200,0.,1.);
+  histo1d_["2E_mixedME_EoverP"] = fs->make<TH1D>("2E_mixedME_EoverP",";E/p;",250,0.,5.);
+
+  histo1d_["2E_mixedME_alphaTrk_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_alphaTrk_mergedEleUp",";#alpha_{trk};",360,-1.8,1.8);
+  histo1d_["2E_mixedME_alphaCalo_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_alphaCalo_mergedEleUp",";#alpha_{calo};",360,-1.8,1.8);
+  histo1d_["2E_mixedME_normDParaIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_normDParaIn_mergedEleUp",";#Delta v_{in}/#Delta R;",200,-0.5,1.5);
+  histo1d_["2E_mixedME_u5x5dEtaIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_u5x5dEtaIn_mergedEleUp",";#Delta #eta_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedME_u5x5dPhiIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_u5x5dPhiIn_mergedEleUp",";#Delta #phi_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedME_covIeIe_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_covIeIe_mergedEleUp",";#sigma_{i#eta i#eta};",400,0.,2.);
+  histo1d_["2E_mixedME_sigIeIe_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_sigIeIe_mergedEleUp",";#sigma_{i#eta i#eta};",300,0.,0.03);
+  histo1d_["2E_mixedME_dEtaInSeed_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_dEtaInSeed_mergedEleUp",";#Delta#eta_{in seed};",400,-0.05,0.05);
+  histo1d_["2E_mixedME_dPhiIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_dPhiIn_mergedEleUp",";#Delta#phi_{in};",400,-0.1,0.1);
+  histo1d_["2E_mixedME_R9_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_R9_mergedEleUp",";R9;",200,0.,1.);
+  histo1d_["2E_mixedME_E1x5oE5x5_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_E1x5oE5x5_mergedEleUp",";E_{1x5}/E_{5x5};",200,0.,1.);
+  histo1d_["2E_mixedME_EoverP_mergedEleUp"] = fs->make<TH1D>("2E_mixedME_EoverP_mergedEleUp",";E/p;",250,0.,5.);
+
+  histo1d_["2E_mixedME_alphaTrk_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_alphaTrk_mergedEleDn",";#alpha_{trk};",360,-1.8,1.8);
+  histo1d_["2E_mixedME_alphaCalo_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_alphaCalo_mergedEleDn",";#alpha_{calo};",360,-1.8,1.8);
+  histo1d_["2E_mixedME_normDParaIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_normDParaIn_mergedEleDn",";#Delta v_{in}/#Delta R;",200,-0.5,1.5);
+  histo1d_["2E_mixedME_u5x5dEtaIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_u5x5dEtaIn_mergedEleDn",";#Delta #eta_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedME_u5x5dPhiIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_u5x5dPhiIn_mergedEleDn",";#Delta #phi_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedME_covIeIe_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_covIeIe_mergedEleDn",";#sigma_{i#eta i#eta};",400,0.,2.);
+  histo1d_["2E_mixedME_sigIeIe_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_sigIeIe_mergedEleDn",";#sigma_{i#eta i#eta};",300,0.,0.03);
+  histo1d_["2E_mixedME_dEtaInSeed_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_dEtaInSeed_mergedEleDn",";#Delta#eta_{in seed};",400,-0.05,0.05);
+  histo1d_["2E_mixedME_dPhiIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_dPhiIn_mergedEleDn",";#Delta#phi_{in};",400,-0.1,0.1);
+  histo1d_["2E_mixedME_R9_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_R9_mergedEleDn",";R9;",200,0.,1.);
+  histo1d_["2E_mixedME_E1x5oE5x5_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_E1x5oE5x5_mergedEleDn",";E_{1x5}/E_{5x5};",200,0.,1.);
+  histo1d_["2E_mixedME_EoverP_mergedEleDn"] = fs->make<TH1D>("2E_mixedME_EoverP_mergedEleDn",";E/p;",250,0.,5.);
+
+  histo1d_["2E_mixedAntiME_alphaTrk"] = fs->make<TH1D>("2E_mixedAntiME_alphaTrk",";#alpha_{trk};",360,-1.8,1.8);
+  histo1d_["2E_mixedAntiME_alphaCalo"] = fs->make<TH1D>("2E_mixedAntiME_alphaCalo",";#alpha_{calo};",360,-1.8,1.8);
+  histo1d_["2E_mixedAntiME_normDParaIn"] = fs->make<TH1D>("2E_mixedAntiME_normDParaIn",";#Delta v_{in}/#Delta R;",200,-0.5,1.5);
+  histo1d_["2E_mixedAntiME_u5x5dEtaIn"] = fs->make<TH1D>("2E_mixedAntiME_u5x5dEtaIn",";#Delta #eta_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_u5x5dPhiIn"] = fs->make<TH1D>("2E_mixedAntiME_u5x5dPhiIn",";#Delta #phi_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_covIeIe"] = fs->make<TH1D>("2E_mixedAntiME_covIeIe",";#sigma_{i#eta i#eta};",400,0.,2.);
+  histo1d_["2E_mixedAntiME_sigIeIe"] = fs->make<TH1D>("2E_mixedAntiME_sigIeIe",";#sigma_{i#eta i#eta};",300,0.,0.03);
+  histo1d_["2E_mixedAntiME_dEtaInSeed"] = fs->make<TH1D>("2E_mixedAntiME_dEtaInSeed",";#Delta#eta_{in seed};",400,-0.05,0.05);
+  histo1d_["2E_mixedAntiME_dPhiIn"] = fs->make<TH1D>("2E_mixedAntiME_dPhiIn",";#Delta#phi_{in};",400,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_R9"] = fs->make<TH1D>("2E_mixedAntiME_R9",";R9;",200,0.,1.);
+  histo1d_["2E_mixedAntiME_E1x5oE5x5"] = fs->make<TH1D>("2E_mixedAntiME_E1x5oE5x5",";E_{1x5}/E_{5x5};",200,0.,1.);
+  histo1d_["2E_mixedAntiME_EoverP"] = fs->make<TH1D>("2E_mixedAntiME_EoverP",";E/p;",250,0.,5.);
+
+  histo1d_["2E_mixedAntiME_alphaTrk_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_alphaTrk_mergedEleUp",";#alpha_{trk};",360,-1.8,1.8);
+  histo1d_["2E_mixedAntiME_alphaCalo_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_alphaCalo_mergedEleUp",";#alpha_{calo};",360,-1.8,1.8);
+  histo1d_["2E_mixedAntiME_normDParaIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_normDParaIn_mergedEleUp",";#Delta v_{in}/#Delta R;",200,-0.5,1.5);
+  histo1d_["2E_mixedAntiME_u5x5dEtaIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_u5x5dEtaIn_mergedEleUp",";#Delta #eta_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_u5x5dPhiIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_u5x5dPhiIn_mergedEleUp",";#Delta #phi_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_covIeIe_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_covIeIe_mergedEleUp",";#sigma_{i#eta i#eta};",400,0.,2.);
+  histo1d_["2E_mixedAntiME_sigIeIe_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_sigIeIe_mergedEleUp",";#sigma_{i#eta i#eta};",300,0.,0.03);
+  histo1d_["2E_mixedAntiME_dEtaInSeed_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_dEtaInSeed_mergedEleUp",";#Delta#eta_{in seed};",400,-0.05,0.05);
+  histo1d_["2E_mixedAntiME_dPhiIn_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_dPhiIn_mergedEleUp",";#Delta#phi_{in};",400,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_R9_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_R9_mergedEleUp",";R9;",200,0.,1.);
+  histo1d_["2E_mixedAntiME_E1x5oE5x5_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_E1x5oE5x5_mergedEleUp",";E_{1x5}/E_{5x5};",200,0.,1.);
+  histo1d_["2E_mixedAntiME_EoverP_mergedEleUp"] = fs->make<TH1D>("2E_mixedAntiME_EoverP_mergedEleUp",";E/p;",250,0.,5.);
+
+  histo1d_["2E_mixedAntiME_alphaTrk_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_alphaTrk_mergedEleDn",";#alpha_{trk};",360,-1.8,1.8);
+  histo1d_["2E_mixedAntiME_alphaCalo_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_alphaCalo_mergedEleDn",";#alpha_{calo};",360,-1.8,1.8);
+  histo1d_["2E_mixedAntiME_normDParaIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_normDParaIn_mergedEleDn",";#Delta v_{in}/#Delta R;",200,-0.5,1.5);
+  histo1d_["2E_mixedAntiME_u5x5dEtaIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_u5x5dEtaIn_mergedEleDn",";#Delta #eta_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_u5x5dPhiIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_u5x5dPhiIn_mergedEleDn",";#Delta #phi_{in}(u5x5);",500,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_covIeIe_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_covIeIe_mergedEleDn",";#sigma_{i#eta i#eta};",400,0.,2.);
+  histo1d_["2E_mixedAntiME_sigIeIe_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_sigIeIe_mergedEleDn",";#sigma_{i#eta i#eta};",300,0.,0.03);
+  histo1d_["2E_mixedAntiME_dEtaInSeed_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_dEtaInSeed_mergedEleDn",";#Delta#eta_{in seed};",400,-0.05,0.05);
+  histo1d_["2E_mixedAntiME_dPhiIn_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_dPhiIn_mergedEleDn",";#Delta#phi_{in};",400,-0.1,0.1);
+  histo1d_["2E_mixedAntiME_R9_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_R9_mergedEleDn",";R9;",200,0.,1.);
+  histo1d_["2E_mixedAntiME_E1x5oE5x5_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_E1x5oE5x5_mergedEleDn",";E_{1x5}/E_{5x5};",200,0.,1.);
+  histo1d_["2E_mixedAntiME_EoverP_mergedEleDn"] = fs->make<TH1D>("2E_mixedAntiME_EoverP_mergedEleDn",";E/p;",250,0.,5.);
 
   histo1d_["2E_antiME1_Et"] = fs->make<TH1D>("2E_antiME1_Et","anti ME1 E_{T};GeV;",200,0.,500.);
   histo1d_["2E_antiME1_eta"] = fs->make<TH1D>("2E_antiME1_eta","anti ME1 #eta",200,-2.5,2.5);
@@ -863,6 +950,18 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandHandle;
   iEvent.getByToken(addPackedCandToken_, addPackedCandHandle);
 
+  edm::Handle<edm::ValueMap<float>> alphaTrackHandle;
+  iEvent.getByToken(alphaTrackToken_, alphaTrackHandle);
+
+  edm::Handle<edm::ValueMap<float>> alphaCaloHandle;
+  iEvent.getByToken(alphaCaloToken_, alphaCaloHandle);
+
+  edm::Handle<edm::ValueMap<float>> normDParaInHandle;
+  iEvent.getByToken(normDParaInToken_, normDParaInHandle);
+
+  edm::Handle<edm::ValueMap<float>> union5x5covIeIeHandle;
+  iEvent.getByToken(union5x5covIeIeToken_, union5x5covIeIeHandle);
+
   edm::Handle<edm::ValueMap<float>> union5x5dEtaInHandle;
   iEvent.getByToken(union5x5dEtaInToken_, union5x5dEtaInHandle);
 
@@ -1228,15 +1327,15 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         const double dr2l2ME = reco::deltaR2(lvecCRME.eta(),lvecCRME.phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
         const double dr2l1l2 = reco::deltaR2(nonMEs.front()->eta(),nonMEs.front()->phi(),nonMEs.at(1)->eta(),nonMEs.at(1)->phi());
         const double mll = lvecll.M();
-        const double mlll = lvecCRllME.M();
-        const double mlll_scaleUp = (lvecCRME+lvecNME1_scaleUp+lvecNME2_scaleUp).M();
-        const double mlll_scaleDn = (lvecCRME+lvecNME1_scaleDn+lvecNME2_scaleDn).M();
-        const double mlll_sigmaUp = (lvecCRME+lvecNME1_sigmaUp+lvecNME2_sigmaUp).M();
-        const double mlll_sigmaDn = (lvecCRME+lvecNME1_sigmaDn+lvecNME2_sigmaDn).M();
-        const double mlll_mergedEleScale = (lvecCRME_scale+lvecNME1+lvecNME2).M();
-        const double mlll_mergedEleSmear = (lvecCRME_smear+lvecNME1+lvecNME2).M();
+        const double mlll = std::min(lvecCRllME.M(),2499.9);
+        const double mlll_scaleUp = std::min((lvecCRME+lvecNME1_scaleUp+lvecNME2_scaleUp).M(),2499.9);
+        const double mlll_scaleDn = std::min((lvecCRME+lvecNME1_scaleDn+lvecNME2_scaleDn).M(),2499.9);
+        const double mlll_sigmaUp = std::min((lvecCRME+lvecNME1_sigmaUp+lvecNME2_sigmaUp).M(),2499.9);
+        const double mlll_sigmaDn = std::min((lvecCRME+lvecNME1_sigmaDn+lvecNME2_sigmaDn).M(),2499.9);
+        const double mlll_mergedEleScale = std::min((lvecCRME_scale+lvecNME1+lvecNME2).M(),2499.9);
+        const double mlll_mergedEleSmear = std::min((lvecCRME_smear+lvecNME1+lvecNME2).M(),2499.9);
 
-        if ( mlll > 50. && (mlll < 200. || isMC_) ) {
+        if ( mlll > 50. && (mlll < 500. || isMC_) ) {
           histo1d_["3E_CRME_lll_invM"]->Fill(mlll,aWeight);
           histo1d_["3E_CRME_lll_invM_mergedEleScale"]->Fill(mlll_mergedEleScale,aWeight);
           histo1d_["3E_CRME_lll_invM_mergedEleSmear"]->Fill(mlll_mergedEleSmear,aWeight);
@@ -1258,7 +1357,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           histo1d_["3E_CRME_lll_invM_prefireDn"]->Fill(mlll,aWeight*prefireDn/prefireNo);
         }
 
-        if ( mlll > 50. && mlll < 200. ) {
+        if ( mlll > 50. && mlll < 500. ) {
           if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
             histo1d_["3E_CRME_Et"]->Fill(lvecCRME.Et(),aWeight);
             histo1d_["3E_CRME_eta"]->Fill(lvecCRME.eta(),aWeight);
@@ -1394,7 +1493,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             histo1d_["3E_antiME_lll_invM_CR_xSSFF_dn"]->Fill(mlll,aWeight*(ffSS-ci.first));
           }
 
-          if ( mlll < 200. ) {
+          if ( mlll < 500. ) {
             const double u5x5Et = estimateU5x5Et(antiMEs.front());
             const double u5x5Eta = estimateU5x5Eta(antiMEs.front());
 
@@ -1494,11 +1593,11 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         const auto lvecCRME2_smear = systHelperEle_.mergedEleSmear(CRMEs.at(1),(*union5x5EnergyHandle)[CRMEs.at(1)])*lvecCRME2;
         const auto lvecCRll = lvecCRME1 + lvecCRME2;
         const double dr2CRll = reco::deltaR2(lvecCRME1.eta(),lvecCRME1.phi(),lvecCRME2.eta(),lvecCRME2.phi());
-        const double mll = lvecCRll.M();
-        const double mll_scale = (lvecCRME1_scale+lvecCRME2_scale).M();
-        const double mll_smear = (lvecCRME1_smear+lvecCRME2_smear).M();
+        const double mll = std::min(lvecCRll.M(),2499.9);
+        const double mll_scale = std::min((lvecCRME1_scale+lvecCRME2_scale).M(),2499.9);
+        const double mll_smear = std::min((lvecCRME1_smear+lvecCRME2_smear).M(),2499.9);
 
-        if ( mll > 50. && (mll < 200. || isMC_) ) {
+        if ( mll > 50. && (mll < 500. || isMC_) ) {
           histo1d_["2E_CRME_ll_invM"]->Fill( mll, aWeight );
 
           SRinvM_ = mll;
@@ -1551,7 +1650,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           SRtree_->Fill();
         }
 
-        if ( mll > 50. && mll < 200. ) {
+        if ( mll > 50. && mll < 500. ) {
           if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
             histo1d_["2E_CRME1_Et"]->Fill( lvecCRME1.Et(), aWeight );
             histo1d_["2E_CRME1_eta"]->Fill( lvecCRME1.eta(), aWeight );
@@ -1670,9 +1769,99 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           }
 
           mixedCRtree_->Fill();
+
+          if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
+            histo1d_["2E_mixedME_alphaTrk"]->Fill((*alphaTrackHandle)[CRMEs.front()],aWeight);
+            histo1d_["2E_mixedME_alphaCalo"]->Fill((*alphaCaloHandle)[CRMEs.front()],aWeight);
+            histo1d_["2E_mixedME_normDParaIn"]->Fill((*normDParaInHandle)[CRMEs.front()],aWeight);
+            histo1d_["2E_mixedME_u5x5dEtaIn"]->Fill((*union5x5dEtaInHandle)[CRMEs.front()],aWeight);
+            histo1d_["2E_mixedME_u5x5dPhiIn"]->Fill((*union5x5dPhiInHandle)[CRMEs.front()],aWeight);
+            histo1d_["2E_mixedME_covIeIe"]->Fill((*union5x5covIeIeHandle)[CRMEs.front()],aWeight);
+
+            histo1d_["2E_mixedME_alphaTrk_mergedEleUp"]->Fill((*alphaTrackHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_alphaCalo_mergedEleUp"]->Fill((*alphaCaloHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_normDParaIn_mergedEleUp"]->Fill((*normDParaInHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_u5x5dEtaIn_mergedEleUp"]->Fill((*union5x5dEtaInHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_u5x5dPhiIn_mergedEleUp"]->Fill((*union5x5dPhiInHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_covIeIe_mergedEleUp"]->Fill((*union5x5covIeIeHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).first);
+
+            histo1d_["2E_mixedME_alphaTrk_mergedEleDn"]->Fill((*alphaTrackHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_alphaCalo_mergedEleDn"]->Fill((*alphaCaloHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_normDParaIn_mergedEleDn"]->Fill((*normDParaInHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_u5x5dEtaIn_mergedEleDn"]->Fill((*union5x5dEtaInHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_u5x5dPhiIn_mergedEleDn"]->Fill((*union5x5dPhiInHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_covIeIe_mergedEleDn"]->Fill((*union5x5covIeIeHandle)[CRMEs.front()],mergedEleSFcl95(aWeight).second);
+          } else if ( CRMEs.front()->userInt("mvaMergedElectronCategories")==1 ) {
+            const double CRMEe5x5 = CRMEs.front()->full5x5_e5x5();
+            histo1d_["2E_mixedME_sigIeIe"]->Fill(CRMEs.front()->full5x5_sigmaIetaIeta(),aWeight);
+            histo1d_["2E_mixedME_dEtaInSeed"]->Fill(CRMEs.front()->deltaEtaSeedClusterTrackAtVtx(),aWeight);
+            histo1d_["2E_mixedME_dPhiIn"]->Fill(CRMEs.front()->deltaPhiSuperClusterTrackAtVtx(),aWeight);
+            histo1d_["2E_mixedME_R9"]->Fill(CRMEs.front()->full5x5_r9(),aWeight);
+            histo1d_["2E_mixedME_E1x5oE5x5"]->Fill( CRMEe5x5 > 0. ? CRMEs.front()->full5x5_e1x5()/CRMEe5x5 : 0. ,aWeight);
+            histo1d_["2E_mixedME_EoverP"]->Fill(CRMEs.front()->eSuperClusterOverP(),aWeight);
+
+            histo1d_["2E_mixedME_sigIeIe_mergedEleUp"]->Fill(CRMEs.front()->full5x5_sigmaIetaIeta(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_dEtaInSeed_mergedEleUp"]->Fill(CRMEs.front()->deltaEtaSeedClusterTrackAtVtx(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_dPhiIn_mergedEleUp"]->Fill(CRMEs.front()->deltaPhiSuperClusterTrackAtVtx(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_R9_mergedEleUp"]->Fill(CRMEs.front()->full5x5_r9(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_E1x5oE5x5_mergedEleUp"]->Fill( CRMEe5x5 > 0. ? CRMEs.front()->full5x5_e1x5()/CRMEe5x5 : 0. ,mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedME_EoverP_mergedEleUp"]->Fill(CRMEs.front()->eSuperClusterOverP(),mergedEleSFcl95(aWeight).first);
+
+            histo1d_["2E_mixedME_sigIeIe_mergedEleDn"]->Fill(CRMEs.front()->full5x5_sigmaIetaIeta(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_dEtaInSeed_mergedEleDn"]->Fill(CRMEs.front()->deltaEtaSeedClusterTrackAtVtx(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_dPhiIn_mergedEleDn"]->Fill(CRMEs.front()->deltaPhiSuperClusterTrackAtVtx(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_R9_mergedEleDn"]->Fill(CRMEs.front()->full5x5_r9(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_E1x5oE5x5_mergedEleDn"]->Fill( CRMEe5x5 > 0. ? CRMEs.front()->full5x5_e1x5()/CRMEe5x5 : 0. ,mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedME_EoverP_mergedEleDn"]->Fill(CRMEs.front()->eSuperClusterOverP(),mergedEleSFcl95(aWeight).second);
+          }
+
+          if ( antiMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
+            histo1d_["2E_mixedAntiME_alphaTrk"]->Fill((*alphaTrackHandle)[antiMEs.front()],aWeight);
+            histo1d_["2E_mixedAntiME_alphaCalo"]->Fill((*alphaCaloHandle)[antiMEs.front()],aWeight);
+            histo1d_["2E_mixedAntiME_normDParaIn"]->Fill((*normDParaInHandle)[antiMEs.front()],aWeight);
+            histo1d_["2E_mixedAntiME_u5x5dEtaIn"]->Fill((*union5x5dEtaInHandle)[antiMEs.front()],aWeight);
+            histo1d_["2E_mixedAntiME_u5x5dPhiIn"]->Fill((*union5x5dPhiInHandle)[antiMEs.front()],aWeight);
+            histo1d_["2E_mixedAntiME_covIeIe"]->Fill((*union5x5covIeIeHandle)[antiMEs.front()],aWeight);
+
+            histo1d_["2E_mixedAntiME_alphaTrk_mergedEleUp"]->Fill((*alphaTrackHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_alphaCalo_mergedEleUp"]->Fill((*alphaCaloHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_normDParaIn_mergedEleUp"]->Fill((*normDParaInHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_u5x5dEtaIn_mergedEleUp"]->Fill((*union5x5dEtaInHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_u5x5dPhiIn_mergedEleUp"]->Fill((*union5x5dPhiInHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_covIeIe_mergedEleUp"]->Fill((*union5x5covIeIeHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).first);
+
+            histo1d_["2E_mixedAntiME_alphaTrk_mergedEleDn"]->Fill((*alphaTrackHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_alphaCalo_mergedEleDn"]->Fill((*alphaCaloHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_normDParaIn_mergedEleDn"]->Fill((*normDParaInHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_u5x5dEtaIn_mergedEleDn"]->Fill((*union5x5dEtaInHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_u5x5dPhiIn_mergedEleDn"]->Fill((*union5x5dPhiInHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_covIeIe_mergedEleDn"]->Fill((*union5x5covIeIeHandle)[antiMEs.front()],mergedEleSFcl95(aWeight).second);
+          } else if ( antiMEs.front()->userInt("mvaMergedElectronCategories")==1 ) {
+            const double AnMEe5x5 = antiMEs.front()->full5x5_e5x5();
+            histo1d_["2E_mixedAntiME_sigIeIe"]->Fill(antiMEs.front()->full5x5_sigmaIetaIeta(),aWeight);
+            histo1d_["2E_mixedAntiME_dEtaInSeed"]->Fill(antiMEs.front()->deltaEtaSeedClusterTrackAtVtx(),aWeight);
+            histo1d_["2E_mixedAntiME_dPhiIn"]->Fill(antiMEs.front()->deltaPhiSuperClusterTrackAtVtx(),aWeight);
+            histo1d_["2E_mixedAntiME_R9"]->Fill(antiMEs.front()->full5x5_r9(),aWeight);
+            histo1d_["2E_mixedAntiME_E1x5oE5x5"]->Fill( AnMEe5x5 > 0. ? antiMEs.front()->full5x5_e1x5()/AnMEe5x5 : 0. ,aWeight);
+            histo1d_["2E_mixedAntiME_EoverP"]->Fill(antiMEs.front()->eSuperClusterOverP(),aWeight);
+
+            histo1d_["2E_mixedAntiME_sigIeIe_mergedEleUp"]->Fill(antiMEs.front()->full5x5_sigmaIetaIeta(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_dEtaInSeed_mergedEleUp"]->Fill(antiMEs.front()->deltaEtaSeedClusterTrackAtVtx(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_dPhiIn_mergedEleUp"]->Fill(antiMEs.front()->deltaPhiSuperClusterTrackAtVtx(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_R9_mergedEleUp"]->Fill(antiMEs.front()->full5x5_r9(),mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_E1x5oE5x5_mergedEleUp"]->Fill( AnMEe5x5 > 0. ? antiMEs.front()->full5x5_e1x5()/AnMEe5x5 : 0. ,mergedEleSFcl95(aWeight).first);
+            histo1d_["2E_mixedAntiME_EoverP_mergedEleUp"]->Fill(antiMEs.front()->eSuperClusterOverP(),mergedEleSFcl95(aWeight).first);
+
+            histo1d_["2E_mixedAntiME_sigIeIe_mergedEleDn"]->Fill(antiMEs.front()->full5x5_sigmaIetaIeta(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_dEtaInSeed_mergedEleDn"]->Fill(antiMEs.front()->deltaEtaSeedClusterTrackAtVtx(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_dPhiIn_mergedEleDn"]->Fill(antiMEs.front()->deltaPhiSuperClusterTrackAtVtx(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_R9_mergedEleDn"]->Fill(antiMEs.front()->full5x5_r9(),mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_E1x5oE5x5_mergedEleDn"]->Fill( AnMEe5x5 > 0. ? antiMEs.front()->full5x5_e1x5()/AnMEe5x5 : 0. ,mergedEleSFcl95(aWeight).second);
+            histo1d_["2E_mixedAntiME_EoverP_mergedEleDn"]->Fill(antiMEs.front()->eSuperClusterOverP(),mergedEleSFcl95(aWeight).second);
+          }
         }
 
-        if ( mll > 50. && mll < 200. ) {
+        if ( mll > 50. && mll < 500. ) {
           if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
             histo1d_["2E_mixed_ME_Et"]->Fill( lvecCRME.Et(), aWeight );
             histo1d_["2E_mixed_ME_eta"]->Fill( lvecCRME.eta(), aWeight );
@@ -1848,7 +2037,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             antiCRwgt_ *= (ffOS1+ffOS2);
             antiCRisOS_ = 1;
 
-            if (mllPreCorr < 200.) {
+            if (mllPreCorr < 500.) {
               for (const auto& aME : antiMEs) {
                 double ffSS = 0., ffOS = 0.;
                 auto aci = ciSSOS(aME,ffSS,ffOS);
@@ -1907,7 +2096,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             antiCRwgt_ *= (ffOS1+ffOS2);
             antiCRisOS_ = 0;
 
-            if (mllPreCorr < 200.) {
+            if (mllPreCorr < 500.) {
               for (const auto& aME : antiMEs) {
                 double ffSS = 0., ffOS = 0.;
                 auto aci = ciSSOS(aME,ffSS,ffOS);
