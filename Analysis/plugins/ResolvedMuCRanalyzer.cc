@@ -90,6 +90,7 @@ private:
 
   std::unique_ptr<TFile> FFfile_;
   TF1* drFF_;
+  TF1* ptFF_;
   TFitResultPtr ffFit_;
 
   std::map<std::string,TH1*> histo1d_;
@@ -159,6 +160,7 @@ void ResolvedMuCRanalyzer::beginJob() {
 
   FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
   drFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_dr_all"));
+  ptFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_all"));
   ffFit_ = (static_cast<TH1D*>(FFfile_->Get("all_dr_3P0F_rebin")))->Fit(drFF_,"RS");
 
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
@@ -801,13 +803,18 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
     return !check1st && !check2nd;
   };
 
-  auto ciFF = [this] (const double dr) {
-    const double ff = drFF_->Eval(dr);
-    const double xval[1] = {dr};
-    double ci[1];
-    ffFit_->GetConfidenceIntervals(1,1,0,xval,ci,0.95,false);
+  auto valFF = [this] (const double dr, const double pt) {
+    const double ff1 = drFF_->Eval(dr);
+    const double ff2 = ptFF_->Eval(pt);
 
-    return std::hypot(ci[0],ff*ffSystCL95_);
+    return (ff1+ff2)/2.;
+  };
+
+  auto ciFF = [this] (const double dr, const double pt) {
+    const double ff1 = drFF_->Eval(dr);
+    const double ff2 = ptFF_->Eval(pt);
+
+    return std::abs(ff1-ff2)/2.;
   };
 
   switch (allHighPtMuons.size()) {
@@ -863,7 +870,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
           const double m4lAlt = std::min((lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M(),2499.9);
           const double m4lsmear = std::min((lvecM1smear+lvecM2smear+lvecM3smear+lvecM4smear).M(),2499.9);
 
-          if ( m4l > 50. && (m4l < 500. || isMC_) && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. /*&& (m4l < 500. || isMC_) (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
             histo1d_["4P0F_CR_llll_invM_altMuScale"]->Fill(m4lAlt, aWeight);
             histo1d_["4P0F_CR_llll_invM_altMuSmear"]->Fill(m4lsmear, aWeight);
@@ -883,7 +890,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
             histo1d_["4P0F_CR_llll_invM_prefireDn"]->Fill(m4l, aWeight*prefireDn/prefireNo);
           }
 
-          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_P1_eta"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->eta(), aWeight);
             histo1d_["4P0F_CR_P1_phi"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->phi(), aWeight);
             histo1d_["4P0F_CR_P2_eta"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(), aWeight);
@@ -1097,8 +1104,8 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                                                                     allHighPtMuons.front()->tunePMuonBestTrack()->eta(),allHighPtMuons.front()->tunePMuonBestTrack()->phi()),
                                                       reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
                                                                     allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(1)->tunePMuonBestTrack()->phi()) }) );
-          const double ff = std::max(drFF_->Eval(drFake),0.);
-          const double ci = ciFF(drFake);
+          const double ff = std::max( valFF(drFake,nonHighPtMuons.front()->tunePMuonBestTrack()->pt()), 0.);
+          const double ci = ciFF(drFake,nonHighPtMuons.front()->tunePMuonBestTrack()->pt());
 
           if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["3P1F_llll_pt"]->Fill(lvec4l.pt(), aWeight);
@@ -1117,7 +1124,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
             histo1d_["3P1F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff-std::min(ff,ci)));
           }
 
-          if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             const auto& fakePair = ( nonHighPtMuons.front()==pair1.first || nonHighPtMuons.front()==pair1.second ) ? pair1 : pair2;
             const auto& passPartner = ( nonHighPtMuons.front()==fakePair.first ) ? fakePair.second : fakePair.first;
 
@@ -1278,11 +1285,11 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
                                                          reco::deltaR2(nonHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),nonHighPtMuons.at(1)->tunePMuonBestTrack()->phi(),
                                                                        allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(1)->tunePMuonBestTrack()->phi()) }) );
 
-            const double ff1 = std::max(drFF_->Eval(drFake1),0.);
-            const double ci1 = ciFF(drFake1);
+            const double ff1 = std::max( valFF(drFake1,nonHighPtMuons.front()->tunePMuonBestTrack()->pt()), 0.);
+            const double ci1 = ciFF(drFake1,nonHighPtMuons.front()->tunePMuonBestTrack()->pt());
 
-            const double ff2 = std::max(drFF_->Eval(drFake2),0.);
-            const double ci2 = ciFF(drFake2);
+            const double ff2 = std::max( valFF(drFake2,nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt()), 0.);
+            const double ci2 = ciFF(drFake2,nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt());
 
             if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
               histo1d_["2P2F_P1_pt"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
@@ -1323,7 +1330,7 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
               histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2)));
             }
 
-            if ( m4l > 50. && m4l < 500. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
               histo1d_["2P2F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
               histo1d_["2P2F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
               histo1d_["2P2F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);

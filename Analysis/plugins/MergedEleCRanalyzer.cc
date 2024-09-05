@@ -276,45 +276,45 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_CRME2_noGsf_eta"] = fs->make<TH1D>("2E_CRME2_noGsf_eta","CR ME2 (w/o GSF) #eta",50,-2.5,2.5);
   histo1d_["2E_CRME2_noGsf_phi"] = fs->make<TH1D>("2E_CRME2_noGsf_phi","CR ME2 (w/o GSF) #phi",64,-3.2,3.2);
 
-  histo1d_["2E_CRME_ll_invM"] = fs->make<TH1D>("2E_CRME_ll_invM","CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_ll_invM"] = fs->make<TH1D>("2E_CRME_ll_invM","CR M(ll);GeV;",1400,0.,3500.);
   histo1d_["2E_CRME_ll_pt"] = fs->make<TH1D>("2E_CRME_ll_pt","CR p_{T}(ll);GeV;",100,0.,500.);
   histo1d_["2E_CRME_ll_dr"] = fs->make<TH1D>("2E_CRME_ll_dr","CR dR(ll)",64,0.,6.4);
 
-  histo1d_["2E_CRME_SSll_invM"] = fs->make<TH1D>("2E_CRME_SSll_invM","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_mergedEleScale"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleScale","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_mergedEleSmear"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleSmear","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_heepIdUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_heepIdUp","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_heepIdDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_heepIdDn","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleIdUp","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleIdDn","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_elRecoUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_elRecoUp","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_elRecoDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_elRecoDn","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_elTrigUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_elTrigUp","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_elTrigDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_elTrigDn","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_PUrwgtUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_PUrwgtUp","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_PUrwgtDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_PUrwgtDn","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_prefireUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_prefireUp","SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_SSll_invM_prefireDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_prefireDn","SS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_SSll_invM"] = fs->make<TH1D>("2E_CRME_SSll_invM","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_mergedEleScale"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleScale","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_mergedEleSmear"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleSmear","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_heepIdUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_heepIdUp","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_heepIdDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_heepIdDn","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleIdUp","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_mergedEleIdDn","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_elRecoUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_elRecoUp","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_elRecoDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_elRecoDn","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_elTrigUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_elTrigUp","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_elTrigDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_elTrigDn","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_PUrwgtUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_PUrwgtUp","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_PUrwgtDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_PUrwgtDn","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_prefireUp"] = fs->make<TH1D>("2E_CRME_SSll_invM_prefireUp","SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_SSll_invM_prefireDn"] = fs->make<TH1D>("2E_CRME_SSll_invM_prefireDn","SS CR M(ll);GeV;",1400,0.,3500.);
   histo1d_["2E_CRME_SSll_pt"] = fs->make<TH1D>("2E_CRME_SSll_pt","SS CR p_{T}(ll);GeV;",100,0.,500.);
   histo1d_["2E_CRME_SSll_dr"] = fs->make<TH1D>("2E_CRME_SSll_dr","SS CR dR(ll)",64,0.,6.4);
   histo1d_["2E_CRME_SSll_Et"] = fs->make<TH1D>("2E_CRME_SSll_Et","SS CR ME E_{T};GeV;",100,0.,500.);
   histo1d_["2E_CRME_SSll_eta"] = fs->make<TH1D>("2E_CRME_SSll_eta","SS CR ME #eta",50,-2.5,2.5);
 
-  histo1d_["2E_CRME_OSll_invM"] = fs->make<TH1D>("2E_CRME_OSll_invM","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_mergedEleScale"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleScale","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_mergedEleSmear"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleSmear","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_heepIdUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_heepIdUp","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_heepIdDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_heepIdDn","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_elRecoUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_elRecoUp","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_elRecoDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_elRecoDn","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_elTrigUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_elTrigUp","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_elTrigDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_elTrigDn","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_PUrwgtUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_PUrwgtUp","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_PUrwgtDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_PUrwgtDn","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_prefireUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_prefireUp","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_prefireDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_prefireDn","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleIdUp","OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_CRME_OSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleIdDn","OS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_CRME_OSll_invM"] = fs->make<TH1D>("2E_CRME_OSll_invM","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_mergedEleScale"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleScale","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_mergedEleSmear"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleSmear","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_heepIdUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_heepIdUp","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_heepIdDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_heepIdDn","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_elRecoUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_elRecoUp","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_elRecoDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_elRecoDn","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_elTrigUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_elTrigUp","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_elTrigDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_elTrigDn","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_PUrwgtUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_PUrwgtUp","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_PUrwgtDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_PUrwgtDn","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_prefireUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_prefireUp","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_prefireDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_prefireDn","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleIdUp","OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_CRME_OSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_CRME_OSll_invM_mergedEleIdDn","OS CR M(ll);GeV;",1400,0.,3500.);
   histo1d_["2E_CRME_OSll_pt"] = fs->make<TH1D>("2E_CRME_OSll_pt","OS CR p_{T}(ll);GeV;",100,0.,500.);
   histo1d_["2E_CRME_OSll_dr"] = fs->make<TH1D>("2E_CRME_OSll_dr","OS CR dR(ll)",64,0.,6.4);
   histo1d_["2E_CRME_OSll_Et"] = fs->make<TH1D>("2E_CRME_OSll_Et","OS CR ME E_{T};GeV;",100,0.,500.);
@@ -336,19 +336,19 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_mixed_antiME_noGsf_eta"] = fs->make<TH1D>("2E_mixed_antiME_noGsf_eta","mixed CR anti ME (w/o GSF) #eta",100,-2.5,2.5);
   histo1d_["2E_mixed_antiME_noGsf_phi"] = fs->make<TH1D>("2E_mixed_antiME_noGsf_phi","mixed CR anti ME (w/o GSF) #phi",64,-3.2,3.2);
 
-  histo1d_["2E_mixedME_ll_invM"] = fs->make<TH1D>("2E_mixedME_ll_invM","mixed CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_mixedME_ll_invM"] = fs->make<TH1D>("2E_mixedME_ll_invM","mixed CR M(ll);GeV;",1400,0.,3500.);
   histo1d_["2E_mixedME_ll_pt"] = fs->make<TH1D>("2E_mixedME_ll_pt","mixed CR p_{T}(ll);GeV;",100,0.,500.);
   histo1d_["2E_mixedME_ll_dr"] = fs->make<TH1D>("2E_mixedME_ll_dr","mixed CR dR(ll)",64,0.,6.4);
 
-  histo1d_["2E_mixedME_SSll_invM"] = fs->make<TH1D>("2E_mixedME_SSll_invM","mixed SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_xFF"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF","mixed SS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_xFF_preCorr"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_preCorr","mixed SS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_xFF_up"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_up","mixed SS CR M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_xFF_dn"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_dn","mixed SS CR M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_heepIdUp"] = fs->make<TH1D>("2E_mixedME_SSll_invM_heepIdUp","mixed SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_heepIdDn"] = fs->make<TH1D>("2E_mixedME_SSll_invM_heepIdDn","mixed SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_mixedME_SSll_invM_mergedEleIdUp","mixed SS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_SSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_mixedME_SSll_invM_mergedEleIdDn","mixed SS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_mixedME_SSll_invM"] = fs->make<TH1D>("2E_mixedME_SSll_invM","mixed SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_xFF"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF","mixed SS CR M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_xFF_preCorr"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_preCorr","mixed SS CR M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_xFF_up"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_up","mixed SS CR M(ll) x Fake factor (up);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_xFF_dn"] = fs->make<TH1D>("2E_mixedME_SSll_invM_xFF_dn","mixed SS CR M(ll) x Fake factor (down);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_heepIdUp"] = fs->make<TH1D>("2E_mixedME_SSll_invM_heepIdUp","mixed SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_heepIdDn"] = fs->make<TH1D>("2E_mixedME_SSll_invM_heepIdDn","mixed SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_mixedME_SSll_invM_mergedEleIdUp","mixed SS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_SSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_mixedME_SSll_invM_mergedEleIdDn","mixed SS CR M(ll);GeV;",1400,0.,3500.);
   histo1d_["2E_mixedME_SSll_pt"] = fs->make<TH1D>("2E_mixedME_SSll_pt","mixed SS CR p_{T}(ll);GeV;",100,0.,500.);
   histo1d_["2E_mixedME_SSll_dr"] = fs->make<TH1D>("2E_mixedME_SSll_dr","mixed SS CR dR(ll)",64,0.,6.4);
   histo1d_["2E_mixedME_SSll_Et"] = fs->make<TH1D>("2E_mixedME_SSll_Et","mixed SS CR ME E_{T};GeV;",200,0.,1000.);
@@ -361,15 +361,15 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_mixedAntiME_SSll_Et_xFF_dn"] = fs->make<TH1D>("2E_mixedAntiME_SSll_Et_xFF_dn","mixed SS CR anti ME E_{T} x Fake factor (down);GeV;",100,0.,500.);
   histo1d_["2E_mixedAntiME_SSll_eta_xFF_dn"] = fs->make<TH1D>("2E_mixedAntiME_SSll_eta_xFF_dn","mixed SS CR anti ME #eta x Fake factor (down)",100,-2.5,2.5);
 
-  histo1d_["2E_mixedME_OSll_invM"] = fs->make<TH1D>("2E_mixedME_OSll_invM","mixed OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_xFF"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF","mixed OS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_xFF_preCorr"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_preCorr","mixed OS CR M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_xFF_up"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_up","mixed OS CR M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_xFF_dn"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_dn","mixed OS CR M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_heepIdUp"] = fs->make<TH1D>("2E_mixedME_OSll_invM_heepIdUp","mixed OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_heepIdDn"] = fs->make<TH1D>("2E_mixedME_OSll_invM_heepIdDn","mixed OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_mixedME_OSll_invM_mergedEleIdUp","mixed OS CR M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_mixedME_OSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_mixedME_OSll_invM_mergedEleIdDn","mixed OS CR M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_mixedME_OSll_invM"] = fs->make<TH1D>("2E_mixedME_OSll_invM","mixed OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_xFF"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF","mixed OS CR M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_xFF_preCorr"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_preCorr","mixed OS CR M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_xFF_up"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_up","mixed OS CR M(ll) x Fake factor (up);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_xFF_dn"] = fs->make<TH1D>("2E_mixedME_OSll_invM_xFF_dn","mixed OS CR M(ll) x Fake factor (down);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_heepIdUp"] = fs->make<TH1D>("2E_mixedME_OSll_invM_heepIdUp","mixed OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_heepIdDn"] = fs->make<TH1D>("2E_mixedME_OSll_invM_heepIdDn","mixed OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_mergedEleIdUp"] = fs->make<TH1D>("2E_mixedME_OSll_invM_mergedEleIdUp","mixed OS CR M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_mixedME_OSll_invM_mergedEleIdDn"] = fs->make<TH1D>("2E_mixedME_OSll_invM_mergedEleIdDn","mixed OS CR M(ll);GeV;",1400,0.,3500.);
   histo1d_["2E_mixedME_OSll_pt"] = fs->make<TH1D>("2E_mixedME_OSll_pt","mixed OS CR p_{T}(ll);GeV;",100,0.,500.);
   histo1d_["2E_mixedME_OSll_dr"] = fs->make<TH1D>("2E_mixedME_OSll_dr","mixed OS CR dR(ll)",64,0.,6.4);
   histo1d_["2E_mixedME_OSll_Et"] = fs->make<TH1D>("2E_mixedME_OSll_Et","mixed OS CR ME E_{T};GeV;",200,0.,1000.);
@@ -476,15 +476,15 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_antiME2_noGsf_eta"] = fs->make<TH1D>("2E_antiME2_noGsf_eta","anti ME2 (w/o GSF) #eta",200,-2.5,2.5);
   histo1d_["2E_antiME2_noGsf_phi"] = fs->make<TH1D>("2E_antiME2_noGsf_phi","anti ME2 (w/o GSF) #phi",128,-3.2,3.2);
 
-  histo1d_["2E_antiME_ll_invM"] = fs->make<TH1D>("2E_antiME_ll_invM","anti M(ll);GeV;",1000,0.,2500.);
+  histo1d_["2E_antiME_ll_invM"] = fs->make<TH1D>("2E_antiME_ll_invM","anti M(ll);GeV;",1400,0.,3500.);
   histo1d_["2E_antiME_ll_pt"] = fs->make<TH1D>("2E_antiME_ll_pt","anti p_{T}(ll);GeV;",200,0.,1000.);
   histo1d_["2E_antiME_ll_dr"] = fs->make<TH1D>("2E_antiME_ll_dr","anti dR(ll)",128,0.,6.4);
 
-  histo1d_["2E_antiME_SSll_invM_CR"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR","SS anti M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_SSll_invM_CR_xFF"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF","SS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_SSll_invM_CR_xFF_preCorr"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_preCorr","SS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_SSll_invM_CR_xFF_up"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_up","SS anti M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_SSll_invM_CR_xFF_dn"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_dn","SS anti M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
+  histo1d_["2E_antiME_SSll_invM_CR"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR","SS anti M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_SSll_invM_CR_xFF"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF","SS anti M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_SSll_invM_CR_xFF_preCorr"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_preCorr","SS anti M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_SSll_invM_CR_xFF_up"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_up","SS anti M(ll) x Fake factor (up);GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_SSll_invM_CR_xFF_dn"] = fs->make<TH1D>("2E_antiME_SSll_invM_CR_xFF_dn","SS anti M(ll) x Fake factor (down);GeV;",1400,0.,3500.);
   histo1d_["2E_antiME_SSll_pt"] = fs->make<TH1D>("2E_antiME_SSll_pt","SS anti p_{T}(ll);GeV;",200,0.,1000.);
   histo1d_["2E_antiME_SSll_dr"] = fs->make<TH1D>("2E_antiME_SSll_dr","SS anti dR(ll)",128,0.,6.4);
   histo1d_["2E_antiME_SSll_Et_noCorr"] = fs->make<TH1D>("2E_antiME_SSll_Et_noCorr","SS CR anti ME E_{T} (no S&S corr);GeV;",200,0.,1000.);
@@ -496,11 +496,11 @@ void MergedEleCRanalyzer::beginJob() {
   histo1d_["2E_antiME_SSll_Et_xFF_dn"] = fs->make<TH1D>("2E_antiME_SSll_Et_xFF_dn","SS CR anti ME E_{T} x Fake factor (down);GeV;",200,0.,1000.);
   histo1d_["2E_antiME_SSll_eta_xFF_dn"] = fs->make<TH1D>("2E_antiME_SSll_eta_xFF_dn","SS CR anti ME #eta x Fake factor (down)",200,-2.5,2.5);
 
-  histo1d_["2E_antiME_OSll_invM_CR"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR","OS anti M(ll);GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_OSll_invM_CR_xFF"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF","OS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_OSll_invM_CR_xFF_preCorr"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_preCorr","OS anti M(ll) x Fake factor;GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_OSll_invM_CR_xFF_up"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_up","OS anti M(ll) x Fake factor (up);GeV;",1000,0.,2500.);
-  histo1d_["2E_antiME_OSll_invM_CR_xFF_dn"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_dn","OS anti M(ll) x Fake factor (down);GeV;",1000,0.,2500.);
+  histo1d_["2E_antiME_OSll_invM_CR"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR","OS anti M(ll);GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_OSll_invM_CR_xFF"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF","OS anti M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_OSll_invM_CR_xFF_preCorr"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_preCorr","OS anti M(ll) x Fake factor;GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_OSll_invM_CR_xFF_up"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_up","OS anti M(ll) x Fake factor (up);GeV;",1400,0.,3500.);
+  histo1d_["2E_antiME_OSll_invM_CR_xFF_dn"] = fs->make<TH1D>("2E_antiME_OSll_invM_CR_xFF_dn","OS anti M(ll) x Fake factor (down);GeV;",1400,0.,3500.);
   histo1d_["2E_antiME_OSll_pt"] = fs->make<TH1D>("2E_antiME_OSll_pt","OS anti p_{T}(ll);GeV;",200,0.,1000.);
   histo1d_["2E_antiME_OSll_dr"] = fs->make<TH1D>("2E_antiME_OSll_dr","OS anti dR(ll)",128,0.,6.4);
   histo1d_["2E_antiME_OSll_Et_noCorr"] = fs->make<TH1D>("2E_antiME_OSll_Et_noCorr","OS CR anti ME E_{T} (no S&S corr);GeV;",200,0.,1000.);
@@ -1335,7 +1335,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         const double mlll_mergedEleScale = std::min((lvecCRME_scale+lvecNME1+lvecNME2).M(),2499.9);
         const double mlll_mergedEleSmear = std::min((lvecCRME_smear+lvecNME1+lvecNME2).M(),2499.9);
 
-        if ( mlll > 50. && (mlll < 500. || isMC_) ) {
+        if ( mlll > 50. /*&& (mlll < 500. || isMC_) (unblinded)*/ ) {
           histo1d_["3E_CRME_lll_invM"]->Fill(mlll,aWeight);
           histo1d_["3E_CRME_lll_invM_mergedEleScale"]->Fill(mlll_mergedEleScale,aWeight);
           histo1d_["3E_CRME_lll_invM_mergedEleSmear"]->Fill(mlll_mergedEleSmear,aWeight);
@@ -1357,7 +1357,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           histo1d_["3E_CRME_lll_invM_prefireDn"]->Fill(mlll,aWeight*prefireDn/prefireNo);
         }
 
-        if ( mlll > 50. && mlll < 500. ) {
+        if ( mlll > 50. /*&& mlll < 500. (unblinded)*/ ) {
           if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
             histo1d_["3E_CRME_Et"]->Fill(lvecCRME.Et(),aWeight);
             histo1d_["3E_CRME_eta"]->Fill(lvecCRME.eta(),aWeight);
@@ -1493,7 +1493,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             histo1d_["3E_antiME_lll_invM_CR_xSSFF_dn"]->Fill(mlll,aWeight*(ffSS-ci.first));
           }
 
-          if ( mlll < 500. ) {
+          if ( true /*mlll < 500. (unblinded)*/ ) {
             const double u5x5Et = estimateU5x5Et(antiMEs.front());
             const double u5x5Eta = estimateU5x5Eta(antiMEs.front());
 
@@ -1593,11 +1593,11 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         const auto lvecCRME2_smear = systHelperEle_.mergedEleSmear(CRMEs.at(1),(*union5x5EnergyHandle)[CRMEs.at(1)])*lvecCRME2;
         const auto lvecCRll = lvecCRME1 + lvecCRME2;
         const double dr2CRll = reco::deltaR2(lvecCRME1.eta(),lvecCRME1.phi(),lvecCRME2.eta(),lvecCRME2.phi());
-        const double mll = std::min(lvecCRll.M(),2499.9);
-        const double mll_scale = std::min((lvecCRME1_scale+lvecCRME2_scale).M(),2499.9);
-        const double mll_smear = std::min((lvecCRME1_smear+lvecCRME2_smear).M(),2499.9);
+        const double mll = std::min(lvecCRll.M(),3499.9);
+        const double mll_scale = std::min((lvecCRME1_scale+lvecCRME2_scale).M(),3499.9);
+        const double mll_smear = std::min((lvecCRME1_smear+lvecCRME2_smear).M(),3499.9);
 
-        if ( mll > 50. && (mll < 500. || isMC_) ) {
+        if ( mll > 50. /*&& (mll < 500. || isMC_) (unblinded)*/ ) {
           histo1d_["2E_CRME_ll_invM"]->Fill( mll, aWeight );
 
           SRinvM_ = mll;
@@ -1650,7 +1650,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           SRtree_->Fill();
         }
 
-        if ( mll > 50. && mll < 500. ) {
+        if ( mll > 50. /*&& mll < 500. (unblinded)*/ ) {
           if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
             histo1d_["2E_CRME1_Et"]->Fill( lvecCRME1.Et(), aWeight );
             histo1d_["2E_CRME1_eta"]->Fill( lvecCRME1.eta(), aWeight );
@@ -1861,7 +1861,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           }
         }
 
-        if ( mll > 50. && mll < 500. ) {
+        if ( mll > 50. /*&& mll < 500. (unblinded)*/ ) {
           if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
             histo1d_["2E_mixed_ME_Et"]->Fill( lvecCRME.Et(), aWeight );
             histo1d_["2E_mixed_ME_eta"]->Fill( lvecCRME.eta(), aWeight );
@@ -2037,7 +2037,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             antiCRwgt_ *= (ffOS1+ffOS2);
             antiCRisOS_ = 1;
 
-            if (mllPreCorr < 500.) {
+            if ( true /*mllPreCorr < 500. (unblinded)*/ ) {
               for (const auto& aME : antiMEs) {
                 double ffSS = 0., ffOS = 0.;
                 auto aci = ciSSOS(aME,ffSS,ffOS);
@@ -2096,7 +2096,7 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             antiCRwgt_ *= (ffOS1+ffOS2);
             antiCRisOS_ = 0;
 
-            if (mllPreCorr < 500.) {
+            if ( true /*mllPreCorr < 500. (unblinded)*/ ) {
               for (const auto& aME : antiMEs) {
                 double ffSS = 0., ffOS = 0.;
                 auto aci = ciSSOS(aME,ffSS,ffOS);

@@ -32,6 +32,7 @@
 
 #include "TF1.h"
 #include "TH2D.h"
+#include "TTree.h"
 #include "TFitResult.h"
 
 #include "correction.h"
@@ -95,6 +96,11 @@ private:
 
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,TH2*> histo2d_;
+
+  TTree* interestEvtTree_ = nullptr;
+  unsigned int runNo_ = 0;
+  unsigned int lumiNo_ = 0;
+  unsigned long long evtNo_ = 0;
 };
 
 MergedMuCRanalyzer::MergedMuCRanalyzer(const edm::ParameterSet& iConfig) :
@@ -316,6 +322,11 @@ void MergedMuCRanalyzer::beginJob() {
   histo2d_["3M_mt_dphi"] = fs->make<TH2D>("3M_mt_dphi","m_{T} vs #Delta#phi;m_{T};#Delta#phi",100,0.,500.,128,-3.2,3.2);
   histo2d_["3M_mt_ratioPt"] = fs->make<TH2D>("3M_mt_ratioPt","m_{T} vs p_{T} ratio;m_{T};p_{T} ratio",100,0.,500.,100,0.,5.);
   histo2d_["3M_dphi_ratioPt"] = fs->make<TH2D>("3M_dphi_ratioPt","#Delta#phi vs p_{T} ratio;#Delta#phi;p_{T} ratio",128,-3.2,3.2,100,0.,5.);
+
+  interestEvtTree_ = fs->make<TTree>("evtTree","evtTree");
+  interestEvtTree_->Branch("runNo",&runNo_,"runNo/i");
+  interestEvtTree_->Branch("lumiNo",&lumiNo_,"lumiNo/i");
+  interestEvtTree_->Branch("evtNo",&evtNo_,"evtNo/l");
 }
 
 void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -965,7 +976,7 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
         if ( passDPhi && passRatioPt ) {
           histo1d_["cutflow_3M"]->Fill( 10.5, aWeight );
 
-          if (mt < 500. || isMC_) { // blinded
+          if ( true /*mt < 500. || isMC_ (unblinded)*/ ) { // blinded
             histo1d_["3M_MM_pt"]->Fill( mergedP4.pt(), aWeight );
             histo1d_["3M_MM_eta"]->Fill( mergedP4.eta(), aWeight );
             histo1d_["3M_MM_phi"]->Fill( mergedP4.phi(), aWeight );
@@ -1001,6 +1012,13 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
             histo1d_["3M_mt_PUrwgtDn"]->Fill( mt, aWeight*purwgtDn/purwgtNo );
             histo1d_["3M_mt_prefireUp"]->Fill( mt, aWeight*prefireUp/prefireNo );
             histo1d_["3M_mt_prefireDn"]->Fill( mt, aWeight*prefireDn/prefireNo );
+
+            if (mt > 800.) {
+              runNo_ = iEvent.id().run();
+              lumiNo_ = iEvent.id().luminosityBlock();
+              evtNo_ = iEvent.id().event();
+              interestEvtTree_->Fill();
+            }
 
             if (isMC_) {
               float ptGen = 1e-3, ptsumGen = 1e-3, diff = std::numeric_limits<float>::max();
