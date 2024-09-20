@@ -36,6 +36,7 @@
 #include "TF1.h"
 #include "TF2.h"
 #include "TFitResult.h"
+#include "TTree.h"
 
 #include "correction.h"
 
@@ -73,6 +74,7 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dEtaInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> modifiedTrkIsoToken_;
 
   const std::vector<std::string> METfilterList_;
   const std::vector<std::string> trigList_;
@@ -121,6 +123,11 @@ private:
 
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,TH2*> histo2d_;
+
+  TTree* interestEvtTree_ = nullptr;
+  unsigned int runNo_ = 0;
+  unsigned int lumiNo_ = 0;
+  unsigned long long evtNo_ = 0;
 };
 
 MergedEMuCRanalyzer::MergedEMuCRanalyzer(const edm::ParameterSet& iConfig) :
@@ -144,6 +151,7 @@ addPackedCandToken_(consumes<edm::ValueMap<pat::PackedCandidateRef>>(iConfig.get
 union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dEtaIn"))),
 union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
+modifiedTrkIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("modifiedTrkIso"))),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
@@ -237,6 +245,8 @@ void MergedEMuCRanalyzer::beginJob() {
   histo1d_["2M_CRME_M2_pt"] = fs->make<TH1D>("2M_CRME_M2_pt",";p_{T};",40,0.,200.);
   histo1d_["2M_CRME_M2_eta"] = fs->make<TH1D>("2M_CRME_M2_eta",";#eta;",50,-2.5,2.5);
   histo1d_["2M_CRME_M2_phi"] = fs->make<TH1D>("2M_CRME_M2_phi",";#phi;",64,-3.2,3.2);
+
+  histo1d_["2M_CRME_trackIso"] = fs->make<TH1D>("2M_CRME_trackIso",";#Sigma p_{T}^{trk};",200.,0.,50.);
 
   histo1d_["2M_CRME_lll_invM"] = fs->make<TH1D>("2M_CRME_lll_invM",";M(3l);",1000,0.,2500.);
   histo1d_["2M_CRME_lll_invM_mergedEleScale"] = fs->make<TH1D>("2M_CRME_lll_invM_mergedEleScale",";M(3l);",1000,0.,2500.);
@@ -642,6 +652,11 @@ void MergedEMuCRanalyzer::beginJob() {
   histo2d_["2E_mt_dphi"] = fs->make<TH2D>("2E_mt_dphi",";m_{T};#Delta#phi",100,0.,500.,128,-3.2,3.2);
   histo2d_["2E_mt_ratioPt"] = fs->make<TH2D>("2E_mt_ratioPt",";m_{T};#Sigma p_{T}^{l}/MET",100,0.,500.,100,0.,5.);
   histo2d_["2E_dphi_ratioPt"] = fs->make<TH2D>("2E_dphi_ratioPt",";#Delta#phi;#Sigma p_{T}^{l}/MET",128,-3.2,3.2,100,0.,5.);
+
+  interestEvtTree_ = fs->make<TTree>("evtTree","evtTree");
+  interestEvtTree_->Branch("runNo",&runNo_,"runNo/i");
+  interestEvtTree_->Branch("lumiNo",&lumiNo_,"lumiNo/i");
+  interestEvtTree_->Branch("evtNo",&evtNo_,"evtNo/l");
 }
 
 void MergedEMuCRanalyzer::endJob() {
@@ -1010,8 +1025,12 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::ValueMap<float>> union5x5EnergyHandle;
   iEvent.getByToken(union5x5EnergyToken_, union5x5EnergyHandle);
 
+  edm::Handle<edm::ValueMap<float>> modifiedTrkIsoHandle;
+  iEvent.getByToken(modifiedTrkIsoToken_, modifiedTrkIsoHandle);
+
   std::vector<pat::ElectronRef> acceptEles;
   std::vector<pat::ElectronRef> nonHeepEles;
+  std::vector<pat::ElectronRef> noIsoEles;
 
   auto sortByEt = [](const pat::ElectronRef& a, const pat::ElectronRef& b) {
     return a->et() > b->et();
@@ -1046,18 +1065,20 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         nonHeepEles.push_back(castEle);
       }
     }
+
+    if (true) {
+      // for L2 comments
+      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
+      int32_t mask = 0x00000180; // = 0001 1000 0000
+      int32_t pass = bitmap | mask;
+      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+
+      if (passMaskedId) {
+        auto castEle = aEle.castTo<pat::ElectronRef>();
+        noIsoEles.push_back(castEle);
+      }
+    }
   }
-
-  std::sort(acceptEles.begin(),acceptEles.end(),sortByEt);
-
-  if ( acceptEles.empty() )
-    return;
-
-  if ( !nonHeepEles.empty() )
-    return;
-
-  std::vector<pat::ElectronRef> CRMEs;
-  std::vector<pat::ElectronRef> antiMEs;
 
   auto estimateU5x5Eta = [&union5x5dEtaInHandle] (const pat::ElectronRef& aEle) -> float {
     const float eta1stGSF = -(aEle->deltaEtaSeedClusterTrackAtVtx() - aEle->superCluster()->seed()->eta());
@@ -1084,6 +1105,48 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     return math::PtEtaPhiMLorentzVector(estimateU5x5Et(aEle),u5x5Eta,u5x5Phi,0.);
   };
+
+  if ( nHighPtMuons==2 && noIsoEles.size()==1 ) {
+    const auto aEle = noIsoEles.front();
+    const auto& orgGsfTrk = aEle->gsfTrack();
+    const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
+
+    const float u5x5Et = estimateU5x5Et(aEle);
+    bool isNotMerged = MergedLeptonHelperFct::isNotMerged(aEle,eleHandle,addGsfTrk);
+
+    if ( u5x5Et > 50. && !isNotMerged && aEle->electronID("mvaMergedElectron") ) {
+      const pat::MuonRef& aMu = allHighPtMuons.at(0);
+      const pat::MuonRef& bMu = allHighPtMuons.at(1);
+
+      const auto lvecM1 = math::PtEtaPhiMLorentzVector(aMu->tunePMuonBestTrack()->pt(),
+                                                       aMu->tunePMuonBestTrack()->eta(),
+                                                       aMu->tunePMuonBestTrack()->phi(),
+                                                       mumass_);
+      const auto lvecM2 = math::PtEtaPhiMLorentzVector(bMu->tunePMuonBestTrack()->pt(),
+                                                       bMu->tunePMuonBestTrack()->eta(),
+                                                       bMu->tunePMuonBestTrack()->phi(),
+                                                       mumass_);
+      const auto lvecCRME = lvecME(aEle);
+      const double mlll = ( lvecCRME + lvecM1 + lvecM2 ).M();
+
+      if (mlll > 50.) {
+        const double valTrkIso = (*modifiedTrkIsoHandle)[aEle];
+        if (isMC_ || valTrkIso > 5.)
+          histo1d_["2M_CRME_trackIso"]->Fill(valTrkIso,aWeight);
+      }
+    }
+  }
+
+  std::sort(acceptEles.begin(),acceptEles.end(),sortByEt);
+
+  if ( acceptEles.empty() )
+    return;
+
+  if ( !nonHeepEles.empty() )
+    return;
+
+  std::vector<pat::ElectronRef> CRMEs;
+  std::vector<pat::ElectronRef> antiMEs;
 
   for (unsigned int idx = 0; idx < acceptEles.size(); ++idx) {
     const auto aEle = acceptEles.at(idx);
@@ -1287,13 +1350,13 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       const double dr2l2ME = reco::deltaR2(lvecCRME.eta(),lvecCRME.phi(),lvecMb.eta(),lvecMb.phi());
       const double dr2l1l2 = reco::deltaR2(lvecMa.eta(),lvecMa.phi(),lvecMb.eta(),lvecMb.phi());
       const double mll = lvecll.M();
-      const double mlll = lvecCRllME.M();
-      const double mlllAltMu = (lvecM1alt + lvecM2alt + lvecCRME).M();
-      const double mlllSmear = (lvecM1smear + lvecM2smear + lvecCRME).M();
-      const double mlllMEscale = (lvecCRME_scale + lvecMa + lvecMb).M();
-      const double mlllMEsmear = (lvecCRME_smear + lvecMa + lvecMb).M();
+      const double mlll = std::min(lvecCRllME.M(),2499.9);
+      const double mlllAltMu = std::min((lvecM1alt + lvecM2alt + lvecCRME).M(),2499.9);
+      const double mlllSmear = std::min((lvecM1smear + lvecM2smear + lvecCRME).M(),2499.9);
+      const double mlllMEscale = std::min((lvecCRME_scale + lvecMa + lvecMb).M(),2499.9);
+      const double mlllMEsmear = std::min((lvecCRME_smear + lvecMa + lvecMb).M(),2499.9);
 
-      if ( mlll > 50. && (mlll < 200. || isMC_) ) {
+      if ( mlll > 50. /*&& (mlll < 500. || isMC_) (unblinded)*/ ) {
         histo1d_["2M_CRME_lll_invM"]->Fill(mlll,aWeight);
         histo1d_["2M_CRME_lll_invM_mergedEleScale"]->Fill(mlllMEscale,aWeight);
         histo1d_["2M_CRME_lll_invM_mergedEleSmear"]->Fill(mlllMEsmear,aWeight);
@@ -1319,9 +1382,16 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         histo1d_["2M_CRME_lll_invM_PUrwgtDn"]->Fill(mlll,aWeight*purwgtDn/purwgtNo);
         histo1d_["2M_CRME_lll_invM_prefireUp"]->Fill(mlll,aWeight*prefireUp/prefireNo);
         histo1d_["2M_CRME_lll_invM_prefireDn"]->Fill(mlll,aWeight*prefireDn/prefireNo);
+
+        if (mlll > 500. && mlll < 600.) {
+          runNo_ = iEvent.id().run();
+          lumiNo_ = iEvent.id().luminosityBlock();
+          evtNo_ = iEvent.id().event();
+          interestEvtTree_->Fill();
+        }
       }
 
-      if ( mlll > 50. && mlll < 200. ) {
+      if ( mlll > 50. /*&& mlll < 500. (unblinded)*/ ) {
         if ( CRMEs.front()->userInt("mvaMergedElectronCategories")!=1 ) {
           histo1d_["2M_CRME_Et"]->Fill(lvecCRME.Et(),aWeight);
           histo1d_["2M_CRME_eta"]->Fill(lvecCRME.eta(),aWeight);
@@ -1444,7 +1514,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         histo1d_["2M_antiME_lll_invM_CR_xOSFF_dn"]->Fill(mlll,aWeight*(ffOS-ci.second));
         histo1d_["2M_antiME_lll_invM_CR_xSSFF_dn"]->Fill(mlll,aWeight*(ffSS-ci.first));
 
-        if ( mlll < 200. ) {
+        if ( true /*mlll < 500. (unblinded)*/ ) {
           const double u5x5Et = estimateU5x5Et(antiMEs.front());
           const double u5x5Eta = estimateU5x5Eta(antiMEs.front());
 
@@ -1565,11 +1635,11 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       const auto tpMET = metp4 - lvecMa - lvecCRME
                                + aMu->p4() + CRMEs.front()->p4();
       const auto lvecCRllMET = lvecCRME + lvecMa + tpMET;
-      const double mtllMET = lvecCRllMET.mt();
-      const double mtllMETjesUp = (lvecCRllMET+deltaJESup).mt();
-      const double mtllMETjesDn = (lvecCRllMET+deltaJESdn).mt();
-      const double mtllMETjerUp = (lvecCRllMET+deltaJERup).mt();
-      const double mtllMETjerDn = (lvecCRllMET+deltaJERdn).mt();
+      const double mtllMET = std::min(lvecCRllMET.mt(),2499.9);
+      const double mtllMETjesUp = std::min((lvecCRllMET+deltaJESup).mt(),2499.9);
+      const double mtllMETjesDn = std::min((lvecCRllMET+deltaJESdn).mt(),2499.9);
+      const double mtllMETjerUp = std::min((lvecCRllMET+deltaJERup).mt(),2499.9);
+      const double mtllMETjerDn = std::min((lvecCRllMET+deltaJERdn).mt(),2499.9);
 
       double ffMM = ffFunc_->Eval(mtllMET);
       ffMM = ffMM > 0. ? ffMM : 0.;
@@ -1603,7 +1673,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         if ( passDPhi && passRatioPt ) {
           histo1d_["cutflow_1M"]->Fill( 9.5, aWeight );
 
-          if (mtllMET < 250. || isMC_) { // blinded
+          if ( true /*mtllMET < 500. || isMC_ (unblinded)*/ ) { // blinded
             histo1d_["1M_CRME_MM_pt"]->Fill( lvecMa.pt(), aWeight );
             histo1d_["1M_CRME_MM_eta"]->Fill( lvecMa.eta(), aWeight );
             histo1d_["1M_CRME_MM_phi"]->Fill( lvecMa.phi(), aWeight );
@@ -1762,7 +1832,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           histo1d_["1M_CRME_antiDphi_mt_JESup"]->Fill( mtllMETjesUp, aWeight );
           histo1d_["1M_CRME_antiDphi_mt_JESdn"]->Fill( mtllMETjesDn, aWeight );
 
-          if ( mtllMET < 250. ) {
+          if ( true /*mtllMET < 500. (unblinded)*/ ) {
             histo1d_["1M_FF_CRME_antiDphi_MMMET_pt"]->Fill( (tpMET+lvecMa).pt(), aWeight );
             histo1d_["1M_FF_CRME_antiDphi_MET_pt"]->Fill( tpMET.pt(), aWeight );
           }
@@ -1814,11 +1884,11 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     const auto tpMET = metp4 - lvecMa + aMu->p4();
     const auto lveclllMET = lvecNME1 + lvecNME2 + lvecMa + tpMET;
-    const double mtlllMET = lveclllMET.mt();
-    const double mtlllMETjesUp = (lveclllMET+deltaJESup).mt();
-    const double mtlllMETjesDn = (lveclllMET+deltaJESdn).mt();
-    const double mtlllMETjerUp = (lveclllMET+deltaJERup).mt();
-    const double mtlllMETjerDn = (lveclllMET+deltaJERdn).mt();
+    const double mtlllMET = std::min(lveclllMET.mt(),2499.9);
+    const double mtlllMETjesUp = std::min((lveclllMET+deltaJESup).mt(),2499.9);
+    const double mtlllMETjesDn = std::min((lveclllMET+deltaJESdn).mt(),2499.9);
+    const double mtlllMETjerUp = std::min((lveclllMET+deltaJERup).mt(),2499.9);
+    const double mtlllMETjerDn = std::min((lveclllMET+deltaJERdn).mt(),2499.9);
 
     double ffMM = ffFunc_->Eval(mtlllMET);
     ffMM = ffMM > 0. ? ffMM : 0.;
@@ -1845,7 +1915,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
       histo2d_["2E_dphi_ratioPt"]->Fill(dphi,ratioPt,aWeight);
 
       if ( passDPhi && passRatioPt ) {
-        if (mtlllMET < 250. || isMC_) { // blinded
+        if ( true /*mtlllMET < 500. || isMC_ (unblinded)*/ ) { // blinded
           histo1d_["2E_MM_pt"]->Fill( lvecMa.pt(), aWeight );
           histo1d_["2E_MM_eta"]->Fill( lvecMa.eta(), aWeight );
           histo1d_["2E_MM_phi"]->Fill( lvecMa.phi(), aWeight );
@@ -1948,7 +2018,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         histo1d_["2E_antiDphi_mt_JESup"]->Fill( mtlllMETjesUp, aWeight );
         histo1d_["2E_antiDphi_mt_JESdn"]->Fill( mtlllMETjesDn, aWeight );
 
-        if ( mtlllMET < 250. ) {
+        if ( true /*mtlllMET < 500. (unblinded)*/ ) {
           histo1d_["2E_FF_antiDphi_MMMET_pt"]->Fill( (tpMET+lvecMa).pt(), aWeight );
           histo1d_["2E_FF_antiDphi_MET_pt"]->Fill( tpMET.pt(), aWeight );
         }
