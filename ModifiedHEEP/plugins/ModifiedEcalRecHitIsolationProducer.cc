@@ -13,6 +13,7 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -73,6 +74,11 @@ private:
   edm::EDGetTokenT<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> dEtaInSeed2ndToken_;
   edm::EDGetTokenT<edm::ValueMap<float>> dPhiInSC2ndToken_;
+  edm::ESGetToken<CaloGeometry, CaloGeometryRecord> geometryToken_;
+  edm::ESGetToken<EcalSeverityLevelAlgo, EcalSeverityLevelAlgoRcd> sevlvToken_;
+
+  edm::ConsumesCollector collector_ = consumesCollector();
+  //edm::ConsumesCollector collector_;
 
   double egIsoPtMinBarrel_; //minimum Et noise cut
   double egIsoEMinBarrel_;  //minimum E noise cut
@@ -104,7 +110,7 @@ private:
 };
 
 ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const edm::ParameterSet& config)
-: conf_(config) {
+: conf_(config){
   // use configuration file to setup input/output collection names
   // inputs
   setToken(emObjectToken_,config,"emObjectProducer");
@@ -114,7 +120,9 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   setToken(addPackedCandToken_,config,"addPackedCandMap");
   setToken(dEtaInSeed2ndToken_,config,"dEtaInSeed2nd");
   setToken(dPhiInSC2ndToken_,config,"dPhiInSC2nd");
-
+  geometryToken_ = collector_.esConsumes();
+  sevlvToken_ = collector_.esConsumes();
+  
   // vetos
   egIsoPtMinBarrel_               = conf_.getParameter<double>("etMinBarrel");
   egIsoEMinBarrel_                = conf_.getParameter<double>("eMinBarrel");
@@ -180,14 +188,16 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
   edm::Handle<edm::ValueMap<float>> dPhiInSC2ndMap;
   iEvent.getByToken(dPhiInSC2ndToken_, dPhiInSC2ndMap);
 
-  edm::ESHandle<EcalSeverityLevelAlgo> sevlv;
-  iSetup.get<EcalSeverityLevelAlgoRcd>().get(sevlv);
-  const EcalSeverityLevelAlgo* sevLevel = sevlv.product();
+  //edm::ESHandle<EcalSeverityLevelAlgo> sevlv;
+  //iSetup.get<EcalSeverityLevelAlgoRcd>().get(sevlv);
+  //const EcalSeverityLevelAlgo* sevLevel = sevlv.product();
+  const EcalSeverityLevelAlgo* sevLevel = &iSetup.getData(sevlvToken_);
 
   // Get Calo Geometry
-  edm::ESHandle<CaloGeometry> pG;
-  iSetup.get<CaloGeometryRecord>().get(pG);
-  const CaloGeometry* caloGeom = pG.product();
+  //edm::ESHandle<CaloGeometry> pG;
+  //iSetup.get<CaloGeometryRecord>().get(pG);
+  //const CaloGeometry* caloGeom = pG.product();
+  const CaloGeometry* caloGeom = &iSetup.getData(geometryToken_);
 
   auto isoMap = std::make_unique<edm::ValueMap<float>>();
   edm::ValueMap<float>::Filler filler(*isoMap);

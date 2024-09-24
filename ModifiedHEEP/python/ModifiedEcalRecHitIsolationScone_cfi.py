@@ -23,7 +23,7 @@ ModifiedEcalRecHitIsolationScone = cms.EDProducer("ModifiedEcalRecHitIsolationPr
     subtract  = cms.bool(False),
     vetoClustered  = cms.bool(False),
 
-    emObjectProducer = cms.InputTag("slimmedElectrons","","PAT"),
+    emObjectProducer = cms.InputTag("slimmedElectrons",processName=cms.InputTag.skipCurrentProcess()),
 
     recHitFlagsExclBarrel = stdGsfEle.recHitFlagsToBeExcludedBarrel,
     recHitFlagsExclEndcaps = stdGsfEle.recHitFlagsToBeExcludedEndcaps,

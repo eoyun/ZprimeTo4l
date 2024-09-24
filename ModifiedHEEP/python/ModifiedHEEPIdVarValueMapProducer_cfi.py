@@ -20,7 +20,7 @@ ModifiedHEEPIDVarValueMaps = cms.EDProducer("ModifiedHEEPIDValueMapProducer",
                                  "lostTracks:eleTracks"),
     candVetosMiniAOD = cms.vstring("ELES","NONE","NONELES"),
     gsfTrksMiniAOD = cms.InputTag("reducedEgamma:reducedGsfTracks"),
-    elesMiniAOD = cms.InputTag("slimmedElectrons","","PAT"),
+    elesMiniAOD = cms.InputTag("slimmedElectrons",processName=cms.InputTag.skipCurrentProcess()),
     EBrecHitsMiniAOD = cms.InputTag("reducedEgamma","reducedEBRecHits"),
     EErecHitsMiniAOD = cms.InputTag("reducedEgamma","reducedEERecHits"),
     dataFormat = cms.int32(0), #0 = auto detection, 1 = AOD, 2 = miniAOD

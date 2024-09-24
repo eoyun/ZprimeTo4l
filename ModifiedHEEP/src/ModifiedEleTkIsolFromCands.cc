@@ -1,4 +1,12 @@
+
+
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedEleTkIsolFromCands.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/EDConsumerBase.h"
+#include "DataFormats/Common/interface/Handle.h"
 
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
@@ -10,6 +18,7 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "TMath.h"
 
@@ -45,7 +54,10 @@ ModifiedEleTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
 ModifiedEleTkIsolFromCands::ModifiedEleTkIsolFromCands(const edm::ParameterSet& para):
   barrelCuts_(para.getParameter<edm::ParameterSet>("barrelCuts")),
   endcapCuts_(para.getParameter<edm::ParameterSet>("endcapCuts"))
-{}
+{
+  //edm::ConsumesCollector Collector_ = consumesCollector(); 
+  //ttbToken_ = Collector_.esConsumes(edm::ESInputTag("", para.getUntrackedParameter<std::string>("transientTrackBuilder")));
+}
 
 double ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,
                                            const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
@@ -203,10 +215,12 @@ const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(con
   std::vector<std::pair<reco::GsfTrackRef,double>> additionalGsfTrks;
   const reco::GsfTrackRef eleTrk = ele.gsfTrack();
 
-  edm::ESHandle<TransientTrackBuilder> TTbuilder;
+  //edm::ESHandle<TransientTrackBuilder> TTbuilder;
   auto fitter = KalmanVertexFitter();
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
-  auto firstEle = TTbuilder->build(eleTrk);
+  //iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+  const TransientTrackBuilder& TTbuilder = iSetup.getData(ttbToken_);
+
+  auto firstEle = TTbuilder.build(eleTrk);
 
   for (unsigned iGsf = 0; iGsf < gsfTrks->size(); iGsf++) {
     const auto& gsfTrk = gsfTrks->refAt(iGsf);
@@ -221,7 +235,7 @@ const reco::GsfTrackRef ModifiedEleTkIsolFromCands::additionalGsfTrkSelector(con
     if ( additionalTrkSel(*trkRef,*eleTrk,cuts) ) {
       std::vector<reco::TransientTrack> trackPair;
       trackPair.push_back(firstEle);
-      trackPair.push_back(TTbuilder->build(trkRef));
+      trackPair.push_back(TTbuilder.build(trkRef));
 
       auto aVtx = fitter.vertex(trackPair);
 
@@ -250,10 +264,11 @@ const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSe
                                                                                        const edm::EventSetup& iSetup) {
   std::vector<std::pair<pat::PackedCandidateRef,double>> additionalCands;
 
-  edm::ESHandle<TransientTrackBuilder> TTbuilder;
+  //edm::ESHandle<TransientTrackBuilder> TTbuilder;
   auto fitter = KalmanVertexFitter();
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
-  auto firstEle = TTbuilder->build(ele.gsfTrack());
+  //iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+  const TransientTrackBuilder& TTbuilder = iSetup.getData(ttbToken_);
+  auto firstEle = TTbuilder.build(ele.gsfTrack());
 
   for (unsigned iHandle = 0; iHandle < cands.size(); iHandle++) {
     const auto& ahandle = cands.at(iHandle);
@@ -291,7 +306,7 @@ const pat::PackedCandidateRef ModifiedEleTkIsolFromCands::additionalPackedCandSe
       if ( additionalTrkSel(acand,*(ele.gsfTrack()),cuts) ) {
         std::vector<reco::TransientTrack> trackPair;
         trackPair.push_back(firstEle);
-        trackPair.push_back(TTbuilder->build(atrack));
+        trackPair.push_back(TTbuilder.build(atrack));
 
         if ( std::isnan(atrack->dzError()) || std::isinf(atrack->dzError()) )
           continue; // how could it pass high purity???

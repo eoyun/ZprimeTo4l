@@ -1,10 +1,23 @@
 #ifndef ZprimeTo4l_ModifiedHEEP_ModifiedEleTkIsoFromCands_H
 #define ZprimeTo4l_ModifiedHEEP_ModifiedEleTkIsoFromCands_H 1
 
+#include <memory>
+
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
+
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "DataFormats/Common/interface/Handle.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+
+
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
 
 #include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/TrackReco/interface/TrackBase.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
@@ -14,6 +27,8 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 //author S. Harper (RAL)
 //this class does a simple calculation of the track isolation for a track with eta,
 //phi and z vtx (typically the GsfTrack of the electron). It uses
@@ -48,7 +63,7 @@
 //      I'm concerned about near by fake electrons which have been recoed by PF
 //      This is handled by the PIDVeto, which obviously is only used/required when using PFCandidates
 
-class ModifiedEleTkIsolFromCands {
+class ModifiedEleTkIsolFromCands : public edm::stream::EDProducer<> {
 public:
   enum class PIDVeto {
     NONE=0,
@@ -125,6 +140,9 @@ public:
                                                              const edm::EventSetup& iSetup);
 
 private:
+  edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbToken_;
+  edm::ConsumesCollector Collector_ = consumesCollector(); 
+
   static bool passTrkSel(const reco::TrackBase& trk,
                          const double trkPt,
                          const TrkCuts& cuts,
@@ -132,7 +150,7 @@ private:
                          const double elePhi,
                          const double eleVZ);
   //no qualities specified, accept all, ORed
-
+  
   static bool passQual(const reco::TrackBase& trk, const std::vector<reco::TrackBase::TrackQuality>& quals);
   static bool passAlgo(const reco::TrackBase& trk, const std::vector<reco::TrackBase::TrackAlgorithm>& algosToRej);
 };

@@ -2,7 +2,8 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/Common/interface/ValueMap.h"
-#include "RecoEgamma/ElectronIdentification/interface/EBEECutValues.h"
+//#include "RecoEgamma/ElectronIdentification/interface/EBEECutValues.h"
+#include "RecoEgamma/EgammaTools/interface/EBEECutValues.h"
 
 class GsfEleModifiedFull5x5E2x5OverE5x5WithSatCut : public CutApplicatorWithEventContentBase {
 public:

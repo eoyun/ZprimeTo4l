@@ -3,7 +3,8 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "RecoEgamma/EgammaTools/interface/EleEnergyRetriever.h"
 
-#include "RecoEgamma/ElectronIdentification/interface/EBEECutValues.h"
+//#include "RecoEgamma/ElectronIdentification/interface/EBEECutValues.h"
+#include "RecoEgamma/EgammaTools/interface/EBEECutValues.h"
 
 // a hack of RecoEgamma/ElectronIdentification/plugins/cuts/GsfEleValueMapIsoRhoCut.cc
 
@@ -85,5 +86,6 @@ double GsfEleModifiedEmHadD1IsoRhoCut::value(const reco::CandidatePtr& cand) con
   const bool has2ndTrk = (*addGsfTrkHandle_)[ele]!=ele->gsfTrack() || (*addPackedCandHandle_)[ele].isNonnull();
   const double ecalIso = has2ndTrk ? (*valueHandle_)[ele] : ele->dr03EcalRecHitSumEt();
 
-  return ecalIso + ele->dr03HcalDepth1TowerSumEt();
+  //return ecalIso + ele->dr03HcalDepth1TowerSumEt();
+  return ecalIso + ele->dr03HcalTowerSumEt(1);
 }

@@ -5,7 +5,8 @@
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+//#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "Geometry/Records/interface/CaloTopologyRecord.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
@@ -152,7 +153,8 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
 
   elvalues_[prefix+"_el"].dr03TkSumPtHEEP = el->dr03TkSumPtHEEP();
   elvalues_[prefix+"_el"].dr03EcalRecHitSumEt = el->dr03EcalRecHitSumEt();
-  elvalues_[prefix+"_el"].dr03HcalDepth1TowerSumEt = el->dr03HcalDepth1TowerSumEt();
+  //elvalues_[prefix+"_el"].dr03HcalDepth1TowerSumEt = el->dr03HcalDepth1TowerSumEt();
+  elvalues_[prefix+"_el"].dr03HcalDepth1TowerSumEt = el->dr03HcalTowerSumEt(1);
   elvalues_[prefix+"_el"].modTrkIso = trkIso;
   elvalues_[prefix+"_el"].modEcalIso = ecalIso;
 
