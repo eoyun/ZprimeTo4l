@@ -28,7 +28,6 @@
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 
 #include "ZprimeTo4l/Analysis/interface/MuonCorrectionHelper.h"
-#include "ZprimeTo4l/Analysis/interface/XYMETCorrection.h"
 
 #include "TF1.h"
 #include "TH2D.h"

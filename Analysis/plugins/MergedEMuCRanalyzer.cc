@@ -31,7 +31,6 @@
 #include "ZprimeTo4l/Analysis/interface/MuonCorrectionHelper.h"
 #include "ZprimeTo4l/Analysis/interface/ElectronSystematicsHelper.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedLeptonHelper.h"
-#include "ZprimeTo4l/Analysis/interface/XYMETCorrection.h"
 
 #include "TF1.h"
 #include "TF2.h"
