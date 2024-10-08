@@ -8,6 +8,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
@@ -90,6 +91,7 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
   const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> packedPFcandToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> ESrecHitToken_;
 
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<double> prefweight_token;
@@ -97,6 +99,8 @@ private:
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> triggerobjectsToken_;
 
+  edm::ConsumesCollector collector_ = consumesCollector();
+  
   const std::vector<std::string> trigList_;
 
   const edm::FileInPath purwgtPath_;
@@ -110,6 +114,9 @@ private:
   const double ptThresK_;
   const double d0Thres_;
   const double cosAlpha2dThres_;
+  const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticToken_;
+  const edm::ESGetToken<GeometricSearchTracker, TrackerRecoGeometryRecord> geotrkToken_;
+  const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbToken_;
 
   // PDG mass & error
   const double elmass_ = 0.0005109989461;
@@ -248,6 +255,7 @@ union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::In
 union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
 packedPFcandToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("packedPFcand"))),
+ESrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ESrecHits"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
@@ -261,7 +269,14 @@ dzThres_(iConfig.getParameter<double>("dzThres")),
 probThres_(iConfig.getParameter<double>("probThres")),
 ptThresK_(iConfig.getParameter<double>("ptThresK")),
 d0Thres_(iConfig.getParameter<double>("d0Thres")),
-cosAlpha2dThres_(iConfig.getParameter<double>("cosAlpha2dThres")) {
+cosAlpha2dThres_(iConfig.getParameter<double>("cosAlpha2dThres")),
+magneticToken_(esConsumes()),
+geotrkToken_(esConsumes()),
+ttbToken_(esConsumes(edm::ESInputTag("","TransientTrackBuilder")))
+{
+  std::cout<<"hello"<<std::endl;
+  std::cout<<"hello2"<<std::endl;
+  
   usesResource("TFileService");
 }
 
@@ -474,13 +489,15 @@ double MergedLeptonIDJpsiAnalyzer::extrapolateToSC(const pat::Electron& aEle,
                                                const reco::BeamSpot& beamSpot,
                                                const edm::EventSetup& iSetup) const {
   // Get magField & tracker
-  edm::ESHandle<MagneticField> magFieldHandle;
-  iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+  //edm::ESHandle<MagneticField> magFieldHandle;
+  //iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+  const MagneticField* magFieldHandle = &iSetup.getData(magneticToken_);
 
-  edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
-  iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
+  //edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
+  //iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
+  const GeometricSearchTracker* trackerSearchHandle = &iSetup.getData(geotrkToken_);
 
-  const auto& pixelBarrelLayers = trackerSearchHandle.product()->pixelBarrelLayers();
+  const auto& pixelBarrelLayers = trackerSearchHandle->pixelBarrelLayers();
   BarrelDetLayer* innermostLayer = nullptr;
   float innermostRadius = std::numeric_limits<float>::max();
 
@@ -500,9 +517,9 @@ double MergedLeptonIDJpsiAnalyzer::extrapolateToSC(const pat::Electron& aEle,
                                                                         addTrk.momentum().y(),
                                                                         addTrk.momentum().z()),
                                                            addTrk.charge(),
-                                                           magFieldHandle.product()),
+                                                           magFieldHandle),
                                 CurvilinearTrajectoryError(addTrk.covariance()));
-  auto propagator = std::make_unique<AnalyticalPropagator>(magFieldHandle.product());
+  auto propagator = std::make_unique<AnalyticalPropagator>(magFieldHandle);
   auto extrapolator = std::make_unique<TransverseImpactPointExtrapolator>(*propagator);
   TrajectoryStateOnSurface innTSOS = propagator->propagate(freestate,innermostLayer->surface());
   StateOnTrackerBound stateOnBound(propagator.get());
@@ -532,7 +549,6 @@ double MergedLeptonIDJpsiAnalyzer::extrapolateToSC(const pat::Electron& aEle,
 void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
-
   double aWeight = 1.;
 
   if (isMC_) {
@@ -760,9 +776,16 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<edm::View<pat::PackedCandidate>> packedPFcandHandle;
   iEvent.getByToken(packedPFcandToken_, packedPFcandHandle);
 
-  edm::ESHandle<TransientTrackBuilder> TTbuilder;
-  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+  edm::Handle<EcalRecHitCollection> ESrecHitHandle;
+  iEvent.getByToken(ESrecHitToken_, ESrecHitHandle);
+  
+  //edm::ESHandle<TransientTrackBuilder> TTbuilder;
+  //iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+  const TransientTrackBuilder& TTbuilder = iSetup.getData(ttbToken_);
 
+  for (auto& silicon : *ESrecHitHandle){
+    std::cout<<"hello"<<std::endl;
+  }
   for (unsigned iEle = 0; iEle < eleHandle->size(); iEle++) {
     const auto& aEle = eleHandle->refAt(iEle);
     const auto& orgGsfTrk = aEle->gsfTrack();
@@ -807,8 +830,8 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       KinematicParticleFactoryFromTransientTrack kinFactory;
       KinematicParticleVertexFitter kinFitter;
       float elmassErr = elmassErr_; // why this thing requires lvalue? :(
-      const reco::TransientTrack firstEle = TTbuilder->build(orgGsfTrk);
-      const reco::TransientTrack secondEle = TTbuilder->build(addTrk);
+      const reco::TransientTrack firstEle = TTbuilder.build(orgGsfTrk);
+      const reco::TransientTrack secondEle = TTbuilder.build(addTrk);
       double chi = 0.;
       double ndf = 0.;
 
@@ -1022,13 +1045,13 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
         KinematicParticleFactoryFromTransientTrack kinFactory;
         KinematicParticleVertexFitter kinFitter;
         float elmassErr = elmassErr_; // why this thing requires lvalue? :(
-        const reco::TransientTrack firstEle = TTbuilder->build(orgGsfTrk);
-        const reco::TransientTrack secondEle = TTbuilder->build(addTrk);
+        const reco::TransientTrack firstEle = TTbuilder.build(orgGsfTrk);
+        const reco::TransientTrack secondEle = TTbuilder.build(addTrk);
         double chi = 0.;
         double ndf = 0.;
 
         float kaonMassErr = kaonMassErr_;
-        const reco::TransientTrack aTransTrack = TTbuilder->build(aBestTrack);
+        const reco::TransientTrack aTransTrack = TTbuilder.build(aBestTrack);
 
         std::vector<RefCountedKinematicParticle> Bcandidate;
         Bcandidate.push_back(kinFactory.particle(firstEle,elmass_,chi,ndf,elmassErr));

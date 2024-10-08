@@ -110,7 +110,9 @@ private:
 };
 
 ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const edm::ParameterSet& config)
-: conf_(config){
+: //geometryToken_(collector_.esConsumes()),
+  //sevlvToken_(collector_.esConsumes()),
+  conf_(config){
   // use configuration file to setup input/output collection names
   // inputs
   setToken(emObjectToken_,config,"emObjectProducer");

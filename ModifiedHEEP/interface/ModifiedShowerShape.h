@@ -5,10 +5,17 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+//#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "Geometry/Records/interface/CaloTopologyRecord.h"
 
 class ModifiedShowerShape {
 public:
-  ModifiedShowerShape(PositionCalc calc);
+  ModifiedShowerShape(PositionCalc calc,edm::ConsumesCollector iC);
   ~ModifiedShowerShape()=default;
 
   struct variables {
@@ -70,6 +77,9 @@ public:
                                               float w0=4.7);
 
 private:
+  edm::ESGetToken<CaloGeometry, CaloGeometryRecord> geometryToken_;
+  edm::ESGetToken<CaloTopology, CaloTopologyRecord> topologyToken_;
+
   PositionCalc posCalcLog_;
 };
 

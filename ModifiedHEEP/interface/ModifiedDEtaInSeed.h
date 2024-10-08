@@ -6,10 +6,22 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
 #include "RecoEgamma/EgammaElectronAlgos/interface/ElectronUtilities.h"
+#include "RecoTracker/Record/interface/TrackerRecoGeometryRecord.h"
+#include "RecoTracker/TkDetLayers/interface/GeometricSearchTracker.h"
+#include "MagneticField/Engine/interface/MagneticField.h"
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+//#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "Geometry/Records/interface/CaloTopologyRecord.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 class ModifiedDEtaInSeed {
 public:
-  ModifiedDEtaInSeed(PositionCalc calc);
+  ModifiedDEtaInSeed(PositionCalc calc, edm::ConsumesCollector iC);
   ~ModifiedDEtaInSeed()=default;
 
   struct variables {
@@ -46,6 +58,11 @@ public:
                    EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo);
 
 private:
+  edm::ESGetToken<CaloGeometry, CaloGeometryRecord> geometryToken_;
+  edm::ESGetToken<CaloTopology, CaloTopologyRecord> topologyToken_;
+  edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticToken_;
+  edm::ESGetToken<GeometricSearchTracker, TrackerRecoGeometryRecord> geotrkToken_;
+  
   PositionCalc posCalcLog_;
 };
 

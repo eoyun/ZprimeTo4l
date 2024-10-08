@@ -51,12 +51,14 @@ ModifiedEleTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
   std::sort(algosToReject.begin(),algosToReject.end());
 }
 
-ModifiedEleTkIsolFromCands::ModifiedEleTkIsolFromCands(const edm::ParameterSet& para):
+ModifiedEleTkIsolFromCands::ModifiedEleTkIsolFromCands(const edm::ParameterSet& para, edm::ConsumesCollector iC):
+  //ttbToken_(iC.esConsumes(edm::ESInputTag("", para.getUntrackedParameter<std::string>("transientTrackBuilder")))),
   barrelCuts_(para.getParameter<edm::ParameterSet>("barrelCuts")),
-  endcapCuts_(para.getParameter<edm::ParameterSet>("endcapCuts"))
+  endcapCuts_(para.getParameter<edm::ParameterSet>("endcapCuts")),
+  ttbToken_(iC.esConsumes(edm::ESInputTag("","TransientTrackBuilder")))
 {
   //edm::ConsumesCollector Collector_ = consumesCollector(); 
-  //ttbToken_ = Collector_.esConsumes(edm::ESInputTag("", para.getUntrackedParameter<std::string>("transientTrackBuilder")));
+  //ttbToken_ = iC.esConsumes(edm::ESInputTag("","TransientTrackBuilder"));
 }
 
 double ModifiedEleTkIsolFromCands::calIsol(const reco::TrackBase& eleTrk,

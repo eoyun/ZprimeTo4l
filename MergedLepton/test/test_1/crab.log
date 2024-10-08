@@ -1,0 +1,28 @@
+DEBUG 2024-09-26 06:07:14.344 UTC: 	 CRAB Client version: v3.240621
+DEBUG 2024-09-26 06:07:14.345 UTC: 	 Running on: Linux lxplus813.cern.ch 4.18.0-553.16.1.el8_10.x86_64 #1 SMP Thu Aug 1 04:16:12 EDT 2024 x86_64 x86_64 x86_64 GNU/Linux - Red Hat Enterprise Linux 8.10 (Ootpa)
+DEBUG 2024-09-26 06:07:14.345 UTC: 	 Executing command: 'submit'
+DEBUG 2024-09-26 06:07:14.345 UTC: 	 Found CRAB cache file /afs/cern.ch/user/y/yeo/.crab3
+INFO 2024-09-26 06:07:14.346 UTC: 	 Will use CRAB configuration file submit_crab.py
+DEBUG 2024-09-26 06:07:14.346 UTC: 	 Loading CRAB configuration file.
+DEBUG 2024-09-26 06:07:14.352 UTC: 	 Will use CRAB plugin ANALYSIS (i.e. will run an analysis job type).
+ERROR 2024-09-26 06:07:14.352 UTC: 	 Invalid CRAB configuration: A local DBS instance 'phys03' was specified for reading an input dataset of tier MINIAOD.
+Datasets of tier different than USER must be read from the global DBS instance; this is, set Data.inputDBS = 'global'.
+If Data.inputDBS would not be specified, the default 'global' ('https://cmsweb.cern.ch/dbs/prod/global/DBSReader') would be used.
+The documentation about the CRAB configuration file can be found in https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3ConfigurationFile
+ERROR 2024-09-26 06:07:14.352 UTC: 	 Caught ClientException exception
+Traceback (most recent call last):
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.240621.01/bin/crab.py", line 152, in <module>
+    client()
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.240621.01/bin/crab.py", line 135, in __call__
+    self.cmd = sub_cmd(self.logger, args[1:])
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.240621.01/lib/CRABClient/Commands/submit.py", line 36, in __init__
+    SubCommand.__init__(self, logger, cmdargs, disable_interspersed_args=True)
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.240621.01/lib/CRABClient/Commands/SubCommand.py", line 325, in __init__
+    self.loadConfig(self.options.config, self.args)
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.240621.01/lib/CRABClient/Commands/SubCommand.py", line 96, in loadConfig
+    raise ConfigurationException(configmsg)
+CRABClient.ClientExceptions.ConfigurationException: Invalid CRAB configuration: A local DBS instance 'phys03' was specified for reading an input dataset of tier MINIAOD.
+Datasets of tier different than USER must be read from the global DBS instance; this is, set Data.inputDBS = 'global'.
+If Data.inputDBS would not be specified, the default 'global' ('https://cmsweb.cern.ch/dbs/prod/global/DBSReader') would be used.
+The documentation about the CRAB configuration file can be found in https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3ConfigurationFile
+INFO 2024-09-26 06:07:14.355 UTC: 	 Log file is /afs/cern.ch/user/y/yeo/4l/24.09.20/CMSSW_12_4_21/src/ZprimeTo4l/MergedLepton/test/test_1/crab.log

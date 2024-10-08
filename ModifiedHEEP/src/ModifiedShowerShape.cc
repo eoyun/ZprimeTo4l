@@ -1,5 +1,7 @@
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedShowerShape.h"
 
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 
@@ -13,8 +15,13 @@
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 
-ModifiedShowerShape::ModifiedShowerShape(PositionCalc calc)
-: posCalcLog_(calc) {}
+ModifiedShowerShape::ModifiedShowerShape(PositionCalc calc,edm::ConsumesCollector iC)
+: geometryToken_(iC.esConsumes()),
+  topologyToken_(iC.esConsumes()),
+  posCalcLog_(calc) {
+  //geometryToken_ = iC.esConsumes();
+  //topologyToken_ = iC.esConsumes();
+}
 
 double ModifiedShowerShape::totEnergy(const std::vector<std::pair<DetId,float>>& hitFracs,
                                       const EcalRecHitCollection* ecalRecHits) {
@@ -137,14 +144,17 @@ ModifiedShowerShape::variables ModifiedShowerShape::value(const reco::GsfElectro
                                                           const double dPhiInSC2nd,
                                                           const edm::EventSetup& iSetup) {
   // Get Calo Geometry
-  edm::ESHandle<CaloGeometry> caloGeoHandle;
-  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
-  const CaloGeometry* caloGeom = caloGeoHandle.product();
+  //edm::ESHandle<CaloGeometry> caloGeoHandle;
+  //iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  //const CaloGeometry* caloGeom = caloGeoHandle.product();
+  const CaloGeometry* caloGeom = &iSetup.getData(geometryToken_);
+
 
   // Get Calo Topology
-  edm::ESHandle<CaloTopology> caloTopoHandle;
-  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
-  const CaloTopology* caloTopo = caloTopoHandle.product();
+  //edm::ESHandle<CaloTopology> caloTopoHandle;
+  //iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
+  //const CaloTopology* caloTopo = caloTopoHandle.product();
+  const CaloTopology* caloTopo = &iSetup.getData(topologyToken_);
 
   auto searchClosestXtal = [&ecalRecHits,&caloGeom] (const float eta, const float phi) -> DetId {
     float dR2 = std::numeric_limits<float>::max();
@@ -211,14 +221,16 @@ ModifiedShowerShape::variables ModifiedShowerShape::value(const reco::GsfElectro
                                                           const EcalRecHitCollection* ecalRecHits,
                                                           const edm::EventSetup& iSetup) {
   // Get Calo Geometry
-  edm::ESHandle<CaloGeometry> caloGeoHandle;
-  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
-  const CaloGeometry* caloGeom = caloGeoHandle.product();
+  //edm::ESHandle<CaloGeometry> caloGeoHandle;
+  //iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  //const CaloGeometry* caloGeom = caloGeoHandle.product();
+  const CaloGeometry* caloGeom = &iSetup.getData(geometryToken_);
 
   // Get Calo Topology
-  edm::ESHandle<CaloTopology> caloTopoHandle;
-  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
-  const CaloTopology* caloTopo = caloTopoHandle.product();
+  //edm::ESHandle<CaloTopology> caloTopoHandle;
+  //iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
+  //const CaloTopology* caloTopo = caloTopoHandle.product();
+  const CaloTopology* caloTopo = &iSetup.getData(topologyToken_);
 
   const float eta1stGSF = -( aEle.deltaEtaSeedClusterTrackAtVtx() - aEle.superCluster()->seed()->eta() );
   const float phi1stGSF = reco::reduceRange( -( aEle.deltaPhiSuperClusterTrackAtVtx() - aEle.superCluster()->phi() ) );

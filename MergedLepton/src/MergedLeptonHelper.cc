@@ -11,6 +11,8 @@
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+
 bool MergedLeptonHelperFct::isNotMerged(const pat::ElectronRef& aEle,
                                         const edm::Handle<edm::View<pat::Electron>>& eleHandle,
                                         const reco::GsfTrackRef& addGsfTrk) {
@@ -38,8 +40,10 @@ bool MergedLeptonHelperFct::isNotMerged(const pat::ElectronRef& aEle,
   return notMerged;
 }
 
-MergedLeptonHelper::MergedLeptonHelper()
-: pFS_(nullptr) {
+MergedLeptonHelper::MergedLeptonHelper(edm::ConsumesCollector iC)
+: geometryToken_(iC.esConsumes()),
+  topologyToken_(iC.esConsumes()),
+  pFS_(nullptr) {
   elstr_ = TString("weight/F:pt:eta:phi:en:et:charge/I:")
   + "enSC/F:etSC:etaSC:phiSC:etaSeed:phiSeed:etaSCWidth:phiSCWidth:"
   + "full5x5_sigmaIetaIeta:full5x5_sigmaIphiIphi:"
@@ -104,6 +108,7 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
                                        const EcalRecHitCollection* ecalRecHits,
                                        const edm::EventSetup& iSetup,
                                        const std::string& prefix,
+				       edm::ConsumesCollector iC,
                                        const float genPt,
                                        const float genE) {
   auto square = [](const double& val) { return val*val; };
@@ -220,7 +225,7 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
   elvalues_[prefix+"_el"].dEtaSeedMiniAOD = std::numeric_limits<float>::max();
   elvalues_[prefix+"_el"].dPhiInMiniAOD = std::numeric_limits<float>::max();
 
-  auto dEtaInSeedCalc = ModifiedDEtaInSeed(posCalcLog_);
+  auto dEtaInSeedCalc = ModifiedDEtaInSeed(posCalcLog_,iC);
   auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),pBS_->position());
   auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),pBS_->position());
 
@@ -246,9 +251,10 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
   elvalues_[prefix+"_el"].union5x5covMin = covMin;
 
   // Get Calo Topology
-  edm::ESHandle<CaloTopology> caloTopoHandle;
-  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
-  const CaloTopology* caloTopo = caloTopoHandle.product();
+  //edm::ESHandle<CaloTopology> caloTopoHandle;
+  //iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
+  //const CaloTopology* caloTopo = caloTopoHandle.product();
+  const CaloTopology* caloTopo = &iSetup.getData(topologyToken_);
 
   auto matrix5x5of1stGSF = noZS::EcalClusterTools::matrixDetId(caloTopo, el->superCluster()->seed()->seed(), 2 );
   std::vector<DetId> unionMatrix5x5(matrix5x5of1stGSF);
@@ -257,7 +263,7 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
   for (const auto& adetId : unionMatrix5x5)
     hitFracUnion5x5.push_back(std::make_pair(adetId,1.));
 
-  auto showerShapeCalc = ModifiedShowerShape(posCalcLog_);
+  auto showerShapeCalc = ModifiedShowerShape(posCalcLog_,iC);
 
   double sumE = noZS::EcalClusterTools::e5x5(*(el->superCluster()->seed()),ecalRecHits,caloTopo);
   auto sigmas = showerShapeCalc.calcSigmas(*el,hitFracUnion5x5,ecalRecHits,sumE);
@@ -295,9 +301,10 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
   setRecHitFlags(-1);
 
   // Get Calo Geometry
-  edm::ESHandle<CaloGeometry> caloGeoHandle;
-  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
-  const CaloGeometry* caloGeom = caloGeoHandle.product();
+  //edm::ESHandle<CaloGeometry> caloGeoHandle;
+  //iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  //const CaloGeometry* caloGeom = caloGeoHandle.product();
+  const CaloGeometry* caloGeom = &iSetup.getData(geometryToken_);
 
   auto searchClosestXtal = [&ecalRecHits,&caloGeom] (const float eta, const float phi) -> DetId {
     float dR2 = std::numeric_limits<float>::max();

@@ -60,7 +60,8 @@ private:
                          const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& handles,
                          const reco::TrackBase& gsfTrk,
                          const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
-                         const ModifiedEleTkIsolFromCands& trkIsoCalc);
+                         //const ModifiedEleTkIsolFromCands trkIsoCalc);
+                         const ModifiedEleTkIsolFromCands trkIsoCalc);
 
   template <typename T> void setToken(edm::EDGetTokenT<T>& token, edm::InputTag tag) { token=consumes<T>(tag); }
   template <typename T> void setToken(edm::EDGetTokenT<T>& token, const edm::ParameterSet& iPara, const std::string& tag) { token=consumes<T>(iPara.getParameter<edm::InputTag>(tag)); }
@@ -192,13 +193,15 @@ private:
 };
 
 ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::ParameterSet& iConfig) :
-trkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("trkIsoConfig")),
-trkIso04Calc_(iConfig.getParameter<edm::ParameterSet>("trkIso04Config")),
-dEtaInSeedCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
-showerShapeCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
+trkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("trkIsoConfig"),consumesCollector()),
+trkIso04Calc_(iConfig.getParameter<edm::ParameterSet>("trkIso04Config"),consumesCollector()),
+dEtaInSeedCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog")),consumesCollector()),
+showerShapeCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog")),consumesCollector()),
 makeTrkIso04_(iConfig.getParameter<bool>("makeTrkIso04")),
 dataFormat_(iConfig.getParameter<int>("dataFormat")),
 candsTag_(iConfig.getParameter<std::vector<edm::InputTag>>("candsMiniAOD")) {
+  //trkIsoCalc_ = (ModifiedEleTkIsolFromCands)iConfig.getParameter<edm::ParameterSet>("trkIsoConfig");
+  //trkIso04Calc_ = (ModifiedEleTkIsolFromCands)iConfig.getParameter<edm::ParameterSet>("trkIso04Config");
   setToken(eleToken_,iConfig,"elesAOD","elesMiniAOD",dataFormat_);
   setToken(candTokens_,iConfig,"candsAOD","candsMiniAOD",dataFormat_);
   setToken(gsfTrkToken_,iConfig,"gsfTrksAOD","gsfTrksMiniAOD",dataFormat_);
@@ -345,7 +348,7 @@ float ModifiedHEEPIDValueMapProducer::calTrkIso(const pat::Electron& ele,
                                                 const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& handles,
                                                 const reco::TrackBase& addTrk,
                                                 const std::vector<ModifiedEleTkIsolFromCands::PIDVeto>& pidVetos,
-                                                const ModifiedEleTkIsolFromCands& trkIsoCalc) {
+                                                const ModifiedEleTkIsolFromCands trkIsoCalc) {
   if (ele.gsfTrack().isNull())
     return std::numeric_limits<float>::max();
   else {

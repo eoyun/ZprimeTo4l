@@ -114,7 +114,7 @@ MergedEleSigMvaInput::MergedEleSigMvaInput(const edm::ParameterSet& iConfig)
   drThres2nd_(iConfig.getParameter<double>("drThres2nd")),
   drThres2nd2_(drThres2nd_*drThres2nd_),
   allowNonPrompt_(iConfig.getParameter<bool>("allowNonPrompt")),
-  aHelper_() {
+  aHelper_(consumesCollector()) {
   usesResource("TFileService");
 }
 
@@ -395,6 +395,7 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
                                ecalRecHits,
                                iSetup,
                                "mergedEl2",
+			       consumesCollector(),
                                genPt,
                                genE);
     } else { // ME w/ GSF
@@ -422,6 +423,7 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
                              ecalRecHits,
                              iSetup,
                              "mergedEl1",
+			     consumesCollector(),
                              genPt,
                              genE);
       aHelper_.fillAddTracks(aEle,

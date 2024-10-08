@@ -27,16 +27,28 @@
 #include "RecoEgamma/EgammaElectronAlgos/interface/ElectronUtilities.h"
 #include "RecoTracker/Record/interface/TrackerRecoGeometryRecord.h"
 #include "RecoTracker/TkDetLayers/interface/GeometricSearchTracker.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
-ModifiedDEtaInSeed::ModifiedDEtaInSeed(PositionCalc calc)
-: posCalcLog_(calc) {}
+ModifiedDEtaInSeed::ModifiedDEtaInSeed(PositionCalc calc, edm::ConsumesCollector iC)
+: geometryToken_(iC.esConsumes()),
+  topologyToken_(iC.esConsumes()),
+  magneticToken_(iC.esConsumes()),
+  geotrkToken_(iC.esConsumes()),
+  posCalcLog_(calc) {
+ // geometryToken_ = iC.esConsumes();
+ // topologyToken_ = iC.esConsumes();
+ // magneticToken_ = iC.esConsumes();
+ // geotrkToken_ = iC.esConsumes();
+
+}
 
 bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
                                      const math::XYZPoint& beamSpotPos, const edm::EventSetup& iSetup,
                                      EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo) {
   // track-cluster matching (see RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc)
-  edm::ESHandle<MagneticField> magFieldHandle;
-  iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+  //edm::ESHandle<MagneticField> magFieldHandle;
+  //iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+  const MagneticField* magFieldHandle = &iSetup.getData(magneticToken_);
 
   // at innermost/outermost point
   // edm::ESHandle<TrackerGeometry> trackerHandle;
@@ -50,10 +62,11 @@ bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::
   // no recHit hence make a reasonable approximation that
   // inner surface is pixel barrel & outer surface is tracker envelope
 
-  edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
-  iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
+  //edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
+  //iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
+  const GeometricSearchTracker* trackerSearchHandle = &iSetup.getData(geotrkToken_);
 
-  const auto& pixelBarrelLayers = trackerSearchHandle.product()->pixelBarrelLayers();
+  const auto& pixelBarrelLayers = trackerSearchHandle->pixelBarrelLayers();
   BarrelDetLayer* innermostLayer = nullptr;
   float innermostRadius = std::numeric_limits<float>::max();
 
@@ -73,9 +86,9 @@ bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::
                                                                         addTrk.momentum().y(),
                                                                         addTrk.momentum().z()),
                                                            addTrk.charge(),
-                                                           magFieldHandle.product()),
+                                                           magFieldHandle),
                                 CurvilinearTrajectoryError(addTrk.covariance()));
-  auto gsfPropagator = std::make_unique<GsfPropagatorAdapter>(AnalyticalPropagator(magFieldHandle.product()));
+  auto gsfPropagator = std::make_unique<GsfPropagatorAdapter>(AnalyticalPropagator(magFieldHandle));
   auto extrapolator = std::make_unique<TransverseImpactPointExtrapolator>(*gsfPropagator);
   TrajectoryStateOnSurface innTSOS = gsfPropagator->propagate(freestate,innermostLayer->surface());
   StateOnTrackerBound stateOnBound(gsfPropagator.get());
@@ -141,14 +154,16 @@ ModifiedDEtaInSeed::variables ModifiedDEtaInSeed::value(const reco::GsfElectron&
   const double alphaTrack = std::asin( static_cast<double>(dEtaCalo)/drCalo );
 
   // Get Calo Geometry
-  edm::ESHandle<CaloGeometry> caloGeoHandle;
-  iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
-  const CaloGeometry* caloGeom = caloGeoHandle.product();
+  //edm::ESHandle<CaloGeometry> caloGeoHandle;
+  //iSetup.get<CaloGeometryRecord>().get(caloGeoHandle);
+  //const CaloGeometry* caloGeom = caloGeoHandle.product();
+  const CaloGeometry* caloGeom = &iSetup.getData(geometryToken_);
 
   // Get Calo Topology
-  edm::ESHandle<CaloTopology> caloTopoHandle;
-  iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
-  const CaloTopology* caloTopo = caloTopoHandle.product();
+  //edm::ESHandle<CaloTopology> caloTopoHandle;
+  //iSetup.get<CaloTopologyRecord>().get(caloTopoHandle);
+  //const CaloTopology* caloTopo = caloTopoHandle.product();
+  const CaloTopology* caloTopo = &iSetup.getData(topologyToken_);
 
   auto searchClosestXtal = [&ecalRecHits,&caloGeom] (const float eta, const float phi) -> DetId {
     float dR2 = std::numeric_limits<float>::max();

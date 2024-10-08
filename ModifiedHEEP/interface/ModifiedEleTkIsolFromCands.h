@@ -63,7 +63,8 @@
 //      I'm concerned about near by fake electrons which have been recoed by PF
 //      This is handled by the PIDVeto, which obviously is only used/required when using PFCandidates
 
-class ModifiedEleTkIsolFromCands : public edm::stream::EDProducer<> {
+class ModifiedEleTkIsolFromCands  {
+//class ModifiedEleTkIsolFromCands : public edm::stream::EDProducer<> {
 public:
   enum class PIDVeto {
     NONE=0,
@@ -94,7 +95,7 @@ public:
 
   TrkCuts barrelCuts_,endcapCuts_;
 
-  explicit ModifiedEleTkIsolFromCands(const edm::ParameterSet& para);
+  explicit ModifiedEleTkIsolFromCands(const edm::ParameterSet& para, edm::ConsumesCollector iC);
   ModifiedEleTkIsolFromCands(const ModifiedEleTkIsolFromCands&)=default;
   ~ModifiedEleTkIsolFromCands()=default;
   ModifiedEleTkIsolFromCands& operator=(const ModifiedEleTkIsolFromCands&)=default;
@@ -141,7 +142,7 @@ public:
 
 private:
   edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbToken_;
-  edm::ConsumesCollector Collector_ = consumesCollector(); 
+  //edm::ConsumesCollector Collector_ = consumesCollector(); 
 
   static bool passTrkSel(const reco::TrackBase& trk,
                          const double trkPt,

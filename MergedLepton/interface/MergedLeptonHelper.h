@@ -21,10 +21,19 @@
 
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedDEtaInSeed.h"
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedShowerShape.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
+
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
+//#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "Geometry/Records/interface/CaloTopologyRecord.h"
 
 #include "TTree.h"
 #include "TString.h"
 #include "TMath.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 namespace MergedLeptonHelperFct {
   bool isNotMerged(const pat::ElectronRef& aEle,
@@ -80,7 +89,7 @@ public:
     float dPerpIn, normalizedDParaIn, alphaTrack;
   } AddTrkStruct;
 
-  MergedLeptonHelper();
+  MergedLeptonHelper(edm::ConsumesCollector iC);
   virtual ~MergedLeptonHelper()=default;
 
 public:
@@ -99,6 +108,7 @@ public:
                      const EcalRecHitCollection* ecalRecHits,
                      const edm::EventSetup& iSetup,
                      const std::string& prefix,
+		     edm::ConsumesCollector iC,
                      const float genPt = -1., // signal MC only
                      const float genE = -1.);
 
@@ -121,6 +131,9 @@ private:
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,ElectronStruct> elvalues_;
   std::map<std::string,AddTrkStruct> trkvalues_;
+  
+  edm::ESGetToken<CaloGeometry, CaloGeometryRecord> geometryToken_;
+  edm::ESGetToken<CaloTopology, CaloTopologyRecord> topologyToken_;
 
   edm::Service<TFileService>* pFS_;
   reco::VertexRef pPV_;

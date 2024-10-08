@@ -100,7 +100,7 @@ MergedEleBkgMvaInput::MergedEleBkgMvaInput(const edm::ParameterSet& iConfig)
   select0J_(iConfig.getParameter<bool>("select0J")),
   selectHT_(iConfig.getParameter<bool>("selectHT")),
   maxHT_(iConfig.getParameter<double>("maxHT")),
-  aHelper_() {
+  aHelper_(consumesCollector()) {
   usesResource("TFileService");
 }
 
@@ -313,7 +313,8 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
                            ssVariables,
                            ecalRecHits,
                            iSetup,
-                           treename);
+                           treename,
+			   consumesCollector());
   }
 }
 
