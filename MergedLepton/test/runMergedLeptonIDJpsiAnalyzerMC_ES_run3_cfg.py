@@ -17,7 +17,7 @@ process.source = cms.Source("PoolSource",
     # 'file:MiniAOD.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/489/00000/4144d69c-dc68-4443-b307-765fdaaef674.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/488/00000/05236315-30ed-4c16-9288-2a5b7c8786e0.root'
-    'file:MiniAODv4_1.root'
+    'file:MiniAODv4_1_2000_1.root'
     ),
     secondaryFileNames = cms.untracked.vstring()
 )
@@ -26,7 +26,7 @@ process.source = cms.Source("PoolSource",
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('hists.root')
+    fileName = cms.string('hists_2000_1.root')
 )
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -35,7 +35,7 @@ process.printContent.verbose = True
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = cms.string("124X_dataRun3_Prompt_v4")
+process.GlobalTag.globaltag = cms.string("124X_mcRun3_2022_realistic_v12")
 
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load("Geometry.CommonTopologies.bareGlobalTrackingGeometry_cfi")
@@ -78,7 +78,7 @@ process.mergedLeptonIDJpsiAnalyzer.isMC = cms.bool(False)
 
 process.p = cms.Path(
     process.evtCounter+
-    process.hltFilter+
+    #process.hltFilter+
     process.ModifiedHEEPIDVarValueMaps+
     process.ModifiedEcalRecHitIsolationScone+
     process.mergedLeptonIDProducer20UL18+

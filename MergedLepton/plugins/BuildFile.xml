@@ -13,6 +13,7 @@
 <use name="DataFormats/EgammaCandidates"/>
 <use name="DataFormats/MuonReco"/>
 <use name="DataFormats/VertexReco"/>
+<use name="DataFormats/EcalDetId"/>
 <use name="DataFormats/Math"/>
 <use name="DataFormats/HepMCCandidate"/>
 <use name="RecoEgamma/EgammaTools"/>

@@ -18,6 +18,9 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/EcalDetId/interface/ESDetId.h"
+#include "DataFormats/EcalDetId/interface/EEDetId.h"
+
 
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
@@ -92,6 +95,7 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
   const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> packedPFcandToken_;
   const edm::EDGetTokenT<EcalRecHitCollection> ESrecHitToken_;
+  const edm::EDGetTokenT<EcalRecHitCollection> EErecHitToken_;
 
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<double> prefweight_token;
@@ -132,6 +136,22 @@ private:
 
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,TH2*> histo2d_;
+
+  TTree* EStree_ = nullptr;
+  std::vector<float> ESenergy;
+  std::vector<float> EStime;
+  std::vector<int> ESsix;
+  std::vector<int> ESsiy;
+  std::vector<int> ESzside;
+  std::vector<int> ESstrip;
+  std::vector<int> ESplane;
+
+  TTree* EEtree_ = nullptr;
+  std::vector<float> EEenergy;
+  std::vector<float> EEtime;
+  std::vector<int> EEzside;
+  std::vector<int> EEix;
+  std::vector<int> EEiy;
 
   TTree* tree_ = nullptr;
   float invM_ = -1.;
@@ -256,6 +276,7 @@ union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::In
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
 packedPFcandToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("packedPFcand"))),
 ESrecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ESrecHits"))),
+EErecHitToken_(consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("EErecHits"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
@@ -292,6 +313,22 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   histo1d_["mva_HasTrkEB"] = fs->make<TH1D>("mva_HasTrkEB","MVA score",200,-1.,1.);
   histo1d_["nPV"] = fs->make<TH1D>("nPV","nPV",99,0.,99.);
   histo1d_["PUsummary"] = fs->make<TH1D>("PUsummary","PUsummary",99,0.,99.);
+
+  EStree_ = fs->make<TTree>("ESTree","ESTree");
+  EStree_->Branch("ESenergy",&ESenergy,32000,0);
+  EStree_->Branch("EStime",&EStime,32000,0);
+  EStree_->Branch("ESsix",&ESsix,32000,0);
+  EStree_->Branch("ESsiy",&ESsiy,32000,0);
+  EStree_->Branch("ESzside",&ESzside,32000,0);
+  EStree_->Branch("ESstrip",&ESstrip,32000,0);
+  EStree_->Branch("ESplane",&ESplane,32000,0);
+
+  EEtree_ = fs->make<TTree>("EETree","EETree");
+  EEtree_->Branch("EEenergy",&EEenergy,32000,0);
+  EEtree_->Branch("EEtime",&EEtime,32000,0);
+  EEtree_->Branch("EEix",&EEix,32000,0);
+  EEtree_->Branch("EEiy",&EEiy,32000,0);
+  EEtree_->Branch("EEzside",&EEzside,32000,0);
 
   tree_ = fs->make<TTree>("dielTree","dielTree");
   tree_->Branch("invM",&invM_,"invM/F");
@@ -579,6 +616,45 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       }
     }
   }
+  edm::Handle<EcalRecHitCollection> ESrecHitHandle;
+  iEvent.getByToken(ESrecHitToken_, ESrecHitHandle);
+  edm::Handle<EcalRecHitCollection> EErecHitHandle;
+  iEvent.getByToken(EErecHitToken_, EErecHitHandle);
+  ESenergy.clear();
+  EStime.clear();
+  ESsix.clear();
+  ESsiy.clear();
+  ESstrip.clear();
+  ESplane.clear();
+  ESzside.clear();
+  for (auto& silicon : *ESrecHitHandle){
+    ESenergy.push_back(silicon.energy());
+    EStime.push_back(silicon.time());
+    auto idES = ESDetId(silicon.detid());
+    ESsix.push_back(idES.six());
+    ESsiy.push_back(idES.siy());
+    ESstrip.push_back(idES.strip());
+    ESzside.push_back(idES.zside());
+    ESplane.push_back(idES.plane());
+  }
+  EStree_->Fill();
+
+  EEenergy.clear();
+  EEtime.clear();
+  EEix.clear();
+  EEiy.clear();
+  EEzside.clear();
+
+  for (auto& crystal : *EErecHitHandle){
+    EEenergy.push_back(crystal.energy());
+    EEtime.push_back(crystal.time());
+    auto idEE = EEDetId(crystal.detid());
+    EEix.push_back(idEE.ix());
+    EEiy.push_back(idEE.iy());
+    EEzside.push_back(idEE.zside());
+    
+  }
+  EEtree_->Fill();
 
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
   histo1d_["cutflow"]->Fill(0.5,aWeight);
@@ -776,16 +852,11 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   edm::Handle<edm::View<pat::PackedCandidate>> packedPFcandHandle;
   iEvent.getByToken(packedPFcandToken_, packedPFcandHandle);
 
-  edm::Handle<EcalRecHitCollection> ESrecHitHandle;
-  iEvent.getByToken(ESrecHitToken_, ESrecHitHandle);
   
   //edm::ESHandle<TransientTrackBuilder> TTbuilder;
   //iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
   const TransientTrackBuilder& TTbuilder = iSetup.getData(ttbToken_);
 
-  for (auto& silicon : *ESrecHitHandle){
-    std::cout<<"hello"<<std::endl;
-  }
   for (unsigned iEle = 0; iEle < eleHandle->size(); iEle++) {
     const auto& aEle = eleHandle->refAt(iEle);
     const auto& orgGsfTrk = aEle->gsfTrack();
