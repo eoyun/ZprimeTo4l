@@ -151,7 +151,6 @@ ModifiedEcalRecHitIsolationProducer::ModifiedEcalRecHitIsolationProducer(const e
   recHitFlagsEnumsEE_ = StringToEnumValue<EcalRecHit::Flags>(recHitFlagsEE_);
   recHitSeverityEnumsEB_ = StringToEnumValue<EcalSeverityLevel::SeverityLevel>(recHitSeverityEB_);
   recHitSeverityEnumsEE_ = StringToEnumValue<EcalSeverityLevel::SeverityLevel>(recHitSeverityEE_);
-
   // register your products
   produces < edm::ValueMap<float> >("EcalRecHitIso");
 }
@@ -189,21 +188,24 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
 
   edm::Handle<edm::ValueMap<float>> dPhiInSC2ndMap;
   iEvent.getByToken(dPhiInSC2ndToken_, dPhiInSC2ndMap);
-
+  std::cout<<"olleh"<<std::endl;
   //edm::ESHandle<EcalSeverityLevelAlgo> sevlv;
   //iSetup.get<EcalSeverityLevelAlgoRcd>().get(sevlv);
   //const EcalSeverityLevelAlgo* sevLevel = sevlv.product();
   const EcalSeverityLevelAlgo* sevLevel = &iSetup.getData(sevlvToken_);
+  std::cout<<"olleh22"<<std::endl;
 
   // Get Calo Geometry
   //edm::ESHandle<CaloGeometry> pG;
   //iSetup.get<CaloGeometryRecord>().get(pG);
   //const CaloGeometry* caloGeom = pG.product();
   const CaloGeometry* caloGeom = &iSetup.getData(geometryToken_);
+  std::cout<<"olleh33"<<std::endl;
 
   auto isoMap = std::make_unique<edm::ValueMap<float>>();
   edm::ValueMap<float>::Filler filler(*isoMap);
   std::vector<float> retV(emObjectHandle->size(),0);
+  std::cout<<"olleh44"<<std::endl;
 
   ModifiedRecHitIsolation ecalBarrelIsol(egIsoConeSizeOut_,
                                          egIsoConeSizeInBarrel_,
@@ -232,6 +234,7 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
                                          recHitSeverityEnumsEE_);
   ecalEndcapIsol.setUseNumCrystals(useNumCrystals_);
   ecalEndcapIsol.setVetoClustered(vetoClustered_);
+  std::cout<<"olleh55"<<std::endl;
 
   for(unsigned i = 0 ; i < emObjectHandle->size(); ++i) {
     //i need to know if its in the barrel/endcap so I get the supercluster handle to find out the detector eta
@@ -239,18 +242,26 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
     //this can be safely replaced by another method which determines where the emobject is
     //then we either get the isolation Et or isolation Energy depending on user selection
     float isoValue =0.;
-
+    std::cout<< "debug11" <<std::endl;
     reco::SuperClusterRef superClus = emObjectHandle->at(i).get<reco::SuperClusterRef>();
+    std::cout<< "debug22" <<std::endl;
 
     const auto& aEle = emObjectHandle->refAt(i);
+    std::cout<< "debug313" <<std::endl;
     const auto& additionalGsfTrk = (*addGsfTrkMap)[aEle];
-    const auto& additionalCand = (*addPackedCandMap)[aEle];
+    std::cout<< "debug323" <<std::endl;
     auto addTrk = reco::TrackBase(*additionalGsfTrk);
+    std::cout<< "debug333" <<std::endl;
     const float dEtaInSeed2nd = (*dEtaInSeed2ndMap)[aEle];
+    std::cout<< "debug343" <<std::endl;
     const float dPhiInSC2nd = (*dPhiInSC2ndMap)[aEle];
+    std::cout<< "debug353" <<std::endl;
+    const auto& additionalCand = (*addPackedCandMap)[aEle];
+    std::cout<< "debug33" <<std::endl;
 
     if ( additionalGsfTrk==aEle->gsfTrack() && additionalCand.isNonnull() )
       addTrk = reco::TrackBase(*(additionalCand->bestTrack()));
+    std::cout<< "debug44" <<std::endl;
 
     if (tryBoth_) { //barrel + endcap
       if (useIsolEt_)
@@ -266,23 +277,28 @@ ModifiedEcalRecHitIsolationProducer::produce(edm::Event& iEvent, const edm::Even
       if (useIsolEt_) isoValue = ecalEndcapIsol.getEtSum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
       else            isoValue = ecalEndcapIsol.getEnergySum(&(emObjectHandle->at(i)),addTrk,dEtaInSeed2nd,dPhiInSC2nd);
     }
+    std::cout<< "debug55" <<std::endl;
 
     // we subtract off the electron energy here as well
     double subtractVal=0;
 
     if (useIsolEt_) subtractVal = superClus.get()->rawEnergy()*std::sin(2*std::atan(std::exp(-superClus.get()->eta())));
     else            subtractVal = superClus.get()->rawEnergy();
+    std::cout<< "debug66" <<std::endl;
 
     if (subtract_) isoValue -= subtractVal;
+    std::cout<< "debug77" <<std::endl;
 
     retV[i] = isoValue;
     //all done, isolation is now in the map
   } //end of loop over em objects
+  std::cout<<"olleh66"<<std::endl;
 
   filler.insert(emObjectHandle,retV.begin(),retV.end());
   filler.fill();
 
   iEvent.put(std::move(isoMap),"EcalRecHitIso");
+  std::cout<<"olleh77"<<std::endl;
 }
 
 // define this as a plug-in
