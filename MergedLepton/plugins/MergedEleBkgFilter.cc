@@ -82,7 +82,6 @@ bool MergedEleBkgFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetu
 
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
-  std::cout << "hello11"<<std::endl;
   if (select0J_ || selectHT_) {
     edm::Handle<LHEEventProduct> lheEventHandle;
     iEvent.getByToken(lheToken_, lheEventHandle);
@@ -114,7 +113,6 @@ bool MergedEleBkgFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetu
         return false;
     }
   }
-  std::cout << "hello22"<<std::endl;
 
   edm::Ptr<reco::Vertex> primaryVertex;
 
@@ -122,7 +120,6 @@ bool MergedEleBkgFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetu
     primaryVertex = pvHandle->ptrAt(0);
   else
     return false;
-  std::cout << "hello33"<<std::endl;
 
   std::vector<edm::Ptr<pat::Electron>> heepElectrons;
 
@@ -134,24 +131,18 @@ bool MergedEleBkgFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetu
 
     heepElectrons.push_back(aEle);
   }
-  std::cout << "hello44"<<std::endl;
 
   if ( heepElectrons.size() < 2 )
     return false;
 
   for (unsigned int idx = 0; idx < heepElectrons.size(); ++idx) {
     const auto& aEle = heepElectrons.at(idx);
-    std::cout << "hello"<<idx<<idx<<idx<<std::endl;
 
     if ( aEle->et() < ptThres_ )
       continue;
-    std::cout << "hello"<<idx<<idx<<idx<<std::endl;
-    //std::cout << [aEle] <<std::endl;
     // requirement for add GSF track
     const auto& addGsfTrk = (*addGsfTrkHandle)[aEle];
-    std::cout << "hello"<<idx<<idx<<idx<<std::endl;
     const auto& orgGsfTrk = aEle->gsfTrack();
-    std::cout << "hello"<<idx<<idx<<idx<<std::endl;
 
     if ( addGsfTrk==orgGsfTrk ) {
       continue;
@@ -174,9 +165,7 @@ bool MergedEleBkgFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetu
 
       return true;
     }
-    std::cout << "hello"<<idx<<idx<<idx<<std::endl;
   }
-  std::cout << "hello55"<<std::endl;
 
   return false;
 }
