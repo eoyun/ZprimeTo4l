@@ -17,7 +17,7 @@ process.source = cms.Source("PoolSource",
     # 'file:MiniAOD.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/489/00000/4144d69c-dc68-4443-b307-765fdaaef674.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/488/00000/05236315-30ed-4c16-9288-2a5b7c8786e0.root'
-    'file:MiniAODv4_1_2000_1.root'
+    'file:MiniAODv4_1.root'
     ),
     secondaryFileNames = cms.untracked.vstring()
 )

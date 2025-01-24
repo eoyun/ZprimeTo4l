@@ -10,6 +10,7 @@
 <use name="DataFormats/TrackReco"/>
 <use name="DataFormats/EgammaReco"/>
 <use name="DataFormats/EgammaCandidates"/>
+<use name="DataFormats/HepMCCandidates"/>
 <use name="DataFormats/MuonReco"/>
 <use name="DataFormats/VertexReco"/>
 <use name="DataFormats/Math"/>

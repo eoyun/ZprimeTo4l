@@ -21,6 +21,9 @@
 #include "DataFormats/EcalDetId/interface/ESDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 
+#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
 
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
@@ -121,6 +124,7 @@ private:
   const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticToken_;
   const edm::ESGetToken<GeometricSearchTracker, TrackerRecoGeometryRecord> geotrkToken_;
   const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbToken_;
+  edm::ESGetToken<CaloGeometry, CaloGeometryRecord> geometryToken_;
 
   // PDG mass & error
   const double elmass_ = 0.0005109989461;
@@ -145,6 +149,9 @@ private:
   std::vector<int> ESzside;
   std::vector<int> ESstrip;
   std::vector<int> ESplane;
+  std::vector<float> ESx;
+  std::vector<float> ESy;
+  std::vector<float> ESz;
 
   TTree* EEtree_ = nullptr;
   std::vector<float> EEenergy;
@@ -152,6 +159,9 @@ private:
   std::vector<int> EEzside;
   std::vector<int> EEix;
   std::vector<int> EEiy;
+  std::vector<float> EEx;
+  std::vector<float> EEy;
+  std::vector<float> EEz;
 
   TTree* tree_ = nullptr;
   float invM_ = -1.;
@@ -293,7 +303,8 @@ d0Thres_(iConfig.getParameter<double>("d0Thres")),
 cosAlpha2dThres_(iConfig.getParameter<double>("cosAlpha2dThres")),
 magneticToken_(esConsumes()),
 geotrkToken_(esConsumes()),
-ttbToken_(esConsumes(edm::ESInputTag("","TransientTrackBuilder")))
+ttbToken_(esConsumes(edm::ESInputTag("","TransientTrackBuilder"))),
+geometryToken_(esConsumes())
 {
   std::cout<<"hello"<<std::endl;
   std::cout<<"hello2"<<std::endl;
@@ -322,6 +333,9 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   EStree_->Branch("ESzside",&ESzside,32000,0);
   EStree_->Branch("ESstrip",&ESstrip,32000,0);
   EStree_->Branch("ESplane",&ESplane,32000,0);
+  EStree_->Branch("ESx",&ESx,32000,0);
+  EStree_->Branch("ESy",&ESy,32000,0);
+  EStree_->Branch("ESz",&ESz,32000,0);
 
   EEtree_ = fs->make<TTree>("EETree","EETree");
   EEtree_->Branch("EEenergy",&EEenergy,32000,0);
@@ -329,6 +343,9 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   EEtree_->Branch("EEix",&EEix,32000,0);
   EEtree_->Branch("EEiy",&EEiy,32000,0);
   EEtree_->Branch("EEzside",&EEzside,32000,0);
+  EEtree_->Branch("EEx",&EEx,32000,0);
+  EEtree_->Branch("EEy",&EEy,32000,0);
+  EEtree_->Branch("EEz",&EEz,32000,0);
 
   tree_ = fs->make<TTree>("dielTree","dielTree");
   tree_->Branch("invM",&invM_,"invM/F");
@@ -616,6 +633,9 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       }
     }
   }
+  
+  const CaloGeometry* caloGeom = &iSetup.getData(geometryToken_);
+
   edm::Handle<EcalRecHitCollection> ESrecHitHandle;
   iEvent.getByToken(ESrecHitToken_, ESrecHitHandle);
   edm::Handle<EcalRecHitCollection> EErecHitHandle;
@@ -627,15 +647,23 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   ESstrip.clear();
   ESplane.clear();
   ESzside.clear();
+  ESx.clear();
+  ESy.clear();
+  ESz.clear();
   for (auto& silicon : *ESrecHitHandle){
     ESenergy.push_back(silicon.energy());
     EStime.push_back(silicon.time());
     auto idES = ESDetId(silicon.detid());
+    const auto& siliconGeo = caloGeom->getGeometry(silicon.detid());
+
     ESsix.push_back(idES.six());
     ESsiy.push_back(idES.siy());
     ESstrip.push_back(idES.strip());
     ESzside.push_back(idES.zside());
     ESplane.push_back(idES.plane());
+    ESx.push_back((float)siliconGeo->getPosition().x());
+    ESy.push_back((float)siliconGeo->getPosition().y());
+    ESz.push_back((float)siliconGeo->getPosition().z());
   }
   EStree_->Fill();
 
@@ -644,14 +672,21 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
   EEix.clear();
   EEiy.clear();
   EEzside.clear();
+  EEx.clear();
+  EEy.clear();
+  EEz.clear();
 
   for (auto& crystal : *EErecHitHandle){
     EEenergy.push_back(crystal.energy());
     EEtime.push_back(crystal.time());
     auto idEE = EEDetId(crystal.detid());
+    const auto& crystalGeo = caloGeom->getGeometry(crystal.detid());
     EEix.push_back(idEE.ix());
     EEiy.push_back(idEE.iy());
     EEzside.push_back(idEE.zside());
+    EEx.push_back((float)crystalGeo->getPosition().x());
+    EEy.push_back((float)crystalGeo->getPosition().y());
+    EEz.push_back((float)crystalGeo->getPosition().z());
     
   }
   EEtree_->Fill();

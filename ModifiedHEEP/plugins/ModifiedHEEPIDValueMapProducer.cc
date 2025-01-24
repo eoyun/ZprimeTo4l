@@ -163,6 +163,8 @@ private:
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
   DualToken<EcalRecHitCollection> EBrecHitToken_;
   DualToken<EcalRecHitCollection> EErecHitToken_;
+  const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbToken_;
+
 
   ModifiedEleTkIsolFromCands trkIsoCalc_;
   ModifiedEleTkIsolFromCands trkIso04Calc_;
@@ -193,6 +195,7 @@ private:
 };
 
 ModifiedHEEPIDValueMapProducer::ModifiedHEEPIDValueMapProducer(const edm::ParameterSet& iConfig) :
+ttbToken_(esConsumes(edm::ESInputTag("","TransientTrackBuilder"))),
 trkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("trkIsoConfig"),consumesCollector()),
 trkIso04Calc_(iConfig.getParameter<edm::ParameterSet>("trkIso04Config"),consumesCollector()),
 dEtaInSeedCalc_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog")),consumesCollector()),

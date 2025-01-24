@@ -28,7 +28,7 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string('hists_mu.root')
 )
 
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = cms.string("106X_upgrade2018_realistic_v16_L1v1")
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
@@ -51,7 +51,7 @@ runVIDmodules = [
     'ZprimeTo4l.MergedLepton.Identification.mergedElectronID_20UL18_cff'
 ]
 
-from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
                        runEnergyCorrections=True,
                        runVID=True,
@@ -95,7 +95,6 @@ runMetCorAndUncFromMiniAOD(process,
 process.p = cms.Path(
     process.evtCounter+
     process.hltFilter+
-    process.fullPatMetSequence+
     process.prefiringweight+
     process.ModifiedHEEPIDVarValueMaps+
     process.ModifiedEcalRecHitIsolationScone+
@@ -105,7 +104,8 @@ process.p = cms.Path(
     process.mergedMuCRanalyzer20UL18+
     process.mergedEMuCRanalyzer20UL18+
     process.resolvedMuCRanalyzer20UL18+
-    process.resolvedEMuCRanalyzer20UL18
+    process.resolvedEMuCRanalyzer20UL18,
+    process.fullPatMetTask
 )
 
 # Automatic addition of the customisation function from Configuration.DataProcessing.Utils

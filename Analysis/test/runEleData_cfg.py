@@ -16,7 +16,8 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         # 'file:MiniAOD.root'
         # 'root://cms-xrd-global.cern.ch//store/mc/RunIISummer20UL18MiniAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/230000/0D0716D0-2537-4443-AFFE-BB3BF90C9E9E.root'
-        'root://cms-xrd-global.cern.ch//store/mc/RunIISummer20UL18MiniAODv2/HToAATo4L_H2000A1_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/80000/53014CCB-3FCA-4141-9B71-2DA7DC19F58E.root'
+        #'root://cms-xrd-global.cern.ch//store/mc/RunIISummer20UL18MiniAODv2/HToAATo4L_H2000A1_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/80000/53014CCB-3FCA-4141-9B71-2DA7DC19F58E.root'
+        'root://cms-xrd-global.cern.ch//store/data/Run2018A/EGamma/MINIAOD/UL2018_MiniAODv2_GT36-v1/2820000/010271C3-A445-EA40-830E-3BB6EA059CC0.root'
     ),
     secondaryFileNames = cms.untracked.vstring()
 )
@@ -27,10 +28,10 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string('hists.root')
 )
 
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.GlobalTag.globaltag = cms.string("106X_dataRun2_v36")
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-process.GlobalTag.globaltag = cms.string("106X_dataRun2_v36")
 
 runVIDmodules = [
     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff',
@@ -38,7 +39,7 @@ runVIDmodules = [
     'ZprimeTo4l.MergedLepton.Identification.mergedElectronID_20UL18_cff'
 ]
 
-from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
                        runEnergyCorrections=True,
                        runVID=True,

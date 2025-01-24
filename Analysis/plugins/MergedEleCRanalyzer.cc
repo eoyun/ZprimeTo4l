@@ -60,9 +60,9 @@ private:
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
   const edm::EDGetTokenT<LHEEventProduct> lheToken_;
-  const edm::EDGetTokenT<double> prefweight_token;
-  const edm::EDGetTokenT<double> prefweightUp_token_;
-  const edm::EDGetTokenT<double> prefweightDn_token_;
+  const edm::EDGetTokenT<float> prefweight_token;
+  const edm::EDGetTokenT<float> prefweightUp_token_;
+  const edm::EDGetTokenT<float> prefweightDn_token_;
 
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> triggerobjectsToken_;
@@ -152,9 +152,9 @@ generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag
 srcGenPtc_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("srcGenPtc"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
 lheToken_(consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lheEvent"))),
-prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
-prefweightUp_token_(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbUp"))),
-prefweightDn_token_(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProbDown"))),
+prefweight_token(consumes<float>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
+prefweightUp_token_(consumes<float>(edm::InputTag("prefiringweight:nonPrefiringProbUp"))),
+prefweightDn_token_(consumes<float>(edm::InputTag("prefiringweight:nonPrefiringProbDown"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
@@ -783,20 +783,20 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   double purwgtNo = 1.;
   double purwgtUp = 1.;
   double purwgtDn = 1.;
-  double prefireNo = 1.;
-  double prefireUp = 1.;
-  double prefireDn = 1.;
+  float prefireNo = 1.;
+  float prefireUp = 1.;
+  float prefireDn = 1.;
 
   if (isMC_) {
-    edm::Handle<double> theprefweight;
+    edm::Handle<float> theprefweight;
     iEvent.getByToken(prefweight_token, theprefweight);
     prefireNo = *theprefweight;
 
-    edm::Handle<double> theprefweightUp;
+    edm::Handle<float> theprefweightUp;
     iEvent.getByToken(prefweightUp_token_, theprefweightUp);
     prefireUp = *theprefweightUp;
 
-    edm::Handle<double> theprefweightDn;
+    edm::Handle<float> theprefweightDn;
     iEvent.getByToken(prefweightDn_token_, theprefweightDn);
     prefireDn = *theprefweightDn;
 

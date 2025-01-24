@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+#from Configuration.Eras.Era_Run3_cff import Run3
 
 process = cms.Process('EleAnalyzer')
 
@@ -19,6 +20,7 @@ process.source = cms.Source("PoolSource",
         # 'root://cms-xrd-global.cern.ch//store/mc/RunIISummer20UL18MiniAODv2/HToAATo4L_H2000A1_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/80000/53014CCB-3FCA-4141-9B71-2DA7DC19F58E.root'
         'root://cms-xrd-global.cern.ch//store/mc/RunIISummer20UL18MiniAODv2/HToAATo4L_H250A1_TuneCP5_13TeV-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/60000/B2B6BECF-EF59-6D43-9C7B-406DA2535C4B.root'
         # 'root://cms-xrd-global.cern.ch//store/mc/RunIISummer20UL18MiniAODv2/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2500000/2BCCF1A8-BBA8-624A-82D0-61928D264815.root'
+        #'root://cms-xrd-global.cern.ch//store/user/yeo/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/Run3Summer22_MiniAODv4/240917_112751/0000/MiniAODv4_1.root'
     ),
     secondaryFileNames = cms.untracked.vstring()
 )
@@ -31,8 +33,9 @@ process.TFileService = cms.Service("TFileService",
 
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = cms.string("106X_upgrade2018_realistic_v16_L1v1")
+#process.GlobalTag.globaltag = cms.string("124X_mcRun3_2022_realistic_v12")
 
 runVIDmodules = [
     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff',
@@ -40,7 +43,7 @@ runVIDmodules = [
     'ZprimeTo4l.MergedLepton.Identification.mergedElectronID_20UL18_cff'
 ]
 
-from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
                        runEnergyCorrections=True,
                        runVID=True,
