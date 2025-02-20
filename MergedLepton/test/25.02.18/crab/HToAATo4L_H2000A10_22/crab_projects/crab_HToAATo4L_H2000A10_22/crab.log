@@ -1,0 +1,206 @@
+DEBUG 2025-02-18 06:10:10.844 UTC: 	 CRAB Client version: v3.241125
+DEBUG 2025-02-18 06:10:10.844 UTC: 	 Running on: Linux lxplus805.cern.ch 4.18.0-553.30.1.el8_10.x86_64 #1 SMP Fri Nov 15 03:46:25 EST 2024 x86_64 x86_64 x86_64 GNU/Linux
+DEBUG 2025-02-18 06:10:10.844 UTC: 	 Not using Singularity
+DEBUG 2025-02-18 06:10:10.844 UTC: 	 Operating System: Red Hat Enterprise Linux 8.10 (Ootpa)
+DEBUG 2025-02-18 06:10:10.844 UTC: 	 Executing command: 'submit'
+DEBUG 2025-02-18 06:10:10.844 UTC: 	 Found CRAB cache file /afs/cern.ch/user/y/yeo/.crab3
+INFO 2025-02-18 06:10:10.845 UTC: 	 Will use CRAB configuration file submit_crab.py
+DEBUG 2025-02-18 06:10:10.845 UTC: 	 Loading CRAB configuration file.
+DEBUG 2025-02-18 06:10:10.849 UTC: 	 Will use CRAB plugin ANALYSIS (i.e. will run an analysis job type).
+DEBUG 2025-02-18 06:10:10.879 UTC: 	 Checking credentials
+DEBUG 2025-02-18 06:10:10.879 UTC: 	 Found proxy file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-02-18 06:10:10.879 UTC: 	 Making sure it has proper VOMS extension
+DEBUG 2025-02-18 06:10:10.879 UTC: 	 Executing command :
+ voms-proxy-info --vo --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-02-18 06:10:11.252 UTC: 	 output : cms
+
+ error: 
+ retcode : 0
+DEBUG 2025-02-18 06:10:11.252 UTC: 	 Getting proxy life time left
+DEBUG 2025-02-18 06:10:11.252 UTC: 	 Executing command :
+ voms-proxy-info --actimeleft --timeleft --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-02-18 06:10:11.592 UTC: 	 output : 691121
+691121
+
+ error: 
+ retcode : 0
+DEBUG 2025-02-18 06:10:11.592 UTC: 	 Proxy valid for 191:58:41 hours
+DEBUG 2025-02-18 06:10:11.592 UTC: 	 Encoded data for curl request: subresource=delegatedn
+DEBUG 2025-02-18 06:10:11.631 UTC: 	 Registering user credentials on myproxy for /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+DEBUG 2025-02-18 06:10:11.632 UTC: 	 Executing command :
+ voms-proxy-info --identity --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-02-18 06:10:11.989 UTC: 	 output : /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+
+ error: 
+ retcode : 0
+DEBUG 2025-02-18 06:10:11.989 UTC: 	 Getting myproxy life time left for b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-02-18 06:10:11.989 UTC: 	 Executing command :
+ myproxy-info -s myproxy.cern.ch -l b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-02-18 06:10:12.287 UTC: 	 output : username: b1cf46923e08be6d87341f4868c7a65630edff80
+owner: /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+  renewal policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  trusted retrieval policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  timeleft: 534:45:10  (22.3 days)
+
+ error: 
+ retcode : 0
+DEBUG 2025-02-18 06:10:12.287 UTC: 	 Myproxy is valid: 1925100
+DEBUG 2025-02-18 06:10:12.287 UTC: 	 Result of myproxy credential check:
+  Credential exists on myproxy: username: b1cf46923e08be6d87341f4868c7a65630edff80  - validity: 22 days, 6:45:00
+DEBUG 2025-02-18 06:10:12.287 UTC: 	 Command use: submit
+DEBUG 2025-02-18 06:10:12.287 UTC: 	 Options use: ['submit_crab.py']
+DEBUG 2025-02-18 06:10:12.287 UTC: 	 Encoded data for curl request: subresource=version
+DEBUG 2025-02-18 06:10:12.325 UTC: 	 CRABClient version: v3.241125
+DEBUG 2025-02-18 06:10:12.325 UTC: 	 Instance is prod
+DEBUG 2025-02-18 06:10:12.325 UTC: 	 Server base url is cmsweb.cern.ch
+DEBUG 2025-02-18 06:10:12.325 UTC: 	 Command api workflow
+DEBUG 2025-02-18 06:10:12.325 UTC: 	 Started submission
+DEBUG 2025-02-18 06:10:12.325 UTC: 	 Working on /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22
+DEBUG 2025-02-18 06:10:12.325 UTC: 	 Encoded data for curl request: subresource=backendurls
+DEBUG 2025-02-18 06:10:12.379 UTC: 	 Loading required information from the environment
+DEBUG 2025-02-18 06:10:12.379 UTC: 	 Found CMSSW_13_0_13 for el8_amd64_gcc11 with base /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13
+DEBUG 2025-02-18 06:10:12.379 UTC: 	 Loading required information from the environment
+DEBUG 2025-02-18 06:10:12.379 UTC: 	 Found CMSSW_13_0_13 for el8_amd64_gcc11 with base /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13
+DEBUG 2025-02-18 06:10:12.379 UTC: 	 UNIQUE NAME: tarUUID abd8a1ba-f49b-4fa8-819e-798c87688272 
+DEBUG 2025-02-18 06:10:12.379 UTC: 	 self.config: from WMCore.Configuration import Configuration
+config = Configuration()
+config.section_('General')
+config.General.transferLogs = True
+config.General.workArea = 'crab_projects'
+config.General.requestName = 'HToAATo4L_H2000A10_22'
+config.General.transferOutputs = True
+config.section_('JobType')
+config.JobType.pluginName = 'Analysis'
+config.JobType.psetName = 'runMergedLeptonIDImageMC_run3_cfg.py'
+config.section_('Data')
+config.Data.ignoreLocality = True
+config.Data.publication = False
+config.Data.outLFNDirBase = '/store/user/yeo/'
+config.Data.splitting = 'FileBased'
+config.Data.outputDatasetTag = 'HToAATo4L_H2000A10_22'
+config.Data.inputDBS = 'phys03'
+config.Data.inputDataset = '/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER'
+config.Data.unitsPerJob = 1
+config.section_('Site')
+config.Site.storageSite = 'T3_KR_KNU'
+config.Site.whitelist = ['T2_*', 'T3_*']
+config.section_('User')
+config.section_('Debug')
+
+DEBUG 2025-02-18 06:10:12.380 UTC: 	 self.config.JobType.psetName: runMergedLeptonIDImageMC_run3_cfg.py
+INFO 2025-02-18 06:10:12.380 UTC: 	 Importing CMSSW configuration runMergedLeptonIDImageMC_run3_cfg.py
+INFO 2025-02-18 06:10:13.557 UTC: 	 Finished importing CMSSW configuration runMergedLeptonIDImageMC_run3_cfg.py
+DEBUG 2025-02-18 06:10:13.557 UTC: 	 Writing CMSSW configuration to /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/PSet.py
+DEBUG 2025-02-18 06:10:13.645 UTC: 	 The following EDM output files will be collected: []
+DEBUG 2025-02-18 06:10:13.645 UTC: 	 The following TFile output files will be collected: ['hists_Image_sig_250_1.root']
+DEBUG 2025-02-18 06:10:13.645 UTC: 	 The following user output files (not listed as PoolOuputModule or TFileService in the CMSSW PSet) will be collected: 
+DEBUG 2025-02-18 06:10:13.645 UTC: 	 Loading required information from the environment
+DEBUG 2025-02-18 06:10:13.645 UTC: 	 Found CMSSW_13_0_13 for el8_amd64_gcc11 with base /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13
+DEBUG 2025-02-18 06:10:13.645 UTC: 	 Making tarball in /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/abd8a1ba-f49b-4fa8-819e-798c87688272default.tgz
+DEBUG 2025-02-18 06:10:13.646 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/bin
+DEBUG 2025-02-18 06:10:13.646 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/bin to tarball
+DEBUG 2025-02-18 06:10:13.648 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/python
+DEBUG 2025-02-18 06:10:13.648 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/python to tarball
+DEBUG 2025-02-18 06:10:13.794 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/cfipython
+DEBUG 2025-02-18 06:10:13.794 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/cfipython to tarball
+DEBUG 2025-02-18 06:10:13.819 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/lib
+DEBUG 2025-02-18 06:10:13.820 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/lib to tarball
+DEBUG 2025-02-18 06:10:15.501 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/biglib
+DEBUG 2025-02-18 06:10:15.501 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/biglib to tarball
+DEBUG 2025-02-18 06:10:15.501 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/module
+DEBUG 2025-02-18 06:10:15.501 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/config/SCRAM/hooks
+DEBUG 2025-02-18 06:10:15.502 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/config/SCRAM/hooks to tarball
+DEBUG 2025-02-18 06:10:15.619 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/EgammaTools/data to tarball
+DEBUG 2025-02-18 06:10:15.696 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/EgammaTools/interface to tarball
+DEBUG 2025-02-18 06:10:16.704 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/EgammaTools/python to tarball
+DEBUG 2025-02-18 06:10:16.736 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/PhotonIdentification/data to tarball
+DEBUG 2025-02-18 06:10:17.606 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/PhotonIdentification/interface to tarball
+DEBUG 2025-02-18 06:10:17.620 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/PhotonIdentification/python to tarball
+DEBUG 2025-02-18 06:10:17.826 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/ElectronIdentification/data to tarball
+DEBUG 2025-02-18 06:10:18.105 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/ElectronIdentification/interface to tarball
+DEBUG 2025-02-18 06:10:18.142 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/RecoEgamma/ElectronIdentification/python to tarball
+DEBUG 2025-02-18 06:10:18.934 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/EgammaPostRecoTools/python to tarball
+DEBUG 2025-02-18 06:10:18.941 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/DataFormats/PatCandidates/interface to tarball
+DEBUG 2025-02-18 06:10:19.328 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/DataFormats/GsfTrackReco/interface to tarball
+DEBUG 2025-02-18 06:10:21.808 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/data to tarball
+DEBUG 2025-02-18 06:10:22.649 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/interface to tarball
+DEBUG 2025-02-18 06:10:22.654 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/python to tarball
+DEBUG 2025-02-18 06:10:25.301 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/ModifiedHEEP/interface to tarball
+DEBUG 2025-02-18 06:10:25.315 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/ModifiedHEEP/python to tarball
+DEBUG 2025-02-18 06:10:25.353 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/data to tarball
+DEBUG 2025-02-18 06:10:27.372 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/interface to tarball
+DEBUG 2025-02-18 06:10:27.385 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/python to tarball
+DEBUG 2025-02-18 06:10:27.430 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/EgammaAnalysis/ElectronTools/data to tarball
+DEBUG 2025-02-18 06:10:27.521 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/EgammaAnalysis/ElectronTools/interface to tarball
+DEBUG 2025-02-18 06:10:27.596 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/EgammaAnalysis/ElectronTools/python to tarball
+DEBUG 2025-02-18 06:10:28.065 UTC: 	 Uploading archive /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/abd8a1ba-f49b-4fa8-819e-798c87688272default.tgz (6.844727.1 MB) to the CRAB cache. Using URI https://cmsweb.cern.ch/S3/crabcache_prod
+DEBUG 2025-02-18 06:10:29.719 UTC: 	 Encoded data for curl request: subresource=upload&objecttype=sandbox&tarballname=4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz
+DEBUG 2025-02-18 06:10:29.940 UTC: 	 Will execute:
+curl -f -v -X POST  -H "User-Agent: CRAB" -F "key=yeo/sandboxes/4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz" -F "AWSAccessKeyId=715203df6482458ba839e73e6dab634b" -F "policy=eyJleHBpcmF0aW9uIjogIjIwMjUtMDItMThUMDc6MTA6MjlaIiwgImNvbmRpdGlvbnMiOiBbeyJidWNrZXQiOiAiY3JhYmNhY2hlX3Byb2QifSwgeyJrZXkiOiAieWVvL3NhbmRib3hlcy80NzU0YzhmNWI1YTc2NWY5OGNjMzlhZjQ5MmIxMDgzMzk5MDc4ZDY0NGRlODM4MmI0OTQ1ZDI0ZTgyMTE4ZGFhLnRhci5neiJ9XX0=" -F "signature=ihfsJEggSEdDkLBWtu0jDcm0fQA=" -F "file=@/afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/abd8a1ba-f49b-4fa8-819e-798c87688272default.tgz" "https://s3.cern.ch/crabcache_prod"
+DEBUG 2025-02-18 06:10:31.132 UTC: 	 exitcode: 0
+stdout: b''
+DEBUG 2025-02-18 06:10:31.132 UTC: 	 upload to S3 of sandbox /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/abd8a1ba-f49b-4fa8-819e-798c87688272default.tgz completed
+DEBUG 2025-02-18 06:10:31.132 UTC: 	 make sure that object is ready for retrieve
+DEBUG 2025-02-18 06:10:32.133 UTC: 	 Encoded data for curl request: subresource=download&objecttype=sandbox&tarballname=4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz&clientmethod=head_object
+DEBUG 2025-02-18 06:10:32.170 UTC: 	 PreSignedUrl to download sandbox received OK
+DEBUG 2025-02-18 06:10:32.173 UTC: 	 Will execute:
+ curl -v -s -f -o /dev/null --head  "https://s3.cern.ch/crabcache_prod/yeo/sandboxes/4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz?AWSAccessKeyId=715203df6482458ba839e73e6dab634b&Signature=V53gWX9DRAcp9SbIgn79WHHgZuw%3D&Expires=1739862632"
+DEBUG 2025-02-18 06:10:32.200 UTC: 	 exitcode: 0
+stdout: b''
+DEBUG 2025-02-18 06:10:32.200 UTC: 	 sandbox /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/abd8a1ba-f49b-4fa8-819e-798c87688272default.tgz successfully uploaded to S3
+DEBUG 2025-02-18 06:10:32.200 UTC: 	 Loading required information from the environment
+DEBUG 2025-02-18 06:10:32.200 UTC: 	 Found CMSSW_13_0_13 for el8_amd64_gcc11 with base /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13
+DEBUG 2025-02-18 06:10:32.200 UTC: 	 Making tarball in /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/debugFiles.tgz
+DEBUG 2025-02-18 06:10:32.205 UTC: 	 Uploading archive /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/debugFiles.tgz (2 KB) to the CRAB cache. Using URI https://cmsweb.cern.ch/S3/crabcache_prod
+DEBUG 2025-02-18 06:10:32.207 UTC: 	 Encoded data for curl request: subresource=upload&objecttype=sandbox&tarballname=02ca268cdbc137918b12ffa980538035fbe77214dddc7dd638566d7283b0781f.tar.gz
+DEBUG 2025-02-18 06:10:32.244 UTC: 	 Will execute:
+curl -f -v -X POST  -H "User-Agent: CRAB" -F "key=yeo/sandboxes/02ca268cdbc137918b12ffa980538035fbe77214dddc7dd638566d7283b0781f.tar.gz" -F "AWSAccessKeyId=715203df6482458ba839e73e6dab634b" -F "policy=eyJleHBpcmF0aW9uIjogIjIwMjUtMDItMThUMDc6MTA6MzJaIiwgImNvbmRpdGlvbnMiOiBbeyJidWNrZXQiOiAiY3JhYmNhY2hlX3Byb2QifSwgeyJrZXkiOiAieWVvL3NhbmRib3hlcy8wMmNhMjY4Y2RiYzEzNzkxOGIxMmZmYTk4MDUzODAzNWZiZTc3MjE0ZGRkYzdkZDYzODU2NmQ3MjgzYjA3ODFmLnRhci5neiJ9XX0=" -F "signature=coCOW75af3I7xXsxhwCf+RG5Z/c=" -F "file=@/afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/debugFiles.tgz" "https://s3.cern.ch/crabcache_prod"
+DEBUG 2025-02-18 06:10:32.275 UTC: 	 exitcode: 0
+stdout: b''
+DEBUG 2025-02-18 06:10:32.276 UTC: 	 upload to S3 of sandbox /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/debugFiles.tgz completed
+DEBUG 2025-02-18 06:10:32.276 UTC: 	 make sure that object is ready for retrieve
+DEBUG 2025-02-18 06:10:33.277 UTC: 	 Encoded data for curl request: subresource=download&objecttype=sandbox&tarballname=02ca268cdbc137918b12ffa980538035fbe77214dddc7dd638566d7283b0781f.tar.gz&clientmethod=head_object
+DEBUG 2025-02-18 06:10:33.318 UTC: 	 PreSignedUrl to download sandbox received OK
+DEBUG 2025-02-18 06:10:33.320 UTC: 	 Will execute:
+ curl -v -s -f -o /dev/null --head  "https://s3.cern.ch/crabcache_prod/yeo/sandboxes/02ca268cdbc137918b12ffa980538035fbe77214dddc7dd638566d7283b0781f.tar.gz?AWSAccessKeyId=715203df6482458ba839e73e6dab634b&Signature=%2BEKr6FYTtA9spt9x98MnWuftyDU%3D&Expires=1739862633"
+DEBUG 2025-02-18 06:10:33.347 UTC: 	 exitcode: 0
+stdout: b''
+DEBUG 2025-02-18 06:10:33.347 UTC: 	 sandbox /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/inputs/debugFiles.tgz successfully uploaded to S3
+DEBUG 2025-02-18 06:10:33.347 UTC: 	 Result uploading input files: 4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz 
+DEBUG 2025-02-18 06:10:33.347 UTC: 	 submit() - self.configuration from WMCore.Configuration import Configuration
+config = Configuration()
+config.section_('General')
+config.General.transferLogs = True
+config.General.workArea = 'crab_projects'
+config.General.requestName = 'HToAATo4L_H2000A10_22'
+config.General.transferOutputs = True
+config.section_('JobType')
+config.JobType.pluginName = 'Analysis'
+config.JobType.psetName = 'runMergedLeptonIDImageMC_run3_cfg.py'
+config.section_('Data')
+config.Data.ignoreLocality = True
+config.Data.publication = False
+config.Data.outLFNDirBase = '/store/user/yeo/'
+config.Data.splitting = 'FileBased'
+config.Data.outputDatasetTag = 'HToAATo4L_H2000A10_22'
+config.Data.inputDBS = 'phys03'
+config.Data.inputDataset = '/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER'
+config.Data.unitsPerJob = 1
+config.section_('Site')
+config.Site.storageSite = 'T3_KR_KNU'
+config.Site.whitelist = ['T2_*', 'T3_*']
+config.section_('User')
+config.section_('Debug')
+
+DEBUG 2025-02-18 06:10:33.347 UTC: 	 submit() - self.configreq {'dryrun': 0, 'workflow': 'crab_HToAATo4L_H2000A10_22', 'saveoutput': 1, 'savelogsflag': 1, 'inputdata': '/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER', 'nonvaliddata': 0, 'userfiles': [], 'dbsurl': 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSReader', 'useparent': 0, 'ignorelocality': 1, 'splitalgo': 'FileBased', 'algoargs': 1, 'totalunits': 0, 'lfn': '/store/user/yeo/', 'publication': 0, 'publishdbsurl': 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter', 'publishname2': 'HToAATo4L_H2000A10_22', 'jobtype': 'Analysis', 'generator': 'pythia', 'addoutputfiles': [], 'maxjobruntime': 1250, 'numcores': 1, 'maxmemory': 2000, 'priority': 10, 'nonprodsw': 0, 'asyncdest': 'T3_KR_KNU', 'sitewhitelist': ['T2_*', 'T3_*'], 'requireaccelerator': 0, 'oneEventMode': 0, 'extrajdl': [], 'ignoreglobalblacklist': 0, 'partialdataset': 0, 'inputblocks': []}
+DEBUG 2025-02-18 06:10:33.347 UTC: 	 submit() - jobconfig {'addoutputfiles': [], 'tfileoutfiles': ['hists_Image_sig_250_1.root'], 'edmoutfiles': [], 'jobarch': 'el8_amd64_gcc11', 'jobsw': 'CMSSW_13_0_13', 'inputdata': '/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER', 'cacheurl': 'https://cmsweb.cern.ch/S3/crabcache_prod', 'cachefilename': '4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz', 'debugfilename': '02ca268cdbc137918b12ffa980538035fbe77214dddc7dd638566d7283b0781f.tar.gz', 'jobtype': 'Analysis'}
+INFO 2025-02-18 06:10:33.347 UTC: 	 Sending the request to the server at cmsweb.cern.ch
+DEBUG 2025-02-18 06:10:33.348 UTC: 	 Submitting {'dryrun': 0, 'workflow': 'crab_HToAATo4L_H2000A10_22', 'saveoutput': 1, 'savelogsflag': 1, 'inputdata': '/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER', 'nonvaliddata': 0, 'userfiles': [], 'dbsurl': 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSReader', 'useparent': 0, 'ignorelocality': 1, 'splitalgo': 'FileBased', 'algoargs': 1, 'totalunits': 0, 'lfn': '/store/user/yeo/', 'publication': 0, 'publishdbsurl': 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter', 'publishname2': 'HToAATo4L_H2000A10_22', 'jobtype': 'Analysis', 'generator': 'pythia', 'addoutputfiles': [], 'maxjobruntime': 1250, 'numcores': 1, 'maxmemory': 2000, 'priority': 10, 'nonprodsw': 0, 'asyncdest': 'T3_KR_KNU', 'sitewhitelist': ['T2_*', 'T3_*'], 'requireaccelerator': 0, 'oneEventMode': 0, 'extrajdl': [], 'ignoreglobalblacklist': 0, 'partialdataset': 0, 'inputblocks': [], 'tfileoutfiles': ['hists_Image_sig_250_1.root'], 'edmoutfiles': [], 'jobarch': 'el8_amd64_gcc11', 'jobsw': 'CMSSW_13_0_13', 'cacheurl': 'https://cmsweb.cern.ch/S3/crabcache_prod', 'cachefilename': '4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz', 'debugfilename': '02ca268cdbc137918b12ffa980538035fbe77214dddc7dd638566d7283b0781f.tar.gz'} 
+DEBUG 2025-02-18 06:10:33.348 UTC: 	 Encoded data for curl request: dryrun=0&workflow=crab_HToAATo4L_H2000A10_22&saveoutput=1&savelogsflag=1&inputdata=%2FHToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8%2Fyeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347%2FUSER&nonvaliddata=0&dbsurl=https%3A%2F%2Fcmsweb.cern.ch%2Fdbs%2Fprod%2Fphys03%2FDBSReader&useparent=0&ignorelocality=1&splitalgo=FileBased&algoargs=1&totalunits=0&lfn=%2Fstore%2Fuser%2Fyeo%2F&publication=0&publishdbsurl=https%3A%2F%2Fcmsweb.cern.ch%2Fdbs%2Fprod%2Fphys03%2FDBSWriter&publishname2=HToAATo4L_H2000A10_22&jobtype=Analysis&generator=pythia&maxjobruntime=1250&numcores=1&maxmemory=2000&priority=10&nonprodsw=0&asyncdest=T3_KR_KNU&requireaccelerator=0&oneEventMode=0&ignoreglobalblacklist=0&partialdataset=0&jobarch=el8_amd64_gcc11&jobsw=CMSSW_13_0_13&cacheurl=https%3A%2F%2Fcmsweb.cern.ch%2FS3%2Fcrabcache_prod&cachefilename=4754c8f5b5a765f98cc39af492b1083399078d644de8382b4945d24e82118daa.tar.gz&debugfilename=02ca268cdbc137918b12ffa980538035fbe77214dddc7dd638566d7283b0781f.tar.gz&sitewhitelist=T2_%2A&sitewhitelist=T3_%2A&tfileoutfiles=hists_Image_sig_250_1.root
+DEBUG 2025-02-18 06:10:33.716 UTC: 	 Result: {'result': [{'RequestName': '250218_061033:yeo_crab_HToAATo4L_H2000A10_22'}]}
+INFO 2025-02-18 06:10:33.720 UTC: 	 Success: Your task has been delivered to the prod CRAB3 server.
+INFO 2025-02-18 06:10:33.720 UTC: 	 Task name: 250218_061033:yeo_crab_HToAATo4L_H2000A10_22
+INFO 2025-02-18 06:10:33.720 UTC: 	 Project dir: crab_projects/crab_HToAATo4L_H2000A10_22
+INFO 2025-02-18 06:10:33.720 UTC: 	 Please use ' crab status -d crab_projects/crab_HToAATo4L_H2000A10_22 ' to check how the submission process proceeds.
+DEBUG 2025-02-18 06:10:33.720 UTC: 	 About to return
+INFO 2025-02-18 06:10:33.722 UTC: 	 Log file is /afs/cern.ch/user/y/yeo/4l/24.10.08/CMSSW_13_0_13/src/ZprimeTo4l/MergedLepton/test/25.02.18/crab/HToAATo4L_H2000A10_22/crab_projects/crab_HToAATo4L_H2000A10_22/crab.log

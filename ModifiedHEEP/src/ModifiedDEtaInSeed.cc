@@ -49,7 +49,7 @@ bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::
   //edm::ESHandle<MagneticField> magFieldHandle;
   //iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
   const MagneticField* magFieldHandle = &iSetup.getData(magneticToken_);
-
+  std::cout<<"dbg"<<std::endl;
   // at innermost/outermost point
   // edm::ESHandle<TrackerGeometry> trackerHandle;
   // iSetup.get<TrackerDigiGeometryRecord>().get(trackerHandle);
@@ -69,13 +69,16 @@ bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::
   const auto& pixelBarrelLayers = trackerSearchHandle->pixelBarrelLayers();
   BarrelDetLayer* innermostLayer = nullptr;
   float innermostRadius = std::numeric_limits<float>::max();
+  std::cout<<"dbg2"<<std::endl;
 
   for (const auto* alayer : pixelBarrelLayers) {
     float aradius = alayer->surface().rSpan().first;
     if ( aradius < innermostRadius ) {
       innermostRadius = aradius;
       innermostLayer = const_cast<BarrelDetLayer*>(alayer);
+      std::cout<<"dbg3"<<std::endl;
     }
+    std::cout<<"dbg4"<<std::endl;
   }
 
   // GlobalTag matters here (tracker alignment)
@@ -93,6 +96,7 @@ bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::
   TrajectoryStateOnSurface innTSOS = gsfPropagator->propagate(freestate,innermostLayer->surface());
   StateOnTrackerBound stateOnBound(gsfPropagator.get());
   TrajectoryStateOnSurface outTSOS = stateOnBound(freestate);
+  std::cout<<"dbg5"<<std::endl;
 
   if ( innTSOS.isValid() && outTSOS.isValid() ) {
     // at seed
@@ -102,6 +106,7 @@ bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::
                                                                               aEle.superCluster()->seed()->position().z()));
     if (!seedTSOS.isValid())
       seedTSOS = outTSOS;
+    std::cout<<"dbg10"<<std::endl;
 
     TrajectoryStateOnSurface sclTSOS = extrapolator->extrapolate(*(innTSOS.freeState()), // with TSOS assert fails (not a real measurement)
                                                                  GlobalPoint(aEle.superCluster()->x(),
@@ -109,16 +114,20 @@ bool ModifiedDEtaInSeed::extrapolate(const reco::GsfElectron& aEle, const reco::
                                                                              aEle.superCluster()->z()));
     if (!sclTSOS.isValid())
       sclTSOS = outTSOS;
+    std::cout<<"dbg9"<<std::endl;
 
     GlobalPoint seedPos, sclPos;
     multiTrajectoryStateMode::positionFromModeCartesian(seedTSOS,seedPos);
     multiTrajectoryStateMode::positionFromModeCartesian(sclTSOS,sclPos);
+    std::cout<<"dbg8"<<std::endl;
 
     scAtVtx = EleRelPointPair(aEle.superCluster()->position(),sclPos,beamSpotPos);
     seedAtCalo = EleRelPointPair(aEle.superCluster()->seed()->position(),seedPos,beamSpotPos);
+    std::cout<<"dbg7"<<std::endl;
 
     return true;
   }
+  std::cout<<"dbg6"<<std::endl;
 
   return false;
 }

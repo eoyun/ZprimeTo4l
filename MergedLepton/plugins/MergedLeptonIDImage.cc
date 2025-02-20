@@ -56,6 +56,8 @@
 #include "RecoTracker/Record/interface/TrackerRecoGeometryRecord.h"
 #include "RecoTracker/TkDetLayers/interface/GeometricSearchTracker.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/EgammaReco/interface/PreshowerCluster.h"
+#include "DataFormats/EgammaReco/interface/SuperCluster.h"
 
 #include "TH1D.h"
 #include "TH2F.h"
@@ -406,7 +408,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
 	  const auto& genPtc = genptcHandle->refAt(idx);
 	  //std::cout <<"flag : "<< genPtc->statusFlags().flags_<<" | status : "<<genPtc->status()<<" | pdg : " <<genPtc->pdgId()<<" | hard "<<genPtc->isHardProcess()  <<std::endl;    
 	  if ( ( std::abs(genPtc->pdgId())==11 ) && genPtc->fromHardProcessFinalState() ) promptEles.push_back(genPtc.castTo<reco::GenParticleRef>());
-	  if ( std::abs(genPtc->pdgId())==11  ) Eles.push_back(genPtc.castTo<reco::GenParticleRef>());
+	  if ( ( std::abs(genPtc->pdgId())==11 ) && genPtc->isPromptFinalState() ) Eles.push_back(genPtc.castTo<reco::GenParticleRef>());
   }
 
   ESenergy.clear();
@@ -479,7 +481,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     else isAddTrk = 1;
 
     //std::cout<<"hello"<<std::endl;
-    const auto& scPosition = electron.superCluster()->position();
+    const auto& scPosition = electron.superCluster()->seed()->position();
     //std::cout<<"pT : "<<electron.pt()<<std::endl;
     //std::cout<<"5x5 energy : "<<electron.e5x5()<<std::endl;
     //std::cout<<electron.superCluster()->seed()->eta()<<" | "<<scPosition.eta()<<std::endl;
@@ -548,8 +550,10 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
    //   }
    //   std::cout << std::endl;
    // }
-    matched_ix=-1;
-    matched_iy=-1;
+    //matched_ix=ESDetId(electron.superCluster()->preshowerClusters().seed()).six();
+    //matched_iy=ESDetId(electron.superCluster()->preshowerClusters().seed()).siy();
+    matched_ix=std::numeric_limits<int>::min();
+    matched_iy=std::numeric_limits<int>::min();
     minDistance = std::numeric_limits<float>::max();
     for (const auto& hit : *ESrecHitHandle){
       const auto& detID = hit.id();
@@ -563,12 +567,13 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
       float distance = std::sqrt(deltaX * deltaX + deltaY * deltaY);
       if (distance < minDistance){
         minDistance = distance;
-	matchedSilicon = &id_silicon;
-	matched_ix = id_silicon.six();
-	matched_iy = id_silicon.siy();
+        matchedSilicon = &id_silicon;
+        matched_ix = id_silicon.six();
+        matched_iy = id_silicon.siy();
       }
       
     }
+    //std::cout<<matched_ix <<" | "<<matched_iy<<std::endl;
     if (matchedSilicon){
       
       for (const auto& hit : *ESrecHitHandle){
@@ -582,7 +587,9 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
           int iX = dX + EShalfSize;
           int iY = dY + EShalfSize;
           if (id_silicon.plane() == 1)ESImage_plane1[iX*32+(int)id_silicon.strip()-1][iY] = hit.energy();
-          if (id_silicon.plane() == 2)ESImage_plane2[iX][iY*32+id_silicon.strip()-1] = hit.energy();
+	  if (id_silicon.plane() == 2)ESImage_plane2[iX][iY*32+id_silicon.strip()-1] = hit.energy();
+          //if (id_silicon.plane() == 1)ESImage_plane1[iX*32+(int)id_silicon.strip()-1][iY] = id_silicon.siy();
+          //if (id_silicon.plane() == 2)ESImage_plane2[iX][iY*32+id_silicon.strip()-1] = id_silicon.siy();
         }
       
       
