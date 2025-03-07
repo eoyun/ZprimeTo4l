@@ -5,6 +5,7 @@
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 #include "TRandom3.h"
 #include "TH2D.h"
@@ -15,6 +16,7 @@
 
 class MuonCorrectionHelper {
 public:
+  MuonCorrectionHelper()=default;
   MuonCorrectionHelper(const edm::FileInPath& rochesterPath);
   MuonCorrectionHelper(const edm::FileInPath& rochesterPath,
                        const edm::FileInPath& muonTrigSFpath,
@@ -49,6 +51,22 @@ public:
   std::pair<double,double> boostIsoSFupdn(const pat::MuonRef& mu, const reco::Vertex& pv);
 
   bool checkIso(const pat::MuonRef& mu, const reco::TrackRef& trk, const reco::BeamSpot& bs);
+  void modifiedIso(std::vector<pat::MuonRef>& isolatedHighPtMuons,
+                   std::vector<pat::MuonRef>& isolatedHighPtTrackerMuons,
+                   std::vector<pat::MuonRef>& boostedMuons,
+                   const std::vector<pat::MuonRef>& highPtMuons,
+                   const std::vector<pat::MuonRef>& highPtTrackerMuons,
+                   const reco::BeamSpot& bs);
+  void nonHighPtMuonIso(std::vector<pat::MuonRef>& nonHighPtMuons,
+                        std::vector<pat::MuonRef>& nonHighPtMuonsVLiso,
+                        std::map<pat::MuonRef,float>& nonHighPtIsos,
+                        const edm::Handle<edm::View<pat::Muon>>& muonHandle,
+                        const std::vector<pat::MuonRef>& allHighPtMuons,
+                        const std::vector<pat::MuonRef>& highPtMuons,
+                        const std::vector<pat::MuonRef>& highPtTrackerMuons,
+                        const reco::Vertex& pv,
+                        const reco::BeamSpot& bs,
+                        const double ptThres);
 
 private:
   RoccoR rochester_;

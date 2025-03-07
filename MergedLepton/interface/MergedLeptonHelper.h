@@ -36,6 +36,22 @@ class MergedLeptonHelper {
 public:
   typedef struct {
     float weight;
+    float Gen1stPt, Gen2ndPt, GenDR;
+    int passReco1, passReco2;
+    int passHEEP1, passHEEP2;
+    int passHEEPIso1, passHEEPIso2;
+    int passHEEPnoIso1, passHEEPnoIso2;
+    int passModHeep1, passModHeep2;
+    int passModHeepIso1, passModHeepIso2;
+    int passModHEEPnoIso1, passModHEEPnoIso2;
+    int nGSFtrk, nKFtrk;
+    int category;
+    int passME;
+    float mergedEleMvaScore;
+  } DielStruct;
+
+  typedef struct {
+    float weight;
     float pt, eta, phi, en, et;
     int charge;
     float enSC, etSC, etaSC, phiSC, etaSeed, phiSeed, etaSCWidth, phiSCWidth;
@@ -46,6 +62,9 @@ public:
     float ecalEn, ecalErr, trkErr, combErr, PFcombErr;
     float dr03TkSumPtHEEP, dr03EcalRecHitSumEt, dr03HcalDepth1TowerSumEt;
     float modTrkIso, modEcalIso;
+    int passEMHad1Iso, passHEEP, passHEEPnoIso;
+    int passModEMHad1Iso, passModHeep, passModHEEPnoIso, passME;
+    float mergedEleMvaScore;
     int lostHits, nValidHits, nValidPixelHits, GsfHits;
     float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz;
     float Gsfpt, Gsfeta, Gsfphi, GsfPtErr;
@@ -63,6 +82,8 @@ public:
     float union5x5covMaj, union5x5covMin;
     float alphaCalo;
     float GenPt, GenE;
+    float Gen2ndPt, GenDR;
+    int nGSFtrk, nKFtrk;
     int u5x5numGood, u5x5numPoorReco, u5x5numOutOfTime, u5x5numFaultyHardware;
     int u5x5numNoisy, u5x5numPoorCalib, u5x5numSaturated, u5x5numLeadingEdgeRecovered;
     int u5x5NeighboursRecovered, u5x5numTowerRecovered, u5x5numDead, u5x5numKilled;
@@ -74,22 +95,35 @@ public:
   typedef struct {
     float weight;
     float pt, eta, phi;
-    int lostHits, nValidHits, nValidPixelHits;
+    int lostHits, nValidHits, nValidPixelHits, charge, chargeProduct, isPackedCand;
     float chi2, d0, d0Err, dxyErr, vz, dzErr, dxy, dz, ptErr;
     float deltaEtaSeedClusterAtVtx, deltaPhiSuperClusterAtVtx;
     float dPerpIn, normalizedDParaIn, alphaTrack;
+    float vtxLxy, vtxProb, vtxChi2, vtxNdof;
+    float dR;
   } AddTrkStruct;
 
   MergedLeptonHelper();
   virtual ~MergedLeptonHelper()=default;
 
 public:
+  void initDielTree(const std::string& name,
+                    const std::string& prefix,
+                    const std::string& postfix);
   void initElectronTree(const std::string& name,
                         const std::string& prefix,
                         const std::string& postfix);
   void initAddTrkTree(const std::string& name,
                       const std::string& prefix,
                       const std::string& postfix);
+
+  void fillDielectrons(const pat::ElectronRef& e1,
+                       const pat::ElectronRef& e2,
+                       const reco::GenParticleRef& p1,
+                       const reco::GenParticleRef& p2,
+                       const int category,
+                       const std::string& prefix,
+                       const int nGSFtrk = -1, const int nKFtrk = -1);
 
   void fillElectrons(const pat::ElectronRef& el,
                      const float& trkIso,
@@ -99,15 +133,18 @@ public:
                      const EcalRecHitCollection* ecalRecHits,
                      const edm::EventSetup& iSetup,
                      const std::string& prefix,
-                     const float genPt = -1., // signal MC only
-                     const float genE = -1.);
+                     const float genPt = -1.,
+                     const float genE = -1.,
+                     const int nGSFtrk = -1, const int nKFtrk = -1,
+                     const float Gen2ndPt = -1., const float GenDR = -1.);
 
   void fillAddTracks(const pat::ElectronRef& el,
-                     const reco::TrackBase* addTrk,
+                     const reco::Track* addTrk,
                      const ModifiedDEtaInSeed::variables& variables,
                      const EcalRecHitCollection* ecalRecHits,
                      const edm::EventSetup& iSetup,
-                     const std::string& prefix);
+                     const std::string& prefix,
+                     const bool isPackedCand);
 
   // non of these are owned by the helper
   void SetFileService(edm::Service<TFileService>* fs) { pFS_ = fs; }
@@ -119,6 +156,7 @@ public:
 private:
   std::map<std::string,TTree*> tree_;
   std::map<std::string,TH1*> histo1d_;
+  std::map<std::string,DielStruct> dielvalues_;
   std::map<std::string,ElectronStruct> elvalues_;
   std::map<std::string,AddTrkStruct> trkvalues_;
 
@@ -131,6 +169,7 @@ private:
 
   double mcweight_;
 
+  TString dielstr_;
   TString elstr_;
   TString addtrkstr_;
 };

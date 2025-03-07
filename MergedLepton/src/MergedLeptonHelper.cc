@@ -10,6 +10,11 @@
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
+
 bool MergedLeptonHelperFct::isNotMerged(const pat::ElectronRef& aEle,
                                         const edm::Handle<edm::View<pat::Electron>>& eleHandle,
                                         const reco::GsfTrackRef& addGsfTrk) {
@@ -39,6 +44,13 @@ bool MergedLeptonHelperFct::isNotMerged(const pat::ElectronRef& aEle,
 
 MergedLeptonHelper::MergedLeptonHelper()
 : pFS_(nullptr) {
+  dielstr_ = TString("weight/F:Gen1stPt:Gen2ndPt:GenDR:")
+  + "passReco1/I:passReco2:"
+  + "passHEEP1:passHEEP2:passHEEPIso1:passHEEPIso2:passHEEPnoIso1:passHEEPnoIso2:"
+  + "passModHeep1:passModHeep2:passModHeepIso1:passModHeepIso2:passModHEEPnoIso1:passModHEEPnoIso2:"
+  + "nGSFtrk:nKFtrk:category:passME:"
+  + "mergedEleMvaScore/F";
+
   elstr_ = TString("weight/F:pt:eta:phi:en:et:charge/I:")
   + "enSC/F:etSC:etaSC:phiSC:etaSeed:phiSeed:etaSCWidth:phiSCWidth:"
   + "full5x5_sigmaIetaIeta:full5x5_sigmaIphiIphi:"
@@ -48,6 +60,9 @@ MergedLeptonHelper::MergedLeptonHelper()
   + "ecalEn:ecalErr:trkErr:combErr:PFcombErr:"
   + "dr03TkSumPtHEEP:dr03EcalRecHitSumEt:dr03HcalDepth1TowerSumEt:"
   + "modTrkIso/F:modEcalIso:"
+  + "passEMHad1Iso/I:passHEEP:passHEEPnoIso:"
+  + "passModEMHad1Iso:passModHeep:passModHEEPnoIso:passME:"
+  + "mergedEleMvaScore/F:"
   + "lostHits/I:nValidHits:nValidPixelHits:GsfHits:"
   + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:"
   + "Gsfpt/F:Gsfeta:Gsfphi:GsfPtErr:"
@@ -65,7 +80,9 @@ MergedLeptonHelper::MergedLeptonHelper()
   + "union5x5covMaj:union5x5covMin:"
   + "alphaCalo:"
   + "GenPt:GenE:"
-  + "u5x5numGood/I:u5x5numPoorReco:u5x5numOutOfTime:u5x5numFaultyHardware:"
+  + "Gen2ndPt:GenDR:"
+  + "nGSFtrk/I:nKFtrk:"
+  + "u5x5numGood:u5x5numPoorReco:u5x5numOutOfTime:u5x5numFaultyHardware:"
   + "u5x5numNoisy:u5x5numPoorCalib:u5x5numSaturated:u5x5numLeadingEdgeRecovered:"
   + "u5x5NeighboursRecovered:u5x5numTowerRecovered:u5x5numDead:u5x5numKilled:"
   + "u5x5numTPSaturated:u5x5numL1SpikeFlag:u5x5numWeird:u5x5numDiWeird:"
@@ -73,10 +90,19 @@ MergedLeptonHelper::MergedLeptonHelper()
   + "u5x5numTPSaturatedAndTowerRecovered";
 
   addtrkstr_ = TString("weight/F:pt:eta:phi:")
-  + "lostHits/I:nValidHits:nValidPixelHits:"
+  + "lostHits/I:nValidHits:nValidPixelHits:charge:chargeProduct:isPackedCand:"
   + "chi2/F:d0:d0Err:dxyErr:vz:dzErr:dxy:dz:ptErr:"
   + "deltaEtaSeedClusterAtVtx:deltaPhiSuperClusterAtVtx:"
-  + "dPerpIn:normalizedDParaIn:alphaTrack";
+  + "dPerpIn:normalizedDParaIn:alphaTrack:"
+  + "vtxLxy:vtxProb:vtxChi2:vtxNdof:dR";
+}
+
+void MergedLeptonHelper::initDielTree(const std::string& name,
+                                      const std::string& prefix,
+                                      const std::string& postfix) {
+  dielvalues_[prefix+"_"+postfix] = DielStruct();
+  tree_[prefix+"_"+postfix+"Tree"] = (*pFS_)->make<TTree>(TString(prefix)+"_"+postfix+"Tree",TString(postfix)+"Tree");
+  tree_[prefix+"_"+postfix+"Tree"]->Branch(TString(name),&(dielvalues_[prefix+"_"+postfix]),dielstr_);
 }
 
 void MergedLeptonHelper::initElectronTree(const std::string& name,
@@ -95,6 +121,76 @@ void MergedLeptonHelper::initAddTrkTree(const std::string& name,
   tree_[prefix+"_"+postfix+"Tree"]->Branch(TString(name),&(trkvalues_[prefix+"_"+postfix]),addtrkstr_);
 }
 
+void MergedLeptonHelper::fillDielectrons(const pat::ElectronRef& e1,
+                                         const pat::ElectronRef& e2,
+                                         const reco::GenParticleRef& p1,
+                                         const reco::GenParticleRef& p2,
+                                         const int category,
+                                         const std::string& prefix,
+                                         const int nGSFtrk,
+                                         const int nKFtrk) {
+  dielvalues_[prefix+"_diel"].weight = mcweight_;
+  dielvalues_[prefix+"_diel"].Gen1stPt = p1->pt();
+  dielvalues_[prefix+"_diel"].Gen2ndPt = p2->pt();
+  dielvalues_[prefix+"_diel"].GenDR = reco::deltaR(p1->eta(),p1->phi(),p2->eta(),p2->phi());
+
+  int32_t maskIso = 0x00000E7F; // = 1110 0111 1111 - 7th for trk iso, 8th for EM+HadD1 iso
+  int32_t maskNoIso = 0x00000180; // = 0001 1000 0000 - 7th for trk iso, 8th for EM+HadD1 iso
+
+  dielvalues_[prefix+"_diel"].nGSFtrk = nGSFtrk;
+  dielvalues_[prefix+"_diel"].nKFtrk = nKFtrk;
+  dielvalues_[prefix+"_diel"].category = category;
+
+  dielvalues_[prefix+"_diel"].passReco1 = static_cast<int>(e1.isNonnull());
+
+  dielvalues_[prefix+"_diel"].passHEEP1 = -1;
+  dielvalues_[prefix+"_diel"].passHEEPIso1 = -1;
+  dielvalues_[prefix+"_diel"].passHEEPnoIso1 = -1;
+  dielvalues_[prefix+"_diel"].passModHeep1 = -1;
+  dielvalues_[prefix+"_diel"].passModHeepIso1 = -1;
+  dielvalues_[prefix+"_diel"].passModHEEPnoIso1 = -1;
+  dielvalues_[prefix+"_diel"].passME = -1;
+  dielvalues_[prefix+"_diel"].mergedEleMvaScore = -1.;
+
+  if (e1.isNonnull()) {
+    dielvalues_[prefix+"_diel"].passHEEP1 = e1->electronID("heepElectronID-HEEPV70");
+    int32_t bitmapHEEP1 = e1->userInt("heepElectronID-HEEPV70");
+    dielvalues_[prefix+"_diel"].passHEEPIso1 = static_cast<int>( (bitmapHEEP1 | maskIso)==0x00000FFF );
+    dielvalues_[prefix+"_diel"].passHEEPnoIso1 = static_cast<int>( (bitmapHEEP1 | maskNoIso)==0x00000FFF );
+
+    dielvalues_[prefix+"_diel"].passModHeep1 = e1->electronID("modifiedHeepElectronID");
+    int32_t bitmapModHEEP1 = e1->userInt("modifiedHeepElectronID");
+    dielvalues_[prefix+"_diel"].passModHeepIso1 = static_cast<int>( (bitmapModHEEP1 | maskIso)==0x00000FFF );
+    dielvalues_[prefix+"_diel"].passModHEEPnoIso1 = static_cast<int>( (bitmapModHEEP1 | maskNoIso)==0x00000FFF );
+
+    dielvalues_[prefix+"_diel"].passME = static_cast<int>( e1->electronID("mvaMergedElectron") );
+    dielvalues_[prefix+"_diel"].mergedEleMvaScore = e1->userFloat("mvaMergedElectronValues");
+  }
+
+  dielvalues_[prefix+"_diel"].passReco2 = static_cast<int>(e2.isNonnull());
+
+  dielvalues_[prefix+"_diel"].passHEEP2 = -1;
+  dielvalues_[prefix+"_diel"].passHEEPIso2 = -1;
+  dielvalues_[prefix+"_diel"].passHEEPnoIso2 = -1;
+  dielvalues_[prefix+"_diel"].passModHeep2 = -1;
+  dielvalues_[prefix+"_diel"].passModHeepIso2 = -1;
+  dielvalues_[prefix+"_diel"].passModHEEPnoIso2 = -1;
+
+  if (e2.isNonnull()) {
+    dielvalues_[prefix+"_diel"].passHEEP2 = e2->electronID("heepElectronID-HEEPV70");
+    int32_t bitmapHEEP2 = e2->userInt("heepElectronID-HEEPV70");
+    dielvalues_[prefix+"_diel"].passHEEPIso2 = static_cast<int>( (bitmapHEEP2 | maskIso)==0x00000FFF );
+    dielvalues_[prefix+"_diel"].passHEEPnoIso2 = static_cast<int>( (bitmapHEEP2 | maskNoIso)==0x00000FFF );
+
+    dielvalues_[prefix+"_diel"].passModHeep2 = e2->electronID("modifiedHeepElectronID");
+    int32_t bitmapModHEEP2 = e2->userInt("modifiedHeepElectronID");
+    dielvalues_[prefix+"_diel"].passModHeepIso2 = static_cast<int>( (bitmapModHEEP2 | maskIso)==0x00000FFF );
+    dielvalues_[prefix+"_diel"].passModHEEPnoIso2 = static_cast<int>( (bitmapModHEEP2 | maskNoIso)==0x00000FFF );
+  }
+
+  tree_[prefix+"_dielTree"]->Fill();
+}
+
 void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
                                        const float& trkIso,
                                        const float& ecalIso,
@@ -104,7 +200,9 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
                                        const edm::EventSetup& iSetup,
                                        const std::string& prefix,
                                        const float genPt,
-                                       const float genE) {
+                                       const float genE,
+                                       const int nGSFtrk, const int nKFtrk,
+                                       const float Gen2ndPt, const float GenDR) {
   auto square = [](const double& val) { return val*val; };
   double rad = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()) + square(el->superCluster()->z()));
   double radTrans = std::sqrt(square(el->superCluster()->x()) + square(el->superCluster()->y()));
@@ -155,6 +253,21 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
   elvalues_[prefix+"_el"].dr03HcalDepth1TowerSumEt = el->dr03HcalDepth1TowerSumEt();
   elvalues_[prefix+"_el"].modTrkIso = trkIso;
   elvalues_[prefix+"_el"].modEcalIso = ecalIso;
+
+  int32_t bitmapHEEP = el->userInt("heepElectronID-HEEPV70");
+  int32_t maskIso = 0x00000E7F; // = 1110 0111 1111 - 7th for trk iso, 8th for EM+HadD1 iso
+  int32_t maskEMHad1Iso = 0x00000EFF; // = 1110 1111 1111 - 7th for trk iso, 8th for EM+HadD1 iso
+  int32_t maskNoIso = 0x00000180; // = 0001 1000 0000 - 7th for trk iso, 8th for EM+HadD1 iso
+  elvalues_[prefix+"_el"].passEMHad1Iso = static_cast<int>( (bitmapHEEP | maskEMHad1Iso)==0x00000FFF );
+  elvalues_[prefix+"_el"].passHEEPnoIso = static_cast<int>( (bitmapHEEP | maskNoIso)==0x00000FFF );
+  elvalues_[prefix+"_el"].passHEEP = static_cast<int>( el->electronID("heepElectronID-HEEPV70") );
+
+  int32_t bitmapModHEEP = el->userInt("modifiedHeepElectronID");
+  elvalues_[prefix+"_el"].passModEMHad1Iso = static_cast<int>( (bitmapModHEEP | maskEMHad1Iso)==0x00000FFF );
+  elvalues_[prefix+"_el"].passModHEEPnoIso = static_cast<int>( (bitmapModHEEP | maskNoIso)==0x00000FFF );
+  elvalues_[prefix+"_el"].passModHeep = static_cast<int>( el->electronID("modifiedHeepElectronID") );
+  elvalues_[prefix+"_el"].passME = static_cast<int>( el->electronID("mvaMergedElectron") );
+  elvalues_[prefix+"_el"].mergedEleMvaScore = el->userFloat("mvaMergedElectronValues");
 
   const auto GSFtrack = el->gsfTrack();
   elvalues_[prefix+"_el"].lostHits = GSFtrack->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
@@ -265,6 +378,10 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
   // signal MC only
   elvalues_[prefix+"_el"].GenPt = genPt;
   elvalues_[prefix+"_el"].GenE = genE;
+  elvalues_[prefix+"_el"].Gen2ndPt = Gen2ndPt;
+  elvalues_[prefix+"_el"].GenDR = GenDR;
+  elvalues_[prefix+"_el"].nGSFtrk = nGSFtrk;
+  elvalues_[prefix+"_el"].nKFtrk = nKFtrk;
 
   // temporary recHit status check
   auto setRecHitFlags = [&,this] (int aFlag) {
@@ -391,11 +508,12 @@ void MergedLeptonHelper::fillElectrons(const pat::ElectronRef& el,
 }
 
 void MergedLeptonHelper::fillAddTracks(const pat::ElectronRef& el,
-                                       const reco::TrackBase* addTrk,
+                                       const reco::Track* addTrk,
                                        const ModifiedDEtaInSeed::variables& variables,
                                        const EcalRecHitCollection* ecalRecHits,
                                        const edm::EventSetup& iSetup,
-                                       const std::string& prefix) {
+                                       const std::string& prefix,
+                                       const bool isPackedCand) {
   trkvalues_[prefix+"_addTrk"].weight = mcweight_;
 
   trkvalues_[prefix+"_addTrk"].pt = addTrk->pt();
@@ -420,6 +538,36 @@ void MergedLeptonHelper::fillAddTracks(const pat::ElectronRef& el,
   trkvalues_[prefix+"_addTrk"].dPerpIn = variables.dPerpIn;
   trkvalues_[prefix+"_addTrk"].alphaTrack = variables.alphaTrack;
   trkvalues_[prefix+"_addTrk"].normalizedDParaIn = variables.normalizedDParaIn;
+
+  trkvalues_[prefix+"_addTrk"].charge = addTrk->charge();
+  trkvalues_[prefix+"_addTrk"].chargeProduct = el->gsfTrack()->charge()*addTrk->charge();
+  trkvalues_[prefix+"_addTrk"].isPackedCand = static_cast<int>(isPackedCand);
+  trkvalues_[prefix+"_addTrk"].dR = reco::deltaR(el->gsfTrack()->eta(),el->gsfTrack()->phi(),
+                                                 addTrk->eta(),addTrk->phi());
+
+  // vtx fit info
+  edm::ESHandle<TransientTrackBuilder> TTbuilder;
+  auto fitter = KalmanVertexFitter();
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+  auto firstEle = TTbuilder->build(el->gsfTrack());
+
+  std::vector<reco::TransientTrack> trackPair;
+  trackPair.push_back(firstEle);
+  trackPair.push_back(TTbuilder->build(addTrk));
+
+  TransientVertex aVtx = fitter.vertex(trackPair);
+
+  trkvalues_[prefix+"_addTrk"].vtxLxy = -1.;
+  trkvalues_[prefix+"_addTrk"].vtxProb = -1.;
+  trkvalues_[prefix+"_addTrk"].vtxChi2 = -1.;
+  trkvalues_[prefix+"_addTrk"].vtxNdof = -1.;
+
+  if (aVtx.isValid()) {
+    trkvalues_[prefix+"_addTrk"].vtxLxy = aVtx.vertexState().position().perp();
+    trkvalues_[prefix+"_addTrk"].vtxProb = TMath::Prob(aVtx.totalChiSquared(),static_cast<int>(std::rint(aVtx.degreesOfFreedom())));
+    trkvalues_[prefix+"_addTrk"].vtxChi2 = aVtx.totalChiSquared();
+    trkvalues_[prefix+"_addTrk"].vtxNdof = aVtx.degreesOfFreedom();
+  }
 
   tree_[prefix+"_addTrkTree"]->Fill();
 }

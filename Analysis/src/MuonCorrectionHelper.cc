@@ -78,6 +78,169 @@ bool MuonCorrectionHelper::checkIso(const pat::MuonRef& mu,
   return true;
 }
 
+void MuonCorrectionHelper::modifiedIso(std::vector<pat::MuonRef>& isolatedHighPtMuons,
+                                       std::vector<pat::MuonRef>& isolatedHighPtTrackerMuons,
+                                       std::vector<pat::MuonRef>& boostedMuons,
+                                       const std::vector<pat::MuonRef>& highPtMuons,
+                                       const std::vector<pat::MuonRef>& highPtTrackerMuons,
+                                       const reco::BeamSpot& bs) {
+  auto sortByTuneP = [] (const pat::MuonRef& a, const pat::MuonRef& b) {
+    return a->tunePMuonBestTrack()->pt() > b->tunePMuonBestTrack()->pt();
+  };
+
+  for (unsigned idx = 0; idx < highPtMuons.size(); idx++) {
+    const auto& firstMuon = highPtMuons.at(idx);
+    double firstIso = firstMuon->trackIso();
+
+    std::vector<pat::MuonRef> isoCands;
+
+    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
+      const auto& secondMuon = highPtMuons.at(jdx);
+
+      if (firstMuon==secondMuon)
+        continue;
+
+      if ( checkIso(firstMuon,secondMuon->innerTrack(),bs) )
+        isoCands.push_back(secondMuon);
+    }
+
+    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
+      const auto& secondMuon = highPtTrackerMuons.at(jdx);
+
+      if ( checkIso(firstMuon,secondMuon->innerTrack(),bs) )
+        isoCands.push_back(secondMuon);
+    }
+
+    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
+
+    if (!isoCands.empty())
+      firstIso -= isoCands.front()->innerTrack()->pt();
+
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
+      isolatedHighPtMuons.push_back(firstMuon);
+
+      if (!isoCands.empty())
+        boostedMuons.push_back(firstMuon);
+    }
+  }
+
+  for (unsigned idx = 0; idx < highPtTrackerMuons.size(); idx++) {
+    const auto& firstMuon = highPtTrackerMuons.at(idx);
+    double firstIso = firstMuon->trackIso();
+
+    std::vector<pat::MuonRef> isoCands;
+
+    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
+      const auto& secondMuon = highPtTrackerMuons.at(jdx);
+
+      if (firstMuon==secondMuon)
+        continue;
+
+      if ( checkIso(firstMuon,secondMuon->innerTrack(),bs) )
+        isoCands.push_back(secondMuon);
+    }
+
+    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
+      const auto& secondMuon = highPtMuons.at(jdx);
+
+      if ( checkIso(firstMuon,secondMuon->innerTrack(),bs) )
+        isoCands.push_back(secondMuon);
+    }
+
+    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
+
+    if (!isoCands.empty())
+      firstIso -= isoCands.front()->innerTrack()->pt();
+
+    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
+      isolatedHighPtTrackerMuons.push_back(firstMuon);
+
+      if (!isoCands.empty())
+        boostedMuons.push_back(firstMuon);
+    }
+  }
+}
+
+void MuonCorrectionHelper::nonHighPtMuonIso(std::vector<pat::MuonRef>& nonHighPtMuons,
+                                            std::vector<pat::MuonRef>& nonHighPtMuonsVLiso,
+                                            std::map<pat::MuonRef,float>& nonHighPtIsos,
+                                            const edm::Handle<edm::View<pat::Muon>>& muonHandle,
+                                            const std::vector<pat::MuonRef>& allHighPtMuons,
+                                            const std::vector<pat::MuonRef>& highPtMuons,
+                                            const std::vector<pat::MuonRef>& highPtTrackerMuons,
+                                            const reco::Vertex& pv,
+                                            const reco::BeamSpot& bs,
+                                            const double ptThres) {
+  auto sortByTuneP = [] (const pat::MuonRef& a, const pat::MuonRef& b) {
+    return a->tunePMuonBestTrack()->pt() > b->tunePMuonBestTrack()->pt();
+  };
+
+  for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
+    const auto& aMuon = muonHandle->refAt(idx);
+
+    if ( !aMuon->isTrackerMuon() || aMuon->track().isNull() )
+      continue;
+
+    if ( aMuon->tunePMuonBestTrack()->pt() < ptThres || std::abs(aMuon->eta()) > 2.4 )
+      continue;
+
+    const auto castMu = aMuon.castTo<pat::MuonRef>();
+
+    if ( std::find( allHighPtMuons.begin(), allHighPtMuons.end(), castMu ) != allHighPtMuons.end() )
+      continue;
+
+    bool hits = aMuon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5
+                && aMuon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
+
+    bool ip = std::abs(aMuon->innerTrack()->dxy(pv.position())) < 0.2
+              && std::abs(aMuon->innerTrack()->dz(pv.position())) < 0.5;
+
+    if ( aMuon->numberOfMatchedStations() >= 1 && hits && ip )
+      nonHighPtMuons.push_back(castMu);
+  }
+
+  for (unsigned idx = 0; idx < nonHighPtMuons.size(); idx++) {
+    const auto& firstMuon = nonHighPtMuons.at(idx);
+    double firstIso = firstMuon->trackIso();
+
+    std::vector<pat::MuonRef> isoCands;
+
+    for (unsigned jdx = 0; jdx < nonHighPtMuons.size(); jdx++) {
+      const auto& secondMuon = nonHighPtMuons.at(jdx);
+
+      if (firstMuon==secondMuon)
+        continue;
+
+      if ( checkIso(firstMuon,secondMuon->innerTrack(),bs) )
+        isoCands.push_back(secondMuon);
+    }
+
+    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
+      const auto& secondMuon = highPtMuons.at(jdx);
+
+      if ( checkIso(firstMuon,secondMuon->innerTrack(),bs) )
+        isoCands.push_back(secondMuon);
+    }
+
+    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
+      const auto& secondMuon = highPtTrackerMuons.at(jdx);
+
+      if ( checkIso(firstMuon,secondMuon->innerTrack(),bs) )
+        isoCands.push_back(secondMuon);
+    }
+
+    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
+
+    if (!isoCands.empty())
+      firstIso -= isoCands.front()->innerTrack()->pt();
+
+    nonHighPtIsos.insert(std::pair<pat::MuonRef,float>(firstMuon,firstIso));
+
+    if (firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.5)
+      nonHighPtMuonsVLiso.push_back(firstMuon);
+  }
+}
+
 double MuonCorrectionHelper::recoSF(const pat::MuonRef& mu) {
   double momentum = std::min(std::max(mu->tunePMuonBestTrack()->p(),50.001),3500.-1e-3);
   double eta = mu->tunePMuonBestTrack()->eta();
@@ -285,10 +448,10 @@ double MuonCorrectionHelper::nominalMC(const pat::MuonRef& mu, const edm::Handle
 }
 
 double MuonCorrectionHelper::altScale(const pat::MuonRef&mu, const std::vector<double>& kb, bool isMC) const {
-  if (mu->tunePMuonBestTrack()->pt() <= 200.)
-    return 1.;
+  // if (mu->tunePMuonBestTrack()->pt() <= 200.)
+  //   return 1.;
 
-  if (isMC)
+  if (!isMC) // alter MC instead of data
     return 1.;
 
   const auto tp = mu->tunePMuonBestTrack();
@@ -317,7 +480,8 @@ double MuonCorrectionHelper::altScale(const pat::MuonRef&mu, const std::vector<d
   unsigned idx = 6*row + col;
   const double bias = kb.at(idx);
 
-  return std::max(1./(1.+static_cast<double>(tp->charge())*tp->pt()*bias),0.);
+  // bias unit is charge/TeV...
+  return std::max(1./(1.+static_cast<double>(tp->charge())*tp->pt()*0.001*bias),0.);
 }
 
 double MuonCorrectionHelper::smear(const pat::MuonRef& mu,

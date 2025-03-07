@@ -29,6 +29,10 @@
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 
 #include "TH1D.h"
 #include "TH2F.h"
@@ -99,6 +103,10 @@ private:
   float invM_ = -1.;
   float u5x5Et_ = -1.;
   float wgt_ = 0.;
+  float dxy_ = std::numeric_limits<float>::max();
+  float dxyErr_ = std::numeric_limits<float>::max();
+  float vxy_ = std::numeric_limits<float>::max();
+  float ip3d_ = std::numeric_limits<float>::max();
   int passME_ = -1;
 };
 
@@ -163,6 +171,10 @@ void MergedLeptonIDConversionAnalyzer::beginJob() {
   tree_->Branch("invM",&invM_,"invM/F");
   tree_->Branch("u5x5Et",&u5x5Et_,"u5x5Et/F");
   tree_->Branch("wgt",&wgt_,"wgt/F");
+  tree_->Branch("dxy",&dxy_,"dxy/F");
+  tree_->Branch("dxyErr",&dxyErr_,"dxyErr/F");
+  tree_->Branch("vxy",&vxy_,"vxy/F");
+  tree_->Branch("ip3d",&ip3d_,"ip3d/F");
   tree_->Branch("passME",&passME_,"passME/I");
 
   auto createProbeHisto = [&,this] (const std::string& prefix) {
@@ -712,9 +724,18 @@ void MergedLeptonIDConversionAnalyzer::analyze(const edm::Event& iEvent, const e
               fillProbes("singleLeg_",nullptr,conv,trackIso);
 
               if (fsrCR) {
+                edm::ESHandle<TransientTrackBuilder> TTbuilder;
+                iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",TTbuilder);
+                const reco::TransientTrack aTransTrack = TTbuilder->build(aEle->gsfTrack());
+                std::pair<bool, Measurement1D> ip3dConv = IPTools::signedImpactParameter3D(aTransTrack, GlobalVector(aEle->px(),aEle->py(),aEle->pz()), *primaryVertex);
+
                 invM_ = massMMG;
                 u5x5Et_ = u5x5Et;
                 wgt_ = aWeight;
+                dxy_ = aEle->gsfTrack()->dxy(primaryVertex->position());
+                dxyErr_ = aEle->gsfTrack()->dxyError(primaryVertex->position(),primaryVertex->covariance());
+                vxy_ = aEle->gsfTrack()->referencePoint().rho();
+                ip3d_ = ip3dConv.second.value();
                 passME_ = static_cast<int>(passMergedElectronID);
                 tree_->Fill();
               }

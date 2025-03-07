@@ -74,6 +74,7 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> modifiedTrkIsoToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dPerpInToken_;
 
   const std::vector<std::string> METfilterList_;
   const std::vector<std::string> trigList_;
@@ -117,7 +118,7 @@ private:
   TFitResultPtr osFit_;
 
   std::unique_ptr<TFile> MMFFfile_;
-  TF1* ffFunc_;
+  std::unique_ptr<TF1> ffFunc_;
   TFitResultPtr fitResult_;
 
   std::map<std::string,TH1*> histo1d_;
@@ -127,6 +128,8 @@ private:
   unsigned int runNo_ = 0;
   unsigned int lumiNo_ = 0;
   unsigned long long evtNo_ = 0;
+  float interestMll_ = -1.;
+  float interestM4l_ = -1.;
 };
 
 MergedEMuCRanalyzer::MergedEMuCRanalyzer(const edm::ParameterSet& iConfig) :
@@ -151,6 +154,7 @@ union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::In
 union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
 modifiedTrkIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("modifiedTrkIso"))),
+dPerpInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPerpIn"))),
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
@@ -218,8 +222,9 @@ void MergedEMuCRanalyzer::beginJob() {
   osFit_ = os2d_->Fit(osboth_,"RS");
 
   MMFFfile_ = std::make_unique<TFile>(MMFFpath_.fullPath().c_str(),"READ");
-  ffFunc_ = static_cast<TF1*>(MMFFfile_->FindObjectAny("MMFF"));
-  fitResult_ = (static_cast<TH1D*>(MMFFfile_->Get("1M_MMFF_numer_rebin")))->Fit(ffFunc_,"RS");
+  ffFunc_ = std::make_unique<TF1>("ffFunc","[0]",0.,2500.);
+  // ffFunc_ = static_cast<TF1*>(MMFFfile_->FindObjectAny("MMFF"));
+  fitResult_ = (static_cast<TH1D*>(MMFFfile_->Get("1M_MMFF_numer_rebin")))->Fit(ffFunc_.get(),"RS");
 
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["totWeightedSum_2E2M"] = fs->make<TH1D>("totWeightedSum_2E2M","totWeightedSum_2E2M",1,0.,1.);
@@ -412,6 +417,8 @@ void MergedEMuCRanalyzer::beginJob() {
   histo1d_["1M_CRME_mt_elRecoDn"] = fs->make<TH1D>("1M_CRME_mt_elRecoDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_mergedEleIdUp"] = fs->make<TH1D>("1M_CRME_mt_mergedEleIdUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_mergedEleIdDn"] = fs->make<TH1D>("1M_CRME_mt_mergedEleIdDn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["1M_CRME_mt_mergedEleScale"] = fs->make<TH1D>("1M_CRME_mt_mergedEleScale","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["1M_CRME_mt_mergedEleSmear"] = fs->make<TH1D>("1M_CRME_mt_mergedEleSmear","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muIdUp"] = fs->make<TH1D>("1M_CRME_mt_muIdUp","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muIdDn"] = fs->make<TH1D>("1M_CRME_mt_muIdDn","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_mt_muIsoUp"] = fs->make<TH1D>("1M_CRME_mt_muIsoUp","m_{T};m_{T};",500,0.,2500.);
@@ -446,6 +453,7 @@ void MergedEMuCRanalyzer::beginJob() {
   histo1d_["1M_CRME_antiRpt_mt_xFF"] = fs->make<TH1D>("1M_CRME_antiRpt_mt_xFF","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_antiRpt_mt_xFF_up"] = fs->make<TH1D>("1M_CRME_antiRpt_mt_xFF_up","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_antiRpt_mt_xFF_dn"] = fs->make<TH1D>("1M_CRME_antiRpt_mt_xFF_dn","m_{T};m_{T};",500,0.,2500.);
+  histo1d_["1M_CRME_antiRpt_mt_xFF_mergedEleScale"] = fs->make<TH1D>("1M_CRME_antiRpt_mt_xFF_mergedEleScale","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_antiRpt_mt_xFF_JESup"] = fs->make<TH1D>("1M_CRME_antiRpt_mt_xFF_JESup","m_{T};m_{T};",500,0.,2500.);
   histo1d_["1M_CRME_antiRpt_mt_xFF_JESdn"] = fs->make<TH1D>("1M_CRME_antiRpt_mt_xFF_JESdn","m_{T};m_{T};",500,0.,2500.);
 
@@ -656,6 +664,8 @@ void MergedEMuCRanalyzer::beginJob() {
   interestEvtTree_->Branch("runNo",&runNo_,"runNo/i");
   interestEvtTree_->Branch("lumiNo",&lumiNo_,"lumiNo/i");
   interestEvtTree_->Branch("evtNo",&evtNo_,"evtNo/l");
+  interestEvtTree_->Branch("mll",&interestMll_,"mll/F");
+  interestEvtTree_->Branch("m4l",&interestM4l_,"m4l/F");
 }
 
 void MergedEMuCRanalyzer::endJob() {
@@ -848,77 +858,8 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     return a->tunePMuonBestTrack()->pt() > b->tunePMuonBestTrack()->pt();
   };
 
-  for (unsigned idx = 0; idx < highPtMuons.size(); idx++) {
-    const auto& firstMuon = highPtMuons.at(idx);
-    double firstIso = firstMuon->trackIso();
-
-    std::vector<pat::MuonRef> isoCands;
-
-    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
-      const auto& secondMuon = highPtMuons.at(jdx);
-
-      if (firstMuon==secondMuon)
-        continue;
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
-      const auto& secondMuon = highPtTrackerMuons.at(jdx);
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
-
-    if (!isoCands.empty())
-      firstIso -= isoCands.front()->innerTrack()->pt();
-
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
-      isolatedHighPtMuons.push_back(firstMuon);
-
-      if (!isoCands.empty())
-        boostedMuons.push_back(firstMuon);
-    }
-  }
-
-  for (unsigned idx = 0; idx < highPtTrackerMuons.size(); idx++) {
-    const auto& firstMuon = highPtTrackerMuons.at(idx);
-    double firstIso = firstMuon->trackIso();
-
-    std::vector<pat::MuonRef> isoCands;
-
-    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
-      const auto& secondMuon = highPtTrackerMuons.at(jdx);
-
-      if (firstMuon==secondMuon)
-        continue;
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
-      const auto& secondMuon = highPtMuons.at(jdx);
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
-
-    if (!isoCands.empty())
-      firstIso -= isoCands.front()->innerTrack()->pt();
-
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
-      isolatedHighPtTrackerMuons.push_back(firstMuon);
-
-      if (!isoCands.empty())
-        boostedMuons.push_back(firstMuon);
-    }
-  }
+  mucorrHelper_.modifiedIso(isolatedHighPtMuons,isolatedHighPtTrackerMuons,boostedMuons,
+                            highPtMuons,highPtTrackerMuons,*beamSpotHandle);
 
   std::sort(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),sortByTuneP);
   std::sort(isolatedHighPtTrackerMuons.begin(),isolatedHighPtTrackerMuons.end(),sortByTuneP);
@@ -974,32 +915,21 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     return;
 
   std::vector<pat::MuonRef> nonHighPtMuons;
+  std::vector<pat::MuonRef> nonHighPtMuonsVLiso;
+  std::map<pat::MuonRef,float> nonHighPtIsos;
 
-  for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
-    const auto& aMuon = muonHandle->refAt(idx);
+  mucorrHelper_.nonHighPtMuonIso(nonHighPtMuons,
+                                 nonHighPtMuonsVLiso,
+                                 nonHighPtIsos,
+                                 muonHandle,
+                                 allHighPtMuons,
+                                 highPtMuons,
+                                 highPtTrackerMuons,
+                                 primaryVertex,
+                                 *beamSpotHandle,
+                                 ptMuThres_);
 
-    if ( !aMuon->isTrackerMuon() || aMuon->track().isNull() )
-      continue;
-
-    if ( aMuon->tunePMuonBestTrack()->pt() < ptMuThres_ || std::abs(aMuon->eta()) > 2.4 )
-      continue;
-
-    const auto castMu = aMuon.castTo<pat::MuonRef>();
-
-    if ( std::find( allHighPtMuons.begin(), allHighPtMuons.end(), castMu ) != allHighPtMuons.end() )
-      continue;
-
-    bool hits = aMuon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5
-                && aMuon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
-
-    bool ip = std::abs(aMuon->innerTrack()->dxy(primaryVertex.position())) < 0.2
-              && std::abs(aMuon->innerTrack()->dz(primaryVertex.position())) < 0.5;
-
-    if ( aMuon->numberOfMatchedStations() >= 1 && hits && ip )
-      nonHighPtMuons.push_back(castMu);
-  }
-
-  if (!nonHighPtMuons.empty())
+  if (!nonHighPtMuonsVLiso.empty())
     return;
 
   histo1d_["cutflow_2M"]->Fill( 4.5, aWeight );
@@ -1026,6 +956,9 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   edm::Handle<edm::ValueMap<float>> modifiedTrkIsoHandle;
   iEvent.getByToken(modifiedTrkIsoToken_, modifiedTrkIsoHandle);
+
+  edm::Handle<edm::ValueMap<float>> dPerpInHandle;
+  iEvent.getByToken(dPerpInToken_, dPerpInHandle);
 
   std::vector<pat::ElectronRef> acceptEles;
   std::vector<pat::ElectronRef> nonHeepEles;
@@ -1054,15 +987,12 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
 
     if (!selected) {
-      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
-      int32_t mask = 0x000007B0; // = 0111 1011 0000
-      int32_t pass = bitmap | mask;
-      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+      auto castEle = aEle.castTo<pat::ElectronRef>();
 
-      if (passMaskedId) {
-        auto castEle = aEle.castTo<pat::ElectronRef>();
+      bool isNonHeepEle = systHelperEle_.isNonHeepEle(castEle,(*modifiedTrkIsoHandle)[castEle],(*dPerpInHandle)[castEle]);
+
+      if (isNonHeepEle)
         nonHeepEles.push_back(castEle);
-      }
     }
 
     if (true) {
@@ -1310,16 +1240,16 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     double momcorr1 = 1.;
     double momcorr2 = 1.;
 
-    if (isMC_) {
-      edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-      iEvent.getByToken(genptcToken_, genptcHandle);
-
-      momcorr1 = mucorrHelper_.nominalMC(aMu,genptcHandle);
-      momcorr2 = mucorrHelper_.nominalMC(bMu,genptcHandle);
-    } else {
-      momcorr1 = mucorrHelper_.nominalData(aMu);
-      momcorr2 = mucorrHelper_.nominalData(bMu);
-    }
+    // if (isMC_) {
+    //   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+    //   iEvent.getByToken(genptcToken_, genptcHandle);
+    //
+    //   momcorr1 = mucorrHelper_.nominalMC(aMu,genptcHandle);
+    //   momcorr2 = mucorrHelper_.nominalMC(bMu,genptcHandle);
+    // } else {
+    //   momcorr1 = mucorrHelper_.nominalData(aMu);
+    //   momcorr2 = mucorrHelper_.nominalData(bMu);
+    // }
 
     const auto lvecM1 = math::PtEtaPhiMLorentzVector(aMu->tunePMuonBestTrack()->pt(),
                                                      aMu->tunePMuonBestTrack()->eta(),
@@ -1332,15 +1262,19 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     const auto lvecMa = lvecM1*momcorr1*mucorrHelper_.smear(aMu,muSmearParams_,muSmearFactors_,isMC_);
     const auto lvecMb = lvecM2*momcorr2*mucorrHelper_.smear(bMu,muSmearParams_,muSmearFactors_,isMC_);
-    const auto lvecM1alt = lvecM1*mucorrHelper_.altScale(aMu,muScaleBias_,isMC_);
-    const auto lvecM2alt = lvecM2*mucorrHelper_.altScale(bMu,muScaleBias_,isMC_);
-    const auto lvecM1smear = lvecMa*mucorrHelper_.smear(aMu,muSmearParams_,{0.46,0.46},isMC_);
-    const auto lvecM2smear = lvecMb*mucorrHelper_.smear(bMu,muSmearParams_,{0.46,0.46},isMC_);
+    const auto lvecM1alt = lvecM1*mucorrHelper_.altScale(aMu,muScaleBias_,isMC_)*mucorrHelper_.smear(aMu,muSmearParams_,muSmearFactors_,isMC_);
+    const auto lvecM2alt = lvecM2*mucorrHelper_.altScale(bMu,muScaleBias_,isMC_)*mucorrHelper_.smear(bMu,muSmearParams_,muSmearFactors_,isMC_);
+    const auto lvecM1smear = lvecMa*momcorr1*mucorrHelper_.smear(aMu,muSmearParams_,{0.46,0.46},isMC_);
+    const auto lvecM2smear = lvecMb*momcorr2*mucorrHelper_.smear(bMu,muSmearParams_,{0.46,0.46},isMC_);
 
     if ( CRMEs.size()==1 && antiMEs.size()==0 ) {
-      const auto lvecCRME = lvecME(CRMEs.front());
-      const auto lvecCRME_scale = systHelperEle_.mergedEleScale(CRMEs.front())*lvecCRME;
-      const auto lvecCRME_smear = systHelperEle_.mergedEleSmear(CRMEs.front(),(*union5x5EnergyHandle)[CRMEs.front()])*lvecCRME;
+      const double scale = systHelperEle_.mergedEleScale(CRMEs.front(),isMC_);
+      const double smear = systHelperEle_.mergedEleSmear(CRMEs.front(),(*union5x5EnergyHandle)[CRMEs.front()],isMC_);
+
+      const auto lvecCRME = scale*smear*lvecME(CRMEs.front());
+      const auto lvecCRME_scale = systHelperEle_.mergedEleScale(CRMEs.front(),false)*smear*lvecME(CRMEs.front());
+      const auto lvecCRME_smear = scale*lvecME(CRMEs.front());
+
       const auto lvecCRllME = lvecCRME + lvecMa + lvecMb;
       const auto lvecll = lvecMa + lvecMb;
       const auto lvecl1ME = lvecMa + lvecCRME;
@@ -1386,6 +1320,8 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           runNo_ = iEvent.id().run();
           lumiNo_ = iEvent.id().luminosityBlock();
           evtNo_ = iEvent.id().event();
+          interestMll_ = mll;
+          interestM4l_ = mlll;
           interestEvtTree_->Fill();
         }
       }
@@ -1597,14 +1533,14 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     double momcorr1 = 1.;
 
-    if (isMC_) {
-      edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-      iEvent.getByToken(genptcToken_, genptcHandle);
-
-      momcorr1 = mucorrHelper_.nominalMC(aMu,genptcHandle);
-    } else {
-      momcorr1 = mucorrHelper_.nominalData(aMu);
-    }
+    // if (isMC_) {
+    //   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+    //   iEvent.getByToken(genptcToken_, genptcHandle);
+    //
+    //   momcorr1 = mucorrHelper_.nominalMC(aMu,genptcHandle);
+    // } else {
+    //   momcorr1 = mucorrHelper_.nominalData(aMu);
+    // }
 
     const auto lvecM1 = math::PtEtaPhiMLorentzVector(aMu->tunePMuonBestTrack()->pt(),
                                                      aMu->tunePMuonBestTrack()->eta(),
@@ -1628,13 +1564,21 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     if ( CRMEs.size()==1 && antiMEs.size()==0 ) {
       histo1d_["cutflow_1M"]->Fill( 6.5, aWeight );
 
-      const auto lvecCRME = lvecME(CRMEs.front());
+      const double scale = systHelperEle_.mergedEleScale(CRMEs.front(),isMC_);
+      const double smear = systHelperEle_.mergedEleSmear(CRMEs.front(),(*union5x5EnergyHandle)[CRMEs.front()],isMC_);
+
+      const auto lvecCRME = scale*smear*lvecME(CRMEs.front());
+      const auto lvecCRME_scale = systHelperEle_.mergedEleScale(CRMEs.front(),false)*smear*lvecME(CRMEs.front());
+      const auto lvecCRME_smear = scale*lvecME(CRMEs.front());
+
       const auto lvecCRll = lvecCRME + lvecMa;
 
       const auto tpMET = metp4 - lvecMa - lvecCRME
                                + aMu->p4() + CRMEs.front()->p4();
       const auto lvecCRllMET = lvecCRME + lvecMa + tpMET;
       const double mtllMET = std::min(lvecCRllMET.mt(),2499.9);
+      const double mtllMETmergedEleScale = std::min((lvecCRME_scale + lvecMa + tpMET).mt(),2499.9);
+      const double mtllMETmergedEleSmear = std::min((lvecCRME_smear + lvecMa + tpMET).mt(),2499.9);
       const double mtllMETjesUp = std::min((lvecCRllMET+deltaJESup).mt(),2499.9);
       const double mtllMETjesDn = std::min((lvecCRllMET+deltaJESdn).mt(),2499.9);
       const double mtllMETjerUp = std::min((lvecCRllMET+deltaJERup).mt(),2499.9);
@@ -1702,6 +1646,8 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
             histo1d_["1M_CRME_mt_elRecoDn"]->Fill( mtllMET, recoSFcl95(aWeight).second );
             histo1d_["1M_CRME_mt_mergedEleIdUp"]->Fill( mtllMET, mergedEleSFcl95(aWeight).first );
             histo1d_["1M_CRME_mt_mergedEleIdDn"]->Fill( mtllMET, mergedEleSFcl95(aWeight).second );
+            histo1d_["1M_CRME_mt_mergedEleScale"]->Fill( mtllMETmergedEleScale, aWeight );
+            histo1d_["1M_CRME_mt_mergedEleSmear"]->Fill( mtllMETmergedEleSmear, aWeight );
             histo1d_["1M_CRME_mt_muIdUp"]->Fill( mtllMET, aWeight*systSFratio(muIdSyst).first );
             histo1d_["1M_CRME_mt_muIdDn"]->Fill( mtllMET, aWeight*systSFratio(muIdSyst).second );
             histo1d_["1M_CRME_mt_muIsoUp"]->Fill( mtllMET, aWeight*systSFratio(muIsoSyst).first );
@@ -1738,6 +1684,7 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           histo1d_["1M_CRME_antiRpt_ratioPt"]->Fill( ratioPt, aWeight );
           histo1d_["1M_CRME_antiRpt_mt"]->Fill( mtllMET, aWeight );
           histo1d_["1M_CRME_antiRpt_mt_xFF"]->Fill( mtllMET, aWeight*ffMM );
+          histo1d_["1M_CRME_antiRpt_mt_xFF_mergedEleScale"]->Fill( mtllMETmergedEleScale, aWeight*ffMM );
           histo1d_["1M_CRME_antiRpt_mt_xFF_up"]->Fill( mtllMET, aWeight*(ffMM+ciMM[0]) );
           histo1d_["1M_CRME_antiRpt_mt_xFF_dn"]->Fill( mtllMET, aWeight*(ffMM-std::min(ciMM[0],ffMM)) );
           histo1d_["1M_CRME_antiRpt_mt_xFF_JESup"]->Fill( mtllMETjesUp, aWeight*ffMM );
@@ -1845,14 +1792,14 @@ void MergedEMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     double momcorr1 = 1.;
 
-    if (isMC_) {
-      edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-      iEvent.getByToken(genptcToken_, genptcHandle);
-
-      momcorr1 = mucorrHelper_.nominalMC(aMu,genptcHandle);
-    } else {
-      momcorr1 = mucorrHelper_.nominalData(aMu);
-    }
+    // if (isMC_) {
+    //   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+    //   iEvent.getByToken(genptcToken_, genptcHandle);
+    //
+    //   momcorr1 = mucorrHelper_.nominalMC(aMu,genptcHandle);
+    // } else {
+    //   momcorr1 = mucorrHelper_.nominalData(aMu);
+    // }
 
     const auto lvecM1 = math::PtEtaPhiMLorentzVector(aMu->tunePMuonBestTrack()->pt(),
                                                      aMu->tunePMuonBestTrack()->eta(),

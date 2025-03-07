@@ -46,6 +46,9 @@ private:
   const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
+  const edm::EDGetTokenT<edm::View<reco::GsfTrack>> GsfTrkToken_;
+  const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> candToken_;
+  const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> lostTrackToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> dPerpInToken_;
@@ -86,6 +89,9 @@ MergedEleSigMvaInput::MergedEleSigMvaInput(const edm::ParameterSet& iConfig)
 : srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
   srcGenPtc_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("srcGenPtc"))),
   pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
+  GsfTrkToken_(consumes<edm::View<reco::GsfTrack>>(iConfig.getParameter<edm::InputTag>("srcGsfTrack"))),
+  candToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("srcPackedCand"))),
+  lostTrackToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("srcLostTracks"))),
   trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
   ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ecalIsoMap"))),
   dPerpInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPerpIn"))),
@@ -124,6 +130,7 @@ void MergedEleSigMvaInput::beginJob() {
   aHelper_.SetFileService(&fs);
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
 
+  aHelper_.initDielTree("DielStruct","diel","diel");
   aHelper_.initElectronTree("ElectronStruct","mergedEl1","el");
   aHelper_.initElectronTree("ElectronStruct","mergedEl2","el");
   aHelper_.initAddTrkTree("AddTrkStruct","mergedEl1Trk","addTrk");
@@ -293,6 +300,15 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
 
+  edm::Handle<edm::View<reco::GsfTrack>> GsfTrkHandle;
+  iEvent.getByToken(GsfTrkToken_, GsfTrkHandle);
+
+  edm::Handle<edm::View<pat::PackedCandidate>> candHandle;
+  iEvent.getByToken(candToken_, candHandle);
+
+  edm::Handle<edm::View<pat::PackedCandidate>> lostTrackHandle;
+  iEvent.getByToken(lostTrackToken_, lostTrackHandle);
+
   edm::Handle<edm::ValueMap<float>> trkIsoMapHandle;
   iEvent.getByToken(trkIsoMapToken_, trkIsoMapHandle);
 
@@ -347,8 +363,119 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
   edm::Handle<EcalRecHitCollection> EErecHitHandle;
   iEvent.getByToken(EErecHitToken_, EErecHitHandle);
 
+  auto countGSFtrk = [&,this] (const pat::ElectronRef& aEle, const reco::GenParticleRef& genptc2) -> int {
+    int nGSFtrk = 0;
+
+    for (unsigned idx = 0; idx < GsfTrkHandle->size(); idx++) {
+      const auto& aTrk = GsfTrkHandle->refAt(idx);
+
+      if (aTrk->pt() < ptThres2nd_)
+        continue;
+
+      if (aTrk.castTo<reco::GsfTrackRef>()==aEle->gsfTrack())
+        continue;
+
+      if (reco::deltaR2(genptc2->eta(),genptc2->phi(),aTrk->eta(),aTrk->phi()) < drThres2nd2_)
+        nGSFtrk++;
+    }
+
+    return nGSFtrk;
+  };
+
+  auto countKFtrk = [&,this] (const pat::ElectronRef& aEle, const reco::GenParticleRef& genptc2) -> int {
+    int nKFtrk = 0;
+
+    for (auto& handle : {candHandle,lostTrackHandle}) {
+      for (unsigned idx = 0; idx < handle->size(); idx++) {
+        const auto& aTrk = handle->refAt(idx);
+
+        if (aTrk->pt() < ptThres2nd_)
+          continue;
+
+        if (std::abs(aTrk->pdgId())==11)
+          continue;
+
+        if ( aEle->closestCtfTrackRef().isNonnull() &&
+             reco::deltaR2( aTrk->eta(), aTrk->phi(),
+                            aEle->closestCtfTrackRef()->eta(), aEle->closestCtfTrackRef()->phi() ) < drThres2nd2_ )
+          continue;
+
+        if (reco::deltaR2(genptc2->eta(),genptc2->phi(),aTrk->eta(),aTrk->phi()) < drThres2nd2_)
+          nKFtrk++;
+      }
+    }
+
+    return nKFtrk;
+  };
+
+  auto matchAddTrk = [&,this] (const pat::ElectronRef& aEle) -> bool {
+    auto addGsfTrk = (*addGsfTrkHandle)[aEle];
+    auto addPackedCand = (*addPackedCandHandle)[aEle];
+    auto orgGsfTrk = aEle->gsfTrack();
+
+    const bool isPackedCand = addGsfTrk==orgGsfTrk && addPackedCand.isNonnull();
+    const reco::Track* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
+
+    bool matched1st = false;
+    bool matched2nd = false;
+
+    for (const auto& genptc : promptPair) {
+      if ( reco::deltaR2(genptc->eta(),genptc->phi(),orgGsfTrk->eta(),orgGsfTrk->phi()) < drThres2nd2_ )
+        matched1st = true;
+      if ( reco::deltaR2(genptc->eta(),genptc->phi(),addTrk->eta(),addTrk->phi()) < drThres2nd2_ )
+        matched2nd = true;
+    }
+
+    return matched1st && matched2nd;
+  };
+
   if (recoPair.size() > 2)
     return;
+
+  const float dr1 = reco::deltaR2(promptPair.at(0)->eta(),promptPair.at(0)->phi(),
+                                  recoPair.front()->gsfTrack()->eta(),recoPair.front()->gsfTrack()->phi());
+  const float dr2 = reco::deltaR2(promptPair.at(1)->eta(),promptPair.at(1)->phi(),
+                                  recoPair.front()->gsfTrack()->eta(),recoPair.front()->gsfTrack()->phi());
+  const auto& genptc1 = (dr1 < dr2) ? promptPair.at(0) : promptPair.at(1);
+  const auto& genptc2 = (dr1 < dr2) ? promptPair.at(1) : promptPair.at(0);
+
+  const float genPt = genptc1->pt() + genptc2->pt();
+  const float genE = genptc1->p() + genptc2->p();
+  const float genDR = reco::deltaR(genptc1->eta(),genptc1->phi(),
+                                   genptc2->eta(),genptc2->phi());
+
+  bool no2ndTrk = (*addGsfTrkHandle)[recoPair.front()]==recoPair.front()->gsfTrack()
+                   && (*addPackedCandHandle)[recoPair.front()].isNull();
+
+  const int category = no2ndTrk ? 1 : 0;
+
+  switch (recoPair.size()) {
+    case 2:
+      aHelper_.fillDielectrons(recoPair.front(),
+                               recoPair.at(1),
+                               genptc1,
+                               genptc2,
+                               category,
+                               "diel",
+                               countGSFtrk(recoPair.front(),genptc2),
+                               countKFtrk(recoPair.front(),genptc2));
+
+      break;
+    case 1:
+      if (category==0 && !matchAddTrk(recoPair.front()))
+        break;
+
+      aHelper_.fillDielectrons(recoPair.front(),
+                               pat::ElectronRef(),
+                               genptc1,
+                               genptc2,
+                               category,
+                               "diel",
+                               countGSFtrk(recoPair.front(),genptc2),
+                               countKFtrk(recoPair.front(),genptc2));
+
+      break;
+  }
 
   for (const auto aEle : recoPair) {
     auto addGsfTrk = (*addGsfTrkHandle)[aEle];
@@ -369,21 +496,23 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
                                                              (*union5x5EnergyHandle)[aEle]);
 
     const EcalRecHitCollection* ecalRecHits = aEle->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle);
-    const float genPt = promptPair.at(0)->pt() + promptPair.at(1)->pt();
-    const float genE = promptPair.at(0)->p() + promptPair.at(1)->p();
 
-    if (allowNonPrompt_) {
-      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
-      int32_t mask = 0x00000381; // = 0011 1000 0001 - 1st for min Et, 7th for trk iso, 8th for EM+HadD1 iso, 9th for dxy
-      int32_t pass = bitmap | mask;
-      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+    const auto& addGenPtc = recoPair.front()==aEle ? genptc1 : genptc2;
+    int nGSFtrk = countGSFtrk(aEle,addGenPtc);
+    int nKFtrk = countKFtrk(aEle,addGenPtc);
 
-      if ( !passMaskedId )
-        continue;
-    } else {
-      if ( !aEle->electronID("modifiedHeepElectronID") )
-        continue;
-    }
+    // if (allowNonPrompt_) {
+    //   int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
+    //   int32_t mask = 0x00000381; // = 0011 1000 0001 - 1st for min Et, 7th for trk iso, 8th for EM+HadD1 iso, 9th for dxy
+    //   int32_t pass = bitmap | mask;
+    //   bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+    //
+    //   if ( !passMaskedId )
+    //     continue;
+    // } else {
+    //   if ( !aEle->electronID("modifiedHeepElectronID") )
+    //     continue;
+    // }
 
     if ( addGsfTrk==orgGsfTrk && addPackedCand.isNull() ) { // ME w/o add GSF
       if (recoPair.size()==1)
@@ -395,24 +524,15 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
                                ecalRecHits,
                                iSetup,
                                "mergedEl2",
-                               genPt,
-                               genE);
+                               genPt,genE,
+                               nGSFtrk, nKFtrk,
+                               addGenPtc->pt(), genDR);
     } else { // ME w/ GSF
-      const bool isPackedCand = addGsfTrk==orgGsfTrk && addPackedCand.isNonnull();
-      const reco::TrackBase* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
-
-      bool matched1st = false;
-      bool matched2nd = false;
-
-      for (const auto& genptc : promptPair) {
-        if ( reco::deltaR2(genptc->eta(),genptc->phi(),orgGsfTrk->eta(),orgGsfTrk->phi()) < drThres2nd2_ )
-          matched1st = true;
-        if ( reco::deltaR2(genptc->eta(),genptc->phi(),addTrk->eta(),addTrk->phi()) < drThres2nd2_ )
-          matched2nd = true;
-      }
-
-      if ( !matched1st || !matched2nd )
+      if ( !matchAddTrk(aEle) )
         continue;
+
+      const bool isPackedCand = addGsfTrk==orgGsfTrk && addPackedCand.isNonnull();
+      const reco::Track* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
 
       aHelper_.fillElectrons(aEle,
                              (*trkIsoMapHandle)[aEle],
@@ -422,14 +542,16 @@ void MergedEleSigMvaInput::fillByGsfTrack(const edm::Event& iEvent,
                              ecalRecHits,
                              iSetup,
                              "mergedEl1",
-                             genPt,
-                             genE);
+                             genPt,genE,
+                             nGSFtrk, nKFtrk,
+                             addGenPtc->pt(), genDR);
       aHelper_.fillAddTracks(aEle,
                              addTrk,
                              dEtaVariables,
                              ecalRecHits,
                              iSetup,
-                             "mergedEl1Trk");
+                             "mergedEl1Trk",
+                             isPackedCand);
     }
   }
 

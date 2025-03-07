@@ -81,6 +81,9 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5dPhiInToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> union5x5EnergyToken_;
 
+  const edm::EDGetTokenT<edm::ValueMap<float>> modifiedTrkIsoToken_;
+  const edm::EDGetTokenT<edm::ValueMap<float>> dPerpInToken_;
+
   const edm::FileInPath FFpath_;
   const edm::FileInPath FFpath2_;
 
@@ -167,6 +170,8 @@ union5x5covIeIeToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::I
 union5x5dEtaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dEtaIn"))),
 union5x5dPhiInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5dPhiIn"))),
 union5x5EnergyToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("union5x5Energy"))),
+modifiedTrkIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("modifiedTrkIso"))),
+dPerpInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPerpIn"))),
 FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
 FFpath2_(iConfig.getParameter<edm::FileInPath>("FFpathNonPrompt")),
 purwgt_(std::move(correction::CorrectionSet::from_file((iConfig.getParameter<edm::FileInPath>("PUrwgt")).fullPath()))),
@@ -971,6 +976,12 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::ValueMap<float>> union5x5EnergyHandle;
   iEvent.getByToken(union5x5EnergyToken_, union5x5EnergyHandle);
 
+  edm::Handle<edm::ValueMap<float>> modifiedTrkIsoHandle;
+  iEvent.getByToken(modifiedTrkIsoToken_, modifiedTrkIsoHandle);
+
+  edm::Handle<edm::ValueMap<float>> dPerpInHandle;
+  iEvent.getByToken(dPerpInToken_, dPerpInHandle);
+
   // first two (modified)HEEP electrons should be Et > 35 GeV
   std::vector<pat::ElectronRef> acceptEles;
   std::vector<pat::ElectronRef> nonHeepEles;
@@ -1027,15 +1038,12 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
     }
 
     if (!selected) {
-      int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
-      int32_t mask = 0x000007B0; // = 0111 1011 0000
-      int32_t pass = bitmap | mask;
-      bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+      auto castEle = aEle.castTo<pat::ElectronRef>();
 
-      if (passMaskedId) {
-        auto castEle = aEle.castTo<pat::ElectronRef>();
+      bool isNonHeepEle = systHelperEle_.isNonHeepEle(castEle,(*modifiedTrkIsoHandle)[castEle],(*dPerpInHandle)[castEle]);
+
+      if (isNonHeepEle)
         nonHeepEles.push_back(castEle);
-      }
     }
   }
 
@@ -1306,9 +1314,12 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
           return aEle->polarP4()*aEle->userFloat(opt)/aEle->energy();
         };
 
-        const auto lvecCRME = lvecME(CRMEs.front());
-        const auto lvecCRME_scale = systHelperEle_.mergedEleScale(CRMEs.front())*lvecCRME;
-        const auto lvecCRME_smear = systHelperEle_.mergedEleSmear(CRMEs.front(),(*union5x5EnergyHandle)[CRMEs.front()])*lvecCRME;
+        const double scale = systHelperEle_.mergedEleScale(CRMEs.front(),isMC_);
+        const double smear = systHelperEle_.mergedEleSmear(CRMEs.front(),(*union5x5EnergyHandle)[CRMEs.front()],isMC_);
+
+        const auto lvecCRME = scale*smear*lvecME(CRMEs.front());
+        const auto lvecCRME_scale = systHelperEle_.mergedEleScale(CRMEs.front(),false)*smear*lvecME(CRMEs.front());
+        const auto lvecCRME_smear = scale*lvecME(CRMEs.front());
         const auto lvecNME1 = lvecCorr(nonMEs.at(0),"ecalTrkEnergyPostCorr");
         const auto lvecNME2 = lvecCorr(nonMEs.at(1),"ecalTrkEnergyPostCorr");
         const auto lvecNME1_scaleUp = lvecCorr(nonMEs.at(0),"energyScaleUp");
@@ -1585,12 +1596,17 @@ void MergedEleCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetu
         histo1d_["cutflow_2E"]->Fill( 4.5, aWeight );
 
       if (CRMEs.size()==2) {
-        const auto lvecCRME1 = lvecME(CRMEs.at(0));
-        const auto lvecCRME2 = lvecME(CRMEs.at(1));
-        const auto lvecCRME1_scale = systHelperEle_.mergedEleScale(CRMEs.at(0))*lvecCRME1;
-        const auto lvecCRME1_smear = systHelperEle_.mergedEleSmear(CRMEs.at(0),(*union5x5EnergyHandle)[CRMEs.at(0)])*lvecCRME1;
-        const auto lvecCRME2_scale = systHelperEle_.mergedEleScale(CRMEs.at(1))*lvecCRME2;
-        const auto lvecCRME2_smear = systHelperEle_.mergedEleSmear(CRMEs.at(1),(*union5x5EnergyHandle)[CRMEs.at(1)])*lvecCRME2;
+        const double scale1 = systHelperEle_.mergedEleScale(CRMEs.at(0),isMC_);
+        const double smear1 = systHelperEle_.mergedEleSmear(CRMEs.at(0),(*union5x5EnergyHandle)[CRMEs.at(0)],isMC_);
+        const double scale2 = systHelperEle_.mergedEleScale(CRMEs.at(1),isMC_);
+        const double smear2 = systHelperEle_.mergedEleSmear(CRMEs.at(1),(*union5x5EnergyHandle)[CRMEs.at(1)],isMC_);
+
+        const auto lvecCRME1 = scale1*smear1*lvecME(CRMEs.at(0));
+        const auto lvecCRME2 = scale2*smear2*lvecME(CRMEs.at(1));
+        const auto lvecCRME1_scale = systHelperEle_.mergedEleScale(CRMEs.at(0),false)*smear1*lvecME(CRMEs.at(0));
+        const auto lvecCRME1_smear = scale1*lvecME(CRMEs.at(0));
+        const auto lvecCRME2_scale = systHelperEle_.mergedEleScale(CRMEs.at(1),false)*smear2*lvecME(CRMEs.at(1));
+        const auto lvecCRME2_smear = scale2*lvecME(CRMEs.at(1));
         const auto lvecCRll = lvecCRME1 + lvecCRME2;
         const double dr2CRll = reco::deltaR2(lvecCRME1.eta(),lvecCRME1.phi(),lvecCRME2.eta(),lvecCRME2.phi());
         const double mll = std::min(lvecCRll.M(),3499.9);

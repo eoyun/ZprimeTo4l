@@ -131,6 +131,8 @@ private:
   float u5x5Et_ = -1.;
   float et_ = -1.;
   float wgt_ = 0.;
+  float dxy_ = -1.;
+  float dr_ = -1.;
   int passME_ = -1;
   int passModHeep_ = -1;
   int passTrig25_ = -1;
@@ -145,6 +147,11 @@ private:
   float BinvMcalo_ = -1.;
   float Bu5x5Et_ = -1.;
   float Bwgt_ = 0.;
+  float Bdxy_ = -1.;
+  float Bd0_ = std::numeric_limits<float>::max();
+  float Bcos_ = std::numeric_limits<float>::max();
+  float Bchi2_ = std::numeric_limits<float>::max();
+  float Bndof_ = -1.;
   int BpassME_ = -1;
   int BpassModHeep_ = -1;
   float ptK_ = -1.;
@@ -283,6 +290,8 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   tree_->Branch("u5x5Et",&u5x5Et_,"u5x5Et/F");
   tree_->Branch("Et",&et_,"Et/F");
   tree_->Branch("wgt",&wgt_,"wgt/F");
+  tree_->Branch("dxy",&dxy_,"dxy/F");
+  tree_->Branch("dR",&dr_,"dR/F");
   tree_->Branch("passME",&passME_,"passME/I");
   tree_->Branch("passModHeep",&passModHeep_,"passModHeep/I");
   tree_->Branch("passTrig25",&passTrig25_,"passTrig25/I");
@@ -297,6 +306,11 @@ void MergedLeptonIDJpsiAnalyzer::beginJob() {
   Btree_->Branch("invMcalo",&BinvMcalo_,"invMcalo/F");
   Btree_->Branch("u5x5Et",&Bu5x5Et_,"u5x5Et/F");
   Btree_->Branch("wgt",&Bwgt_,"wgt/F");
+  Btree_->Branch("dxy",&Bdxy_,"dxy/F");
+  Btree_->Branch("d0",&Bd0_,"d0/F");
+  Btree_->Branch("cosAlpha2d",&Bcos_,"cosAlpha2d/F");
+  Btree_->Branch("chi2",&Bchi2_,"chi2/F");
+  Btree_->Branch("ndof",&Bndof_,"ndof/F");
   Btree_->Branch("passME",&BpassME_,"passME/I");
   Btree_->Branch("passModHeep",&BpassModHeep_,"passModHeep/I");
   Btree_->Branch("ptK",&ptK_,"ptK/F");
@@ -952,10 +966,17 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
 
       fill2trkHistos("Jpsi",Jpsis.front());
 
+      const KinematicState refitPtc1 = Jpsis.front().dielec.refitFirstEle;
+      const auto& vec3P1 = refitPtc1.globalMomentum();
+      const KinematicState refitPtc2 = Jpsis.front().dielec.refitSecondEle;
+      const auto& vec3P2 = refitPtc2.globalMomentum();
+
       invM_ = Jpsis.front().dielectronState.mass();
       u5x5Et_ = u5x5Et;
       et_ = Jpsis.front().dielec.firstEle->et();
       wgt_ = aWeight;
+      dxy_ = Jpsis.front().dielectronState.globalPosition().perp();
+      dr_ = reco::deltaR(vec3P1.eta(),vec3P1.phi(),vec3P2.eta(),vec3P2.phi());
       passME_ = static_cast<int>(passMergedElectronID);
       passModHeep_ = static_cast<int>(Jpsis.front().dielec.firstEle->electronID("modifiedHeepElectronID"));
       passTrig25_ = static_cast<int>(matchTrigObj(Jpsis.front().dielec.firstEle->p4(),trigObjs_doubleEle25));
@@ -1262,6 +1283,11 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
       BinvMcalo_ = BmesonMassU5x5(Bdecays.front());
       Bu5x5Et_ = u5x5Et;
       Bwgt_ = aWeight;
+      Bdxy_ = Bdecays.front().Bmeson.globalPosition().perp();
+      Bd0_ = Bdecays.front().d0thirdTrk;
+      Bcos_ = Bdecays.front().cosAlpha2d;
+      Bchi2_ = Bdecays.front().BmesonChi2;
+      Bndof_ = Bdecays.front().BmesonNdof;
       BpassME_ = static_cast<int>(passMergedElectronID);
       BpassModHeep_ = static_cast<int>(passMaskedId);
       ptK_ = Bdecays.front().refitThirdTrk.globalMomentum().perp();

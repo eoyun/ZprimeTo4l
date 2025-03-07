@@ -90,7 +90,7 @@ private:
   MuonCorrectionHelper mucorrHelper_;
 
   std::unique_ptr<TFile> MMFFfile_;
-  TF1* ffFunc_;
+  std::unique_ptr<TF1> ffFunc_;
   TFitResultPtr fitResult_;
 
   std::map<std::string,TH1*> histo1d_;
@@ -144,8 +144,9 @@ void MergedMuCRanalyzer::beginJob() {
   edm::Service<TFileService> fs;
 
   MMFFfile_ = std::make_unique<TFile>(MMFFpath_.fullPath().c_str(),"READ");
-  ffFunc_ = static_cast<TF1*>(MMFFfile_->FindObjectAny("MMFF"));
-  fitResult_ = (static_cast<TH1D*>(MMFFfile_->Get("1M_MMFF_numer_rebin")))->Fit(ffFunc_,"RS");
+  ffFunc_ = std::make_unique<TF1>("ffFunc","[0]",0.,2500.);
+  // ffFunc_ = static_cast<TF1*>(MMFFfile_->FindObjectAny("MMFF"));
+  fitResult_ = (static_cast<TH1D*>(MMFFfile_->Get("1M_MMFF_numer_rebin")))->Fit(ffFunc_.get(),"RS");
 
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["totWeightedSum_4M"] = fs->make<TH1D>("totWeightedSum_4M","totWeightedSum_4M",1,0.,1.);
@@ -521,77 +522,8 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     return a->tunePMuonBestTrack()->pt() > b->tunePMuonBestTrack()->pt();
   };
 
-  for (unsigned idx = 0; idx < highPtMuons.size(); idx++) {
-    const auto& firstMuon = highPtMuons.at(idx);
-    double firstIso = firstMuon->trackIso();
-
-    std::vector<pat::MuonRef> isoCands;
-
-    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
-      const auto& secondMuon = highPtMuons.at(jdx);
-
-      if (firstMuon==secondMuon)
-        continue;
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
-      const auto& secondMuon = highPtTrackerMuons.at(jdx);
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
-
-    if (!isoCands.empty())
-      firstIso -= isoCands.front()->innerTrack()->pt();
-
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
-      isolatedHighPtMuons.push_back(firstMuon);
-
-      if (!isoCands.empty())
-        boostedMuons.push_back(firstMuon);
-    }
-  }
-
-  for (unsigned idx = 0; idx < highPtTrackerMuons.size(); idx++) {
-    const auto& firstMuon = highPtTrackerMuons.at(idx);
-    double firstIso = firstMuon->trackIso();
-
-    std::vector<pat::MuonRef> isoCands;
-
-    for (unsigned jdx = 0; jdx < highPtTrackerMuons.size(); jdx++) {
-      const auto& secondMuon = highPtTrackerMuons.at(jdx);
-
-      if (firstMuon==secondMuon)
-        continue;
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    for (unsigned jdx = 0; jdx < highPtMuons.size(); jdx++) {
-      const auto& secondMuon = highPtMuons.at(jdx);
-
-      if ( mucorrHelper_.checkIso(firstMuon,secondMuon->innerTrack(),*beamSpotHandle) )
-        isoCands.push_back(secondMuon);
-    }
-
-    std::sort(isoCands.begin(),isoCands.end(),sortByTuneP);
-
-    if (!isoCands.empty())
-      firstIso -= isoCands.front()->innerTrack()->pt();
-
-    if ( firstIso/firstMuon->tunePMuonBestTrack()->pt() < 0.1 ) {
-      isolatedHighPtTrackerMuons.push_back(firstMuon);
-
-      if (!isoCands.empty())
-        boostedMuons.push_back(firstMuon);
-    }
-  }
+  mucorrHelper_.modifiedIso(isolatedHighPtMuons,isolatedHighPtTrackerMuons,boostedMuons,
+                            highPtMuons,highPtTrackerMuons,*beamSpotHandle);
 
   std::sort(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),sortByTuneP);
   std::sort(isolatedHighPtTrackerMuons.begin(),isolatedHighPtTrackerMuons.end(),sortByTuneP);
@@ -648,32 +580,21 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
     return;
 
   std::vector<pat::MuonRef> nonHighPtMuons;
+  std::vector<pat::MuonRef> nonHighPtMuonsVLiso;
+  std::map<pat::MuonRef,float> nonHighPtIsos;
 
-  for (unsigned int idx = 0; idx < muonHandle->size(); ++idx) {
-    const auto& aMuon = muonHandle->refAt(idx);
+  mucorrHelper_.nonHighPtMuonIso(nonHighPtMuons,
+                                 nonHighPtMuonsVLiso,
+                                 nonHighPtIsos,
+                                 muonHandle,
+                                 allHighPtMuons,
+                                 highPtMuons,
+                                 highPtTrackerMuons,
+                                 primaryVertex,
+                                 *beamSpotHandle,
+                                 ptMuThres_);
 
-    if ( !aMuon->isTrackerMuon() || aMuon->track().isNull() )
-      continue;
-
-    if ( aMuon->tunePMuonBestTrack()->pt() < ptMuThres_ || std::abs(aMuon->eta()) > 2.4 )
-      continue;
-
-    const auto castMu = aMuon.castTo<pat::MuonRef>();
-
-    if ( std::find( allHighPtMuons.begin(), allHighPtMuons.end(), castMu ) != allHighPtMuons.end() )
-      continue;
-
-    bool hits = aMuon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5
-                && aMuon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
-
-    bool ip = std::abs(aMuon->innerTrack()->dxy(primaryVertex.position())) < 0.2
-              && std::abs(aMuon->innerTrack()->dz(primaryVertex.position())) < 0.5;
-
-    if ( aMuon->numberOfMatchedStations() >= 1 && hits && ip )
-      nonHighPtMuons.push_back(castMu);
-  }
-
-  if (!nonHighPtMuons.empty())
+  if (!nonHighPtMuonsVLiso.empty())
     return;
 
   histo1d_["cutflow_4M"]->Fill( 4.5, aWeight );
@@ -873,18 +794,18 @@ void MergedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
       double momcorr2 = 1.;
       double momcorrMM = 1.;
 
-      if (isMC_) {
-        edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-        iEvent.getByToken(genptcToken_, genptcHandle);
-
-        momcorr1 = mucorrHelper_.nominalMC(firstMuon,genptcHandle);
-        momcorr2 = mucorrHelper_.nominalMC(secondMuon,genptcHandle);
-        momcorrMM = mucorrHelper_.nominalMC(mergedMuon,genptcHandle);
-      } else {
-        momcorr1 = mucorrHelper_.nominalData(firstMuon);
-        momcorr2 = mucorrHelper_.nominalData(secondMuon);
-        momcorrMM = mucorrHelper_.nominalData(mergedMuon);
-      }
+      // if (isMC_) {
+      //   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+      //   iEvent.getByToken(genptcToken_, genptcHandle);
+      //
+      //   momcorr1 = mucorrHelper_.nominalMC(firstMuon,genptcHandle);
+      //   momcorr2 = mucorrHelper_.nominalMC(secondMuon,genptcHandle);
+      //   momcorrMM = mucorrHelper_.nominalMC(mergedMuon,genptcHandle);
+      // } else {
+      //   momcorr1 = mucorrHelper_.nominalData(firstMuon);
+      //   momcorr2 = mucorrHelper_.nominalData(secondMuon);
+      //   momcorrMM = mucorrHelper_.nominalData(mergedMuon);
+      // }
 
       const auto lvecFirst = math::PtEtaPhiMLorentzVector(firstMuon->tunePMuonBestTrack()->pt(),
                                                           firstMuon->tunePMuonBestTrack()->eta(),

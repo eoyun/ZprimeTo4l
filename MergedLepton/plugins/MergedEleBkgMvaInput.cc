@@ -36,7 +36,11 @@ private:
   virtual void endJob() override {}
 
   const edm::EDGetTokenT<edm::View<pat::Electron>> srcEle_;
+  const edm::EDGetTokenT<edm::View<reco::GenParticle>> srcGenPtc_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
+  const edm::EDGetTokenT<edm::View<reco::GsfTrack>> GsfTrkToken_;
+  const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> candToken_;
+  const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> lostTrackToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
   const edm::EDGetTokenT<edm::ValueMap<float>> dPerpInToken_;
@@ -62,6 +66,9 @@ private:
   PositionCalc posCalcLog_;
 
   const double ptThres_;
+  const double ptThres2nd_;
+  const double drThres_;
+  const double drThres2_;
   const bool select0J_;
   const bool selectHT_;
   const double maxHT_;
@@ -73,7 +80,11 @@ private:
 
 MergedEleBkgMvaInput::MergedEleBkgMvaInput(const edm::ParameterSet& iConfig)
 : srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
+  srcGenPtc_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("srcGenPtc"))),
   pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
+  GsfTrkToken_(consumes<edm::View<reco::GsfTrack>>(iConfig.getParameter<edm::InputTag>("srcGsfTrack"))),
+  candToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("srcPackedCand"))),
+  lostTrackToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("srcLostTracks"))),
   trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
   ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("ecalIsoMap"))),
   dPerpInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPerpIn"))),
@@ -97,6 +108,9 @@ MergedEleBkgMvaInput::MergedEleBkgMvaInput(const edm::ParameterSet& iConfig)
   lheToken_(consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("lheEvent"))),
   posCalcLog_(PositionCalc(iConfig.getParameter<edm::ParameterSet>("posCalcLog"))),
   ptThres_(iConfig.getParameter<double>("ptThres")),
+  ptThres2nd_(iConfig.getParameter<double>("ptThres2nd")),
+  drThres_(iConfig.getParameter<double>("drThres")),
+  drThres2_(drThres_*drThres_),
   select0J_(iConfig.getParameter<bool>("select0J")),
   selectHT_(iConfig.getParameter<bool>("selectHT")),
   maxHT_(iConfig.getParameter<double>("maxHT")),
@@ -124,6 +138,9 @@ void MergedEleBkgMvaInput::beginJob() {
 void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<edm::View<pat::Electron>> eleHandle;
   iEvent.getByToken(srcEle_, eleHandle);
+
+  edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+  iEvent.getByToken(srcGenPtc_, genptcHandle);
 
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
@@ -232,6 +249,17 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
     histo1d_["lheHT_cut"]->Fill( lheHT );
   }
 
+  std::vector<reco::GenParticleRef> promptLeptons;
+
+  for (unsigned int idx = 0; idx < genptcHandle->size(); ++idx) {
+    const auto& genptc = genptcHandle->refAt(idx);
+
+    if ( ( std::abs(genptc->pdgId())==11 ) &&
+         genptc->fromHardProcessFinalState() &&
+         ( std::abs(genptc->eta()) < 2.5 ) )
+      promptLeptons.push_back(genptc.castTo<reco::GenParticleRef>());
+  }
+
   reco::VertexRef primaryVertex;
 
   if (pvHandle.isValid() && !pvHandle->empty()) {
@@ -263,6 +291,66 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
 
     if ( aEle->et() < ptThres_ )
       continue;
+
+    float genPt = -1.;
+    float genE = -1.;
+
+    for (unsigned igen = 0; igen < promptLeptons.size(); ++igen) {
+      const auto& genptc = promptLeptons.at(igen);
+      double dr2 = reco::deltaR2(aEle->gsfTrack()->eta(),aEle->gsfTrack()->phi(),genptc->eta(),genptc->phi());
+
+      if (dr2 < drThres2_) {
+        genPt = genptc->pt();
+        genE = genptc->p();
+
+        break;
+      }
+    }
+
+    edm::Handle<edm::View<reco::GsfTrack>> GsfTrkHandle;
+    iEvent.getByToken(GsfTrkToken_, GsfTrkHandle);
+
+    edm::Handle<edm::View<pat::PackedCandidate>> candHandle;
+    iEvent.getByToken(candToken_, candHandle);
+
+    edm::Handle<edm::View<pat::PackedCandidate>> lostTrackHandle;
+    iEvent.getByToken(lostTrackToken_, lostTrackHandle);
+
+    int nGSFtrk = 0;
+    int nKFtrk = 0;
+
+    for (unsigned idx = 0; idx < GsfTrkHandle->size(); idx++) {
+      const auto& aTrk = GsfTrkHandle->refAt(idx);
+
+      if (aTrk->pt() < ptThres2nd_)
+        continue;
+
+      if (aTrk.castTo<reco::GsfTrackRef>()==aEle->gsfTrack())
+        continue;
+
+      if (reco::deltaR2(aEle->eta(),aEle->phi(),aTrk->eta(),aTrk->phi()) < drThres2_)
+        nGSFtrk++;
+    }
+
+    for (auto& handle : {candHandle,lostTrackHandle}) {
+      for (unsigned idx = 0; idx < handle->size(); idx++) {
+        const auto& aTrk = handle->refAt(idx);
+
+        if (aTrk->pt() < ptThres2nd_)
+          continue;
+
+        if (std::abs(aTrk->pdgId())==11)
+          continue;
+
+        if ( aEle->closestCtfTrackRef().isNonnull() &&
+             reco::deltaR2( aTrk->eta(), aTrk->phi(),
+                            aEle->closestCtfTrackRef()->eta(), aEle->closestCtfTrackRef()->phi() ) < 0.001*0.001 )
+          continue;
+
+        if (reco::deltaR2(aEle->eta(),aEle->phi(),aTrk->eta(),aTrk->phi()) < drThres2_)
+          nKFtrk++;
+      }
+    }
 
     const EcalRecHitCollection* ecalRecHits = aEle->isEB() ? &(*EBrecHitHandle) : &(*EErecHitHandle);
 
@@ -296,14 +384,15 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
         continue;
 
       const bool isPackedCand = addGsfTrk==orgGsfTrk && addPackedCand.isNonnull();
-      const reco::TrackBase* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
+      const reco::Track* addTrk = isPackedCand ? addPackedCand->bestTrack() : addGsfTrk.get();
 
       aHelper_.fillAddTracks(aEle,
                              addTrk,
                              dEtaVariables,
                              ecalRecHits,
                              iSetup,
-                             "fakeTrk");
+                             "fakeTrk",
+                             isPackedCand);
     }
 
     aHelper_.fillElectrons(aEle,
@@ -313,7 +402,9 @@ void MergedEleBkgMvaInput::analyze(const edm::Event& iEvent, const edm::EventSet
                            ssVariables,
                            ecalRecHits,
                            iSetup,
-                           treename);
+                           treename,
+                           genPt,genE,
+                           nGSFtrk,nKFtrk);
   }
 }
 

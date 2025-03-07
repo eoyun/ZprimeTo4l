@@ -62,8 +62,10 @@ public:
   double GetRecoSF(const pat::ElectronRef& aEle);
   double GetRecoSFerr(const pat::ElectronRef& aEle);
 
-  double mergedEleScale(const pat::ElectronRef& aEle) const;
-  double mergedEleSmear(const pat::ElectronRef& aEle, const double u5x5En);
+  double mergedEleScale(const pat::ElectronRef& aEle, const bool isMC) const;
+  double mergedEleSmear(const pat::ElectronRef& aEle, const double u5x5En, const bool isMC);
+
+  bool isNonHeepEle(const pat::ElectronRef& aEle, const double trkIso, const double dPerpIn) const;
 
 private:
   double modHeepSFmuEB1_ = 0.;

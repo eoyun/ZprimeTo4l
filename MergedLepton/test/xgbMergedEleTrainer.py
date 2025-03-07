@@ -31,27 +31,27 @@ sigSamples = []
 etThres = 50.
 
 if args.angle=="" and args.et=="Et1":
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A1.root","H250A1",ROOT.kSpring+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A1.root","X250Y1",ROOT.kSpring+2))
 elif args.angle=="" and args.et=="Et2":
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","H750A1",ROOT.kTeal+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","X750Y1",ROOT.kTeal+2))
     etThres = 200.
 elif args.angle=="None" and args.et=="Et2":
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","H750A1",ROOT.kTeal+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","X750Y1",ROOT.kTeal+2))
     etThres = 200.
 
     if args.opt=="False":
-        sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))
+        sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","X2000Y1",ROOT.kOrange))
 
 elif args.angle=="" and args.et=="":
     # if args.opt=="False" and args.era=="20UL18":
     #     sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_BuJpsiKee.root","Jpsi->ee",ROOT.kGray))
 
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","H2000A1",ROOT.kOrange))
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","H750A1",ROOT.kSpring+2))
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A1.root","H250A1",ROOT.kTeal+2))
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A10.root","H2000A10",ROOT.kCyan+2))
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A10.root","H750A10",ROOT.kAzure-2))
-    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A10.root","H250A10",ROOT.kBlue+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A1.root","X2000Yiciency1",ROOT.kOrange))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A1.root","X750Yiciency1",ROOT.kSpring+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A1.root","X250Yiciency1",ROOT.kTeal+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H2000A10.root","X2000Yiciency10",ROOT.kCyan+2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H750A10.root","X750Yiciency10",ROOT.kAzure-2))
+    sigSamples.append(zprep.sample("data/MergedEleMva_"+args.era+"_H250A10.root","X250Yiciency10",ROOT.kBlue+2))
 else:
     raise NameError('check dr/Et argument [""/None][Et1/Et2]')
 
@@ -352,30 +352,30 @@ zvis.drawScoreByProcess(
 )
 
 ptBinning = [0,20,30,50,75,100,125,150,200,250,300,350,400,500,600,800,1000,1500]
-effplot_bkg = ROOT.TEfficiency("eff_bkg",";E_{T}^{5x5};Eff",len(ptBinning)-1,array('d',ptBinning))
+effplot_bkg = ROOT.TEfficiency("eff_bkg",";E_{T}^{5x5};Efficiency",len(ptBinning)-1,array('d',ptBinning))
 
 ptBinning750 = [0,20,50,100,150,200,220,240,260,280,300,320,340,360,380,400,450,500,600,800,1000,1500]
 ptBinning2000 = [0,200,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1200,1300,1500]
 
 etaBinning = [-2.5,-2.,-1.566,-1.4442,-1.2,-0.8,-0.4,0.,0.4,0.8,1.2,1.4442,1.566,2.,2.5]
-effplot_etaSC_sig = ROOT.TEfficiency("eff_etaSC_sig",";#eta_{SC};Eff",len(etaBinning)-1,array('d',etaBinning))
-effplot_etaSC_bkg = ROOT.TEfficiency("eff_etaSC_bkg",";#eta_{SC};Eff",len(etaBinning)-1,array('d',etaBinning))
+effplot_etaSC_sig = ROOT.TEfficiency("eff_etaSC_sig",";#eta_{SC};Efficiency",len(etaBinning)-1,array('d',etaBinning))
+effplot_etaSC_bkg = ROOT.TEfficiency("eff_etaSC_bkg",";#eta_{SC};Efficiency",len(etaBinning)-1,array('d',etaBinning))
 
 drBinning = [0.,0.001,0.002,0.003,0.005,0.007,0.01,0.02,0.03,0.05,0.07,0.1,0.2,0.3,0.5,0.7,1.0]
-effplot_dr_bkg = ROOT.TEfficiency("eff_dr_bkg",";#Delta R;Eff",len(drBinning)-1,array('d',drBinning))
+effplot_dr_bkg = ROOT.TEfficiency("eff_dr_bkg",";#Delta R;Efficiency",len(drBinning)-1,array('d',drBinning))
 
 effplot_sigs = []
 effplot_dr_sigs = []
 
 for asample in sigSamples:
     if "750" in asample.name_:
-        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Eff",len(ptBinning750)-1,array('d',ptBinning750)) )
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Efficiency",len(ptBinning750)-1,array('d',ptBinning750)) )
     elif "2000" in asample.name_:
-        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Eff",len(ptBinning2000)-1,array('d',ptBinning2000)) )
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Efficiency",len(ptBinning2000)-1,array('d',ptBinning2000)) )
     else:
-        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Eff",len(ptBinning)-1,array('d',ptBinning)) )
+        effplot_sigs.append( ROOT.TEfficiency("eff_sig"+asample.name_,";E_{T}^{5x5};Efficiency",len(ptBinning)-1,array('d',ptBinning)) )
 
-    effplot_dr_sigs.append( ROOT.TEfficiency("eff_dr_sig"+asample.name_,";#Delta R;Eff",len(drBinning)-1,array('d',drBinning)) )
+    effplot_dr_sigs.append( ROOT.TEfficiency("eff_dr_sig"+asample.name_,";#Delta R;Efficiency",len(drBinning)-1,array('d',drBinning)) )
 
 for idx in range(len(wgts_mergedEl)):
     effplot_etaSC_sig.FillWeighted(dSigPredict[idx] > targetThres, wgts_mergedEl[idx], etas_mergedEl[idx])
@@ -402,7 +402,7 @@ tdrstyle.setTDRStyle()
 
 #change the CMS_lumi variables (see CMS_lumi.py)
 CMS_lumi.writeExtraText = 1
-CMS_lumi.extraText = "#splitline{                 Simulation}{                 Work in progress}"
+CMS_lumi.extraText = "#splitline{       Simulation}{       Preliminary}"
 
 if args.era=="20UL16APV":
     CMS_lumi.lumi_sqrtS = "2016preVFP"

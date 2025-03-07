@@ -357,16 +357,22 @@ void ElectronSystematicsHelper::SetAbcdScaleSmear(const double scaleAbove,
   abcdSmear_ = smear;
 }
 
-double ElectronSystematicsHelper::mergedEleScale(const pat::ElectronRef& aEle) const {
-  if ( aEle->userInt("mvaMergedElectronCategories")==1 )
-    return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
+double ElectronSystematicsHelper::mergedEleScale(const pat::ElectronRef& aEle, const bool isMC) const {
+  if (isMC)
+    return 1.0;
+
+  // if ( aEle->userInt("mvaMergedElectronCategories")==1 )
+  //   return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
 
   return 1.003;
 }
 
-double ElectronSystematicsHelper::mergedEleSmear(const pat::ElectronRef& aEle, const double u5x5En) {
-  if ( aEle->userInt("mvaMergedElectronCategories")==1 )
-    return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
+double ElectronSystematicsHelper::mergedEleSmear(const pat::ElectronRef& aEle, const double u5x5En, const bool isMC) {
+  if (!isMC)
+    return 1.0;
+
+  // if ( aEle->userInt("mvaMergedElectronCategories")==1 )
+  //   return aEle->userFloat("ecalEnergyPostCorr")/aEle->energy();
 
   double corr = u5x5En + rng_.Gaus(0.,u5x5En*0.02);
 
@@ -395,4 +401,16 @@ std::pair<double,double> ElectronSystematicsHelper::GetAbcdScaleSmear(const math
   double smear2 = lvec2.Et()*scale + rng_.Gaus(0.,lvec2.Et()*abcdSmear_);
 
   return std::make_pair(smear1/lvec1.Et(),smear2/lvec2.Et());
+}
+
+bool ElectronSystematicsHelper::isNonHeepEle(const pat::ElectronRef& aEle,
+                                             const double trkIso,
+                                             const double dPerpIn) const {
+  int32_t bitmap = aEle->userInt("modifiedHeepElectronID");
+  int32_t mask = 0x000001F4; // 0001 1111 0100 // 0111 1011 0100
+  int32_t pass = bitmap | mask;
+  bool passMaskedId = pass==0x00000FFF; // HEEP ID has 12 cuts
+  bool passDEtaIn = (std::abs(dPerpIn) < 0.01 || std::abs(aEle->deltaEtaSeedClusterTrackAtVtx()) < 0.01);
+
+  return passMaskedId && passDEtaIn;
 }
