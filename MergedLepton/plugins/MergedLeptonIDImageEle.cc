@@ -178,8 +178,7 @@ private:
   int label_num_ele_hard;
   float pT_gsfele;
   int isAddTrk;
-  std::vector<int> Ele1st_XY;
-  std::vector<int> Ele2nd_XY;
+  std::vector<int> EleXY;
 
   int imageSize_;
   int ESimageSize_;
@@ -353,8 +352,7 @@ void MergedLeptonIDImageEle::beginJob() {
   ImageTree_->Branch("NumEleHard",&label_num_ele_hard,"NumEleHard/I");
   ImageTree_->Branch("pT",&pT_gsfele,"pT/F");
   ImageTree_->Branch("IsAddTrk",&isAddTrk,"IsAddTrk/I");
-  ImageTree_->Branch("Ele1st_XY",&Ele1st_XY,32000,0);
-  ImageTree_->Branch("Ele2nd_XY",&Ele2nd_XY,32000,0);
+  ImageTree_->Branch("EleXY",&EleXY,32000,0);
 }
 
 void MergedLeptonIDImageEle::endJob() {
@@ -478,9 +476,9 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
   }
   EEtree_->Fill();
   int idx =0;
-  std::cout<<"wtf"<<std::endl;
+  //std::cout<<"wtf"<<std::endl;
 
-  auto dEtaInSeedCalc = ModifiedDEtaInSeed(posCalcLog_,iC);
+  //auto dEtaInSeedCalc = ModifiedDEtaInSeed(posCalcLog_,iC);
   for (const auto& electron : *emObjectHandle){
     if (electron.eta()<1.653 || electron.eta()>2.5){
       continue;
@@ -506,37 +504,37 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
     
     //calculate 1st and 2nd ele position
     //
-    float eta_1st = seedPosition.eta() - electron.deltaEtaSeedClusterTrackAtCalo();
-    float phi_1st = reco::reduceRange( seedPosition.phi() - electron.deltaPhiSeedClusterTrackAtCalo());
+    //float eta_1st = seedPosition.eta() - electron.deltaEtaSeedClusterTrackAtCalo();
+    //float phi_1st = reco::reduceRange( seedPosition.phi() - electron.deltaPhiSeedClusterTrackAtCalo());
     
-    auto beamSpot = beamSpotHandle.product();
+    //auto beamSpot = beamSpotHandle.product();
 
-    double dEtaInSeed2nd = std::numeric_limits<float>::max();
-    double dPhiInSC2nd = std::numeric_limits<float>::max();
+    //double dEtaInSeed2nd = std::numeric_limits<float>::max();
+    //double dPhiInSC2nd = std::numeric_limits<float>::max();
 
-    auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
-    auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
+    //auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
+    //auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
 
-    if ( dEtaInSeedCalc.extrapolate(electron,*addTrk,beamSpot->position(),iSetup,scAtVtx,seedAtCalo) ) {
-      dPhiInSC2nd = scAtVtx.dPhi();
-      dEtaInSeed2nd = scAtVtx.dEta() - electron.superCluster()->eta() + electron.superCluster()->seed()->eta();
-    }
+    //if ( dEtaInSeedCalc.extrapolate(electron,*addTrk,beamSpot->position(),iSetup,scAtVtx,seedAtCalo) ) {
+      //dPhiInSC2nd = scAtVtx.dPhi();
+      //dEtaInSeed2nd = scAtVtx.dEta() - electron.superCluster()->eta() + electron.superCluster()->seed()->eta();
+    //}
 
-    if ( dEtaInSeed2nd==std::numeric_limits<float>::max() || dPhiInSC2nd==std::numeric_limits<float>::max() )
-      continue;
+    //if ( dEtaInSeed2nd==std::numeric_limits<float>::max() || dPhiInSC2nd==std::numeric_limits<float>::max() )
+      //continue;
 
-    float eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
-    float phi_2nd = reco::reduceRange( -( dPhiInSC2nd - electron.superCluster()->phi() ) );
+    //float eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
+    //float phi_2nd = reco::reduceRange( -( dPhiInSC2nd - electron.superCluster()->phi() ) );
 
     // eta phi to x y
-    float radius_1st = 295./sinh(eta_1st);
-    float x_1st = radius_1st * cos(phi_1st);
-    float y_1st = radius_1st * sin(phi_1st);
-    
-    float radius_2nd = 295./sinh(eta_2nd);
-    float x_2nd = radius_2nd * cos(phi_2nd);
-    float y_2nd = radius_2nd * sin(phi_2nd);
-    
+   // float radius_1st = 295./sinh(eta_1st);
+   // float x_1st = radius_1st * cos(phi_1st);
+   // float y_1st = radius_1st * sin(phi_1st);
+   // 
+   // float radius_2nd = 295./sinh(eta_2nd);
+   // float x_2nd = radius_2nd * cos(phi_2nd);
+   // float y_2nd = radius_2nd * sin(phi_2nd);
+    std::vector<float> genelexy;
     //std::cout<<"pT : "<<electron.pt()<<std::endl;
     //
     //
@@ -556,13 +554,21 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
     int matched_gen_ele = 0;
     int matched_gen_prompt_ele = 0;
     pT_gsfele = electron.pt();
-    
+    std::vector<float> geneleetaphi; 
     for (const auto& ele : promptEles){
        float dEta = ele->eta()-seedPosition.eta();
        float dPhi = ele->phi()-seedPosition.phi();
        float dR = std::sqrt(dEta * dEta + dPhi * dPhi);
-       if (dR < 0.1) matched_gen_prompt_ele ++;
+       if (dR < 0.1) {
+	  matched_gen_prompt_ele ++;
+	  float radius = 306./sinh(ele->eta());
+	  genelexy.push_back(radius * cos(ele->phi()));
+	  genelexy.push_back(radius * sin(ele->phi()));
+	  geneleetaphi.push_back(ele->eta());
+	  geneleetaphi.push_back(ele->phi());
+       }
     }
+    if (matched_gen_prompt_ele < 2) continue;
     for (const auto& ele : Eles){
        float dEta = ele->eta()-seedPosition.eta();
        float dPhi = ele->phi()-seedPosition.phi();
@@ -617,26 +623,27 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
     float mindY_1st = std::numeric_limits<float>::max();
     float mindX_2nd = std::numeric_limits<float>::max();
     float mindY_2nd = std::numeric_limits<float>::max();
-    int six_1st;
-    int siy_1st;
-    int six_2nd;
-    int siy_2nd;
-    int stripx_1st;
-    int stripy_1st;
-    int stripx_2nd;
-    int stripy_2nd;
+    int six_1st= std::numeric_limits<int>::min();
+    int siy_1st= std::numeric_limits<int>::min();
+    int six_2nd= std::numeric_limits<int>::min();
+    int siy_2nd= std::numeric_limits<int>::min();
+    int stripx_1st = std::numeric_limits<int>::min();
+    int stripy_1st = std::numeric_limits<int>::min();
+    int stripx_2nd = std::numeric_limits<int>::min();
+    int stripy_2nd = std::numeric_limits<int>::min();
+    
     for (const auto& hit : *ESrecHitHandle){
       const auto& detID = hit.id();
       ESDetId id_silicon(hit.detid());
       const auto& hitPosition = caloGeom->getGeometry(detID);
       if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
 
-      float deltaX = hitPosition->getPosition().x()-electron.superCluster()->seed()->x();
-      float deltaY = hitPosition->getPosition().y()-electron.superCluster()->seed()->y();
+      float deltaEta = hitPosition->getPosition().eta()-electron.superCluster()->seed()->eta();
+      float deltaPhi = hitPosition->getPosition().phi()-electron.superCluster()->seed()->phi();
 
       if(id_silicon.plane() == 1){
-	float dX_1st_iter = pow(hitPosition->getPosition().x() - x_1st,2);
-        float dX_2nd_iter = pow(hitPosition->getPosition().x() - x_2nd,2);
+	float dX_1st_iter = pow(hitPosition->getPosition().x() - genelexy.at(0),2);
+        float dX_2nd_iter = pow(hitPosition->getPosition().x() - genelexy.at(2),2);
 	if (dX_1st_iter < mindX_1st ){
 		stripx_1st = id_silicon.strip();
 		six_1st = id_silicon.six();
@@ -650,8 +657,8 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
       
       }
       if(id_silicon.plane() == 2){
-	float dY_1st_iter = pow(hitPosition->getPosition().y() - y_1st,2);
-        float dY_2nd_iter = pow(hitPosition->getPosition().y() - y_2nd,2);
+	float dY_1st_iter = pow(hitPosition->getPosition().y() - genelexy.at(1),2);
+        float dY_2nd_iter = pow(hitPosition->getPosition().y() - genelexy.at(3),2);
 	if (dY_1st_iter < mindY_1st ){
 		stripy_1st = id_silicon.strip();
 		siy_1st = id_silicon.siy();
@@ -664,7 +671,7 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
 	}
       
       }
-      float distance = std::sqrt(deltaX * deltaX + deltaY * deltaY);
+      float distance = std::sqrt(deltaEta * deltaEta + deltaPhi * deltaPhi);
       if (distance < minDistance){
         minDistance = distance;
         matchedSilicon = &id_silicon;
@@ -680,6 +687,7 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
         const auto& detID = hit.id();
         ESDetId id_silicon(hit.detid());
         const auto& hitPosition = caloGeom->getGeometry(detID);
+	//std::cout<<hitPosition->getPosition().z()<<std::endl;
         if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
         int dX = matched_ix-id_silicon.six();
         int dY = matched_iy-id_silicon.siy();
@@ -695,7 +703,9 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
       
       }
     }
-    std::cout << x_1st << " | " <<y_1st<<" | | "<<seedPosition.x()<<" | "<<seedPosition.y()<<std::endl; 
+    float test_radius = seedPosition.z()/sinh(seedPosition.eta());
+    //std::cout<< seedPosition.z()<<" | "<<test_radius<<" | "<< test_radius*sin(seedPosition.phi())<<" | "<<test_radius*cos(seedPosition.phi())<<std::endl;
+    //std::cout << geneleetaphi.at(0) << " | " <<geneleetaphi.at(1)<<" | | "<<seedPosition.y()<<" | "<<seedPosition.x()<<std::endl; 
     //for (const auto& row : ESImage_plane1) {
     //  for (const auto& pixel : row) {
     //    std::cout << pixel << " ";
@@ -710,10 +720,10 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
     //  std::cout << std::endl;
     //}
     //std::cout << "----" << std::endl;
-    Ele1st_XY.push_back((matched_ix - six_1st + EShalfSize) * 32 + stripx_1st - 1);
-    Ele1st_XY.push_back((matched_iy - siy_1st + EShalfSize) * 32 + stripy_1st - 1);
-    Ele2nd_XY.push_back((matched_ix - six_2nd + EShalfSize) * 32 + stripx_2nd - 1);
-    Ele2nd_XY.push_back((matched_iy - siy_2nd + EShalfSize) * 32 + stripy_2nd - 1);
+    EleXY.push_back((matched_ix - six_1st + EShalfSize) * 32 + stripx_1st - 1);
+    EleXY.push_back((matched_iy - siy_1st + EShalfSize) * 32 + stripy_1st - 1);
+    EleXY.push_back((matched_ix - six_2nd + EShalfSize) * 32 + stripx_2nd - 1);
+    EleXY.push_back((matched_iy - siy_2nd + EShalfSize) * 32 + stripy_2nd - 1);
     EEImage_branch = EEImage;
     ES1Image_branch = ESImage_plane1;
     ES2Image_branch = ESImage_plane2;
@@ -722,8 +732,8 @@ void MergedLeptonIDImageEle::analyze(const edm::Event& iEvent, const edm::EventS
     label_num_ele_hard = matched_gen_prompt_ele;
     label_num_ele = matched_gen_ele;
     ImageTree_->Fill();
-    Ele1st_XY.clear();
-    Ele2nd_XY.clear();
+    EleXY.clear();
+    //Ele2nd_XY.clear();
   }
 
 

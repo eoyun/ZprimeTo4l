@@ -1,6 +1,10 @@
 #include <memory>
 #include <iostream>
 
+
+#include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedDEtaInSeed.h"
+
+
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -34,6 +38,9 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
+#include "TrackingTools/GsfTools/interface/MultiTrajectoryStateMode.h"
+#include "TrackingTools/GsfTools/interface/MultiTrajectoryStateTransform.h"
+#include "TrackingTools/GsfTools/interface/GsfPropagatorAdapter.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
@@ -71,6 +78,9 @@ class MergedLeptonIDImage : public edm::one::EDAnalyzer<edm::one::SharedResource
 public:
   explicit MergedLeptonIDImage(const edm::ParameterSet&);
   virtual ~MergedLeptonIDImage() {}
+  bool extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
+                   const math::XYZPoint& beamSpotPos, const edm::EventSetup& iSetup,
+                   EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo);
 
 private:
   virtual void beginJob() override;
@@ -107,6 +117,8 @@ private:
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> triggerobjectsToken_;
 
+  const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
+
   edm::ConsumesCollector collector_ = consumesCollector();
   
   const std::vector<std::string> trigList_;
@@ -126,6 +138,7 @@ private:
   const edm::ESGetToken<GeometricSearchTracker, TrackerRecoGeometryRecord> geotrkToken_;
   const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbToken_;
   edm::ESGetToken<CaloGeometry, CaloGeometryRecord> geometryToken_;
+  edm::ESGetToken<CaloTopology, CaloTopologyRecord> topologyToken_;
 
   // PDG mass & error
   const double elmass_ = 0.0005109989461;
@@ -172,9 +185,13 @@ private:
   int label_num_ele_hard;
   float pT_gsfele;
   int isAddTrk;
+  std::vector<float> dEta;// original trk, add trk
+  std::vector<float> dPhi;
 
   int imageSize_;
   int ESimageSize_;
+
+  PositionCalc posCalcLog_;
 
 public:
   struct dielectron {
@@ -276,6 +293,7 @@ generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
+beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
 purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 isMC_(iConfig.getParameter<bool>("isMC")),
@@ -290,6 +308,7 @@ magneticToken_(esConsumes()),
 geotrkToken_(esConsumes()),
 ttbToken_(esConsumes(edm::ESInputTag("","TransientTrackBuilder"))),
 geometryToken_(esConsumes()),
+topologyToken_(esConsumes()),
 imageSize_(iConfig.getParameter<int>("imageSize")),
 ESimageSize_(iConfig.getParameter<int>("ESimageSize"))
 {
@@ -297,6 +316,87 @@ ESimageSize_(iConfig.getParameter<int>("ESimageSize"))
   std::cout<<"hello2"<<std::endl;
   
   usesResource("TFileService");
+}
+
+bool MergedLeptonIDImage::extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
+                                     const math::XYZPoint& beamSpotPos, const edm::EventSetup& iSetup,
+                                     EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo) {
+  // track-cluster matching (see RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc)
+  //edm::ESHandle<MagneticField> magFieldHandle;
+  //iSetup.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+  const MagneticField* magFieldHandle = &iSetup.getData(magneticToken_);
+  // at innermost/outermost point
+  // edm::ESHandle<TrackerGeometry> trackerHandle;
+  // iSetup.get<TrackerDigiGeometryRecord>().get(trackerHandle);
+  // auto mtsTransform = std::make_unique<MultiTrajectoryStateTransform>(trackerHandle.product(),magFieldHandle.product());
+  // TrajectoryStateOnSurface innTSOS = mtsTransform->innerStateOnSurface(*addGsfTrk);
+  // TrajectoryStateOnSurface outTSOS = mtsTransform->outerStateOnSurface(*addGsfTrk);
+
+  // unfortunately above requires trackExtra - which is only available in RECO
+  // instead we start from track vtx then propagate free state to inner/outer surface
+  // no recHit hence make a reasonable approximation that
+  // inner surface is pixel barrel & outer surface is tracker envelope
+
+  //edm::ESHandle<GeometricSearchTracker> trackerSearchHandle;
+  //iSetup.get<TrackerRecoGeometryRecord>().get(trackerSearchHandle);
+  const GeometricSearchTracker* trackerSearchHandle = &iSetup.getData(geotrkToken_);
+
+  const auto& pixelBarrelLayers = trackerSearchHandle->pixelBarrelLayers();
+  BarrelDetLayer* innermostLayer = nullptr;
+  float innermostRadius = std::numeric_limits<float>::max();
+
+  for (const auto* alayer : pixelBarrelLayers) {
+    float aradius = alayer->surface().rSpan().first;
+    if ( aradius < innermostRadius ) {
+      innermostRadius = aradius;
+      innermostLayer = const_cast<BarrelDetLayer*>(alayer);
+    }
+  }
+
+  // GlobalTag matters here (tracker alignment)
+  FreeTrajectoryState freestate(GlobalTrajectoryParameters(GlobalPoint(addTrk.referencePoint().x(),
+                                                                       addTrk.referencePoint().y(),
+                                                                       addTrk.referencePoint().z()),
+                                                           GlobalVector(addTrk.momentum().x(),
+                                                                        addTrk.momentum().y(),
+                                                                        addTrk.momentum().z()),
+                                                           addTrk.charge(),
+                                                           magFieldHandle),
+                                CurvilinearTrajectoryError(addTrk.covariance()));
+  auto gsfPropagator = std::make_unique<GsfPropagatorAdapter>(AnalyticalPropagator(magFieldHandle));
+  auto extrapolator = std::make_unique<TransverseImpactPointExtrapolator>(*gsfPropagator);
+  TrajectoryStateOnSurface innTSOS = gsfPropagator->propagate(freestate,innermostLayer->surface());
+  StateOnTrackerBound stateOnBound(gsfPropagator.get());
+  TrajectoryStateOnSurface outTSOS = stateOnBound(freestate);
+
+  if ( innTSOS.isValid() && outTSOS.isValid() ) {
+    // at seed
+    TrajectoryStateOnSurface seedTSOS = extrapolator->extrapolate(*(outTSOS.freeState()), // with TSOS assert fails (not a real measurement)
+                                                                  GlobalPoint(aEle.superCluster()->seed()->position().x(),
+                                                                              aEle.superCluster()->seed()->position().y(),
+                                                                              aEle.superCluster()->seed()->position().z()));
+    std::cout<<aEle.superCluster()->seed()->position().x()<<" | "<<aEle.superCluster()->seed()->position().y()<<" | "<<aEle.superCluster()->seed()->position().z()<<" | "<<std::endl;
+    if (!seedTSOS.isValid()){
+      seedTSOS = outTSOS;
+    }
+    TrajectoryStateOnSurface sclTSOS = extrapolator->extrapolate(*(innTSOS.freeState()), // with TSOS assert fails (not a real measurement)
+                                                                 GlobalPoint(aEle.superCluster()->x(),
+                                                                             aEle.superCluster()->y(),
+                                                                             aEle.superCluster()->z()));
+    if (!sclTSOS.isValid())
+      sclTSOS = outTSOS;
+
+    GlobalPoint seedPos, sclPos;
+    multiTrajectoryStateMode::positionFromModeCartesian(seedTSOS,seedPos);
+    multiTrajectoryStateMode::positionFromModeCartesian(sclTSOS,sclPos);
+
+    scAtVtx = EleRelPointPair(aEle.superCluster()->position(),sclPos,beamSpotPos);
+    seedAtCalo = EleRelPointPair(aEle.superCluster()->seed()->position(),seedPos,beamSpotPos);
+
+    return true;
+  }
+
+  return false;
 }
 
 void MergedLeptonIDImage::beginJob() {
@@ -342,6 +442,8 @@ void MergedLeptonIDImage::beginJob() {
   ImageTree_->Branch("NumEleHard",&label_num_ele_hard,"NumEleHard/I");
   ImageTree_->Branch("pT",&pT_gsfele,"pT/F");
   ImageTree_->Branch("IsAddTrk",&isAddTrk,"IsAddTrk/I");
+  ImageTree_->Branch("dPhi",&dPhi,32000,0);
+  ImageTree_->Branch("dEta",&dEta,32000,0);
 }
 
 void MergedLeptonIDImage::endJob() {
@@ -401,6 +503,9 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandHandle;
   iEvent.getByToken(addPackedCandToken_, addPackedCandHandle);
+
+  edm::Handle<reco::BeamSpot> beamSpotHandle;
+  iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
   std::vector<reco::GenParticleRef> promptEles;
   std::vector<reco::GenParticleRef> Eles;
@@ -463,28 +568,67 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
   EEtree_->Fill();
   int idx =0;
   for (const auto& electron : *emObjectHandle){
-    if (electron.eta()<1.653 || electron.eta()>2.5){
+
+    if (abs(electron.eta())<1.653 || abs(electron.eta())>2.5){
       continue;
     }
+    dPhi.clear();
+    dEta.clear();
+    const auto& seedPosition = electron.superCluster()->seed()->position();
     const auto& aEle = emObjectHandle->refAt(idx);
     idx ++;
+    std::cout<<aEle<<std::endl;
     const auto& orgGsfTrk = electron.gsfTrack();
     const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
     const auto& addPackedCand = (*addPackedCandHandle)[aEle];
-
-    const reco::Track* addTrk = addGsfTrk.get();
-
-    if ( addGsfTrk==orgGsfTrk && addPackedCand.isNonnull() )
+    const reco::TrackBase* addTrk = addGsfTrk.get();
+    //calculate 1st and 2nd ele position
+    //
+    float eta_1st = seedPosition.eta() - electron.deltaEtaSeedClusterTrackAtCalo();
+    float phi_1st = reco::reduceRange( seedPosition.phi() - electron.deltaPhiSeedClusterTrackAtCalo());
+    if ( addGsfTrk==orgGsfTrk && addPackedCand.isNonnull() ){
       addTrk = addPackedCand->bestTrack();
+      std::cout<<"dbg"<<std::endl;
+    }
     if (orgGsfTrk.get()->pt() < 20 || addTrk->pt() < 10) continue;
+    dPhi.push_back(electron.deltaPhiSeedClusterTrackAtCalo());
+    dEta.push_back(electron.deltaEtaSeedClusterTrackAtCalo());
     if(addTrk == orgGsfTrk.get()) isAddTrk = 0;
-    else isAddTrk = 1;
+    else {
+      isAddTrk = 1;
+      //dPhi.push_back(reco::reduceRange(seedPosition.phi()-addTrk.phi()));
+      //dEta.push_back(seedPosition.eta()-addTrk.eta());
+      auto beamSpot = beamSpotHandle.product();
+
+      double dEtaInSeed2nd = std::numeric_limits<float>::max();
+      double dPhiInSeed2nd = std::numeric_limits<float>::max();
+
+      auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
+      auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
+
+      if ( extrapolate(electron,*addTrk,beamSpot->position(),iSetup,scAtVtx,seedAtCalo) ) {
+        dPhiInSeed2nd = seedAtCalo.dPhi();
+        dEtaInSeed2nd = seedAtCalo.dEta();
+      }
+
+      if ( dEtaInSeed2nd==std::numeric_limits<float>::max() || dPhiInSeed2nd==std::numeric_limits<float>::max() )
+        continue;
+
+      float eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
+      float phi_2nd = reco::reduceRange( -( dPhiInSeed2nd - electron.superCluster()->phi() ) );
+      dPhi.push_back(dPhiInSeed2nd);
+      dEta.push_back(dEtaInSeed2nd);
+      if (abs(dEtaInSeed2nd)>0.){
+         std::cout<<eta_2nd << " | "<<phi_2nd<<" | pt "<<addTrk->pt()<<" 1st" <<std::endl;
+         std::cout<<seedPosition.eta()<<" | "<<seedPosition.phi()<<std::endl;
+      }
+      //std::cout<<eta_2nd << " | "<<phi_2nd<<" 2nd" <<std::endl;
+    }
 
     //std::cout<<"hello"<<std::endl;
-    const auto& scPosition = electron.superCluster()->seed()->position();
     //std::cout<<"pT : "<<electron.pt()<<std::endl;
     //std::cout<<"5x5 energy : "<<electron.e5x5()<<std::endl;
-    //std::cout<<electron.superCluster()->seed()->eta()<<" | "<<scPosition.eta()<<std::endl;
+    //std::cout<<electron.superCluster()->seed()->eta()<<" | "<<seedPosition.eta()<<std::endl;
     //std::cout<<orgGsfTrk.get()->pt()<<" | add : "<<addTrk->pt()<<" | "<<isAddTrk<<std::endl;
     int halfSize = imageSize_ / 2;
     int EShalfSize = ESimageSize_ / 2;
@@ -500,14 +644,17 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     int matched_gen_prompt_ele = 0;
     pT_gsfele = electron.pt();
     for (const auto& ele : promptEles){
-       float dEta = ele->eta()-scPosition.eta();
-       float dPhi = ele->phi()-scPosition.phi();
+       float dEta = ele->eta()-seedPosition.eta();
+       float dPhi = ele->phi()-seedPosition.phi();
        float dR = std::sqrt(dEta * dEta + dPhi * dPhi);
-       if (dR < 0.1) matched_gen_prompt_ele ++;
+       if (dR < 0.1){ 
+          matched_gen_prompt_ele ++;
+	  //std::cout<< ele->eta()<<" | "<<ele->phi()<<" gen"<<std::endl;
+       }
     }
     for (const auto& ele : Eles){
-       float dEta = ele->eta()-scPosition.eta();
-       float dPhi = ele->phi()-scPosition.phi();
+       float dEta = ele->eta()-seedPosition.eta();
+       float dPhi = ele->phi()-seedPosition.phi();
        float dR = std::sqrt(dEta * dEta + dPhi * dPhi);
        if (dR < 0.1) matched_gen_ele ++;
     }
@@ -515,9 +662,9 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     //  const auto& detID = hit.id();
     //  EEDetId id_xtal(hit.detid());
     //  const auto& hitPosition = caloGeom->getGeometry(detID);
-    //  if (hitPosition->getPosition().z() * scPosition.z() < 0) continue;
-    //  float deltaX = hitPosition->getPosition().x()-scPosition.x();
-    //  float deltaY = hitPosition->getPosition().y()-scPosition.y();
+    //  if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
+    //  float deltaX = hitPosition->getPosition().x()-seedPosition.x();
+    //  float deltaY = hitPosition->getPosition().y()-seedPosition.y();
 
     //  float distance = std::sqrt(deltaX * deltaX + deltaY * deltaY);
     //  if (distance < minDistance){
@@ -532,7 +679,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
       const auto& detID = hit.id();
       auto id_xtal =EEDetId(hit.detid());
       const auto& hitPosition = caloGeom->getGeometry(detID);
-    	if (hitPosition->getPosition().z() * scPosition.z() < 0) continue;
+    	if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
 
       int dX = matched_ix-id_xtal.ix();
       int dY = matched_iy-id_xtal.iy();
@@ -559,12 +706,12 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
       const auto& detID = hit.id();
       ESDetId id_silicon(hit.detid());
       const auto& hitPosition = caloGeom->getGeometry(detID);
-      if (hitPosition->getPosition().z() * scPosition.z() < 0) continue;
+      if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
 
-      float deltaX = hitPosition->getPosition().x()-electron.superCluster()->seed()->x();
-      float deltaY = hitPosition->getPosition().y()-electron.superCluster()->seed()->y();
+      float deltaEta = hitPosition->getPosition().eta()-electron.superCluster()->seed()->eta();
+      float deltaPhi = hitPosition->getPosition().phi()-electron.superCluster()->seed()->phi();
 
-      float distance = std::sqrt(deltaX * deltaX + deltaY * deltaY);
+      float distance = std::sqrt(deltaEta * deltaEta + deltaPhi * deltaPhi);
       if (distance < minDistance){
         minDistance = distance;
         matchedSilicon = &id_silicon;
@@ -580,7 +727,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
         const auto& detID = hit.id();
         ESDetId id_silicon(hit.detid());
         const auto& hitPosition = caloGeom->getGeometry(detID);
-        if (hitPosition->getPosition().z() * scPosition.z() < 0) continue;
+        if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
         int dX = matched_ix-id_silicon.six();
         int dY = matched_iy-id_silicon.siy();
         if (abs(dX) <= EShalfSize && abs(dY) <= EShalfSize){

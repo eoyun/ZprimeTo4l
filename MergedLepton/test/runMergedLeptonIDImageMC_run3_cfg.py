@@ -27,7 +27,7 @@ process.source = cms.Source("PoolSource",
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('hists_Image_signal.root')
+    fileName = cms.string('hists_Image.root')
 )
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000

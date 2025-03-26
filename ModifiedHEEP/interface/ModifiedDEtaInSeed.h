@@ -22,6 +22,8 @@
 class ModifiedDEtaInSeed {
 public:
   ModifiedDEtaInSeed(PositionCalc calc, edm::ConsumesCollector iC);
+  ModifiedDEtaInSeed(PositionCalc calc);
+  ModifiedDEtaInSeed();
   ~ModifiedDEtaInSeed()=default;
 
   struct variables {

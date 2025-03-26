@@ -27,6 +27,7 @@ mergedLeptonIDImage = cms.EDAnalyzer("MergedLeptonIDImage",
   emObjectProducer = cms.InputTag("slimmedElectrons"),
   triggerResults = cms.InputTag("TriggerResults","","HLT"),
   triggerObjects = cms.InputTag("slimmedPatTrigger"),
+  beamSpot = cms.InputTag("offlineBeamSpot"),
   trigList = cms.vstring(
     "HLT_Mu9_IP6*",
     "HLT_Mu12_IP6*"
