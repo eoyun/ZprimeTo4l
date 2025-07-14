@@ -24,7 +24,7 @@ void runFF(TString era) {
   setTDRStyle();
 
   writeExtraText = true;       // if extra text
-  extraText  = "   Work in progress";  // default extra text is "Preliminary"
+  extraText  = "";  // default extra text is "Preliminary"
 
   static constexpr double WZxsec_ = 5.213; // 0.65*62.78;
   static constexpr double ZZxsec_ = 13.81;
@@ -46,7 +46,7 @@ void runFF(TString era) {
     lumi_13TeV = "59.83 fb^{-1}";
   } else if (era=="run2") {
     lumi_sqrtS = "";
-    lumi_13TeV = "137.6 fb^{-1}";
+    lumi_13TeV = "138 fb^{-1}";
     postfix = "";
     fname = "20UL16";
   } else {
@@ -57,7 +57,7 @@ void runFF(TString era) {
   static TString anlyzrData = "mergedEleCRanalyzerData";
 
   int iPeriod = 4;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
-  int iPos = 0;
+  int iPos = 11;
 
   if( iPos==0 )
     relPosX = 0.12;
@@ -72,7 +72,7 @@ void runFF(TString era) {
   float T = 0.08*H_ref;
   float B = 0.12*H_ref;
   float L = 0.12*W_ref;
-  float R = 0.04*W_ref;
+  float R = 0.02*W_ref;
 
   TFile* datafile = new TFile("EleAnalyzer_"+fname+"_data.root","READ");
   TFile* WZfile = new TFile("EleAnalyzer_"+fname+"_WZFXFX.root","READ");
@@ -90,13 +90,6 @@ void runFF(TString era) {
   TFile* WZfile3 = new TFile("EleAnalyzer_20UL18_WZFXFX.root","READ");
   TFile* ZZfile3 = new TFile("EleAnalyzer_20UL18_ZZ.root","READ");
 
-  //TFile* H250A1file = new TFile("MergedEleCR_"+era+"_H250A1.root","READ");
-  //TFile* H750A1file = new TFile("MergedEleCR_"+era+"_H750A1.root","READ");
-  //TFile* H2000A1file = new TFile("MergedEleCR_"+era+"_H2000A1.root","READ");
-  //TFile* H250A10file = new TFile("MergedEleCR_"+era+"_H250A10.root","READ");
-  //TFile* H750A10file = new TFile("MergedEleCR_"+era+"_H750A10.root","READ");
-  //TFile* H2000A10file = new TFile("MergedEleCR_"+era+"_H2000A10.root","READ");
-
   class SigSample {
   public:
     SigSample(TFile* afile, TString name)
@@ -109,111 +102,164 @@ void runFF(TString era) {
     TString name_;
   };
 
-  // auto H750A1sample = SigSample(new TFile("EleAnalyzer_"+era+"_H750A1.root","READ"),"H750A1");
+  auto sampleNames = std::vector<TString> {"H750A1","H750Z1"};
 
-  /*std::vector<SigSample> sigsamples = {
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("EleAnalyzer_"+fname+"_H2000A750.root","READ"),"H2000A750")
-  };
-
-  std::vector<SigSample> sigsamples1 = {
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("EleAnalyzer_20UL16APV_H2000A750.root","READ"),"H2000A750")
-  };
-
-  std::vector<SigSample> sigsamples2 = {
-    SigSample(new TFile("EleAnalyzer_20UL17_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("EleAnalyzer_20UL17_H2000A750.root","READ"),"H2000A750")
-  };
-
-  std::vector<SigSample> sigsamples3 = {
-    SigSample(new TFile("EleAnalyzer_20UL18_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("EleAnalyzer_20UL18_H2000A750.root","READ"),"H2000A750")
+  /*auto sampleNames = std::vector<TString> {
+    "H250A0p4",
+    "H250A0p6",
+    "H250A0p8",
+    "H250A1",
+    "H250A1p5",
+    "H250A2",
+    "H250A5",
+    "H250A10",
+    "H250A50",
+    "H250A100",
+    "H500A0p4",
+    "H500A0p6",
+    "H500A0p8",
+    "H500A1",
+    "H500A1p5",
+    "H500A2",
+    "H500A5",
+    "H500A10",
+    "H500A50",
+    "H500A100",
+    "H750A0p4",
+    "H750A0p6",
+    "H750A0p8",
+    "H750A1",
+    "H750A1p5",
+    "H750A2",
+    "H750A5",
+    "H750A10",
+    "H750A50",
+    "H750A100",
+    "H750A250",
+    "H1000A0p4",
+    "H1000A0p6",
+    "H1000A0p8",
+    "H1000A1",
+    "H1000A1p5",
+    "H1000A2",
+    "H1000A5",
+    "H1000A10",
+    "H1000A50",
+    "H1000A100",
+    "H1000A250",
+    "H1500A0p4",
+    "H1500A0p6",
+    "H1500A0p8",
+    "H1500A1",
+    "H1500A1p5",
+    "H1500A2",
+    "H1500A5",
+    "H1500A10",
+    "H1500A50",
+    "H1500A100",
+    "H1500A250",
+    "H1500A500",
+    "H2000A0p4",
+    "H2000A0p6",
+    "H2000A0p8",
+    "H2000A1",
+    "H2000A1p5",
+    "H2000A2",
+    "H2000A5",
+    "H2000A10",
+    "H2000A50",
+    "H2000A100",
+    "H2000A750",
+    "H5000A1",
+    "H5000A2",
+    "H5000A5",
+    "H5000A10",
+    "H5000A50",
+    "H5000A100",
+    "H5000A750",
+    "H5000A2000",
+    "H250Z0p4",
+    "H250Z0p6",
+    "H250Z0p8",
+    "H250Z1",
+    "H250Z1p5",
+    "H250Z2",
+    "H250Z5",
+    "H250Z10",
+    "H250Z50",
+    "H250Z100",
+    "H500Z0p4",
+    "H500Z0p6",
+    "H500Z0p8",
+    "H500Z1",
+    "H500Z1p5",
+    "H500Z2",
+    "H500Z5",
+    "H500Z10",
+    "H500Z50",
+    "H500Z100",
+    "H500Z250",
+    "H750Z0p4",
+    "H750Z0p6",
+    "H750Z0p8",
+    "H750Z1",
+    "H750Z1p5",
+    "H750Z2",
+    "H750Z5",
+    "H750Z10",
+    "H750Z50",
+    "H750Z100",
+    "H750Z250",
+    "H750Z500",
+    "H1000Z0p4",
+    "H1000Z0p6",
+    "H1000Z0p8",
+    "H1000Z1",
+    "H1000Z1p5",
+    "H1000Z2",
+    "H1000Z5",
+    "H1000Z10",
+    "H1000Z50",
+    "H1000Z100",
+    "H1000Z500",
+    "H1000Z750",
+    "H1500Z0p4",
+    "H1500Z0p6",
+    "H1500Z0p8",
+    "H1500Z1",
+    "H1500Z1p5",
+    "H1500Z2",
+    "H1500Z5",
+    "H1500Z10",
+    "H1500Z50",
+    "H1500Z100",
+    "H1500Z500",
+    "H1500Z1000",
+    "H2000Z0p4",
+    "H2000Z0p6",
+    "H2000Z0p8",
+    "H2000Z1",
+    "H2000Z1p5",
+    "H2000Z2",
+    "H2000Z5",
+    "H2000Z10",
+    "H2000Z50",
+    "H2000Z100",
+    "H2000Z500",
+    "H2000Z1000",
+    "H2000Z1500"
   };*/
 
-  auto sigsamples = std::vector<SigSample>{SigSample(new TFile("EleAnalyzer_"+fname+"_H750A1.root","READ"),"H750A1")};
-  auto sigsamples1 = std::vector<SigSample>{SigSample(new TFile("EleAnalyzer_20UL16APV_H750A1.root","READ"),"H750A1")};
-  auto sigsamples2 = std::vector<SigSample>{SigSample(new TFile("EleAnalyzer_20UL17_H750A1.root","READ"),"H750A1")};
-  auto sigsamples3 = std::vector<SigSample>{SigSample(new TFile("EleAnalyzer_20UL18_H750A1.root","READ"),"H750A1")};
+  std::vector<SigSample> sigsamples, sigsamples1, sigsamples2, sigsamples3;
 
-  std::vector<SigSample> sigsamples3E = {SigSample(new TFile("EleAnalyzer_"+fname+"_H750A10.root","READ"),"H750A10")};
-  std::vector<SigSample> sigsamples3E1 = {SigSample(new TFile("EleAnalyzer_20UL16APV_H750A10.root","READ"),"H750A10")};
-  std::vector<SigSample> sigsamples3E2 = {SigSample(new TFile("EleAnalyzer_20UL17_H750A10.root","READ"),"H750A10")};
-  std::vector<SigSample> sigsamples3E3 = {SigSample(new TFile("EleAnalyzer_20UL18_H750A10.root","READ"),"H750A10")};
+  for (const auto& name : sampleNames) {
+    sigsamples.push_back(SigSample(new TFile("EleAnalyzer_"+fname+"_"+name+".root","READ"),name));
+    sigsamples1.push_back(SigSample(new TFile("EleAnalyzer_20UL16APV_"+name+".root","READ"),name));
+    sigsamples2.push_back(SigSample(new TFile("EleAnalyzer_20UL17_"+name+".root","READ"),name));
+    sigsamples3.push_back(SigSample(new TFile("EleAnalyzer_20UL18_"+name+".root","READ"),name));
+  }
 
-  auto* canvas_2 = new TCanvas("canvas_2","canvas_2",50,50,W,H);
+  auto* canvas_2 = new TCanvas("canvas_2","canvas_2",800,800,W,H);
   canvas_2->SetFillColor(0);
   canvas_2->SetBorderMode(0);
   canvas_2->SetFrameFillStyle(0);
@@ -266,6 +312,7 @@ void runFF(TString era) {
     CMS_lumi( canvas, iPeriod, iPos );
 
     if (pad) {
+      pad->cd();
       pad->RedrawAxis();
       pad->GetFrame()->Draw();
     } else {
@@ -484,7 +531,7 @@ void runFF(TString era) {
       }
 
       const double lumi = retrieveLumi(anlyzrEra);
-      const double sigLumi = 0.01;
+      const double sigLumi = 0.01; // 0.0001;
       sigHist_.clear();
       sigSyst_.clear();
 
@@ -637,20 +684,57 @@ void runFF(TString era) {
         }
       }
 
-      dataHist_->Rebin(rebin);
-      FFHist_->Rebin(rebin);
-      FFHist_->SetMarkerSize(0);
+      if (rebin!=1) {
+        dataHist_->Rebin(rebin);
+        FFHist_->Rebin(rebin);
+        FFHist_->SetMarkerSize(0);
 
-      if (dataHist2_) {
-        dataHist2_->Rebin(rebin);
-        FFHist2_->Rebin(rebin);
-        FFHist2_->SetMarkerSize(0);
-      }
+        if (dataHist2_) {
+          dataHist2_->Rebin(rebin);
+          FFHist2_->Rebin(rebin);
+          FFHist2_->SetMarkerSize(0);
+        }
 
-      if (!syst_.empty()) {
-        for (const auto& element : syst_) {
-          element.second.up_->Rebin( rebin );
-          element.second.dn_->Rebin( rebin );
+        if (!syst_.empty()) {
+          for (unsigned int idx=0; idx<sigHist_.size(); idx++) {
+            sigHist_.at(idx)->Rebin(rebin);
+
+            for (const auto& element : sigSyst_.at(idx)) {
+              sigSyst_.at(idx).at(element.first).up_->Rebin(rebin);
+              sigSyst_.at(idx).at(element.first).dn_->Rebin(rebin);
+            }
+          }
+
+          for (const auto& element : syst_) {
+            element.second.up_->Rebin( rebin );
+            element.second.dn_->Rebin( rebin );
+          }
+        }
+      } else if (rebin==1 && false) {
+        std::vector<double> binEdges = {0.,50.,60.,70.,80.,90.,100.,110.,120.,130.,140.,150.,160.,170.,180.,190.,200.,210.,220.,230.,240.,250.,260.,270.,280.,290.,300.,310.,320.,330.,340.,
+                                        350.,360.,370.,380.,390.,400.,410.,420.,430.,440.,450.,460.,470.,480.,490.,500.,520.,540.,560.,580.,600.,620.,640.,660.,680.,700.,720.,740.,760.,800.,
+                                        850.,900.,950.,1000.,1100.,1200.,1500.,2500.};
+
+        dataHist_ = (TH1D*)dataHist_->Rebin(binEdges.size()-1,TString(dataHist_->GetName())+"_rebin",&(binEdges[0]));
+        FFHist_ = (TH1D*)FFHist_->Rebin(binEdges.size()-1,TString(FFHist_->GetName())+"_rebin",&(binEdges[0]));
+
+        if (dataHist2_) {
+          dataHist2_ = (TH1D*)dataHist2_->Rebin(binEdges.size()-1,TString(dataHist2_->GetName())+"_rebin",&(binEdges[0]));
+          FFHist2_ = (TH1D*)FFHist2_->Rebin(binEdges.size()-1,TString(FFHist2_->GetName())+"_rebin",&(binEdges[0]));
+        }
+
+        for (auto& element : syst_) {
+          element.second.up_ = (TH1D*)element.second.up_->Rebin( binEdges.size()-1,TString(element.second.up_->GetName())+"_rebin",&(binEdges[0]) );
+          element.second.dn_ = (TH1D*)element.second.dn_->Rebin( binEdges.size()-1,TString(element.second.dn_->GetName())+"_rebin",&(binEdges[0]) );
+        }
+
+        for (unsigned idx=0; idx<sigHist_.size(); idx++) {
+          sigHist_.at(idx) = (TH1D*)sigHist_.at(idx)->Rebin( binEdges.size()-1,TString(sigHist_.at(idx)->GetName())+"_rebin",&(binEdges[0]) );
+
+          for (const auto& element : sigSyst_.at(idx)) {
+            sigSyst_.at(idx).at(element.first).up_ = (TH1D*)sigSyst_.at(idx).at(element.first).up_->Rebin( binEdges.size()-1,TString(sigSyst_.at(idx).at(element.first).up_->GetName())+"_rebin",&(binEdges[0]) );
+            sigSyst_.at(idx).at(element.first).dn_ = (TH1D*)sigSyst_.at(idx).at(element.first).dn_->Rebin( binEdges.size()-1,TString(sigSyst_.at(idx).at(element.first).dn_->GetName())+"_rebin",&(binEdges[0]) );
+          }
         }
       }
 
@@ -669,29 +753,39 @@ void runFF(TString era) {
       }
 
       if ( TString(dataHist_->GetName()).Contains("invM") && TString(dataHist_->GetName()).Contains("mixedME") )
-        dataHist->GetXaxis()->SetRangeUser(0.,1000.);
-      else if ( TString(dataHist_->GetName()).Contains("invM") && TString(dataHist_->GetName()).Contains("CRME") ) {
+        dataHist->GetXaxis()->SetRangeUser(0.,1500.);
+      else if ( TString(dataHist_->GetName()).Contains("invM") && TString(dataHist_->GetName()).Contains("CRME") && rebin!=1 ) {
         if (dataHist2_) {
-          dataHist->GetXaxis()->SetRangeUser(0.,1000.);
-          dataHist->SetMinimum( 1.1 );
+          dataHist->GetXaxis()->SetRangeUser(0.,1500.);
+          // dataHist->SetMinimum( 1.1 );
         } else
           dataHist->GetXaxis()->SetRangeUser(0.,250.);
+      } else if ( TString(dataHist_->GetName()).Contains("invM") && TString(dataHist_->GetName()).Contains("CRME") && rebin==1 ) {
+          dataHist->SetMinimum( 0.5 );
       }
 
       padUp->cd();
 
       if ( padUp->GetLogy() )
-        dataHist->SetMaximum( 10.*std::max(dataHist_->GetMaximum(),FFadded->GetMaximum()) );
+        dataHist->SetMaximum( 15.*std::max(dataHist_->GetMaximum(),FFadded->GetMaximum()) );
       else
         dataHist->SetMaximum( 1.2*std::max(dataHist_->GetMaximum(),FFadded->GetMaximum()) );
+
+      dataHist->SetMinimum( 0.5 );
 
       if (removeZero)
         dataHist->SetMinimum( 0.001 );
 
-      if ( TString(dataHist_->GetName()).Contains("invM") )
-        dataHist->GetXaxis()->SetTitle("M_{ee} [GeV]");
+      if ( TString(dataHist_->GetName()).Contains("invM") && TString(dataHist_->GetName()).Contains("CRME") )
+        dataHist->GetXaxis()->SetTitle("M(2_{}e_{ME}) [GeV]");
+      else if ( TString(dataHist_->GetName()).Contains("invM") && TString(dataHist_->GetName()).Contains("mixed") )
+        dataHist->GetXaxis()->SetTitle("M(e_{}e_{ME}) [GeV]");
 
       dataHist->SetLineWidth(2);
+      dataHist->GetYaxis()->SetLabelSize(0.06);
+      dataHist->GetYaxis()->SetTitle("Events");
+      dataHist->GetYaxis()->SetTitleSize(0.08);
+      dataHist->GetYaxis()->SetTitleOffset(0.7);
       dataHist->SetLineColor(kBlack);
       dataHist->Draw("E1");
       FFobj->Draw("hist&same");
@@ -701,30 +795,24 @@ void runFF(TString era) {
         TLegend* legend = nullptr;
 
         if (TString(dataHist_->GetName()).Contains("CRME") && TString(dataHist_->GetName()).Contains("invM"))
-          legend = new TLegend(0.58,0.65,0.95,0.93);
+          legend = new TLegend(0.4,0.6,0.95,0.93);
         else
           legend = new TLegend(0.58,0.7,0.95,0.93);
 
         legend->SetBorderSize(0);
+        legend->SetTextSize(0.055);
         legend->AddEntry(dataHist,"Data");
 
 //        legend->AddEntry(FFHist_,"Nonprompt bkg");
         legend->AddEntry(FFHist2_,"Prompt bkg");
 
         if ( TString(dataHist_->GetName()).Contains("CRME") && TString(dataHist_->GetName()).Contains("invM") ) {
-          for (unsigned idx=0; idx<sigHist_.size(); idx++) {
-            sigHist_.at(idx)->Rebin(rebin);
-
-            for (const auto& element : sigSyst_.at(idx)) {
-              sigSyst_.at(idx).at(element.first).up_->Rebin(rebin);
-              sigSyst_.at(idx).at(element.first).dn_->Rebin(rebin);
-            }
-
-            sigHist_.at(idx)->Draw("hist&same");
-          }
+          //for (unsigned idx=0; idx<sigHist_.size(); idx++)
+          //  sigHist_.at(idx)->Draw("hist&same");
+          sigHist_.at(0)->Draw("hist&same");
 
           //legend->AddEntry(sigHist_.at(3),"H250/750/2000A1");
-          legend->AddEntry(sigHist_.at(0),"X750Y1");
+          legend->AddEntry(sigHist_.at(0),"M_{X} = 750 GeV, M_{Y} = 1 GeV");
         }
 
         legend->Draw();
@@ -737,17 +825,18 @@ void runFF(TString era) {
         ratio->SetStats(0);
         ratio->SetTitle("");
         ratio->Divide(FFadded);
-        ratio->GetYaxis()->SetTitle("Obs/Exp");
-        ratio->GetYaxis()->SetTitleSize(0.1);
-        ratio->GetYaxis()->SetTitleOffset(0.4);
-        ratio->GetXaxis()->SetLabelSize(0.1);
-        ratio->GetYaxis()->SetLabelSize(0.1);
+        ratio->GetYaxis()->SetTitle("Obs/Exp"); 
+
+        ratio->GetYaxis()->SetTitleSize(0.15);
+        ratio->GetYaxis()->SetTitleOffset(0.29);
+        ratio->GetXaxis()->SetLabelSize(0.12);
+        ratio->GetYaxis()->SetLabelSize(0.12);
         ratio->GetXaxis()->SetLabelOffset(0.01);
-        ratio->GetYaxis()->SetLabelOffset(0.01);
+        ratio->GetYaxis()->SetLabelOffset(0.005);
         ratio->GetYaxis()->SetRangeUser(0.2,1.8);
         ratio->GetYaxis()->SetNdivisions(505);
-        ratio->GetXaxis()->SetTitleSize(0.12);
-        ratio->GetXaxis()->SetTitleOffset(0.75);
+        ratio->GetXaxis()->SetTitleSize(0.16);
+        ratio->GetXaxis()->SetTitleOffset(0.85);
         ratio->SetLineColor(kBlack);
 
         padDn->cd();
@@ -962,16 +1051,18 @@ void runFF(TString era) {
   SaveAs(canvas_2,"MEFF_2E_invM_denom_CR.pdf",p1);
   //aloader2E.close();
 
+  return;
+
   p1->SetLogy();
-  aloader2E.load("2E_mixedME_SSll_invM","2E_antiME_SSll_invM_CR_xFF",TColor::GetColor("#f89c20"),postfix.Data(),"",false,"2E_mixedME_OSll_invM","2E_antiME_OSll_invM_CR_xFF",TColor::GetColor("#f89c20"));
+  /*aloader2E.load("2E_mixedME_SSll_invM","2E_antiME_SSll_invM_CR_xFF",TColor::GetColor("#f89c20"),postfix.Data(),"",false,"2E_mixedME_OSll_invM","2E_antiME_OSll_invM_CR_xFF",TColor::GetColor("#f89c20"));
   aloader2E1.load("2E_mixedME_SSll_invM","2E_antiME_SSll_invM_CR_xFF",TColor::GetColor("#f89c20"),"20UL16APV","",false,"2E_mixedME_OSll_invM","2E_antiME_OSll_invM_CR_xFF",TColor::GetColor("#f89c20"));
   aloader2E2.load("2E_mixedME_SSll_invM","2E_antiME_SSll_invM_CR_xFF",TColor::GetColor("#f89c20"),"20UL17","",false,"2E_mixedME_OSll_invM","2E_antiME_OSll_invM_CR_xFF",TColor::GetColor("#f89c20"));
   aloader2E3.load("2E_mixedME_SSll_invM","2E_antiME_SSll_invM_CR_xFF",TColor::GetColor("#f89c20"),"20UL18","",false,"2E_mixedME_OSll_invM","2E_antiME_OSll_invM_CR_xFF",TColor::GetColor("#f89c20"));
   aloader2E.add(aloader2E1);
   aloader2E.add(aloader2E2);
-  aloader2E.add(aloader2E3);
-  aloader2E.compare(p1,false,p2,5);
-  SaveAs(canvas_2,"MEFF_2E_invM_mixed_CR.pdf",p1);
+  aloader2E.add(aloader2E3);*/
+  //aloader2E.compare(p1,false,p2,5);
+  //SaveAs(canvas_2,"MEFF_2E_invM_mixed_CR.png",p1);
 
   //p1->SetLogx(0);
   //p2->SetLogx(0);
@@ -1112,13 +1203,13 @@ void runFF(TString era) {
         const double ZZsumwgt = ((TH1D*)ZZfile->Get("evtCounter/h_sumW"))->GetBinContent(1);
         const double lumi = retrieveLumi(anlyzrEra);
 
-        SSWZHist_ = (TH1D*)WZfile->Get("mergedEleCRanalyzer"+anlyzrEra+"/"+denomNameSS)->Clone();
+        SSWZHist_ = (TH1D*)WZfile->Get(TString("mergedEleCRanalyzer")+anlyzrEra.c_str()+"/"+denomNameSS)->Clone();
         SSWZHist_->Scale( lumi*1000.*WZxsec_/WZsumwgt );
-        SSZZHist_ = (TH1D*)ZZfile->Get("mergedEleCRanalyzer"+anlyzrEra+"/"+denomNameSS)->Clone();
+        SSZZHist_ = (TH1D*)ZZfile->Get(TString("mergedEleCRanalyzer")+anlyzrEra.c_str()+"/"+denomNameSS)->Clone();
         SSZZHist_->Scale( lumi*1000.*ZZxsec_/ZZsumwgt );
-        OSWZHist_ = (TH1D*)WZfile->Get("mergedEleCRanalyzer"+anlyzrEra+"/"+denomNameOS)->Clone();
+        OSWZHist_ = (TH1D*)WZfile->Get(TString("mergedEleCRanalyzer")+anlyzrEra.c_str()+"/"+denomNameOS)->Clone();
         OSWZHist_->Scale( lumi*1000.*WZxsec_/WZsumwgt );
-        OSZZHist_ = (TH1D*)ZZfile->Get("mergedEleCRanalyzer"+anlyzrEra+"/"+denomNameOS)->Clone();
+        OSZZHist_ = (TH1D*)ZZfile->Get(TString("mergedEleCRanalyzer")+anlyzrEra.c_str()+"/"+denomNameOS)->Clone();
         OSZZHist_->Scale( lumi*1000.*ZZxsec_/ZZsumwgt );
       }
 
@@ -1129,6 +1220,15 @@ void runFF(TString era) {
         OSWZHist_->Rebin(r);
         OSZZHist_->Rebin(r);
         OSZtagHist_->Rebin(r);
+      }
+
+      void rebin(int r, TString name, double* bin) {
+        SSFFHist_ = (TH1D*)SSFFHist_->Rebin(r,name+"_SSFF",bin);
+        SSWZHist_ = (TH1D*)SSWZHist_->Rebin(r,name+"_SSWZ",bin);
+        SSZZHist_ = (TH1D*)SSZZHist_->Rebin(r,name+"_SSZZ",bin);
+        OSWZHist_ = (TH1D*)OSWZHist_->Rebin(r,name+"_OSWZ",bin);
+        OSZZHist_ = (TH1D*)OSZZHist_->Rebin(r,name+"_OSZZ",bin);
+        OSZtagHist_ = (TH1D*)OSZtagHist_->Rebin(r,name+"_OSZtag",bin);
       }
 
       TH1D* SSFFHist() { return SSFFHist_; }
@@ -1246,10 +1346,10 @@ void runFF(TString era) {
 
       if (numName.Contains("invM")) {
         const double lumi = retrieveLumi(anlyzrEra);
-        const double sigLumi = 0.01;
+        const double sigLumi = 0.01; // 0.0001;
 
         auto retrieveSigHist = [this,&numName,&anlyzrEra,&lumi,&sigLumi] (TFile* afile, const TString& systName) -> TH1D* {
-          TH1D* ahist = (TH1D*)afile->Get( "mergedEleCRanalyzer"+anlyzrEra+"/"+numName+systName )->Clone();
+          TH1D* ahist = (TH1D*)afile->Get( TString("mergedEleCRanalyzer")+anlyzrEra.c_str()+"/"+numName+systName )->Clone();
           ahist->Scale( lumi*1000.*sigLumi / ( (TH1D*)afile->Get( std::string("evtCounter/h_sumW").c_str() ) )->GetBinContent(1) );
 
           return ahist;
@@ -1336,6 +1436,47 @@ void runFF(TString era) {
       OSFFup_.rebin(OSFFup_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
       OSFFdn_.rebin(OSFFdn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
 
+      if ( TString(dataHist_->GetName()).Contains("invM") ) {
+        heepIdUp_.rebin(heepIdUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+        heepIdDn_.rebin(heepIdDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+        elRecoUp_.rebin(elRecoUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+        elRecoDn_.rebin(elRecoDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+        elTrigUp_.rebin(elTrigUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+        elTrigDn_.rebin(elTrigDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+        preCorrUp_.rebin(preCorrUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+        preCorrDn_.rebin(preCorrDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
+      }
+
+      if (rebin==1 && false) {
+        std::vector<double> binEdges = {0.,50.,60.,70.,80.,90.,100.,110.,120.,130.,140.,150.,160.,170.,180.,190.,200.,210.,220.,230.,240.,250.,260.,270.,280.,290.,300.,320.,340.,360.,380.,400.,420.,440.,460.,500.,550.,600.,700.,800.,1000.,2500.};
+
+        dataHist_ = (TH1D*)dataHist_->Rebin(binEdges.size()-1,TString(dataHist_->GetName())+"_rebin",&(binEdges[0]));
+
+        for (unsigned idx=0; idx<sigHist_.size(); idx++) {
+          sigHist_.at(idx) = (TH1D*)sigHist_.at(idx)->Rebin( binEdges.size()-1,TString(sigHist_.at(idx)->GetName())+"_rebin",&(binEdges[0]) );
+
+          for (const auto& element : sigSyst_.at(idx)) {
+            sigSyst_.at(idx).at(element.first).up_ = (TH1D*)sigSyst_.at(idx).at(element.first).up_->Rebin( binEdges.size()-1,TString(sigSyst_.at(idx).at(element.first).up_->GetName())+"_rebin",&(binEdges[0]) );
+            sigSyst_.at(idx).at(element.first).dn_ = (TH1D*)sigSyst_.at(idx).at(element.first).dn_->Rebin( binEdges.size()-1,TString(sigSyst_.at(idx).at(element.first).dn_->GetName())+"_rebin",&(binEdges[0]) );
+          }
+        }
+
+        nominal_.rebin( binEdges.size()-1,TString("nominal_rebin"),&(binEdges[0]) );
+        SSFFup_.rebin( binEdges.size()-1,TString("SSFFup_rebin"),&(binEdges[0]) );
+        SSFFdn_.rebin( binEdges.size()-1,TString("SSFFdn_rebin"),&(binEdges[0]) );
+        OSFFup_.rebin( binEdges.size()-1,TString("OSFFup_rebin"),&(binEdges[0]) );
+        OSFFdn_.rebin( binEdges.size()-1,TString("OSFFdn_rebin"),&(binEdges[0]) );
+
+        heepIdUp_.rebin( binEdges.size()-1,TString("heepIdUp_rebin"),&(binEdges[0]) );
+        heepIdDn_.rebin( binEdges.size()-1,TString("heepIdDn_rebin"),&(binEdges[0]) );
+        elRecoUp_.rebin( binEdges.size()-1,TString("elRecoUp_rebin"),&(binEdges[0]) );
+        elRecoDn_.rebin( binEdges.size()-1,TString("elRecoDn_rebin"),&(binEdges[0]) );
+        elTrigUp_.rebin( binEdges.size()-1,TString("elTrigUp_rebin"),&(binEdges[0]) );
+        elTrigDn_.rebin( binEdges.size()-1,TString("elTrigDn_rebin"),&(binEdges[0]) );
+        preCorrUp_.rebin( binEdges.size()-1,TString("preCorrUp_rebin"),&(binEdges[0]) );
+        preCorrDn_.rebin( binEdges.size()-1,TString("preCorrDn_rebin"),&(binEdges[0]) );
+      }
+
       auto denomSSfinal = nominal_.returnSS();
       auto denomOSfinal = nominal_.returnOS();
 
@@ -1348,14 +1489,6 @@ void runFF(TString era) {
       std::unique_ptr<TH1D> denomfinal_elRecoUp, denomfinal_elRecoDn, denomfinal_elTrigUp, denomfinal_elTrigDn;
 
       if ( TString(dataHist_->GetName()).Contains("invM") ) {
-        heepIdUp_.rebin(heepIdUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
-        heepIdDn_.rebin(heepIdDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
-        elRecoUp_.rebin(elRecoUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
-        elRecoDn_.rebin(elRecoDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
-        elTrigUp_.rebin(elTrigUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
-        elTrigDn_.rebin(elTrigDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
-        preCorrUp_.rebin(preCorrUp_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
-        preCorrDn_.rebin(preCorrDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
         denomfinal_heepIdUp = heepIdUp_.returnAdded();
         denomfinal_heepIdDn = heepIdDn_.returnAdded();
         denomfinal_elRecoUp = elRecoUp_.returnAdded();
@@ -1374,37 +1507,43 @@ void runFF(TString era) {
 
       dataHist_->SetLineWidth(2);
       dataHist_->SetLineColor(kBlack);
-      dataHist_->SetMaximum(1.5*dataHist_->GetMaximum());
+      dataHist_->SetMaximum(50.*dataHist_->GetMaximum());
 
       if (TString(dataHist_->GetName()).Contains("invM")) {
-        dataHist_->GetXaxis()->SetRangeUser(0.,1000.);
-        dataHist_->GetXaxis()->SetTitle("M_{3e} [GeV]");
+        dataHist_->GetXaxis()->SetTitle("M(e_{merged}ee) [GeV]");
         //dataHist_->SetMaximum(5.*dataHist_->GetMaximum());
         //dataHist_->SetMinimum(0.2);
+        if (rebin!=1)
+          dataHist_->GetXaxis()->SetRangeUser(0.,1500.);
       } else if (TString(dataHist_->GetName()).Contains("Et")) {
         dataHist_->GetXaxis()->SetTitle("E_{T}^{5#times5} [GeV]");
         dataHist_->GetXaxis()->SetRangeUser(0.,250.);
       } else if (TString(dataHist_->GetName()).Contains("eta")) {
         dataHist_->GetXaxis()->SetTitle("#eta^{5#times5}");
         dataHist_->SetMaximum(1.1*dataHist_->GetMaximum());
+      } else if (TString(dataHist_->GetName()).Contains("mll")) {
+        dataHist_->GetXaxis()->SetTitle("M(ee) [GeV]");
+        dataHist_->SetMaximum(1.1*dataHist_->GetMaximum());
       }
 
       padUp->cd();
-      dataHist_->SetMinimum(0.001);
+      padUp->SetLogy();
+      dataHist_->SetMinimum(0.2);
       dataHist_->Draw("E1");
       denomFinal->Draw("hist&same");
       dataHist_->Draw("E1&same");
 
       if (TString(dataHist_->GetName()).Contains("invM")) {
-        for (auto* sigNum : sigHist_)
-          sigNum->Draw("hist&same");
+        //for (auto* sigNum : sigHist_)
+        //  sigNum->Draw("hist&same");
+        sigHist_.at(1)->Draw("hist&same");
       }
 
       if (true) {
         TLegend* legend = nullptr;
 
         if (TString(dataHist_->GetName()).Contains("invM"))
-          legend = new TLegend(0.55,0.58,0.95,0.93);
+          legend = new TLegend(0.5,0.55,0.97,0.93);
         else
           legend = new TLegend(0.55,0.65,0.95,0.93);
         legend->SetBorderSize(0);
@@ -1414,7 +1553,7 @@ void runFF(TString era) {
         legend->AddEntry(denomOSfinal.get(),"Prompt bkg");
 
         if (TString(dataHist_->GetName()).Contains("invM")) {
-          legend->AddEntry(sigHist_.at(0),"X750Y10");
+          legend->AddEntry(sigHist_.at(0),"M_{X} = 750 GeV, M_{Y} = 1 GeV");
           //legend_left->AddEntry(sigNums.at(isigDiv),"M_{A} = 10 GeV (#sigma = 10 fb)");
         }
 
@@ -1437,7 +1576,7 @@ void runFF(TString era) {
         ratio->GetYaxis()->SetLabelOffset(0.005);
         ratio->GetYaxis()->SetRangeUser(0.2,1.8);
         ratio->GetXaxis()->SetTitleSize(0.12);
-        ratio->GetXaxis()->SetTitleOffset(0.75);
+        ratio->GetXaxis()->SetTitleOffset(1.);
         ratio->GetYaxis()->SetNdivisions(5, 5, 0, kTRUE);
         ratio->SetLineColor(kBlack);
 
@@ -1589,10 +1728,10 @@ void runFF(TString era) {
   canvas_2->cd();
   p1->SetLogy(0);
 
-  auto aloader3E = HistLoader3E(datafile,WZfile,ZZfile,sigsamples3E);
-  auto aloader3E1 = HistLoader3E(datafile1,WZfile1,ZZfile1,sigsamples3E1);
-  auto aloader3E2 = HistLoader3E(datafile2,WZfile2,ZZfile2,sigsamples3E2);
-  auto aloader3E3 = HistLoader3E(datafile3,WZfile3,ZZfile3,sigsamples3E3);
+  auto aloader3E = HistLoader3E(datafile,WZfile,ZZfile,sigsamples);
+  auto aloader3E1 = HistLoader3E(datafile1,WZfile1,ZZfile1,sigsamples1);
+  auto aloader3E2 = HistLoader3E(datafile2,WZfile2,ZZfile2,sigsamples2);
+  auto aloader3E3 = HistLoader3E(datafile3,WZfile3,ZZfile3,sigsamples3);
 
   //canvas_1->SetLogy();
   aloader3E.load("3E_CRME_lll_invM","3E_antiME_lll_invM_CR",postfix.Data());
@@ -1603,12 +1742,28 @@ void runFF(TString era) {
   aloader3E.add(aloader3E2);
   aloader3E.add(aloader3E3);
   //aloader3E.preparecard("ME3E_"+era+"_datacard.root","mergedEle3E");
-  aloader3E.compare(p1,p2,5); // 5
-  SaveAs(canvas_2,"MEFF_3E_invM.pdf",p1);
+  aloader3E.compare(p1,p2,10); // 10
+  SaveAs(canvas_2,"MEFF_3E_invM_log.png",p1);
   //aloader3E.close();
   //canvas_1->SetLogy(0);
 
   canvas_1->cd();
+
+  return;
+
+  canvas_1->SetLogy(0);
+  aloader3E.load("3E_CRME_lll_mll","3E_antiME_lll_mll",postfix.Data());
+  aloader3E1.load("3E_CRME_lll_mll","3E_antiME_lll_mll","20UL16APV");
+  aloader3E2.load("3E_CRME_lll_mll","3E_antiME_lll_mll","20UL17");
+  aloader3E3.load("3E_CRME_lll_mll","3E_antiME_lll_mll","20UL18");
+  aloader3E.add(aloader3E1);
+  aloader3E.add(aloader3E2);
+  aloader3E.add(aloader3E3);
+  aloader3E.compare(p1,p2,5);
+  SaveAs(canvas_2,"MEFF_3E_mll.pdf",p1);
+  canvas_1->SetLogy(0);
+
+  return;
 
   canvas_1->SetLogy(0);
   aloader3E.load("3E_Et_CR_EB_CRME","3E_Et_CR_EB_antiME",postfix.Data());

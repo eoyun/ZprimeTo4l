@@ -23,7 +23,7 @@ void runMEMuFF(TString era) {
   setTDRStyle();
 
   writeExtraText = true;       // if extra text
-  extraText  = "   Work in progress";  // default extra text is "Preliminary"
+  extraText  = "";  // default extra text is "Preliminary"
 
   static constexpr double WZxsec_ = 5.213; // 0.65*62.78;
   static constexpr double ZZxsec_ = 13.81;
@@ -45,7 +45,7 @@ void runMEMuFF(TString era) {
     lumi_13TeV = "59.83 fb^{-1}";
   } else if (era=="run2") {
     lumi_sqrtS = "";
-    lumi_13TeV = "137.6 fb^{-1}";
+    lumi_13TeV = "138 fb^{-1}";
     postfix = "";
     fname = "20UL16";
   } else {
@@ -56,7 +56,7 @@ void runMEMuFF(TString era) {
   static TString anlyzrData = "mergedEMuCRanalyzerData";
 
   int iPeriod = 4;    // 1=7TeV, 2=8TeV, 3=7+8TeV, 7=7+8+13TeV, 0=free form (uses lumi_sqrtS)
-  int iPos = 0;
+  int iPos = 11;
 
   if( iPos==0 )
     relPosX = 0.12;
@@ -71,7 +71,7 @@ void runMEMuFF(TString era) {
   float T = 0.08*H_ref;
   float B = 0.12*H_ref;
   float L = 0.12*W_ref;
-  float R = 0.04*W_ref;
+  float R = 0.05*W_ref;
 
   TFile* datafile = new TFile("MuAnalyzer_"+fname+"_data.root","READ");
   TFile* WZfile = new TFile("MuAnalyzer_"+fname+"_WZFXFX.root","READ");
@@ -89,13 +89,6 @@ void runMEMuFF(TString era) {
   TFile* WZfile3 = new TFile("MuAnalyzer_20UL18_WZFXFX.root","READ");
   TFile* ZZfile3 = new TFile("MuAnalyzer_20UL18_ZZ.root","READ");
 
-  //TFile* H250A1file = new TFile("MEMuCR_"+era+"_H250A1.root","READ");
-  //TFile* H750A1file = new TFile("MEMuCR_"+era+"_H750A1.root","READ");
-  //TFile* H2000A1file = new TFile("MEMuCR_"+era+"_H2000A1.root","READ");
-  //TFile* H250A10file = new TFile("MEMuCR_"+era+"_H250A10.root","READ");
-  //TFile* H750A10file = new TFile("MEMuCR_"+era+"_H750A10.root","READ");
-  //TFile* H2000A10file = new TFile("MEMuCR_"+era+"_H2000A10.root","READ");
-
   class SigSample {
   public:
     SigSample(TFile* afile, TString name)
@@ -108,107 +101,162 @@ void runMEMuFF(TString era) {
     TString name_;
   };
 
-  /*auto sigsamples = std::vector<SigSample>{
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A750.root","READ"),"H2000A750")
-  };
+  auto sampleNames = std::vector<TString> {"H750A1","H2000A1"};
 
-  auto sigsamples1 = std::vector<SigSample>{
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A750.root","READ"),"H2000A750")
-  };
-
-  auto sigsamples2 = std::vector<SigSample>{
-    SigSample(new TFile("MuAnalyzer_20UL17_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("MuAnalyzer_20UL17_H2000A750.root","READ"),"H2000A750")
-  };
-
-  auto sigsamples3 = std::vector<SigSample>{
-    SigSample(new TFile("MuAnalyzer_20UL18_H250A1.root","READ"),"H250A1"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H250A2.root","READ"),"H250A2"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H250A5.root","READ"),"H250A5"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H250A10.root","READ"),"H250A10"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H250A50.root","READ"),"H250A50"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H250A100.root","READ"),"H250A100"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H750A1.root","READ"),"H750A1"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H750A2.root","READ"),"H750A2"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H750A5.root","READ"),"H750A5"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H750A10.root","READ"),"H750A10"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H750A50.root","READ"),"H750A50"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H750A100.root","READ"),"H750A100"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H750A250.root","READ"),"H750A250"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H2000A1.root","READ"),"H2000A1"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H2000A2.root","READ"),"H2000A2"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H2000A5.root","READ"),"H2000A5"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H2000A10.root","READ"),"H2000A10"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H2000A50.root","READ"),"H2000A50"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H2000A100.root","READ"),"H2000A100"),
-    SigSample(new TFile("MuAnalyzer_20UL18_H2000A750.root","READ"),"H2000A750")
+  /*auto sampleNames = std::vector<TString> {
+    "H250A0p4",
+    "H250A0p6",
+    "H250A0p8",
+    "H250A1",
+    "H250A1p5",
+    "H250A2",
+    "H250A5",
+    "H250A10",
+    "H250A50",
+    "H250A100",
+    "H500A0p4",
+    "H500A0p6",
+    "H500A0p8",
+    "H500A1",
+    "H500A1p5",
+    "H500A2",
+    "H500A5",
+    "H500A10",
+    "H500A50",
+    "H500A100",
+    "H750A0p4",
+    "H750A0p6",
+    "H750A0p8",
+    "H750A1",
+    "H750A1p5",
+    "H750A2",
+    "H750A5",
+    "H750A10",
+    "H750A50",
+    "H750A100",
+    "H750A250",
+    "H1000A0p4",
+    "H1000A0p6",
+    "H1000A0p8",
+    "H1000A1",
+    "H1000A1p5",
+    "H1000A2",
+    "H1000A5",
+    "H1000A10",
+    "H1000A50",
+    "H1000A100",
+    "H1000A250",
+    "H1500A0p4",
+    "H1500A0p6",
+    "H1500A0p8",
+    "H1500A1",
+    "H1500A1p5",
+    "H1500A2",
+    "H1500A5",
+    "H1500A10",
+    "H1500A50",
+    "H1500A100",
+    "H1500A250",
+    "H1500A500",
+    "H2000A0p4",
+    "H2000A0p6",
+    "H2000A0p8",
+    "H2000A1",
+    "H2000A1p5",
+    "H2000A2",
+    "H2000A5",
+    "H2000A10",
+    "H2000A50",
+    "H2000A100",
+    "H2000A750",
+    "H5000A1",
+    "H5000A2",
+    "H5000A5",
+    "H5000A10",
+    "H5000A50",
+    "H5000A100",
+    "H5000A750",
+    "H5000A2000",
+    "H250Z0p4",
+    "H250Z0p6",
+    "H250Z0p8",
+    "H250Z1",
+    "H250Z1p5",
+    "H250Z2",
+    "H250Z5",
+    "H250Z10",
+    "H250Z50",
+    "H250Z100",
+    "H500Z0p4",
+    "H500Z0p6",
+    "H500Z0p8",
+    "H500Z1",
+    "H500Z1p5",
+    "H500Z2",
+    "H500Z5",
+    "H500Z10",
+    "H500Z50",
+    "H500Z100",
+    "H500Z250",
+    "H750Z0p4",
+    "H750Z0p6",
+    "H750Z0p8",
+    "H750Z1",
+    "H750Z1p5",
+    "H750Z2",
+    "H750Z5",
+    "H750Z10",
+    "H750Z50",
+    "H750Z100",
+    "H750Z250",
+    "H750Z500",
+    "H1000Z0p4",
+    "H1000Z0p6",
+    "H1000Z0p8",
+    "H1000Z1",
+    "H1000Z1p5",
+    "H1000Z2",
+    "H1000Z5",
+    "H1000Z10",
+    "H1000Z50",
+    "H1000Z100",
+    "H1000Z500",
+    "H1000Z750",
+    "H1500Z0p4",
+    "H1500Z0p6",
+    "H1500Z0p8",
+    "H1500Z1",
+    "H1500Z1p5",
+    "H1500Z2",
+    "H1500Z5",
+    "H1500Z10",
+    "H1500Z50",
+    "H1500Z100",
+    "H1500Z500",
+    "H1500Z1000",
+    "H2000Z0p4",
+    "H2000Z0p6",
+    "H2000Z0p8",
+    "H2000Z1",
+    "H2000Z1p5",
+    "H2000Z2",
+    "H2000Z5",
+    "H2000Z10",
+    "H2000Z50",
+    "H2000Z100",
+    "H2000Z500",
+    "H2000Z1000",
+    "H2000Z1500"
   };*/
 
-  auto sigsamples = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_"+fname+"_H750A1.root","READ"),"H750A1")};
-  auto sigsamples1 = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_20UL16APV_H750A1.root","READ"),"H750A1")};
-  auto sigsamples2 = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_20UL17_H750A1.root","READ"),"H750A1")};
-  auto sigsamples3 = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_20UL18_H750A1.root","READ"),"H750A1")};
+  std::vector<SigSample> sigsamples, sigsamples1, sigsamples2, sigsamples3;
 
-  auto sigsamples4 = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_"+fname+"_H2000A1.root","READ"),"H2000A1")};
-  auto sigsamples5 = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_20UL16APV_H2000A1.root","READ"),"H2000A1")};
-  auto sigsamples6 = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_20UL17_H2000A1.root","READ"),"H2000A1")};
-  auto sigsamples7 = std::vector<SigSample>{SigSample(new TFile("MuAnalyzer_20UL18_H2000A1.root","READ"),"H2000A1")};
+  for (const auto& name : sampleNames) {
+    sigsamples.push_back(SigSample(new TFile("MuAnalyzer_"+fname+"_"+name+".root","READ"),name));
+    sigsamples1.push_back(SigSample(new TFile("MuAnalyzer_20UL16APV_"+name+".root","READ"),name));
+    sigsamples2.push_back(SigSample(new TFile("MuAnalyzer_20UL17_"+name+".root","READ"),name));
+    sigsamples3.push_back(SigSample(new TFile("MuAnalyzer_20UL18_"+name+".root","READ"),name));
+  }
 
   auto* canvas_2 = new TCanvas("canvas_2","canvas_2",50,50,W,H);
   canvas_2->SetFillColor(0);
@@ -263,6 +311,7 @@ void runMEMuFF(TString era) {
     CMS_lumi( canvas, iPeriod, iPos );
 
     if (pad) {
+      pad->cd();
       pad->RedrawAxis();
       pad->GetFrame()->Draw();
     } else {
@@ -408,21 +457,21 @@ void runMEMuFF(TString era) {
       sigSyst_.clear();
 
       if (numName.Contains("CRME_mt") || numName.Contains("CRME_CRdphi_mt")) {
-        TH1D* FFHistUp = (TH1D*)datafile_->Get( std::string(anlyzrData+"/")+denomName+"_up" )->Clone();
-        TH1D* FFHistDn = (TH1D*)datafile_->Get( std::string(anlyzrData+"/")+denomName+"_dn" )->Clone();
+        TH1D* FFHistUp = (TH1D*)datafile_->Get( anlyzrData+"/"+denomName+"_up" )->Clone();
+        TH1D* FFHistDn = (TH1D*)datafile_->Get( anlyzrData+"/"+denomName+"_dn" )->Clone();
         syst_["FFHist"] = SystVariation(FFHistUp,FFHistDn);
-        TH1D* JESup = (TH1D*)datafile_->Get( std::string(anlyzrData+"/")+denomName+"_JESup" )->Clone();
-        TH1D* JESdn = (TH1D*)datafile_->Get( std::string(anlyzrData+"/")+denomName+"_JESdn" )->Clone();
+        TH1D* JESup = (TH1D*)datafile_->Get( anlyzrData+"/"+denomName+"_JESup" )->Clone();
+        TH1D* JESdn = (TH1D*)datafile_->Get( anlyzrData+"/"+denomName+"_JESdn" )->Clone();
         syst_["JES"] = SystVariation(JESup,JESdn);
       }
 
       if (numName.Contains("CRME_mt")) {
         const double lumi = retrieveLumi(anlyzrEra);
-        const double sigLumi = 0.01;
+        const double sigLumi = 0.01; // 0.0001;
 
         auto retrieveSigHist = [this,&numName,&anlyzrEra,&lumi,&sigLumi] (TFile* afile, const TString& systName) -> TH1D* {
-          TH1D* ahist = (TH1D*)afile->Get( "mergedEMuCRanalyzer"+anlyzrEra+"/"+numName+systName )->Clone();
-          ahist->Scale( lumi*1000.*sigLumi / ( (TH1D*)afile->Get( std::string("evtCounter/h_sumW").c_str() ) )->GetBinContent(1) );
+          TH1D* ahist = (TH1D*)afile->Get( TString("mergedEMuCRanalyzer")+anlyzrEra.c_str()+"/"+numName+systName )->Clone();
+          ahist->Scale( lumi*1000.*sigLumi / ( (TH1D*)afile->Get( "evtCounter/h_sumW" ) )->GetBinContent(1) );
 
           return ahist;
         };
@@ -507,7 +556,7 @@ void runMEMuFF(TString era) {
             sigSyst_.at(idx).at(element.first).dn_->Rebin(rebin);
           }
         }
-      } else if (true) {
+      } else if (false) {
         std::vector<double> binEdges = {0.,25.,50.,75.,100.,125.,150.,175.,200.,225.,250.,275.,300.,325.,350.,375.,400.,425.,450.,475.,500.,550.,600.,700.,800.,1000.,2500.};
 
         dataHist_ = (TH1D*)dataHist_->Rebin(binEdges.size()-1,TString(dataHist_->GetName())+"_rebin",&(binEdges[0]));
@@ -535,10 +584,17 @@ void runMEMuFF(TString era) {
       dataHist_->SetLineWidth(2);
       dataHist_->SetLineColor(kBlack);
       dataHist_->SetMinimum(0.001);
+      dataHist_->GetYaxis()->SetLabelSize(0.06);
+      dataHist_->GetYaxis()->SetNdivisions(505);
+      dataHist_->GetXaxis()->SetTitleOffset(0.9);
+      dataHist_->GetYaxis()->SetTitle("Events");
+      dataHist_->GetYaxis()->SetTitleSize(0.08);
+      dataHist_->GetYaxis()->SetTitleOffset(0.7);
       dataHist_->SetMaximum( std::max(1.5*dataHist_->GetMaximum(),1.5*FFHist_->GetMaximum()) );
 
       if (TString(dataHist_->GetName()).Contains("CRME_mt")) {
         dataHist_->GetXaxis()->SetRangeUser(0.,2500.);
+        dataHist_->GetXaxis()->SetTitle("M_{T}(e_{ME}#mup_{T}^{miss}) [GeV]");
         //dataHist_->SetMaximum(5.*dataHist_->GetMaximum());
         //dataHist_->SetMinimum(0.2);
       }
@@ -552,19 +608,22 @@ void runMEMuFF(TString era) {
       dataHist_->Draw("E1&same");
 
       if (TString(dataHist_->GetName()).Contains("CRME_mt")) {
-        for (auto* sigNum : sigHist_)
-          sigNum->Draw("hist&same");
+        //for (auto* sigNum : sigHist_)
+          // sigNum->Draw("hist&same");
+        sigHist_.at(1)->Draw("hist&same");
       }
 
       if (TString(dataHist_->GetName()).Contains("CRME_mt") || TString(dataHist_->GetName()).Contains("CRME_CRdphi_mt")) {
-        double ylow = TString(dataHist_->GetName()).Contains("CRME_CRdphi_mt") ? 0.75 : 0.68;
-        TLegend* legend = new TLegend(0.75,ylow,0.93,0.93);
+        double ylow = TString(dataHist_->GetName()).Contains("CRME_CRdphi_mt") ? 0.75 : 0.65;
+        TLegend* legend = new TLegend(0.4,ylow,0.97,0.91);
         legend->SetBorderSize(0);
         legend->AddEntry(dataHist_,"Data");
         legend->AddEntry(FFHist_,"Bkg");
+        legend->SetTextSize(0.055);
+        legend->SetFillStyle(0);
 
         if (TString(dataHist_->GetName()).Contains("CRME_mt"))
-          legend->AddEntry(sigHist_.at(0),"X2000Y1");
+          legend->AddEntry(sigHist_.at(1),"M_{X} = 2 TeV, M_{Y} = 1 GeV");
 
         legend->Draw();
       }
@@ -575,15 +634,16 @@ void runMEMuFF(TString era) {
         ratio->SetTitle("");
         ratio->Divide(FFHist_);
         ratio->GetYaxis()->SetTitle("Obs/Exp");
-        ratio->GetYaxis()->SetTitleSize(0.1);
-        ratio->GetYaxis()->SetTitleOffset(0.4);
-        ratio->GetXaxis()->SetLabelSize(0.1);
-        ratio->GetYaxis()->SetLabelSize(0.08);
+        ratio->GetYaxis()->SetTitleSize(0.15);
+        ratio->GetYaxis()->SetTitleOffset(0.29);
+        ratio->GetXaxis()->SetLabelSize(0.12);
+        ratio->GetYaxis()->SetLabelSize(0.12);
         ratio->GetXaxis()->SetLabelOffset(0.01);
         ratio->GetYaxis()->SetLabelOffset(0.005);
         ratio->GetYaxis()->SetRangeUser(0.2,1.8);
-        ratio->GetXaxis()->SetTitleSize(0.12);
-        ratio->GetXaxis()->SetTitleOffset(0.75);
+        ratio->GetYaxis()->SetNdivisions(505);
+        ratio->GetXaxis()->SetTitleSize(0.15);
+        ratio->GetXaxis()->SetTitleOffset(0.82);
         ratio->GetYaxis()->SetNdivisions(5, 5, 0, kTRUE);
         ratio->SetLineColor(kBlack);
 
@@ -680,10 +740,10 @@ void runMEMuFF(TString era) {
     }
   }; // class
 
-  auto aloaderMM = HistLoaderMM(datafile,sigsamples4);
-  auto aloaderMM1 = HistLoaderMM(datafile1,sigsamples5);
-  auto aloaderMM2 = HistLoaderMM(datafile2,sigsamples6);
-  auto aloaderMM3 = HistLoaderMM(datafile3,sigsamples7);
+  auto aloaderMM = HistLoaderMM(datafile,sigsamples);
+  auto aloaderMM1 = HistLoaderMM(datafile1,sigsamples1);
+  auto aloaderMM2 = HistLoaderMM(datafile2,sigsamples2);
+  auto aloaderMM3 = HistLoaderMM(datafile3,sigsamples3);
 
   aloaderMM.load("1M_CRME_mt","1M_CRME_antiRpt_mt_xFF",postfix.Data());
   aloaderMM1.load("1M_CRME_mt","1M_CRME_antiRpt_mt_xFF","20UL16APV");
@@ -693,9 +753,13 @@ void runMEMuFF(TString era) {
   aloaderMM.add(aloaderMM2);
   aloaderMM.add(aloaderMM3);
   //aloaderMM.preparecard("MEMu1M_"+era+"_datacard.root","mergedEMu1M");
-  aloaderMM.compare(p1,1,p2); // 5
+  aloaderMM.compare(p1,10,p2); // 10
   SaveAs(canvas_2,"MEMuFF_1M_CRME_mt.pdf",p1);
   //aloaderMM.close();
+
+  return;
+
+  return;
 
 /*  aloaderMM.load("1M_CRME_antiDphi_mt","1M_CRME_antiDphi_antiRpt_mt_xFF",postfix.Data());
   aloaderMM1.load("1M_CRME_antiDphi_mt","1M_CRME_antiDphi_antiRpt_mt_xFF","20UL16APV");
@@ -707,15 +771,15 @@ void runMEMuFF(TString era) {
   aloaderMM.compare(canvas_1,5);
   SaveAs(canvas_1,"FF_1M_CRME_antiDphi_mt.png");*/
 
-  /*aloaderMM.load("1M_CRME_CRdphi_mt","1M_CRME_CRdphi_antiRpt_mt_xFF",postfix.Data());
+  aloaderMM.load("1M_CRME_CRdphi_mt","1M_CRME_CRdphi_antiRpt_mt_xFF",postfix.Data());
   aloaderMM1.load("1M_CRME_CRdphi_mt","1M_CRME_CRdphi_antiRpt_mt_xFF","20UL16APV");
   aloaderMM2.load("1M_CRME_CRdphi_mt","1M_CRME_CRdphi_antiRpt_mt_xFF","20UL17");
   aloaderMM3.load("1M_CRME_CRdphi_mt","1M_CRME_CRdphi_antiRpt_mt_xFF","20UL18");
   aloaderMM.add(aloaderMM1);
   aloaderMM.add(aloaderMM2);
   aloaderMM.add(aloaderMM3);
-  aloaderMM.compare(p1,5,p2);
-  SaveAs(canvas_2,"MEMuFF_1M_CRME_CRdphi_mt.pdf",p1);*/
+  aloaderMM.compare(p1,10,p2);
+  //SaveAs(canvas_2,"MEMuFF_1M_CRME_CRdphi_mt.pdf",p1);
 
 /*  aloaderMM.load("1M_CRME_antiDphi_MET_pt","1M_CRME_antiDphi_antiRpt_MET_pt_xFF",postfix.Data());
   aloaderMM1.load("1M_CRME_antiDphi_MET_pt","1M_CRME_antiDphi_antiRpt_MET_pt_xFF","20UL16APV");
@@ -826,13 +890,13 @@ void runMEMuFF(TString era) {
         const double ZZsumwgt = ((TH1D*)ZZfile->Get("evtCounter/h_sumW"))->GetBinContent(1);
         const double lumi = retrieveLumi(anlyzrEra);
 
-        SSWZHist_ = (TH1D*)WZfile->Get("mergedEMuCRanalyzer"+anlyzrEra+"/"+denomNameSS)->Clone();
+        SSWZHist_ = (TH1D*)WZfile->Get("mergedEMuCRanalyzer"+TString(anlyzrEra)+"/"+denomNameSS)->Clone();
         SSWZHist_->Scale( lumi*1000.*WZxsec_/WZsumwgt );
-        SSZZHist_ = (TH1D*)ZZfile->Get("mergedEMuCRanalyzer"+anlyzrEra+"/"+denomNameSS)->Clone();
+        SSZZHist_ = (TH1D*)ZZfile->Get("mergedEMuCRanalyzer"+TString(anlyzrEra)+"/"+denomNameSS)->Clone();
         SSZZHist_->Scale( lumi*1000.*ZZxsec_/ZZsumwgt );
-        OSWZHist_ = (TH1D*)WZfile->Get("mergedEMuCRanalyzer"+anlyzrEra+"/"+denomNameOS)->Clone();
+        OSWZHist_ = (TH1D*)WZfile->Get("mergedEMuCRanalyzer"+TString(anlyzrEra)+"/"+denomNameOS)->Clone();
         OSWZHist_->Scale( lumi*1000.*WZxsec_/WZsumwgt );
-        OSZZHist_ = (TH1D*)ZZfile->Get("mergedEMuCRanalyzer"+anlyzrEra+"/"+denomNameOS)->Clone();
+        OSZZHist_ = (TH1D*)ZZfile->Get("mergedEMuCRanalyzer"+TString(anlyzrEra)+"/"+denomNameOS)->Clone();
         OSZZHist_->Scale( lumi*1000.*ZZxsec_/ZZsumwgt );
       }
 
@@ -959,10 +1023,10 @@ void runMEMuFF(TString era) {
 
       if (numName.Contains("invM")) {
         const double lumi = retrieveLumi(anlyzrEra);
-        const double sigLumi = 0.01;
+        const double sigLumi = 0.01; // 0.0001;
 
         auto retrieveSigHist = [this,&numName,&anlyzrEra,&lumi,&sigLumi] (TFile* afile, const TString& systName) -> TH1D* {
-          TH1D* ahist = (TH1D*)afile->Get( "mergedEMuCRanalyzer"+anlyzrEra+"/"+numName+systName )->Clone();
+          TH1D* ahist = (TH1D*)afile->Get( TString("mergedEMuCRanalyzer")+anlyzrEra.c_str()+"/"+numName+systName )->Clone();
           ahist->Scale( lumi*1000.*sigLumi / ( (TH1D*)afile->Get( std::string("evtCounter/h_sumW").c_str() ) )->GetBinContent(1) );
 
           return ahist;
@@ -1073,8 +1137,8 @@ void runMEMuFF(TString era) {
         preCorrDn_.rebin(preCorrDn_.SSFFHist()->GetNbinsX()/dataHist_->GetNbinsX());
       }
 
-      if (rebin==1 && true) {
-        std::vector<double> binEdges = {0.,50.,60.,70.,80.,90.,100.,110.,120.,130.,140.,150.,160.,170.,180.,190.,200.,210.,220.,230.,240.,250.,260.,270.,280.,290.,300.,320.,340.,360.,380.,400.,420.,440.,460.,480.,500.,550.,600.,700.,800.,1000.,2500.};
+      if (rebin==1 && false) {
+        std::vector<double> binEdges = {0.,50.,60.,70.,80.,90.,100.,110.,120.,130.,140.,150.,160.,170.,180.,190.,200.,210.,220.,230.,240.,250.,260.,270.,280.,290.,300.,320.,340.,360.,380.,400.,420.,440.,460.,500.,550.,600.,700.,800.,1000.,2500.};
 
         dataHist_ = (TH1D*)dataHist_->Rebin(binEdges.size()-1,TString(dataHist_->GetName())+"_rebin",&(binEdges[0]));
 
@@ -1135,12 +1199,12 @@ void runMEMuFF(TString era) {
 
       dataHist_->SetLineWidth(2);
       dataHist_->SetLineColor(kBlack);
-      dataHist_->SetMaximum(1.5*dataHist_->GetMaximum());
+      dataHist_->SetMaximum(50.*dataHist_->GetMaximum());
 
       if (TString(dataHist_->GetName()).Contains("invM")) {
-        dataHist_->GetXaxis()->SetRangeUser(0.,1000.);
-        dataHist_->GetXaxis()->SetTitle("M_{e#mu#mu} [GeV]");
-        dataHist_->SetMaximum(3.*dataHist_->GetMaximum());
+        dataHist_->GetXaxis()->SetRangeUser(0.,1500.);
+        dataHist_->GetXaxis()->SetTitle("M(e_{merged}#mu#mu) [GeV]");
+        dataHist_->SetMaximum(1.3*dataHist_->GetMaximum());
         //dataHist_->SetMaximum(5.*dataHist_->GetMaximum());
         //dataHist_->SetMinimum(0.2);
       } else if (TString(dataHist_->GetName()).Contains("Et")) {
@@ -1153,21 +1217,23 @@ void runMEMuFF(TString era) {
       }
 
       padUp->cd();
-      dataHist_->SetMinimum(0.001);
+      padUp->SetLogy();
+      dataHist_->SetMinimum(0.2);
       dataHist_->Draw("E1");
       denomFinal->Draw("hist&same");
       dataHist_->Draw("E1&same");
 
       if (TString(dataHist_->GetName()).Contains("invM")) {
-        for (auto* sigNum : sigHist_)
-          sigNum->Draw("hist&same");
+        //for (auto* sigNum : sigHist_)
+          // sigNum->Draw("hist&same");
+        sigHist_.at(0)->Draw("hist&same");
       }
 
       if (true) {
         TLegend* legend = nullptr;
 
         if (TString(dataHist_->GetName()).Contains("invM"))
-          legend = new TLegend(0.55,0.58,0.95,0.93);
+          legend = new TLegend(0.5,0.55,0.97,0.93);
         else
           legend = new TLegend(0.55,0.65,0.95,0.93);
 
@@ -1178,7 +1244,7 @@ void runMEMuFF(TString era) {
         legend->AddEntry(denomOSfinal.get(),"Prompt bkg");
 
         if (TString(dataHist_->GetName()).Contains("invM")) {
-          legend->AddEntry(sigHist_.at(0),"X750Y1");
+          legend->AddEntry(sigHist_.at(0),"M_{X} = 750 GeV, M_{Y} = 1 GeV");
           //legend_left->AddEntry(sigNums.at(isigDiv),"M_{A} = 10 GeV (#sigma = 10 fb)");
         }
 
@@ -1199,7 +1265,7 @@ void runMEMuFF(TString era) {
         ratio->GetYaxis()->SetLabelOffset(0.005);
         ratio->GetYaxis()->SetRangeUser(0.2,1.8);
         ratio->GetXaxis()->SetTitleSize(0.12);
-        ratio->GetXaxis()->SetTitleOffset(0.75);
+        ratio->GetXaxis()->SetTitleOffset( TString(dataHist_->GetName()).Contains("invM") ? 1.1 : 0.75 );
         ratio->GetYaxis()->SetNdivisions(5, 5, 0, kTRUE);
         ratio->SetLineColor(kBlack);
 
@@ -1219,7 +1285,7 @@ void runMEMuFF(TString era) {
         double valSSFFdn = denomfinal_nominal->GetBinContent(idx) - denomfinal_SSFFdn->GetBinContent(idx);
         double valOSFFup = denomfinal_OSFFup->GetBinContent(idx) - denomfinal_nominal->GetBinContent(idx);
         double valOSFFdn = denomfinal_nominal->GetBinContent(idx) - denomfinal_OSFFdn->GetBinContent(idx);
-        double normSSFF = 0.;//0.2*nominal_.returnSS()->GetBinContent(idx);
+        double normSSFF = 0.2*nominal_.returnSS()->GetBinContent(idx);
         double normOSFF = 0.2*nominal_.returnOS()->GetBinContent(idx);
 
         double valHeepIdUp = 0., valHeepIdDn = 0., valMuScaleUp = 0., valMuScaleDn = 0.;
@@ -1375,8 +1441,8 @@ void runMEMuFF(TString era) {
   aloader3E.add(aloader3E2);
   aloader3E.add(aloader3E3);
   //aloader3E.preparecard("MEMu2M_"+era+"_datacard.root","mergedEMu2M");
-  aloader3E.compare(p1,1,p2); // 5
-  SaveAs(canvas_2,"MEMuFF_2M_invM.pdf",p1);
+  aloader3E.compare(p1,10,p2); // 10
+  //SaveAs(canvas_2,"MEMuFF_2M_invM_log.pdf",p1);
   //aloader3E.close();
   canvas_1->SetLogy(0);
 
@@ -1401,6 +1467,8 @@ void runMEMuFF(TString era) {
   aloader3E.add(aloader3E3);
   aloader3E.compare(p1,2,p2);
   SaveAs(canvas_2,"FF_2M_eta.pdf",p1);
+
+  return;
 
   /*aloader3E.load("2M_CRME_lll_mll","2M_antiME_lll_mll",postfix.Data());
   aloader3E1.load("2M_CRME_lll_mll","2M_antiME_lll_mll","20UL16APV");
@@ -1434,9 +1502,6 @@ void runMEMuFF(TString era) {
 
   canvas_2->cd();
 
-  if (era=="run2")
-    return;
-
   return;
 
   auto estimateCenter = [] (const std::vector<double>& vec) -> std::vector<double> {
@@ -1462,9 +1527,9 @@ void runMEMuFF(TString era) {
     return std::move(out);
   };
 
-  TFile* afile = new TFile("MMFF_"+era+".root","RECREATE");
+  //TFile* afile = new TFile("MMFF_"+era+".root","RECREATE");
 
-  std::vector<double> xbins = {0,100,200,250,300,350,400,500,600,800,1000,1200,1500};
+  std::vector<double> xbins = {0,100,200,250,300,350,400,500,600,700,800,1000,1200,1500};
   //std::vector<double> xbins = {0,100,150,200,250,275,300,350,400,450,500,600,700,800,900,1000,1200,1500,2000};
   const int nbins = xbins.size()-1;
   std::vector<double> xcen = estimateCenter(xbins);
@@ -1474,6 +1539,13 @@ void runMEMuFF(TString era) {
   //TH1D* numer = (TH1D*)datafile->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_MET_sumEt")->Clone();
   //TH1D* denom = (TH1D*)datafile->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_antiRpt_MET_sumEt")->Clone();
 
+  numer->Add( (TH1D*)datafile1->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_mt") );
+  numer->Add( (TH1D*)datafile2->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_mt") );
+  numer->Add( (TH1D*)datafile3->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_mt") );
+  denom->Add( (TH1D*)datafile1->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_antiRpt_mt") );
+  denom->Add( (TH1D*)datafile2->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_antiRpt_mt") );
+  denom->Add( (TH1D*)datafile3->Get("mergedEMuCRanalyzerData/1M_CRME_antiDphi_antiRpt_mt") );
+
   numer = (TH1D*)numer->Rebin( nbins,"1M_MMFF_numer_rebin",&(xbins[0]) );
   denom = (TH1D*)denom->Rebin( nbins,"denom_rebin",&(xbins[0]) );
 
@@ -1481,6 +1553,7 @@ void runMEMuFF(TString era) {
   numer->SetMaximum(2.5);
   numer->SetMinimum(0.0);
   numer->GetYaxis()->SetTitle("Fake factor");
+  numer->GetYaxis()->SetTitleOffset(1.2);
   //numer->GetXaxis()->SetTitle("p_{T}");
   numer->SetLineColor(kBlack);
   numer->SetLineWidth(2);
@@ -1515,18 +1588,19 @@ void runMEMuFF(TString era) {
   texthigh->SetFillColor(0);
   texthigh->SetFillStyle(3025);
   TString textoslow;
+  //textoslow.Form("%.3g #pm %.3g", ffFunc->GetParameter(0), ffFunc->GetParError(0));
   textoslow.Form("%.3g #times x + %.4f", ffFunc->GetParameter(0), ffFunc->GetParameter(1));
   texthigh->AddText(textoslow);
   ((TText*)texthigh->GetListOfLines()->Last())->SetTextColor(kRed);
   ((TText*)texthigh->GetListOfLines()->Last())->SetTextAlign(12);
   texthigh->Draw();
 
-  SaveAs(canvas_2,("MMFF_"+era+".pdf").Data());
+  SaveAs(canvas_2,("MMFF_"+era+".png").Data());
 
-  numer->Write();
-  ffFunc->Write();
-  fitResult->Write();
-  afile->Close();
+  //numer->Write();
+  //ffFunc->Write();
+  //fitResult->Write();
+  //afile->Close();
 
   /*TH2D* srHist = (TH2D*)H2000A1file->Get("mergedEMuCRanalyzer20UL18/1M_dphi_ratioPt");
   canvas_1->cd();

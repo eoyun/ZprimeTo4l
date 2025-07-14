@@ -46,6 +46,10 @@ private:
   virtual void endJob() override;
 
   math::PtEtaPhiMLorentzVector lvecFromTuneP(const pat::MuonRef& aMu);
+  std::pair<double,double> pairByInvM(const math::PtEtaPhiMLorentzVector& a,
+                                      const math::PtEtaPhiMLorentzVector& b,
+                                      const math::PtEtaPhiMLorentzVector& c,
+                                      const math::PtEtaPhiMLorentzVector& d) const;
 
   bool isMC_;
 
@@ -201,6 +205,33 @@ math::PtEtaPhiMLorentzVector ResolvedMuCRanalyzer::lvecFromTuneP(const pat::Muon
                                       mumass_);
 }
 
+std::pair<double,double> ResolvedMuCRanalyzer::pairByInvM(const math::PtEtaPhiMLorentzVector& a,
+                                                          const math::PtEtaPhiMLorentzVector& b,
+                                                          const math::PtEtaPhiMLorentzVector& c,
+                                                          const math::PtEtaPhiMLorentzVector& d) const {
+  const double val11 = (a+b).M();
+  const double val12 = (c+d).M();
+  auto cand1 = std::make_pair( std::max(val11,val12), std::min(val11,val12) );
+
+  const double val21 = (a+c).M();
+  const double val22 = (b+d).M();
+  auto cand2 = std::make_pair( std::max(val21,val22), std::min(val21,val22) );
+
+  const double val31 = (a+d).M();
+  const double val32 = (b+c).M();
+  auto cand3 = std::make_pair( std::max(val31,val32), std::min(val31,val32) );
+
+  std::vector<std::pair<double,double>> vec = {cand1,cand2,cand3};
+
+  auto sortByInvM = [] (const std::pair<double,double>& i, const std::pair<double,double>& j) {
+    return i.second < j.second;
+  };
+
+  std::sort(vec.begin(),vec.end(),sortByInvM);
+
+  return vec.front();
+}
+
 void ResolvedMuCRanalyzer::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
@@ -321,20 +352,24 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["2P2F_CR_llll_invM_xFF_ffUp"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF_ffUp","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF_ffDn"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF_ffDn","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_ll1ll2_dr_xFF"] = fs->make<TH1D>("2P2F_CR_ll1ll2_dr_xFF","2P2F CR dR(ll1ll2) x Fake factor",128,0.,6.4);
-  histo1d_["2P2F_CR_ll1_invM_xFF"] = fs->make<TH1D>("2P2F_CR_ll1_invM_xFF","2P2F CR M(ll1) x Fake factor;M [GeV];",100,0.,200.);
+  histo1d_["2P2F_CR_ll1_invM_xFF"] = fs->make<TH1D>("2P2F_CR_ll1_invM_xFF","2P2F CR M(ll1) x Fake factor;M [GeV];",400,0.,200.);
   histo1d_["2P2F_CR_ll1_dr_xFF"] = fs->make<TH1D>("2P2F_CR_ll1_dr_xFF","2P2F CR dR(ll1) x Fake factor",128,0.,6.4);
-  histo1d_["2P2F_CR_ll2_invM_xFF"] = fs->make<TH1D>("2P2F_CR_ll2_invM_xFF","2P2F CR M(ll2) x Fake factor;M [GeV];",100,0.,200.);
+  histo1d_["2P2F_CR_ll2_invM_xFF"] = fs->make<TH1D>("2P2F_CR_ll2_invM_xFF","2P2F CR M(ll2) x Fake factor;M [GeV];",400,0.,200.);
   histo1d_["2P2F_CR_ll2_dr_xFF"] = fs->make<TH1D>("2P2F_CR_ll2_dr_xFF","2P2F CR dR(ll2) x Fake factor",128,0.,6.4);
+  histo1d_["2P2F_CR_llHiM_invM_xFF"] = fs->make<TH1D>("2P2F_CR_llHiM_invM_xFF",";M [GeV];",400,0.,200.);
+  histo1d_["2P2F_CR_llLoM_invM_xFF"] = fs->make<TH1D>("2P2F_CR_llLoM_invM_xFF",";M [GeV];",400,0.,200.);
 
   histo1d_["2P2F_CR_llll_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_altMuScale_xFF2"] = fs->make<TH1D>("2P2F_CR_llll_invM_altMuScale_xFF2",";M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF2_ffUp"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2_ffUp","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"] = fs->make<TH1D>("2P2F_CR_llll_invM_xFF2_ffDn","2P2F CR M(4l) x Fake factor^2;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CR_ll1ll2_dr_xFF2"] = fs->make<TH1D>("2P2F_CR_ll1ll2_dr_xFF2","2P2F CR dR(ll1ll2) x Fake factor^2",128,0.,6.4);
-  histo1d_["2P2F_CR_ll1_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_ll1_invM_xFF2","2P2F CR M(ll1) x Fake factor^2;M [GeV];",100,0.,200.);
+  histo1d_["2P2F_CR_ll1_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_ll1_invM_xFF2","2P2F CR M(ll1) x Fake factor^2;M [GeV];",400,0.,200.);
   histo1d_["2P2F_CR_ll1_dr_xFF2"] = fs->make<TH1D>("2P2F_CR_ll1_dr_xFF2","2P2F CR dR(ll1) x Fake factor^2",128,0.,6.4);
-  histo1d_["2P2F_CR_ll2_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_ll2_invM_xFF2","2P2F CR M(ll2) x Fake factor^2;M [GeV];",100,0.,200.);
+  histo1d_["2P2F_CR_ll2_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_ll2_invM_xFF2","2P2F CR M(ll2) x Fake factor^2;M [GeV];",400,0.,200.);
   histo1d_["2P2F_CR_ll2_dr_xFF2"] = fs->make<TH1D>("2P2F_CR_ll2_dr_xFF2","2P2F CR dR(ll2) x Fake factor^2",128,0.,6.4);
+  histo1d_["2P2F_CR_llHiM_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_llHiM_invM_xFF2",";M [GeV];",400,0.,200.);
+  histo1d_["2P2F_CR_llLoM_invM_xFF2"] = fs->make<TH1D>("2P2F_CR_llLoM_invM_xFF2",";M [GeV];",400,0.,200.);
 
   // 2P2F noniso
   histo1d_["2P2F_CRdr03_llll_invM"] = fs->make<TH1D>("2P2F_CRdr03_llll_invM","2P2F CR M(4l);M [GeV];",500,0.,2500.);
@@ -352,10 +387,12 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["2P2F_CRdr03_llll_invM_xFF_ffUp"] = fs->make<TH1D>("2P2F_CRdr03_llll_invM_xFF_ffUp","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CRdr03_llll_invM_xFF_ffDn"] = fs->make<TH1D>("2P2F_CRdr03_llll_invM_xFF_ffDn","2P2F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["2P2F_CRdr03_ll1ll2_dr_xFF"] = fs->make<TH1D>("2P2F_CRdr03_ll1ll2_dr_xFF","2P2F CR dR(ll1ll2) x Fake factor",128,0.,6.4);
-  histo1d_["2P2F_CRdr03_ll1_invM_xFF"] = fs->make<TH1D>("2P2F_CRdr03_ll1_invM_xFF","2P2F CR M(ll1) x Fake factor;M [GeV];",100,0.,200.);
+  histo1d_["2P2F_CRdr03_ll1_invM_xFF"] = fs->make<TH1D>("2P2F_CRdr03_ll1_invM_xFF","2P2F CR M(ll1) x Fake factor;M [GeV];",400,0.,200.);
   histo1d_["2P2F_CRdr03_ll1_dr_xFF"] = fs->make<TH1D>("2P2F_CRdr03_ll1_dr_xFF","2P2F CR dR(ll1) x Fake factor",128,0.,6.4);
-  histo1d_["2P2F_CRdr03_ll2_invM_xFF"] = fs->make<TH1D>("2P2F_CRdr03_ll2_invM_xFF","2P2F CR M(ll2) x Fake factor;M [GeV];",100,0.,200.);
+  histo1d_["2P2F_CRdr03_ll2_invM_xFF"] = fs->make<TH1D>("2P2F_CRdr03_ll2_invM_xFF","2P2F CR M(ll2) x Fake factor;M [GeV];",400,0.,200.);
   histo1d_["2P2F_CRdr03_ll2_dr_xFF"] = fs->make<TH1D>("2P2F_CRdr03_ll2_dr_xFF","2P2F CR dR(ll2) x Fake factor",128,0.,6.4);
+  histo1d_["2P2F_CRdr03_llHiM_invM_xFF"] = fs->make<TH1D>("2P2F_CRdr03_llHiM_invM_xFF",";M [GeV];",400,0.,200.);
+  histo1d_["2P2F_CRdr03_llLoM_invM_xFF"] = fs->make<TH1D>("2P2F_CRdr03_llLoM_invM_xFF",";M [GeV];",400,0.,200.);
 
   // 3P1F
   histo1d_["3P1F_P1_pt"] = fs->make<TH1D>("3P1F_P1_pt","3P1F Pass M1 p_{T};p_{T} [GeV];",100,0.,500.);
@@ -409,10 +446,12 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["3P1F_CR_llll_invM_xFF_ffUp"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF_ffUp","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["3P1F_CR_llll_invM_xFF_ffDn"] = fs->make<TH1D>("3P1F_CR_llll_invM_xFF_ffDn","3P1F CR M(4l) x Fake factor;M [GeV];",500,0.,2500.);
   histo1d_["3P1F_CR_ll1ll2_dr_xFF"] = fs->make<TH1D>("3P1F_CR_ll1ll2_dr_xFF","3P1F CR dR(ll1ll2) x Fake factor",64,0.,6.4);
-  histo1d_["3P1F_CR_ll1_invM_xFF"] = fs->make<TH1D>("3P1F_CR_ll1_invM_xFF","3P1F CR M(ll1) x Fake factor;M [GeV];",100,0.,200.);
+  histo1d_["3P1F_CR_ll1_invM_xFF"] = fs->make<TH1D>("3P1F_CR_ll1_invM_xFF","3P1F CR M(ll1) x Fake factor;M [GeV];",400,0.,200.);
   histo1d_["3P1F_CR_ll1_dr_xFF"] = fs->make<TH1D>("3P1F_CR_ll1_dr_xFF","3P1F CR dR(ll1) x Fake factor",64,0.,6.4);
-  histo1d_["3P1F_CR_ll2_invM_xFF"] = fs->make<TH1D>("3P1F_CR_ll2_invM_xFF","3P1F CR M(ll2) x Fake factor;M [GeV];",100,0.,200.);
+  histo1d_["3P1F_CR_ll2_invM_xFF"] = fs->make<TH1D>("3P1F_CR_ll2_invM_xFF","3P1F CR M(ll2) x Fake factor;M [GeV];",400,0.,200.);
   histo1d_["3P1F_CR_ll2_dr_xFF"] = fs->make<TH1D>("3P1F_CR_ll2_dr_xFF","3P1F CR dR(ll2) x Fake factor",64,0.,6.4);
+  histo1d_["3P1F_CR_llHiM_invM_xFF"] = fs->make<TH1D>("3P1F_CR_llHiM_invM_xFF",";M [GeV];",400,0.,200.);
+  histo1d_["3P1F_CR_llLoM_invM_xFF"] = fs->make<TH1D>("3P1F_CR_llLoM_invM_xFF",";M [GeV];",400,0.,200.);
 
   // 4P0F
   histo1d_["4P0F_CR_P1_eta"] = fs->make<TH1D>("4P0F_CR_P1_eta","4P0F CR Pass E1 #eta",100,-2.5,2.5);
@@ -451,12 +490,14 @@ void ResolvedMuCRanalyzer::beginJob() {
   histo1d_["4P0F_CR_llll_invM_prefireDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_prefireDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_pt"] = fs->make<TH1D>("4P0F_CR_llll_pt","4P0F CR p_{T}(4l);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll1ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll1ll2_dr","4P0F CR dR(ll1ll2)",64,0.,6.4);
-  histo1d_["4P0F_CR_ll1_invM"] = fs->make<TH1D>("4P0F_CR_ll1_invM","4P0F CR M(ll1);M [GeV];",100,0.,200.);
+  histo1d_["4P0F_CR_ll1_invM"] = fs->make<TH1D>("4P0F_CR_ll1_invM","4P0F CR M(ll1);M [GeV];",400,0.,200.);
   histo1d_["4P0F_CR_ll1_pt"] = fs->make<TH1D>("4P0F_CR_ll1_pt","4P0F CR p_{T}(ll1);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll1_dr"] = fs->make<TH1D>("4P0F_CR_ll1_dr","4P0F CR dR(ll1)",64,0.,6.4);
-  histo1d_["4P0F_CR_ll2_invM"] = fs->make<TH1D>("4P0F_CR_ll2_invM","4P0F CR M(ll2);M [GeV];",100,0.,200.);
+  histo1d_["4P0F_CR_ll2_invM"] = fs->make<TH1D>("4P0F_CR_ll2_invM","4P0F CR M(ll2);M [GeV];",400,0.,200.);
   histo1d_["4P0F_CR_ll2_pt"] = fs->make<TH1D>("4P0F_CR_ll2_pt","4P0F CR p_{T}(ll2);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll2_dr","4P0F CR dR(ll2)",64,0.,6.4);
+  histo1d_["4P0F_CR_llHiM_invM"] = fs->make<TH1D>("4P0F_CR_llHiM_invM",";M [GeV];",400,0.,200.);
+  histo1d_["4P0F_CR_llLoM_invM"] = fs->make<TH1D>("4P0F_CR_llLoM_invM",";M [GeV];",400,0.,200.);
 
   numerTree_ = fs->make<TTree>("numerTree","numerTree");
   numerTree_->Branch("pt",&numerPt_,"pt/F");
@@ -957,6 +998,10 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
             histo1d_["4P0F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
             histo1d_["4P0F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
 
+            auto invMpair = pairByInvM(lvecM1,lvecM2,lvecM3,lvecM4);
+            histo1d_["4P0F_CR_llHiM_invM"]->Fill(invMpair.first, aWeight);
+            histo1d_["4P0F_CR_llLoM_invM"]->Fill(invMpair.second, aWeight);
+
             histo1d_["4P0F_CR_pt_P1"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
             histo1d_["4P0F_CR_pt_P2"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight);
             histo1d_["4P0F_CR_pt_P3"]->Fill(allHighPtMuons.at(2)->tunePMuonBestTrack()->pt(), aWeight);
@@ -1148,6 +1193,10 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
             histo1d_["3P1F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff);
             histo1d_["3P1F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff);
             histo1d_["3P1F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff);
+
+            auto invMpair = pairByInvM(lvecM1,lvecM2,lvecM3,lvecM4);
+            histo1d_["3P1F_CR_llHiM_invM_xFF"]->Fill(invMpair.first, aWeight*ff);
+            histo1d_["3P1F_CR_llLoM_invM_xFF"]->Fill(invMpair.second, aWeight*ff);
 
             auto lvecFake = lvecFromTuneP(nonHighPtMuonsVLiso.front());
             auto lvecPartner = lvecFromTuneP(passPartner);
@@ -1364,6 +1413,14 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
               histo1d_["2P2F_CR_ll2_invM_xFF2"]->Fill(lvecA2.M(), aWeight*ff1*ff2);
               histo1d_["2P2F_CR_ll2_dr_xFF2"]->Fill(std::sqrt(dr2ll2), aWeight*ff1*ff2);
 
+              auto invMpair = pairByInvM(lvecM1,lvecM2,lvecM3,lvecM4);
+              histo1d_["2P2F_CR_llHiM_invM_xFF"]->Fill(invMpair.first, aWeight*ff1);
+              histo1d_["2P2F_CR_llHiM_invM_xFF"]->Fill(invMpair.first, aWeight*ff2);
+              histo1d_["2P2F_CR_llLoM_invM_xFF"]->Fill(invMpair.second, aWeight*ff1);
+              histo1d_["2P2F_CR_llLoM_invM_xFF"]->Fill(invMpair.second, aWeight*ff2);
+              histo1d_["2P2F_CR_llHiM_invM_xFF2"]->Fill(invMpair.first, aWeight*ff1*ff2);
+              histo1d_["2P2F_CR_llLoM_invM_xFF2"]->Fill(invMpair.second, aWeight*ff1*ff2);
+
               if ( std::abs( nonHighPtMuonsVLiso.front()->tunePMuonBestTrack()->eta() ) < 1.2 ) {
                 histo1d_["2P2F_CR_pt_MB"]->Fill(nonHighPtMuonsVLiso.front()->tunePMuonBestTrack()->pt(), aWeight);
                 histo1d_["2P2F_CR_dr_MB"]->Fill(drFake1, aWeight);
@@ -1444,6 +1501,10 @@ void ResolvedMuCRanalyzer::analyze(const edm::Event& iEvent, const edm::EventSet
               histo1d_["2P2F_CRdr03_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*valFFdr03);
               histo1d_["2P2F_CRdr03_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*valFFdr03);
               histo1d_["2P2F_CRdr03_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*valFFdr03);
+
+              auto invMpair = pairByInvM(lvecM1,lvecM2,lvecM3,lvecM4);
+              histo1d_["2P2F_CRdr03_llHiM_invM_xFF"]->Fill(invMpair.first, aWeight*valFFdr03);
+              histo1d_["2P2F_CRdr03_llLoM_invM_xFF"]->Fill(invMpair.second, aWeight*valFFdr03);
 
               const auto m1 = firstFakePair.first;
               const auto m2 = firstFakePair.second;
