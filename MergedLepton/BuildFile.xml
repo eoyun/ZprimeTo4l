@@ -24,6 +24,9 @@
 <use name="ZprimeTo4l/ModifiedHEEP"/>
 <use name="root"/>
 <use name="rootmath"/>
+<library file="MiniAODTrackFitter.cc" name="ZPrimeTo4l/MergedLepton">
+  <flags EDM_PLUGIN="1"/>
+</library>
 <export>
   <lib name="1"/>
 </export>

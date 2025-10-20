@@ -375,7 +375,7 @@ bool MergedLeptonIDImage::extrapolate(const reco::GsfElectron& aEle, const reco:
                                                                   GlobalPoint(aEle.superCluster()->seed()->position().x(),
                                                                               aEle.superCluster()->seed()->position().y(),
                                                                               aEle.superCluster()->seed()->position().z()));
-    std::cout<<aEle.superCluster()->seed()->position().x()<<" | "<<aEle.superCluster()->seed()->position().y()<<" | "<<aEle.superCluster()->seed()->position().z()<<" | "<<std::endl;
+    //std::cout<<aEle.superCluster()->seed()->position().x()<<" | "<<aEle.superCluster()->seed()->position().y()<<" | "<<aEle.superCluster()->seed()->position().z()<<" | "<<std::endl;
     if (!seedTSOS.isValid()){
       seedTSOS = outTSOS;
     }
@@ -577,50 +577,63 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     const auto& seedPosition = electron.superCluster()->seed()->position();
     const auto& aEle = emObjectHandle->refAt(idx);
     idx ++;
-    std::cout<<aEle<<std::endl;
+    //std::cout<<aEle<<std::endl;
     const auto& orgGsfTrk = electron.gsfTrack();
     const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
     const auto& addPackedCand = (*addPackedCandHandle)[aEle];
     const reco::TrackBase* addTrk = addGsfTrk.get();
     //calculate 1st and 2nd ele position
     //
-    float eta_1st = seedPosition.eta() - electron.deltaEtaSeedClusterTrackAtCalo();
-    float phi_1st = reco::reduceRange( seedPosition.phi() - electron.deltaPhiSeedClusterTrackAtCalo());
-    if ( addGsfTrk==orgGsfTrk && addPackedCand.isNonnull() ){
-      addTrk = addPackedCand->bestTrack();
-      std::cout<<"dbg"<<std::endl;
+   // float eta_1st = seedPosition.eta() - electron.deltaEtaSeedClusterTrackAtCalo();
+   // float phi_1st = reco::reduceRange( seedPosition.phi() - electron.deltaPhiSeedClusterTrackAtCalo());
+
+    auto beamSpot = beamSpotHandle.product();
+
+    double dEtaInSeed2nd = std::numeric_limits<float>::max();
+    double dPhiInSeed2nd = std::numeric_limits<float>::max();
+
+    auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
+    auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
+
+    if ( extrapolate(electron,*addTrk,beamSpot->position(),iSetup,scAtVtx,seedAtCalo) ) {
+      dPhiInSeed2nd = seedAtCalo.dPhi();
+      dEtaInSeed2nd = seedAtCalo.dEta();
     }
+
+
+    //float eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
+    //float phi_2nd = reco::reduceRange( -( dPhiInSeed2nd - electron.superCluster()->phi() ) );  
+    if ( (addGsfTrk==orgGsfTrk || std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) > 0.1 ) && addPackedCand.isNonnull() ){
+    //if ( (addGsfTrk==orgGsfTrk) && addPackedCand.isNonnull() ){
+      addTrk = addPackedCand->bestTrack();
+      //std::cout<< std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) <<" : dR" <<std::endl; 
+      dEtaInSeed2nd = std::numeric_limits<float>::max();
+      dPhiInSeed2nd = std::numeric_limits<float>::max();
+      //std::cout<<"### packedcand ###"<<std::endl;
+    }
+    if ( extrapolate(electron,*addTrk,beamSpot->position(),iSetup,scAtVtx,seedAtCalo) ) {
+      dPhiInSeed2nd = seedAtCalo.dPhi();
+      dEtaInSeed2nd = seedAtCalo.dEta();
+    }
+
+
+    //eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
+    //phi_2nd = reco::reduceRange( -( dPhiInSeed2nd - electron.superCluster()->phi() ) );       
     if (orgGsfTrk.get()->pt() < 20 || addTrk->pt() < 10) continue;
     dPhi.push_back(electron.deltaPhiSeedClusterTrackAtCalo());
     dEta.push_back(electron.deltaEtaSeedClusterTrackAtCalo());
-    if(addTrk == orgGsfTrk.get()) isAddTrk = 0;
+    if(addTrk == orgGsfTrk.get() || std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) > 0.1 ) isAddTrk = 0;
+    //if(addTrk == orgGsfTrk.get()) isAddTrk = 0;
     else {
       isAddTrk = 1;
       //dPhi.push_back(reco::reduceRange(seedPosition.phi()-addTrk.phi()));
       //dEta.push_back(seedPosition.eta()-addTrk.eta());
-      auto beamSpot = beamSpotHandle.product();
 
-      double dEtaInSeed2nd = std::numeric_limits<float>::max();
-      double dPhiInSeed2nd = std::numeric_limits<float>::max();
-
-      auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
-      auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
-
-      if ( extrapolate(electron,*addTrk,beamSpot->position(),iSetup,scAtVtx,seedAtCalo) ) {
-        dPhiInSeed2nd = seedAtCalo.dPhi();
-        dEtaInSeed2nd = seedAtCalo.dEta();
-      }
-
-      if ( dEtaInSeed2nd==std::numeric_limits<float>::max() || dPhiInSeed2nd==std::numeric_limits<float>::max() )
-        continue;
-
-      float eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
-      float phi_2nd = reco::reduceRange( -( dPhiInSeed2nd - electron.superCluster()->phi() ) );
       dPhi.push_back(dPhiInSeed2nd);
       dEta.push_back(dEtaInSeed2nd);
       if (abs(dEtaInSeed2nd)>0.){
-         std::cout<<eta_2nd << " | "<<phi_2nd<<" | pt "<<addTrk->pt()<<" 1st" <<std::endl;
-         std::cout<<seedPosition.eta()<<" | "<<seedPosition.phi()<<std::endl;
+        // std::cout<<eta_2nd << " | "<<phi_2nd<<" | pt "<<addTrk->pt()<<" 2nd" <<std::endl;
+        // std::cout<<seedPosition.eta()<<" | "<<seedPosition.phi()<<std::endl;
       }
       //std::cout<<eta_2nd << " | "<<phi_2nd<<" 2nd" <<std::endl;
     }
