@@ -1,0 +1,75 @@
+DEBUG 2025-07-21 14:52:28.536 UTC: 	 CRAB Client version: v3.250522
+DEBUG 2025-07-21 14:52:28.536 UTC: 	 Running on: Linux lxplus806.cern.ch 4.18.0-553.56.1.el8_10.x86_64 #1 SMP Mon Jun 2 12:33:13 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux
+DEBUG 2025-07-21 14:52:28.536 UTC: 	 Not using Singularity
+DEBUG 2025-07-21 14:52:28.536 UTC: 	 Operating System: Red Hat Enterprise Linux 8.10 (Ootpa)
+DEBUG 2025-07-21 14:52:28.536 UTC: 	 Executing command: 'submit'
+DEBUG 2025-07-21 14:52:28.536 UTC: 	 Found CRAB cache file /afs/cern.ch/user/y/yeo/.crab3
+INFO 2025-07-21 14:52:28.537 UTC: 	 Will use CRAB configuration file submit_crab.py
+DEBUG 2025-07-21 14:52:28.537 UTC: 	 Loading CRAB configuration file.
+DEBUG 2025-07-21 14:52:28.542 UTC: 	 Will use CRAB plugin ANALYSIS (i.e. will run an analysis job type).
+DEBUG 2025-07-21 14:52:28.552 UTC: 	 Checking credentials
+DEBUG 2025-07-21 14:52:28.552 UTC: 	 Found proxy file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:52:28.552 UTC: 	 Making sure it has proper VOMS extension
+DEBUG 2025-07-21 14:52:28.552 UTC: 	 Executing command :
+ voms-proxy-info --vo --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:52:29.043 UTC: 	 output : cms
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:52:29.043 UTC: 	 Getting proxy life time left
+DEBUG 2025-07-21 14:52:29.043 UTC: 	 Executing command :
+ voms-proxy-info --actimeleft --timeleft --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:52:29.502 UTC: 	 output : 690999
+690999
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:52:29.502 UTC: 	 Proxy valid for 191:56:39 hours
+DEBUG 2025-07-21 14:52:29.502 UTC: 	 Encoded data for curl request: subresource=delegatedn
+DEBUG 2025-07-21 14:52:29.546 UTC: 	 Registering user credentials on myproxy for /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+DEBUG 2025-07-21 14:52:29.547 UTC: 	 Executing command :
+ voms-proxy-info --identity --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:52:30.028 UTC: 	 output : /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:52:30.028 UTC: 	 Getting myproxy life time left for b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 14:52:30.028 UTC: 	 Executing command :
+ myproxy-info -s myproxy.cern.ch -l b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 14:52:30.375 UTC: 	 output : username: b1cf46923e08be6d87341f4868c7a65630edff80
+owner: /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+  renewal policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  trusted retrieval policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  timeleft: 479:18:01  (20.0 days)
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:52:30.375 UTC: 	 Myproxy is valid: 1725480
+DEBUG 2025-07-21 14:52:30.375 UTC: 	 Result of myproxy credential check:
+  Credential exists on myproxy: username: b1cf46923e08be6d87341f4868c7a65630edff80  - validity: 19 days, 23:18:00
+DEBUG 2025-07-21 14:52:30.376 UTC: 	 Command use: submit
+DEBUG 2025-07-21 14:52:30.376 UTC: 	 Options use: ['submit_crab.py']
+DEBUG 2025-07-21 14:52:30.376 UTC: 	 Encoded data for curl request: subresource=version
+DEBUG 2025-07-21 14:52:30.416 UTC: 	 CRABClient version: v3.250522
+DEBUG 2025-07-21 14:52:30.416 UTC: 	 Instance is prod
+DEBUG 2025-07-21 14:52:30.416 UTC: 	 Server base url is cmsweb.cern.ch
+DEBUG 2025-07-21 14:52:30.416 UTC: 	 Command api workflow
+DEBUG 2025-07-21 14:52:30.416 UTC: 	 Started submission
+DEBUG 2025-07-21 14:52:30.416 UTC: 	 Working on /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/crab_projects/crab_20250721_165228
+DEBUG 2025-07-21 14:52:30.417 UTC: 	 Encoded data for curl request: subresource=backendurls
+ERROR 2025-07-21 14:52:30.488 UTC: 	 Invalid CRAB configuration: Analysis job type requires an input dataset or a set of user input files to run on.
+Suggestion: To specify an input dataset use the parameter Data.inputDataset. To specify a set of user input files use the parameter Data.userInputFiles.
+The documentation about the CRAB configuration file can be found in https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3ConfigurationFile
+ERROR 2025-07-21 14:52:30.488 UTC: 	 Caught ClientException exception
+Traceback (most recent call last):
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.250522.00/bin/crab.py", line 157, in <module>
+    client()
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.250522.00/bin/crab.py", line 142, in __call__
+    returnDict = self.cmd()
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.250522.00/lib/CRABClient/Commands/submit.py", line 107, in __call__
+    plugjobtype = crab_job_types[self.configreq['jobtype'].upper()](*pluginParams)
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.250522.00/lib/CRABClient/JobType/BasicJobType.py", line 40, in __init__
+    raise ConfigurationException(msg)
+CRABClient.ClientExceptions.ConfigurationException: Invalid CRAB configuration: Analysis job type requires an input dataset or a set of user input files to run on.
+Suggestion: To specify an input dataset use the parameter Data.inputDataset. To specify a set of user input files use the parameter Data.userInputFiles.
+The documentation about the CRAB configuration file can be found in https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3ConfigurationFile

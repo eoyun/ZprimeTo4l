@@ -8,7 +8,7 @@ config.General.transferLogs = True
 config.General.transferOutputs = True
 
 config.JobType.pluginName = "Analysis"
-config.JobType.psetName = "runMergedLeptonIDJpsiAnalyzerData_run3_cfg.py"
+config.JobType.psetName = "runMergedLeptonIDJpsiAnalyzerData_run3_2024_cfg.py"
 #config.JobType.maxMemoryMB = 4000
 #config.JobType.numCores = 8
 

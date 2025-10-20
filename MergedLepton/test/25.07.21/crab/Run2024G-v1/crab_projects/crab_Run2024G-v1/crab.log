@@ -1,0 +1,389 @@
+DEBUG 2025-07-21 14:51:34.512 UTC: 	 CRAB Client version: v3.250522
+DEBUG 2025-07-21 14:51:34.512 UTC: 	 Running on: Linux lxplus806.cern.ch 4.18.0-553.56.1.el8_10.x86_64 #1 SMP Mon Jun 2 12:33:13 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux
+DEBUG 2025-07-21 14:51:34.512 UTC: 	 Not using Singularity
+DEBUG 2025-07-21 14:51:34.512 UTC: 	 Operating System: Red Hat Enterprise Linux 8.10 (Ootpa)
+DEBUG 2025-07-21 14:51:34.512 UTC: 	 Executing command: 'submit'
+DEBUG 2025-07-21 14:51:34.512 UTC: 	 Found CRAB cache file /afs/cern.ch/user/y/yeo/.crab3
+INFO 2025-07-21 14:51:34.513 UTC: 	 Will use CRAB configuration file submit_crab.py
+DEBUG 2025-07-21 14:51:34.513 UTC: 	 Loading CRAB configuration file.
+DEBUG 2025-07-21 14:51:34.518 UTC: 	 Will use CRAB plugin ANALYSIS (i.e. will run an analysis job type).
+DEBUG 2025-07-21 14:51:34.524 UTC: 	 Checking credentials
+DEBUG 2025-07-21 14:51:34.524 UTC: 	 Found proxy file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:51:34.524 UTC: 	 Making sure it has proper VOMS extension
+DEBUG 2025-07-21 14:51:34.524 UTC: 	 Executing command :
+ voms-proxy-info --vo --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:51:35.003 UTC: 	 output : cms
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:51:35.003 UTC: 	 Getting proxy life time left
+DEBUG 2025-07-21 14:51:35.003 UTC: 	 Executing command :
+ voms-proxy-info --actimeleft --timeleft --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:51:35.452 UTC: 	 output : 691053
+691053
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:51:35.453 UTC: 	 Proxy valid for 191:57:33 hours
+DEBUG 2025-07-21 14:51:35.453 UTC: 	 Encoded data for curl request: subresource=delegatedn
+DEBUG 2025-07-21 14:51:35.491 UTC: 	 Registering user credentials on myproxy for /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+DEBUG 2025-07-21 14:51:35.491 UTC: 	 Executing command :
+ voms-proxy-info --identity --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:51:35.960 UTC: 	 output : /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:51:35.960 UTC: 	 Getting myproxy life time left for b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 14:51:35.960 UTC: 	 Executing command :
+ myproxy-info -s myproxy.cern.ch -l b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 14:51:36.233 UTC: 	 output : username: b1cf46923e08be6d87341f4868c7a65630edff80
+owner: /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+  renewal policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  trusted retrieval policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  timeleft: 479:18:55  (20.0 days)
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:51:36.234 UTC: 	 Myproxy is valid: 1725480
+DEBUG 2025-07-21 14:51:36.234 UTC: 	 Result of myproxy credential check:
+  Credential exists on myproxy: username: b1cf46923e08be6d87341f4868c7a65630edff80  - validity: 19 days, 23:18:00
+DEBUG 2025-07-21 14:51:36.234 UTC: 	 Command use: submit
+DEBUG 2025-07-21 14:51:36.234 UTC: 	 Options use: ['submit_crab.py']
+DEBUG 2025-07-21 14:51:36.234 UTC: 	 Encoded data for curl request: subresource=version
+DEBUG 2025-07-21 14:51:36.270 UTC: 	 CRABClient version: v3.250522
+DEBUG 2025-07-21 14:51:36.270 UTC: 	 Instance is prod
+DEBUG 2025-07-21 14:51:36.270 UTC: 	 Server base url is cmsweb.cern.ch
+DEBUG 2025-07-21 14:51:36.270 UTC: 	 Command api workflow
+DEBUG 2025-07-21 14:51:36.270 UTC: 	 Started submission
+DEBUG 2025-07-21 14:51:36.270 UTC: 	 Working on /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1
+DEBUG 2025-07-21 14:51:36.270 UTC: 	 Encoded data for curl request: subresource=backendurls
+DEBUG 2025-07-21 14:51:36.343 UTC: 	 Loading required information from the environment
+DEBUG 2025-07-21 14:51:36.343 UTC: 	 Found CMSSW_14_0_19 for el8_amd64_gcc12 with base /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19
+DEBUG 2025-07-21 14:51:36.343 UTC: 	 Loading required information from the environment
+DEBUG 2025-07-21 14:51:36.343 UTC: 	 Found CMSSW_14_0_19 for el8_amd64_gcc12 with base /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19
+DEBUG 2025-07-21 14:51:36.343 UTC: 	 UNIQUE NAME: tarUUID e73a4572-8b6c-492e-9b28-1183796e7ff2 
+DEBUG 2025-07-21 14:51:36.343 UTC: 	 self.config: from WMCore.Configuration import Configuration
+config = Configuration()
+config.section_('General')
+config.General.requestName = 'Run2024G-v1'
+config.General.transferOutputs = True
+config.General.workArea = 'crab_projects'
+config.General.transferLogs = True
+config.section_('JobType')
+config.JobType.pluginName = 'Analysis'
+config.JobType.psetName = 'runMuonJpsi_run3_cfg.py'
+config.section_('Data')
+config.Data.inputDBS = 'global'
+config.Data.outputDatasetTag = 'Run2024G-v1'
+config.Data.publication = False
+config.Data.unitsPerJob = 1
+config.Data.inputDataset = '/Muon0/Run2024G-PromptReco-v1/MINIAOD'
+config.Data.splitting = 'FileBased'
+config.Data.ignoreLocality = True
+config.Data.outLFNDirBase = '/store/user/yeo/'
+config.section_('Site')
+config.Site.whitelist = ['T2_*', 'T3_*']
+config.Site.storageSite = 'T3_KR_KNU'
+config.section_('User')
+config.section_('Debug')
+
+DEBUG 2025-07-21 14:51:36.343 UTC: 	 self.config.JobType.psetName: runMuonJpsi_run3_cfg.py
+INFO 2025-07-21 14:51:36.343 UTC: 	 Importing CMSSW configuration runMuonJpsi_run3_cfg.py
+INFO 2025-07-21 14:51:37.762 UTC: 	 Finished importing CMSSW configuration runMuonJpsi_run3_cfg.py
+DEBUG 2025-07-21 14:51:37.762 UTC: 	 Writing CMSSW configuration to /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/PSet.py
+DEBUG 2025-07-21 14:51:37.867 UTC: 	 The following EDM output files will be collected: []
+DEBUG 2025-07-21 14:51:37.867 UTC: 	 The following TFile output files will be collected: ['out.root']
+DEBUG 2025-07-21 14:51:37.867 UTC: 	 The following user output files (not listed as PoolOuputModule or TFileService in the CMSSW PSet) will be collected: 
+DEBUG 2025-07-21 14:51:37.867 UTC: 	 Loading required information from the environment
+DEBUG 2025-07-21 14:51:37.867 UTC: 	 Found CMSSW_14_0_19 for el8_amd64_gcc12 with base /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19
+DEBUG 2025-07-21 14:51:37.867 UTC: 	 Making tarball in /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/e73a4572-8b6c-492e-9b28-1183796e7ff2default.tgz
+DEBUG 2025-07-21 14:51:37.868 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/bin
+DEBUG 2025-07-21 14:51:37.868 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/bin to tarball
+DEBUG 2025-07-21 14:51:37.871 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/python
+DEBUG 2025-07-21 14:51:37.871 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/python to tarball
+DEBUG 2025-07-21 14:51:37.884 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/cfipython
+DEBUG 2025-07-21 14:51:37.884 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/cfipython to tarball
+DEBUG 2025-07-21 14:51:37.892 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/lib
+DEBUG 2025-07-21 14:51:37.892 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/lib to tarball
+DEBUG 2025-07-21 14:51:38.598 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/biglib
+DEBUG 2025-07-21 14:51:38.598 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/biglib to tarball
+DEBUG 2025-07-21 14:51:38.599 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/module
+DEBUG 2025-07-21 14:51:38.599 UTC: 	 Checking directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/config/SCRAM/hooks
+DEBUG 2025-07-21 14:51:38.599 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/config/SCRAM/hooks to tarball
+DEBUG 2025-07-21 14:51:38.605 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/Analysis/data to tarball
+DEBUG 2025-07-21 14:51:39.165 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/Analysis/interface to tarball
+DEBUG 2025-07-21 14:51:39.166 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/Analysis/python to tarball
+DEBUG 2025-07-21 14:51:39.171 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/data to tarball
+DEBUG 2025-07-21 14:51:39.682 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/interface to tarball
+DEBUG 2025-07-21 14:51:39.683 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/python to tarball
+DEBUG 2025-07-21 14:51:39.748 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/ModifiedHEEP/interface to tarball
+DEBUG 2025-07-21 14:51:39.866 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/ModifiedHEEP/python to tarball
+DEBUG 2025-07-21 14:51:39.871 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/RecoEgamma/EgammaTools/data to tarball
+DEBUG 2025-07-21 14:51:39.872 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/RecoEgamma/EgammaTools/interface to tarball
+DEBUG 2025-07-21 14:51:39.881 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/RecoEgamma/EgammaTools/python to tarball
+DEBUG 2025-07-21 14:51:39.893 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/EgammaPostRecoTools/python to tarball
+DEBUG 2025-07-21 14:51:39.894 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/DataFormats/PatCandidates/interface to tarball
+DEBUG 2025-07-21 14:51:39.908 UTC: 	 Adding directory /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/DataFormats/GsfTrackReco/interface to tarball
+DEBUG 2025-07-21 14:51:40.248 UTC: 	 Uploading archive /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/e73a4572-8b6c-492e-9b28-1183796e7ff2default.tgz (5.212891.1 MB) to the CRAB cache. Using URI https://cmsweb.cern.ch/S3/crabcache_prod
+DEBUG 2025-07-21 14:51:41.719 UTC: 	 Encoded data for curl request: subresource=upload&objecttype=sandbox&tarballname=1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz
+DEBUG 2025-07-21 14:51:41.771 UTC: 	 sandbox 1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz is already in the S3 store, will not upload again
+DEBUG 2025-07-21 14:51:41.771 UTC: 	 Loading required information from the environment
+DEBUG 2025-07-21 14:51:41.771 UTC: 	 Found CMSSW_14_0_19 for el8_amd64_gcc12 with base /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19
+DEBUG 2025-07-21 14:51:41.771 UTC: 	 Making tarball in /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/debugFiles.tgz
+DEBUG 2025-07-21 14:51:41.776 UTC: 	 Uploading archive /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/debugFiles.tgz (2 KB) to the CRAB cache. Using URI https://cmsweb.cern.ch/S3/crabcache_prod
+DEBUG 2025-07-21 14:51:41.778 UTC: 	 Encoded data for curl request: subresource=upload&objecttype=sandbox&tarballname=0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz
+DEBUG 2025-07-21 14:51:41.826 UTC: 	 Will execute:
+curl -f -v -X POST  -H "User-Agent: CRAB" -F "key=yeo/sandboxes/0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz" -F "AWSAccessKeyId=715203df6482458ba839e73e6dab634b" -F "policy=eyJleHBpcmF0aW9uIjogIjIwMjUtMDctMjFUMTU6NTE6NDFaIiwgImNvbmRpdGlvbnMiOiBbeyJidWNrZXQiOiAiY3JhYmNhY2hlX3Byb2QifSwgeyJrZXkiOiAieWVvL3NhbmRib3hlcy8wMjIwZDZhN2FlOGI2Yzc3YjA4NmU5NGMyZjRhYThiODdlOWJhMWMzMTU3NGVkMmI0NWQ4YjBhZGIzYWI4ZDYwLnRhci5neiJ9XX0=" -F "signature=Ce+tLAZVE/bilvxi0KpGLhNv7vA=" -F "file=@/afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/debugFiles.tgz" "https://s3.cern.ch/crabcache_prod"
+DEBUG 2025-07-21 14:51:41.930 UTC: 	 exitcode: 0
+stdout: b''
+DEBUG 2025-07-21 14:51:41.930 UTC: 	 upload to S3 of sandbox /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/debugFiles.tgz completed
+DEBUG 2025-07-21 14:51:41.930 UTC: 	 make sure that object is ready for retrieve
+DEBUG 2025-07-21 14:51:42.932 UTC: 	 Encoded data for curl request: subresource=download&objecttype=sandbox&tarballname=0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz&clientmethod=head_object
+DEBUG 2025-07-21 14:51:42.972 UTC: 	 PreSignedUrl to download sandbox received OK
+DEBUG 2025-07-21 14:51:42.975 UTC: 	 Will execute:
+ curl -v -s -f -o /dev/null --head  "https://s3.cern.ch/crabcache_prod/yeo/sandboxes/0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz?AWSAccessKeyId=715203df6482458ba839e73e6dab634b&Signature=ns3c2EOkKEl1bc5GhXshGMiEChw%3D&Expires=1753113102"
+DEBUG 2025-07-21 14:51:43.004 UTC: 	 exitcode: 0
+stdout: b''
+DEBUG 2025-07-21 14:51:43.004 UTC: 	 sandbox /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/inputs/debugFiles.tgz successfully uploaded to S3
+DEBUG 2025-07-21 14:51:43.004 UTC: 	 Result uploading input files: 1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz 
+DEBUG 2025-07-21 14:51:43.005 UTC: 	 submit() - self.configuration from WMCore.Configuration import Configuration
+config = Configuration()
+config.section_('General')
+config.General.requestName = 'Run2024G-v1'
+config.General.transferOutputs = True
+config.General.workArea = 'crab_projects'
+config.General.transferLogs = True
+config.section_('JobType')
+config.JobType.pluginName = 'Analysis'
+config.JobType.psetName = 'runMuonJpsi_run3_cfg.py'
+config.section_('Data')
+config.Data.inputDBS = 'global'
+config.Data.outputDatasetTag = 'Run2024G-v1'
+config.Data.publication = False
+config.Data.unitsPerJob = 1
+config.Data.inputDataset = '/Muon0/Run2024G-PromptReco-v1/MINIAOD'
+config.Data.splitting = 'FileBased'
+config.Data.ignoreLocality = True
+config.Data.outLFNDirBase = '/store/user/yeo/'
+config.section_('Site')
+config.Site.whitelist = ['T2_*', 'T3_*']
+config.Site.storageSite = 'T3_KR_KNU'
+config.section_('User')
+config.section_('Debug')
+
+DEBUG 2025-07-21 14:51:43.005 UTC: 	 submit() - self.configreq {'dryrun': 0, 'workflow': 'crab_Run2024G-v1', 'saveoutput': 1, 'savelogsflag': 1, 'inputdata': '/Muon0/Run2024G-PromptReco-v1/MINIAOD', 'nonvaliddata': 0, 'userfiles': [], 'dbsurl': 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader', 'useparent': 0, 'ignorelocality': 1, 'splitalgo': 'FileBased', 'algoargs': 1, 'totalunits': 0, 'lfn': '/store/user/yeo/', 'publication': 0, 'publishdbsurl': 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter', 'publishname2': 'Run2024G-v1', 'jobtype': 'Analysis', 'generator': 'pythia', 'addoutputfiles': [], 'maxjobruntime': 1250, 'numcores': 1, 'maxmemory': 2000, 'priority': 10, 'nonprodsw': 0, 'asyncdest': 'T3_KR_KNU', 'sitewhitelist': ['T2_*', 'T3_*'], 'requireaccelerator': 0, 'oneEventMode': 0, 'extrajdl': [], 'ignoreglobalblacklist': 0, 'partialdataset': 0, 'inputblocks': []}
+DEBUG 2025-07-21 14:51:43.005 UTC: 	 submit() - jobconfig {'addoutputfiles': [], 'tfileoutfiles': ['out.root'], 'edmoutfiles': [], 'jobarch': 'el8_amd64_gcc12', 'jobminuarch': 'any', 'jobsw': 'CMSSW_14_0_19', 'inputdata': '/Muon0/Run2024G-PromptReco-v1/MINIAOD', 'cacheurl': 'https://cmsweb.cern.ch/S3/crabcache_prod', 'cachefilename': '1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz', 'debugfilename': '0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz', 'jobtype': 'Analysis'}
+INFO 2025-07-21 14:51:43.005 UTC: 	 Sending the request to the server at cmsweb.cern.ch
+DEBUG 2025-07-21 14:51:43.005 UTC: 	 Submitting {'dryrun': 0, 'workflow': 'crab_Run2024G-v1', 'saveoutput': 1, 'savelogsflag': 1, 'inputdata': '/Muon0/Run2024G-PromptReco-v1/MINIAOD', 'nonvaliddata': 0, 'userfiles': [], 'dbsurl': 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader', 'useparent': 0, 'ignorelocality': 1, 'splitalgo': 'FileBased', 'algoargs': 1, 'totalunits': 0, 'lfn': '/store/user/yeo/', 'publication': 0, 'publishdbsurl': 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter', 'publishname2': 'Run2024G-v1', 'jobtype': 'Analysis', 'generator': 'pythia', 'addoutputfiles': [], 'maxjobruntime': 1250, 'numcores': 1, 'maxmemory': 2000, 'priority': 10, 'nonprodsw': 0, 'asyncdest': 'T3_KR_KNU', 'sitewhitelist': ['T2_*', 'T3_*'], 'requireaccelerator': 0, 'oneEventMode': 0, 'extrajdl': [], 'ignoreglobalblacklist': 0, 'partialdataset': 0, 'inputblocks': [], 'tfileoutfiles': ['out.root'], 'edmoutfiles': [], 'jobarch': 'el8_amd64_gcc12', 'jobminuarch': 'any', 'jobsw': 'CMSSW_14_0_19', 'cacheurl': 'https://cmsweb.cern.ch/S3/crabcache_prod', 'cachefilename': '1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz', 'debugfilename': '0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz'} 
+DEBUG 2025-07-21 14:51:43.005 UTC: 	 Encoded data for curl request: dryrun=0&workflow=crab_Run2024G-v1&saveoutput=1&savelogsflag=1&inputdata=%2FMuon0%2FRun2024G-PromptReco-v1%2FMINIAOD&nonvaliddata=0&dbsurl=https%3A%2F%2Fcmsweb.cern.ch%2Fdbs%2Fprod%2Fglobal%2FDBSReader&useparent=0&ignorelocality=1&splitalgo=FileBased&algoargs=1&totalunits=0&lfn=%2Fstore%2Fuser%2Fyeo%2F&publication=0&publishdbsurl=https%3A%2F%2Fcmsweb.cern.ch%2Fdbs%2Fprod%2Fphys03%2FDBSWriter&publishname2=Run2024G-v1&jobtype=Analysis&generator=pythia&maxjobruntime=1250&numcores=1&maxmemory=2000&priority=10&nonprodsw=0&asyncdest=T3_KR_KNU&requireaccelerator=0&oneEventMode=0&ignoreglobalblacklist=0&partialdataset=0&jobarch=el8_amd64_gcc12&jobminuarch=any&jobsw=CMSSW_14_0_19&cacheurl=https%3A%2F%2Fcmsweb.cern.ch%2FS3%2Fcrabcache_prod&cachefilename=1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz&debugfilename=0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz&sitewhitelist=T2_%2A&sitewhitelist=T3_%2A&tfileoutfiles=out.root
+DEBUG 2025-07-21 14:51:43.052 UTC: 	 Result: {'result': [{'RequestName': '250721_145143:yeo_crab_Run2024G-v1'}]}
+INFO 2025-07-21 14:51:43.055 UTC: 	 Success: Your task has been delivered to the prod CRAB3 server.
+INFO 2025-07-21 14:51:43.055 UTC: 	 Task name: 250721_145143:yeo_crab_Run2024G-v1
+INFO 2025-07-21 14:51:43.055 UTC: 	 Project dir: crab_projects/crab_Run2024G-v1
+INFO 2025-07-21 14:51:43.055 UTC: 	 Please use ' crab status -d crab_projects/crab_Run2024G-v1 ' to check how the submission process proceeds.
+DEBUG 2025-07-21 14:51:43.055 UTC: 	 About to return
+INFO 2025-07-21 14:51:43.058 UTC: 	 Log file is /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/crab.log
+DEBUG 2025-07-21 14:56:03.927 UTC: 	 CRAB Client version: v3.250522
+DEBUG 2025-07-21 14:56:03.927 UTC: 	 Running on: Linux lxplus806.cern.ch 4.18.0-553.56.1.el8_10.x86_64 #1 SMP Mon Jun 2 12:33:13 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux
+DEBUG 2025-07-21 14:56:03.927 UTC: 	 Not using Singularity
+DEBUG 2025-07-21 14:56:03.927 UTC: 	 Operating System: Red Hat Enterprise Linux 8.10 (Ootpa)
+DEBUG 2025-07-21 14:56:03.927 UTC: 	 Executing command: 'status'
+DEBUG 2025-07-21 14:56:03.927 UTC: 	 Found CRAB cache file /afs/cern.ch/user/y/yeo/.crab3
+DEBUG 2025-07-21 14:56:03.934 UTC: 	 Checking credentials
+DEBUG 2025-07-21 14:56:03.934 UTC: 	 Found proxy file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:56:03.934 UTC: 	 Making sure it has proper VOMS extension
+DEBUG 2025-07-21 14:56:03.934 UTC: 	 Executing command :
+ voms-proxy-info --vo --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:56:04.392 UTC: 	 output : cms
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:56:04.392 UTC: 	 Getting proxy life time left
+DEBUG 2025-07-21 14:56:04.392 UTC: 	 Executing command :
+ voms-proxy-info --actimeleft --timeleft --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:56:04.810 UTC: 	 output : 690784
+690784
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:56:04.810 UTC: 	 Proxy valid for 191:53:04 hours
+DEBUG 2025-07-21 14:56:04.810 UTC: 	 Encoded data for curl request: subresource=delegatedn
+DEBUG 2025-07-21 14:56:04.854 UTC: 	 Registering user credentials on myproxy for /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+DEBUG 2025-07-21 14:56:04.854 UTC: 	 Executing command :
+ voms-proxy-info --identity --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 14:56:05.331 UTC: 	 output : /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:56:05.331 UTC: 	 Getting myproxy life time left for b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 14:56:05.331 UTC: 	 Executing command :
+ myproxy-info -s myproxy.cern.ch -l b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 14:56:05.622 UTC: 	 output : username: b1cf46923e08be6d87341f4868c7a65630edff80
+owner: /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+  renewal policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  trusted retrieval policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  timeleft: 479:14:26  (20.0 days)
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 14:56:05.622 UTC: 	 Myproxy is valid: 1725240
+DEBUG 2025-07-21 14:56:05.622 UTC: 	 Result of myproxy credential check:
+  Credential exists on myproxy: username: b1cf46923e08be6d87341f4868c7a65630edff80  - validity: 19 days, 23:14:00
+DEBUG 2025-07-21 14:56:05.622 UTC: 	 Retrieving username ...
+DEBUG 2025-07-21 14:56:05.622 UTC: 	 Retrieving username from CRIC...
+DEBUG 2025-07-21 14:56:06.424 UTC: 	 username is yeo
+INFO 2025-07-21 14:56:07.162 UTC: 	 Rucio client intialized for account yeo
+DEBUG 2025-07-21 14:56:07.163 UTC: 	 Command use: status
+DEBUG 2025-07-21 14:56:07.163 UTC: 	 Options use: ['-d', 'crab_projects/crab_Run2024G-v1']
+DEBUG 2025-07-21 14:56:07.163 UTC: 	 Encoded data for curl request: subresource=version
+DEBUG 2025-07-21 14:56:07.221 UTC: 	 CRABClient version: v3.250522
+DEBUG 2025-07-21 14:56:07.221 UTC: 	 Instance is prod
+DEBUG 2025-07-21 14:56:07.221 UTC: 	 Server base url is cmsweb.cern.ch
+DEBUG 2025-07-21 14:56:07.221 UTC: 	 Command api workflow
+DEBUG 2025-07-21 14:56:07.221 UTC: 	 Encoded data for curl request: subresource=search&workflow=250721_145143%3Ayeo_crab_Run2024G-v1
+DEBUG 2025-07-21 14:56:07.276 UTC: 	 Got information from server oracle database: {'desc': {'columns': ['tm_taskname', 'tm_activity', 'tm_task_status', 'tm_task_command', 'tm_start_time', 'tm_start_injection', 'tm_end_injection', 'tm_task_failure', 'tm_job_sw', 'tm_job_arch', 'tm_input_dataset', 'tm_nonvalid_input_dataset', 'tm_use_parent', 'tm_site_whitelist', 'tm_site_blacklist', 'tm_split_algo', 'tm_split_args', 'tm_user_sandbox', 'tm_cache_url', 'tm_username', 'tm_user_dn', 'tm_user_vo', 'tm_user_role', 'tm_user_group', 'tm_publish_name', 'tm_publish_groupname', 'tm_asyncdest', 'tm_dbs_url', 'tm_publish_dbs_url', 'tm_publication', 'tm_outfiles', 'tm_tfile_outfiles', 'tm_edm_outfiles', 'tm_job_type', 'tm_generator', 'tm_events_per_lumi', 'tm_arguments', 'tm_save_logs', 'tw_name', 'tm_user_infiles', 'tm_maxjobruntime', 'tm_numcores', 'tm_maxmemory', 'tm_priority', 'tm_output_dataset', 'tm_task_warnings', 'tm_user_webdir', 'tm_scriptexe', 'tm_scriptargs', 'tm_extrajdl', 'tm_collector', 'tm_schedd', 'tm_dry_run', 'tm_user_files', 'tm_transfer_outputs', 'tm_output_lfn', 'tm_ignore_locality', 'tm_fail_limit', 'tm_one_event_mode', 'tm_secondary_input_dataset', 'tm_primary_dataset', 'tm_last_publication', 'tm_debug_files', 'clusterid', 'tm_ignore_global_blacklist', 'tm_submitter_ip_addr', 'tm_totalunits', 'tm_ddm_reqid', 'tm_user_config', 'tm_transfer_container', 'tm_transfer_rule', 'tm_publish_rule', 'tm_multipub_rule', 'tm_job_min_microarch', 'tm_dagman_status', 'tm_num_jobs', 'tm_uploaded']}, 'result': ['250721_145143:yeo_crab_Run2024G-v1', 'None', 'NEW', 'SUBMIT', '2025-07-21 14:51:43.046129', 'None', 'None', 'None', 'CMSSW_14_0_19', 'el8_amd64_gcc12', '/Muon0/Run2024G-PromptReco-v1/MINIAOD', 'F', '0', "['T2_CH_CERN_HLT', 'T3_ES_PIC_BSC', 'T2_US_Nebraska', 'T2_US_Caltech', 'T3_IT_MIB', 'T3_CY_UCY', 'T3_UK_London_QMUL', 'T3_US_OSG', 'T2_LB_HPC4L', 'T3_IT_Trieste', 'T3_CH_CERN_DOMA', 'T2_FR_IPHC', 'T2_CH_CERN', 'T3_US_OSU', 'T2_RU_INR', 'T2_US_MIT', 'T2_IT_Rome', 'T3_US_UMiss', 'T2_PK_NCP', 'T2_US_Florida', 'T2_PL_Swierk', 'T3_BG_UNI_SOFIA', 'T2_EE_Estonia', 'T2_RU_ITEP', 'T3_US_UMD', 'T3_KR_KNU', 'T2_HU_Budapest', 'T3_IN_TIFRCloud', 'T3_US_Rutgers', 'T3_RU_FIAN', 'T3_US_Ookami', 'T2_BE_IIHE', 'T3_US_NERSC', 'T2_RU_JINR', 'T3_US_FNALLPC', 'T3_US_VC3_NotreDame', 'T3_US_Rice', 'T3_US_Anvil', 'T3_US_PuertoRico', 'T2_KR_KISTI', 'T3_US_FIT', 'T2_RU_IHEP', 'T3_US_Colorado', 'T3_US_ORNL', 'T3_CN_THU', 'T3_KR_UOS', 'T3_CH_PSI', 'T3_IT_Perugia', 'T2_BR_UERJ', 'T2_US_Vanderbilt', 'T2_DE_RWTH', 'T2_UA_KIPT', 'T3_IT_Bologna', 'T2_FI_HIP', 'T2_UK_London_Brunel', 'T2_TR_METU', 'T3_US_PSC', 'T3_IN_PUHEP', 'T2_UK_London_IC', 'T3_US_SDSC', 'T2_PL_Cyfronet', 'T3_BY_NCPHEP', 'T2_LV_HPCNET', 'T3_CN_PKU', 'T2_ES_IFCA', 'T3_US_TACC', 'T2_UK_SGrid_Bristol', 'T3_US_MIT', 'T2_IT_Pisa', 'T2_CH_CSCS', 'T2_US_Wisconsin', 'T2_DE_DESY', 'T2_UK_SGrid_RALPP', 'T2_US_UCSD', 'T3_RU_MEPhI', 'T2_CN_Beijing', 'T3_US_FNALWILSON', 'T3_US_Baylor', 'T2_GR_Ioannina', 'T3_UK_SGrid_Oxford', 'T2_AT_Vienna', 'T2_FR_GRIF', 'T3_HU_Debrecen', 'T3_KR_KISTI', 'T2_BR_SPRACE', 'T3_US_NotreDame', 'T3_TW_NTU_HEP', 'T3_US_Princeton_ICSE', 'T2_BE_UCL', 'T2_IT_Bari', 'T2_ES_CIEMAT', 'T3_MX_Cinvestav', 'T3_ES_Oviedo', 'T3_US_JHU', 'T3_FR_IPNL', 'T2_TW_NCHC', 'T2_IN_TIFR', 'T3_TW_TIDC', 'T3_IN_IOPB', 'T2_CH_CERN_P5', 'T3_US_Kansas', 'T2_US_Purdue', 'T3_UK_London_RHUL', 'T3_US_Lancium', 'T2_IT_Legnaro', 'T2_PT_NCG_Lisbon', 'T3_UK_ScotGrid_GLA']", '[]', 'FileBased', "{'halt_job_on_file_boundaries': False, 'splitOnRun': False, 'files_per_job': 1, 'runs': [], 'lumis': []}", '1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz', 'https://cmsweb.cern.ch/S3/crabcache_prod', 'yeo', '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo', 'cms', 'None', 'None', 'Run2024G-v1-00000000000000000000000000000000', 'F', 'T3_KR_KNU', 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader', 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter', 'F', '[]', "['out.root']", '[]', 'Analysis', 'pythia', 'None', '{}', 'T', 'NotKnownYet', '[]', '1250', '1', '2000', '10', 'None', '[]', 'None', 'None', '[]', '[]', 'cmsgwms-collector-global.cern.ch:9620,cmsgwms-collector-global.fnal.gov:9620', 'None', 'F', '[]', 'T', '/store/user/yeo/', 'T', 'None', 'F', 'None', 'Muon0', 'None', '0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz', 'None', 'F', '188.184.75.82', '0.0', 'None', '{"partialdataset": false, "requireaccelerator": false, "acceleratorparams": null, "inputblocks": null}', 'None', 'None', 'None', 'None', 'any', 'NOT_READY', '0', 'F']}
+INFO 2025-07-21 14:56:07.277 UTC: 	 CRAB project directory:		/afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1
+INFO 2025-07-21 14:56:07.277 UTC: 	 Task name:			250721_145143:yeo_crab_Run2024G-v1
+INFO 2025-07-21 14:56:07.277 UTC: 	 Grid scheduler - Task Worker:	N/A yet - NotKnownYet
+INFO 2025-07-21 14:56:07.277 UTC: 	 Status on the CRAB server:	NEW on command SUBMIT
+INFO 2025-07-21 14:56:07.277 UTC: 	 Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/250721_145143%3Ayeo_crab_Run2024G-v1
+INFO 2025-07-21 14:56:07.283 UTC: 	 Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=yeo&var-task=250721_145143%3Ayeo_crab_Run2024G-v1&from=1753105903000&to=now
+DEBUG 2025-07-21 14:56:07.283 UTC: 	 The task has not been submitted to the Grid scheduler yet. Not printing job information.
+INFO 2025-07-21 14:56:07.284 UTC: 	 Log file is /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/crab.log
+DEBUG 2025-07-21 20:41:59.496 UTC: 	 CRAB Client version: v3.250522
+DEBUG 2025-07-21 20:41:59.496 UTC: 	 Running on: Linux lxplus804.cern.ch 4.18.0-553.58.1.el8_10.x86_64 #1 SMP Thu Jun 12 14:27:07 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux
+DEBUG 2025-07-21 20:41:59.496 UTC: 	 Not using Singularity
+DEBUG 2025-07-21 20:41:59.497 UTC: 	 Operating System: Red Hat Enterprise Linux 8.10 (Ootpa)
+DEBUG 2025-07-21 20:41:59.497 UTC: 	 Executing command: 'resubmit'
+DEBUG 2025-07-21 20:41:59.497 UTC: 	 Found CRAB cache file /afs/cern.ch/user/y/yeo/.crab3
+DEBUG 2025-07-21 20:41:59.515 UTC: 	 Checking credentials
+DEBUG 2025-07-21 20:41:59.515 UTC: 	 Found proxy file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:41:59.515 UTC: 	 Making sure it has proper VOMS extension
+DEBUG 2025-07-21 20:41:59.515 UTC: 	 Executing command :
+ voms-proxy-info --vo --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:42:00.016 UTC: 	 output : cms
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:00.016 UTC: 	 Getting proxy life time left
+DEBUG 2025-07-21 20:42:00.016 UTC: 	 Executing command :
+ voms-proxy-info --actimeleft --timeleft --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:42:00.488 UTC: 	 output : 691140
+691140
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:00.489 UTC: 	 Proxy valid for 191:59:00 hours
+DEBUG 2025-07-21 20:42:00.489 UTC: 	 Encoded data for curl request: subresource=delegatedn
+DEBUG 2025-07-21 20:42:00.532 UTC: 	 Registering user credentials on myproxy for /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+DEBUG 2025-07-21 20:42:00.533 UTC: 	 Executing command :
+ voms-proxy-info --identity --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:42:00.998 UTC: 	 output : /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:00.998 UTC: 	 Getting myproxy life time left for b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 20:42:00.998 UTC: 	 Executing command :
+ myproxy-info -s myproxy.cern.ch -l b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 20:42:01.287 UTC: 	 output : username: b1cf46923e08be6d87341f4868c7a65630edff80
+owner: /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+  renewal policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  trusted retrieval policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  timeleft: 473:28:30  (19.7 days)
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:01.287 UTC: 	 Myproxy is valid: 1704480
+DEBUG 2025-07-21 20:42:01.287 UTC: 	 Result of myproxy credential check:
+  Credential exists on myproxy: username: b1cf46923e08be6d87341f4868c7a65630edff80  - validity: 19 days, 17:28:00
+DEBUG 2025-07-21 20:42:01.288 UTC: 	 Encoded data for curl request: subresource=search&workflow=250721_145143%3Ayeo_crab_Run2024G-v1
+DEBUG 2025-07-21 20:42:01.327 UTC: 	 Command use: resubmit
+DEBUG 2025-07-21 20:42:01.327 UTC: 	 Options use: ['-d', 'crab_projects/crab_Run2024G-v1']
+DEBUG 2025-07-21 20:42:01.327 UTC: 	 Encoded data for curl request: subresource=version
+DEBUG 2025-07-21 20:42:01.369 UTC: 	 CRABClient version: v3.250522
+DEBUG 2025-07-21 20:42:01.369 UTC: 	 Instance is prod
+DEBUG 2025-07-21 20:42:01.369 UTC: 	 Server base url is cmsweb.cern.ch
+DEBUG 2025-07-21 20:42:01.369 UTC: 	 Command api workflow
+DEBUG 2025-07-21 20:42:01.384 UTC: 	 CRAB Client version: v3.250522
+DEBUG 2025-07-21 20:42:01.384 UTC: 	 Running on: Linux lxplus804.cern.ch 4.18.0-553.58.1.el8_10.x86_64 #1 SMP Thu Jun 12 14:27:07 EDT 2025 x86_64 x86_64 x86_64 GNU/Linux
+DEBUG 2025-07-21 20:42:01.384 UTC: 	 Not using Singularity
+DEBUG 2025-07-21 20:42:01.384 UTC: 	 Operating System: Red Hat Enterprise Linux 8.10 (Ootpa)
+DEBUG 2025-07-21 20:42:01.384 UTC: 	 Executing command: 'status'
+DEBUG 2025-07-21 20:42:01.385 UTC: 	 Found CRAB cache file /afs/cern.ch/user/y/yeo/.crab3
+DEBUG 2025-07-21 20:42:01.392 UTC: 	 Checking credentials
+DEBUG 2025-07-21 20:42:01.392 UTC: 	 Found proxy file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:42:01.392 UTC: 	 Making sure it has proper VOMS extension
+DEBUG 2025-07-21 20:42:01.392 UTC: 	 Executing command :
+ voms-proxy-info --vo --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:42:01.855 UTC: 	 output : cms
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:01.855 UTC: 	 Getting proxy life time left
+DEBUG 2025-07-21 20:42:01.855 UTC: 	 Executing command :
+ voms-proxy-info --actimeleft --timeleft --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:42:02.458 UTC: 	 output : 691138
+691138
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:02.458 UTC: 	 Proxy valid for 191:58:58 hours
+DEBUG 2025-07-21 20:42:02.458 UTC: 	 Encoded data for curl request: subresource=delegatedn
+DEBUG 2025-07-21 20:42:02.501 UTC: 	 Registering user credentials on myproxy for /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+DEBUG 2025-07-21 20:42:02.501 UTC: 	 Executing command :
+ voms-proxy-info --identity --file /afs/cern.ch/user/y/yeo/tmp/x509up
+DEBUG 2025-07-21 20:42:02.994 UTC: 	 output : /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:02.995 UTC: 	 Getting myproxy life time left for b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 20:42:02.995 UTC: 	 Executing command :
+ myproxy-info -s myproxy.cern.ch -l b1cf46923e08be6d87341f4868c7a65630edff80
+DEBUG 2025-07-21 20:42:03.254 UTC: 	 output : username: b1cf46923e08be6d87341f4868c7a65630edff80
+owner: /DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo
+  renewal policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  trusted retrieval policy: /DC=ch/DC=cern/OU=computers/CN=crab-(preprod|prod)-tw(01|02).cern.ch|/DC=ch/DC=cern/OU=computers/CN=crab-dev-tw(01|02|03|04).cern.ch|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=cmscrab/CN=(817881|373708)/CN=Robot: cms crab|/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=crabint1/CN=373708/CN=Robot: CMS CRAB Integration 1
+  timeleft: 473:28:28  (19.7 days)
+
+ error: 
+ retcode : 0
+DEBUG 2025-07-21 20:42:03.254 UTC: 	 Myproxy is valid: 1704480
+DEBUG 2025-07-21 20:42:03.254 UTC: 	 Result of myproxy credential check:
+  Credential exists on myproxy: username: b1cf46923e08be6d87341f4868c7a65630edff80  - validity: 19 days, 17:28:00
+DEBUG 2025-07-21 20:42:03.254 UTC: 	 Retrieving username ...
+DEBUG 2025-07-21 20:42:03.254 UTC: 	 Retrieving username from CRIC...
+DEBUG 2025-07-21 20:42:03.998 UTC: 	 username is yeo
+INFO 2025-07-21 20:42:04.638 UTC: 	 Rucio client intialized for account yeo
+DEBUG 2025-07-21 20:42:04.638 UTC: 	 Command use: status
+DEBUG 2025-07-21 20:42:04.638 UTC: 	 Options use: ['-d', 'crab_projects/crab_Run2024G-v1']
+DEBUG 2025-07-21 20:42:04.638 UTC: 	 Encoded data for curl request: subresource=version
+DEBUG 2025-07-21 20:42:04.679 UTC: 	 CRABClient version: v3.250522
+DEBUG 2025-07-21 20:42:04.679 UTC: 	 Instance is prod
+DEBUG 2025-07-21 20:42:04.679 UTC: 	 Server base url is cmsweb.cern.ch
+DEBUG 2025-07-21 20:42:04.679 UTC: 	 Command api workflow
+DEBUG 2025-07-21 20:42:04.679 UTC: 	 Encoded data for curl request: subresource=search&workflow=250721_145143%3Ayeo_crab_Run2024G-v1
+DEBUG 2025-07-21 20:42:04.731 UTC: 	 Got information from server oracle database: {'desc': {'columns': ['tm_taskname', 'tm_activity', 'tm_task_status', 'tm_task_command', 'tm_start_time', 'tm_start_injection', 'tm_end_injection', 'tm_task_failure', 'tm_job_sw', 'tm_job_arch', 'tm_input_dataset', 'tm_nonvalid_input_dataset', 'tm_use_parent', 'tm_site_whitelist', 'tm_site_blacklist', 'tm_split_algo', 'tm_split_args', 'tm_user_sandbox', 'tm_cache_url', 'tm_username', 'tm_user_dn', 'tm_user_vo', 'tm_user_role', 'tm_user_group', 'tm_publish_name', 'tm_publish_groupname', 'tm_asyncdest', 'tm_dbs_url', 'tm_publish_dbs_url', 'tm_publication', 'tm_outfiles', 'tm_tfile_outfiles', 'tm_edm_outfiles', 'tm_job_type', 'tm_generator', 'tm_events_per_lumi', 'tm_arguments', 'tm_save_logs', 'tw_name', 'tm_user_infiles', 'tm_maxjobruntime', 'tm_numcores', 'tm_maxmemory', 'tm_priority', 'tm_output_dataset', 'tm_task_warnings', 'tm_user_webdir', 'tm_scriptexe', 'tm_scriptargs', 'tm_extrajdl', 'tm_collector', 'tm_schedd', 'tm_dry_run', 'tm_user_files', 'tm_transfer_outputs', 'tm_output_lfn', 'tm_ignore_locality', 'tm_fail_limit', 'tm_one_event_mode', 'tm_secondary_input_dataset', 'tm_primary_dataset', 'tm_last_publication', 'tm_debug_files', 'clusterid', 'tm_ignore_global_blacklist', 'tm_submitter_ip_addr', 'tm_totalunits', 'tm_ddm_reqid', 'tm_user_config', 'tm_transfer_container', 'tm_transfer_rule', 'tm_publish_rule', 'tm_multipub_rule', 'tm_job_min_microarch', 'tm_dagman_status', 'tm_num_jobs', 'tm_uploaded']}, 'result': ['250721_145143:yeo_crab_Run2024G-v1', 'None', 'SUBMITREFUSED', 'SUBMIT', '2025-07-21 14:51:43.046129', 'None', 'None', 'None', 'CMSSW_14_0_19', 'el8_amd64_gcc12', '/Muon0/Run2024G-PromptReco-v1/MINIAOD', 'F', '0', "['T2_CH_CERN_HLT', 'T3_ES_PIC_BSC', 'T2_US_Nebraska', 'T2_US_Caltech', 'T3_IT_MIB', 'T3_CY_UCY', 'T3_UK_London_QMUL', 'T3_US_OSG', 'T2_LB_HPC4L', 'T3_IT_Trieste', 'T3_CH_CERN_DOMA', 'T2_FR_IPHC', 'T2_CH_CERN', 'T3_US_OSU', 'T2_RU_INR', 'T2_US_MIT', 'T2_IT_Rome', 'T3_US_UMiss', 'T2_PK_NCP', 'T2_US_Florida', 'T2_PL_Swierk', 'T3_BG_UNI_SOFIA', 'T2_EE_Estonia', 'T2_RU_ITEP', 'T3_US_UMD', 'T3_KR_KNU', 'T2_HU_Budapest', 'T3_IN_TIFRCloud', 'T3_US_Rutgers', 'T3_RU_FIAN', 'T3_US_Ookami', 'T2_BE_IIHE', 'T3_US_NERSC', 'T2_RU_JINR', 'T3_US_FNALLPC', 'T3_US_VC3_NotreDame', 'T3_US_Rice', 'T3_US_Anvil', 'T3_US_PuertoRico', 'T2_KR_KISTI', 'T3_US_FIT', 'T2_RU_IHEP', 'T3_US_Colorado', 'T3_US_ORNL', 'T3_CN_THU', 'T3_KR_UOS', 'T3_CH_PSI', 'T3_IT_Perugia', 'T2_BR_UERJ', 'T2_US_Vanderbilt', 'T2_DE_RWTH', 'T2_UA_KIPT', 'T3_IT_Bologna', 'T2_FI_HIP', 'T2_UK_London_Brunel', 'T2_TR_METU', 'T3_US_PSC', 'T3_IN_PUHEP', 'T2_UK_London_IC', 'T3_US_SDSC', 'T2_PL_Cyfronet', 'T3_BY_NCPHEP', 'T2_LV_HPCNET', 'T3_CN_PKU', 'T2_ES_IFCA', 'T3_US_TACC', 'T2_UK_SGrid_Bristol', 'T3_US_MIT', 'T2_IT_Pisa', 'T2_CH_CSCS', 'T2_US_Wisconsin', 'T2_DE_DESY', 'T2_UK_SGrid_RALPP', 'T2_US_UCSD', 'T3_RU_MEPhI', 'T2_CN_Beijing', 'T3_US_FNALWILSON', 'T3_US_Baylor', 'T2_GR_Ioannina', 'T3_UK_SGrid_Oxford', 'T2_AT_Vienna', 'T2_FR_GRIF', 'T3_HU_Debrecen', 'T3_KR_KISTI', 'T2_BR_SPRACE', 'T3_US_NotreDame', 'T3_TW_NTU_HEP', 'T3_US_Princeton_ICSE', 'T2_BE_UCL', 'T2_IT_Bari', 'T2_ES_CIEMAT', 'T3_MX_Cinvestav', 'T3_ES_Oviedo', 'T3_US_JHU', 'T3_FR_IPNL', 'T2_TW_NCHC', 'T2_IN_TIFR', 'T3_TW_TIDC', 'T3_IN_IOPB', 'T2_CH_CERN_P5', 'T3_US_Kansas', 'T2_US_Purdue', 'T3_UK_London_RHUL', 'T3_US_Lancium', 'T2_IT_Legnaro', 'T2_PT_NCG_Lisbon', 'T3_UK_ScotGrid_GLA']", '[]', 'FileBased', "{'halt_job_on_file_boundaries': False, 'splitOnRun': False, 'files_per_job': 1, 'runs': [], 'lumis': []}", '1f3cf22999420226555d7ed8a88f0cf44443813e3357927ffb69f4de4bc425c4.tar.gz', 'https://cmsweb.cern.ch/S3/crabcache_prod', 'yeo', '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=yeo/CN=855618/CN=Yun Eo', 'cms', 'None', 'None', 'Run2024G-v1-00000000000000000000000000000000', 'F', 'T3_KR_KNU', 'https://cmsweb.cern.ch/dbs/prod/global/DBSReader', 'https://cmsweb.cern.ch/dbs/prod/phys03/DBSWriter', 'F', '[]', "['out.root']", '[]', 'Analysis', 'pythia', 'None', '{}', 'T', 'crab-prod-tw01', '[]', '1250', '1', '2000', '10', 'None', "['The splitting on your task generated 10995 jobs. The maximum number of jobs in each task is 10000']", 'None', 'None', '[]', '[]', 'cmsgwms-collector-global.cern.ch:9620,cmsgwms-collector-global.fnal.gov:9620', 'None', 'F', '[]', 'T', '/store/user/yeo/', 'T', 'None', 'F', 'None', 'Muon0', 'None', '0220d6a7ae8b6c77b086e94c2f4aa8b87e9ba1c31574ed2b45d8b0adb3ab8d60.tar.gz', 'None', 'F', '188.184.75.82', '0.0', 'None', '{"partialdataset": false, "requireaccelerator": false, "acceleratorparams": null, "inputblocks": null}', 'None', 'None', 'None', 'None', 'any', 'NOT_READY', '0', 'F']}
+INFO 2025-07-21 20:42:04.731 UTC: 	 CRAB project directory:		/afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1
+INFO 2025-07-21 20:42:04.731 UTC: 	 Task name:			250721_145143:yeo_crab_Run2024G-v1
+INFO 2025-07-21 20:42:04.731 UTC: 	 Grid scheduler - Task Worker:	N/A yet - crab-prod-tw01
+INFO 2025-07-21 20:42:04.731 UTC: 	 Status on the CRAB server:	SUBMITREFUSED
+INFO 2025-07-21 20:42:04.731 UTC: 	 Task URL to use for HELP:	https://cmsweb.cern.ch/crabserver/ui/task/250721_145143%3Ayeo_crab_Run2024G-v1
+INFO 2025-07-21 20:42:04.738 UTC: 	 Dashboard monitoring URL:	https://monit-grafana.cern.ch/d/cmsTMDetail/cms-task-monitoring-task-view?orgId=11&var-user=yeo&var-task=250721_145143%3Ayeo_crab_Run2024G-v1&from=1753105903000&to=now
+WARNING 2025-07-21 20:42:04.738 UTC: 	 Warning:			The splitting on your task generated 10995 jobs. The maximum number of jobs in each task is 10000
+DEBUG 2025-07-21 20:42:04.738 UTC: 	 The task has not been submitted to the Grid scheduler yet. Not printing job information.
+ERROR 2025-07-21 20:42:04.738 UTC: 	 Error while getting status information. Got:
+The task has not been submitted to the Grid scheduler yet. Not printing job information. 
+INFO 2025-07-21 20:42:04.739 UTC: 	 Error: Status information is unavailable, will not proceed with the resubmission. Try again a few minutes later if the task has just been submitted.
+ERROR 2025-07-21 20:42:04.771 UTC: 	 Unhandled Exception!
+ERROR 2025-07-21 20:42:04.771 UTC: 	 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.250522.00/bin/crab.py", line 157, in <module>
+    client()
+  File "/cvmfs/cms.cern.ch/share/cms/crab-prod/v3.250522.00/bin/crab.py", line 143, in __call__
+    if returnDict['commandStatus'] != 'SUCCESS':
+TypeError: 'NoneType' object is not subscriptable
+ERROR 2025-07-21 20:42:04.772 UTC: 	 ERROR: TypeError: 'NoneType' object is not subscriptable
+ERROR 2025-07-21 20:42:04.772 UTC: 	 
+	Please email cmstalk+computing-tools@dovecotmta.cern.ch for support with the crab.log file or crab.log URL.
+ERROR 2025-07-21 20:42:04.772 UTC: 	 	Client Version: v3.250522
+ERROR 2025-07-21 20:42:04.772 UTC: 	 	Please use 'crab uploadlog' to upload the log file /afs/cern.ch/user/y/yeo/4l/24.12.12/CMSSW_14_0_19/src/ZprimeTo4l/MergedLepton/test/25.07.21/crab/Run2024G-v1/crab_projects/crab_Run2024G-v1/crab.log to the CRAB cache.

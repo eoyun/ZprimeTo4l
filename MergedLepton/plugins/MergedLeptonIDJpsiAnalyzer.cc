@@ -637,7 +637,7 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     ESzside.push_back(idES.zside());
     ESplane.push_back(idES.plane());
   }
-  EStree_->Fill();
+  //EStree_->Fill();
 
   EEenergy.clear();
   EEtime.clear();
@@ -654,7 +654,7 @@ void MergedLeptonIDJpsiAnalyzer::analyze(const edm::Event& iEvent, const edm::Ev
     EEzside.push_back(idEE.zside());
     
   }
-  EEtree_->Fill();
+  //EEtree_->Fill();
 
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
   histo1d_["cutflow"]->Fill(0.5,aWeight);
