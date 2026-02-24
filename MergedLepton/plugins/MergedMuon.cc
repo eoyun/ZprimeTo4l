@@ -3,6 +3,7 @@
 
 
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedDEtaInSeed.h"
+#include "ZprimeTo4l/MergedLepton/interface/MergedMuonTkIsolFromCands.h"
 
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -96,14 +97,10 @@ private:
   const edm::EDGetTokenT<edm::View<reco::Muon>> srcMuon_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
-  const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkToken_;
-  const edm::EDGetTokenT<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandToken_;
-  const edm::EDGetTokenT<edm::ValueMap<float>> trkIsoMapToken_;
-  const edm::EDGetTokenT<edm::ValueMap<float>> dPerpInToken_;
-  const edm::EDGetTokenT<edm::ValueMap<float>> alphaTrackToken_;
-  const edm::EDGetTokenT<edm::ValueMap<float>> alphaCaloToken_;
-  const edm::EDGetTokenT<edm::ValueMap<float>> normDParaInToken_;
+  const std::vector<edm::EDGetTokenT<edm::View<pat::PackedCandidate>>> trackCandsTokens_;
+  const std::vector<MergedMuonTkIsolFromCands::PIDVeto> trackCandsVetos_;
   const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> packedPFcandToken_;
+  MergedMuonTkIsolFromCands muonTkIsoCalc_;
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> genptcToken_;
 
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
@@ -313,14 +310,24 @@ MergedMuon::MergedMuon(const edm::ParameterSet& iConfig) :
 srcMuon_(consumes<edm::View<reco::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
-addGsfTrkToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrkMap"))),
-addPackedCandToken_(consumes<edm::ValueMap<pat::PackedCandidateRef>>(iConfig.getParameter<edm::InputTag>("addPackedCandMap"))),
-trkIsoMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("trkIsoMap"))),
-dPerpInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("dPerpIn"))),
-alphaTrackToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaTrack"))),
-alphaCaloToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("alphaCalo"))),
-normDParaInToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("normalizedDParaIn"))),
+trackCandsTokens_([&iConfig, this]() {
+  std::vector<edm::EDGetTokenT<edm::View<pat::PackedCandidate>>> tokens;
+  const auto trackCands = iConfig.getParameter<std::vector<edm::InputTag>>("trackCands");
+  tokens.reserve(trackCands.size());
+  for (const auto& tag : trackCands)
+    tokens.push_back(consumes<edm::View<pat::PackedCandidate>>(tag));
+  return tokens;
+}()),
+trackCandsVetos_([&iConfig]() {
+  std::vector<MergedMuonTkIsolFromCands::PIDVeto> vetos;
+  const auto vetoNames = iConfig.getParameter<std::vector<std::string>>("trackCandsVetos");
+  vetos.reserve(vetoNames.size());
+  for (const auto& name : vetoNames)
+    vetos.push_back(MergedMuonTkIsolFromCands::pidVetoFromStr(name));
+  return vetos;
+}()),
 packedPFcandToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("packedPFcand"))),
+muonTkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("muonTkIsoCalc"), collector_),
 genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genptc"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
@@ -345,7 +352,10 @@ topologyToken_(esConsumes())
 {
   std::cout<<"hello"<<std::endl;
   std::cout<<"hello2"<<std::endl;
-  
+
+  if (trackCandsTokens_.size() != trackCandsVetos_.size())
+    throw cms::Exception("ConfigError") << "trackCands and trackCandsVetos must have same size";
+
   usesResource("TFileService");
 }
 
@@ -572,11 +582,9 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
   iEvent.getByToken(genptcToken_, genptcHandle);
 
-  edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfTrkMap;
-  iEvent.getByToken(addGsfTrkToken_, addGsfTrkMap);
-
-  edm::Handle<edm::ValueMap<pat::PackedCandidateRef>> addPackedCandHandle;
-  iEvent.getByToken(addPackedCandToken_, addPackedCandHandle);
+  std::vector<edm::Handle<edm::View<pat::PackedCandidate>>> trackCandsHandles(trackCandsTokens_.size());
+  for (size_t iCand = 0; iCand < trackCandsTokens_.size(); ++iCand)
+    iEvent.getByToken(trackCandsTokens_[iCand], trackCandsHandles[iCand]);
 
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
@@ -679,6 +687,17 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     }
     for (size_t i = 0; i < muonHandle->size(); ++i) {
       const reco::Muon& muon = (*muonHandle)[i];
+
+      const reco::TrackRef muTrkRef = muon.muonBestTrack();
+      if (muTrkRef.isNonnull()) {
+        const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, iSetup);
+        const reco::TrackBase& addTrk = addPackedCand.isNonnull() ? static_cast<const reco::TrackBase&>(*(addPackedCand->bestTrack()))
+                                                                  : static_cast<const reco::TrackBase&>(*muTrkRef);
+        double muTkIso = 0.;
+        for (const auto& candHandle : trackCandsHandles)
+          muTkIso += muonTkIsoCalc_.calIsol(*muTrkRef, candHandle, addTrk, MergedMuonTkIsolFromCands::PIDVeto::NONE);
+        (void)muTkIso;
+      }
 
       int close_muon = 0;
       for (size_t j = 0; j < muonHandle->size(); ++j) {
