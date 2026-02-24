@@ -5,3 +5,6 @@ __init__.py
 #*#
 *~
 *.root
+*crab*
+./MergedLepton/test/25*
+./MergedLepton/test/26*

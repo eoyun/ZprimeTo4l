@@ -74,10 +74,10 @@
 
 // produce TTree for merged electron training with H->AA->4e events
 
-class MergedLeptonIDImage : public edm::one::EDAnalyzer<edm::one::SharedResources> {
+class MergedLeptonIDImageTrack : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
-  explicit MergedLeptonIDImage(const edm::ParameterSet&);
-  virtual ~MergedLeptonIDImage() {}
+  explicit MergedLeptonIDImageTrack(const edm::ParameterSet&);
+  virtual ~MergedLeptonIDImageTrack() {}
   bool extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
                    const math::XYZPoint& beamSpotPos, const edm::EventSetup& iSetup,
                    EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo);
@@ -179,18 +179,16 @@ private:
 
   TTree* ImageTree_ = nullptr;
   std::vector<std::vector<float>> EEImage_branch; 
+  std::vector<std::vector<float>> Trk1Image_branch; 
+  std::vector<std::vector<float>> Trk2Image_branch; 
   std::vector<std::vector<float>> ES1Image_branch; 
   std::vector<std::vector<float>> ES2Image_branch; 
   int label_num_ele;
   int label_num_ele_hard;
   float pT_gsfele;
   int isAddTrk;
-  int isEleCleaningID;
   std::vector<float> dEta;// original trk, add trk
   std::vector<float> dPhi;
-  std::vector<float> etaEleTrk;// original trk, add trk
-  std::vector<float> phiEleTrk;
-  float genDR;
 
   int imageSize_;
   int ESimageSize_;
@@ -270,7 +268,7 @@ public:
   };
 };
 
-MergedLeptonIDImage::MergedLeptonIDImage(const edm::ParameterSet& iConfig) :
+MergedLeptonIDImageTrack::MergedLeptonIDImageTrack(const edm::ParameterSet& iConfig) :
 srcEle_(consumes<edm::View<pat::Electron>>(iConfig.getParameter<edm::InputTag>("srcEle"))),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
@@ -322,7 +320,7 @@ ESimageSize_(iConfig.getParameter<int>("ESimageSize"))
   usesResource("TFileService");
 }
 
-bool MergedLeptonIDImage::extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
+bool MergedLeptonIDImageTrack::extrapolate(const reco::GsfElectron& aEle, const reco::TrackBase& addTrk,
                                      const math::XYZPoint& beamSpotPos, const edm::EventSetup& iSetup,
                                      EleRelPointPair& scAtVtx, EleRelPointPair& seedAtCalo) {
   // track-cluster matching (see RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc)
@@ -403,7 +401,7 @@ bool MergedLeptonIDImage::extrapolate(const reco::GsfElectron& aEle, const reco:
   return false;
 }
 
-void MergedLeptonIDImage::beginJob() {
+void MergedLeptonIDImageTrack::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
 
@@ -440,26 +438,24 @@ void MergedLeptonIDImage::beginJob() {
 
   ImageTree_ = fs->make<TTree>("ImageTree","ImageTree");
   ImageTree_->Branch("EEImage",&EEImage_branch,32000,0);
+  ImageTree_->Branch("Trk1Image",&Trk1Image_branch,32000,0);
+  ImageTree_->Branch("Trk2Image",&Trk2Image_branch,32000,0);
   ImageTree_->Branch("ES1Image",&ES1Image_branch,32000,0);
   ImageTree_->Branch("ES2Image",&ES2Image_branch,32000,0);
   ImageTree_->Branch("NumEle",&label_num_ele,"NumEle/I");
   ImageTree_->Branch("NumEleHard",&label_num_ele_hard,"NumEleHard/I");
   ImageTree_->Branch("pT",&pT_gsfele,"pT/F");
   ImageTree_->Branch("IsAddTrk",&isAddTrk,"IsAddTrk/I");
-  ImageTree_->Branch("IsEleCleaningID",&isEleCleaningID,"IsEleCleaningID/I");
   ImageTree_->Branch("dPhi",&dPhi,32000,0);
   ImageTree_->Branch("dEta",&dEta,32000,0);
-  ImageTree_->Branch("phiEleTrk",&phiEleTrk,32000,0);
-  ImageTree_->Branch("etaEleTrk",&etaEleTrk,32000,0);
-  ImageTree_->Branch("genDR",&genDR,"genDR/F");
 }
 
-void MergedLeptonIDImage::endJob() {
+void MergedLeptonIDImageTrack::endJob() {
   purwgtFile_->Close();
 }
 
 
-void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void MergedLeptonIDImageTrack::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
   double aWeight = 1.;
@@ -576,17 +572,15 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
   EEtree_->Fill();
   int idx =0;
   for (const auto& electron : *emObjectHandle){
-    const auto& aEle = emObjectHandle->refAt(idx);
-    idx ++;
 
     if (abs(electron.eta())<1.653 || abs(electron.eta())>2.5){
       continue;
     }
     dPhi.clear();
     dEta.clear();
-    phiEleTrk.clear();
-    etaEleTrk.clear();
     const auto& seedPosition = electron.superCluster()->seed()->position();
+    const auto& aEle = emObjectHandle->refAt(idx);
+    idx ++;
     //std::cout<<aEle<<std::endl;
     const auto& orgGsfTrk = electron.gsfTrack();
     const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
@@ -604,7 +598,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     auto scAtVtx = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
     auto seedAtCalo = EleRelPointPair(math::XYZPoint(),math::XYZPoint(),beamSpot->position());
-
+    float eta1st, eta2nd, phi1st, phi2nd;
     if ( extrapolate(electron,*addTrk,beamSpot->position(),iSetup,scAtVtx,seedAtCalo) ) {
       dPhiInSeed2nd = seedAtCalo.dPhi();
       dEtaInSeed2nd = seedAtCalo.dEta();
@@ -613,8 +607,8 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     //float eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
     //float phi_2nd = reco::reduceRange( -( dPhiInSeed2nd - electron.superCluster()->phi() ) );  
-    //if ( (addGsfTrk==orgGsfTrk || std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) > 0.1 ) && addPackedCand.isNonnull() ){
-    if ( (addGsfTrk==orgGsfTrk) && addPackedCand.isNonnull() ){
+    if ( (addGsfTrk==orgGsfTrk || std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) > 0.1 ) && addPackedCand.isNonnull() ){
+    //if ( (addGsfTrk==orgGsfTrk) && addPackedCand.isNonnull() ){
       addTrk = addPackedCand->bestTrack();
       //std::cout<< std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) <<" : dR" <<std::endl; 
       dEtaInSeed2nd = std::numeric_limits<float>::max();
@@ -625,38 +619,21 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
       dPhiInSeed2nd = seedAtCalo.dPhi();
       dEtaInSeed2nd = seedAtCalo.dEta();
     }
-    isEleCleaningID = 0;
-    for (size_t i = 0;i<emObjectHandle->size();i++){
-        const auto& ele_sub = emObjectHandle->at(i);
-        const auto& orgGsfTrk_sub = ele_sub.gsfTrack();
-        if (addGsfTrk == orgGsfTrk_sub && orgGsfTrk_sub != orgGsfTrk) {
-    		const reco::TrackBase* orgTrk = orgGsfTrk.get();
-    		const reco::TrackBase* orgTrk_sub = orgGsfTrk_sub.get();
-    		double phi_ele = orgTrk->phi();
-    		double eta_ele = orgTrk->eta();
-    		double phi_ele_sub = orgTrk_sub->phi();
-    		double eta_ele_sub = orgTrk_sub->eta();
-    			//std::cout<<"Electron Cleaning is needed!!"<<std::endl;
-    			//std::cout<<phi_ele<<" | "<<phi_ele_sub<<" | "<<eta_ele<<" | "<<eta_ele_sub<<std::endl;
-    		phiEleTrk.push_back(phi_ele);
-    		phiEleTrk.push_back(phi_ele_sub);
-    		etaEleTrk.push_back(eta_ele);
-    		etaEleTrk.push_back(eta_ele_sub);
-    		isEleCleaningID = 1;
-        }
-    } 
 
-    //eta_2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
-    //phi_2nd = reco::reduceRange( -( dPhiInSeed2nd - electron.superCluster()->phi() ) );       
+
     if (orgGsfTrk.get()->pt() < 20 || addTrk->pt() < 10) continue;
     dPhi.push_back(electron.deltaPhiSeedClusterTrackAtCalo());
     dEta.push_back(electron.deltaEtaSeedClusterTrackAtCalo());
-    //if(addTrk == orgGsfTrk.get() || std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) > 0.1 ) isAddTrk = 0;
-    if(addTrk == orgGsfTrk.get()) isAddTrk = 0;
+    eta1st = seedPosition.eta();
+    phi1st = seedPosition.phi();
+    if(addTrk == orgGsfTrk.get() || std::sqrt( dPhiInSeed2nd * dPhiInSeed2nd + dEtaInSeed2nd * dEtaInSeed2nd ) > 0.1 ) isAddTrk = 0;
+    //if(addTrk == orgGsfTrk.get()) isAddTrk = 0;
     else {
       isAddTrk = 1;
       //dPhi.push_back(reco::reduceRange(seedPosition.phi()-addTrk.phi()));
       //dEta.push_back(seedPosition.eta()-addTrk.eta());
+      eta2nd = -( dEtaInSeed2nd - electron.superCluster()->seed()->eta() );
+      phi2nd = reco::reduceRange( -( dPhiInSeed2nd - electron.superCluster()->seed()->phi() ) );       
 
       dPhi.push_back(dPhiInSeed2nd);
       dEta.push_back(dEtaInSeed2nd);
@@ -675,6 +652,8 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     int halfSize = imageSize_ / 2;
     int EShalfSize = ESimageSize_ / 2;
     std::vector<std::vector<float>> EEImage(imageSize_,std::vector<float>(imageSize_,0.0));
+    std::vector<std::vector<float>> Trk1Image(imageSize_,std::vector<float>(imageSize_,0.0));
+    std::vector<std::vector<float>> Trk2Image(imageSize_,std::vector<float>(imageSize_,0.0));
     std::vector<std::vector<float>> ESImage_plane1(ESimageSize_*32,std::vector<float>(ESimageSize_,0.0));
     std::vector<std::vector<float>> ESImage_plane2(ESimageSize_,std::vector<float>(ESimageSize_*32,0.0));
     const EEDetId* matchedCrystal = nullptr;
@@ -685,25 +664,15 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     int matched_gen_ele = 0;
     int matched_gen_prompt_ele = 0;
     pT_gsfele = electron.pt();
-    std::vector<size_t> index_gen_ele;
-    //for (const auto& ele : promptEles){
-    for (size_t iEle = 0; iEle <promptEles.size(); ++iEle){
-       const auto ele = *(promptEles.at(iEle));
-       float dEta = ele.eta()-seedPosition.eta();
-       float dPhi = ele.phi()-seedPosition.phi();
+    for (const auto& ele : promptEles){
+       float dEta = ele->eta()-seedPosition.eta();
+       float dPhi = ele->phi()-seedPosition.phi();
        float dR = std::sqrt(dEta * dEta + dPhi * dPhi);
        if (dR < 0.1){ 
           matched_gen_prompt_ele ++;
-	  index_gen_ele.push_back(iEle);
 	  //std::cout<< ele->eta()<<" | "<<ele->phi()<<" gen"<<std::endl;
        }
     }
-    if (matched_gen_prompt_ele > 1) {
-	    genDR = reco::deltaR(*(promptEles.at(index_gen_ele.at(0))),*(promptEles.at(index_gen_ele.at(1))));
-    }
-    else genDR = -1;
-    //if (matched_gen_prompt_ele > 0) std::cout << genDR << " | "<< aEle <<" | "<< promptEles.at(index_gen_ele.at(0))->eta()<<" | "<<promptEles.at(index_gen_ele.at(0))->phi() << " | "<< matched_gen_prompt_ele << std::endl;
-    //if (matched_gen_prompt_ele > 1) std::cout<<"hello : "<<promptEles.at(index_gen_ele.at(1))->eta()<<" | "<<promptEles.at(index_gen_ele.at(1))->phi()<<std::endl;
     for (const auto& ele : Eles){
        float dEta = ele->eta()-seedPosition.eta();
        float dPhi = ele->phi()-seedPosition.phi();
@@ -727,6 +696,29 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     //  }
     //}
     //if (matchedCrystal){
+    for (int iter_x =0; iter_x <imageSize_; iter_x ++){
+    	for (int iter_y = 0; iter_y < imageSize_; iter_y ++){
+	    int ix,iy,iz;
+	    if (seedPosition.z() > 0) iz = 1;
+	    else iz = -1;
+	    ix = matched_ix - halfSize + iter_x;
+	    iy = matched_iy - halfSize + iter_y;
+	    if (EEDetId::validDetId(ix, iy, iz)) {
+   	        EEDetId eeId(ix, iy, iz);
+   	 	//DetId detId = eeId;   
+    		const auto& xtalGeo = caloGeom->getGeometry(eeId);
+		float dEta1st = xtalGeo->getPosition().eta() - eta1st;
+		float dPhi1st = xtalGeo->getPosition().phi() - phi1st;
+		Trk1Image[iter_x][iter_y] = std::sqrt(dEta1st * dEta1st + dPhi1st * dPhi1st);
+		float dEta2nd = xtalGeo->getPosition().eta() - eta2nd;
+		float dPhi2nd = xtalGeo->getPosition().phi() - phi2nd;
+		Trk2Image[iter_x][iter_y] = std::sqrt(dEta2nd * dEta2nd + dPhi2nd * dPhi2nd);
+
+
+	    }
+
+	}
+    }
     for (const auto& hit : *EErecHitHandle){
       const auto& detID = hit.id();
       auto id_xtal =EEDetId(hit.detid());
@@ -823,4 +815,4 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
   return;
 }
 
-DEFINE_FWK_MODULE(MergedLeptonIDImage);
+DEFINE_FWK_MODULE(MergedLeptonIDImageTrack);

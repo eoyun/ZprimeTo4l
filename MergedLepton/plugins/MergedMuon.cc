@@ -25,6 +25,8 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/EcalDetId/interface/ESDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h" // muon::segmentCompatibility
+
 
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"
@@ -162,6 +164,19 @@ private:
   float hadMax_muon;
   float ho_muon;
   float hoS9_muon;
+  bool isGlobal_muon;
+  bool isTracker_muon;
+  int numOfMatchedStations_muon;
+  int numOfChambers_muon;
+  double segCompatibility_muon;
+  double caloCompatibility_muon;
+  float chi2LocalPosition_muon;
+  float trkKink_muon;
+  float glbKink_muon;
+  float gen_eta_muon;
+  float gen_phi_muon;
+  float gen_pt_muon;
+
 
   TTree* mergedMuon_ = nullptr;
 
@@ -177,6 +192,47 @@ private:
   float hadMax_mergedMuon;
   float ho_mergedMuon;
   float hoS9_mergedMuon;
+  bool isGlobal_mergedMuon;
+  bool isTracker_mergedMuon;
+  int numOfMatchedStations_mergedMuon;
+  int numOfChambers_mergedMuon;
+  double segCompatibility_mergedMuon;
+  double caloCompatibility_mergedMuon;
+  float chi2LocalPosition_mergedMuon;
+  float trkKink_mergedMuon;
+  float glbKink_mergedMuon;
+  float gen_eta_mergedMuon;
+  float gen_phi_mergedMuon;
+  float gen_pt_mergedMuon;
+  float gen_sub_eta_mergedMuon;
+  float gen_sub_phi_mergedMuon;
+  float gen_sub_pt_mergedMuon;
+
+  TTree* muonEfficiencyTree_ = nullptr;
+
+  float dR_gen;
+  int num_reco_muon;
+  bool flag_Id;
+  bool flag_Id_woID;
+  bool flag_Id_any;
+  float eff_gen_1_pt;
+  float eff_gen_1_eta;
+  float eff_gen_1_phi;
+  float eff_gen_2_pt;
+  float eff_gen_2_eta;
+  float eff_gen_2_phi;
+  float eff_reco_1_pt;
+  float eff_reco_1_eta;
+  float eff_reco_1_phi;
+  int eff_reco_1_idx;
+  bool eff_reco_1_highptid;
+  bool eff_reco_1_trackerhighptid;
+  float eff_reco_2_pt;
+  float eff_reco_2_eta;
+  float eff_reco_2_phi;
+  int eff_reco_2_idx;
+  bool eff_reco_2_highptid;
+  bool eff_reco_2_trackerhighptid;
 
   PositionCalc posCalcLog_;
 
@@ -401,6 +457,18 @@ void MergedMuon::beginJob() {
   muon_->Branch("hadMax",&hadMax_muon,"hadMax/F"); 
   muon_->Branch("ho",&ho_muon,"ho/F"); 
   muon_->Branch("hoS9",&hoS9_muon,"hoS9/F"); 
+  muon_->Branch("isGlobal",&isGlobal_muon,"isGlobal/B"); 
+  muon_->Branch("isTracker",&isTracker_muon,"isTracker/B"); 
+  muon_->Branch("numOfMatchedStations",&numOfMatchedStations_muon,"numOfMatchedStations/I"); 
+  muon_->Branch("numOfChambers",&numOfChambers_muon,"numOfChambers/I"); 
+  muon_->Branch("segCompatibility",&segCompatibility_muon,"segCompatibility/D"); 
+  muon_->Branch("caloCompatibility",&caloCompatibility_muon,"caloCompatibility/D"); 
+  muon_->Branch("chi2LocalPosition",&chi2LocalPosition_muon,"chi2LocalPosition/F"); 
+  muon_->Branch("trkKink",&trkKink_muon,"trkKink/F"); 
+  muon_->Branch("glbKink",&glbKink_muon,"glbKink/F"); 
+  muon_->Branch("gen_phi",&gen_phi_muon,"gen_phi/F");
+  muon_->Branch("gen_eta",&gen_eta_muon,"gen_eta/F");
+  muon_->Branch("gen_pt",&gen_pt_muon,"gen_pt/F");
 
   mergedMuon_ = fs->make<TTree>("mergedMuonTree","mergedMuonTree");
   mergedMuon_->Branch("pT",&pT_mergedMuon,"pT/F"); 
@@ -415,7 +483,46 @@ void MergedMuon::beginJob() {
   mergedMuon_->Branch("hadMax",&hadMax_mergedMuon,"hadMax/F"); 
   mergedMuon_->Branch("ho",&ho_mergedMuon,"ho/F"); 
   mergedMuon_->Branch("hoS9",&hoS9_mergedMuon,"hoS9/F"); 
+  mergedMuon_->Branch("isGlobal",&isGlobal_mergedMuon,"isGlobal/B"); 
+  mergedMuon_->Branch("isTracker",&isTracker_mergedMuon,"isTracker/B"); 
+  mergedMuon_->Branch("numOfMatchedStations",&numOfMatchedStations_mergedMuon,"numOfMatchedStations/I"); 
+  mergedMuon_->Branch("numOfChambers",&numOfChambers_mergedMuon,"numOfChambers/I"); 
+  mergedMuon_->Branch("segCompatibility",&segCompatibility_mergedMuon,"segCompatibility/D"); 
+  mergedMuon_->Branch("caloCompatibility",&caloCompatibility_mergedMuon,"caloCompatibility/D"); 
+  mergedMuon_->Branch("chi2LocalPosition",&chi2LocalPosition_mergedMuon,"chi2LocalPosition/F"); 
+  mergedMuon_->Branch("trkKink",&trkKink_mergedMuon,"trkKink/F"); 
+  mergedMuon_->Branch("glbKink",&glbKink_mergedMuon,"glbKink/F"); 
+  mergedMuon_->Branch("gen_phi",&gen_phi_mergedMuon,"gen_phi/F");
+  mergedMuon_->Branch("gen_eta",&gen_eta_mergedMuon,"gen_eta/F");
+  mergedMuon_->Branch("gen_pt",&gen_pt_mergedMuon,"gen_pt/F");
+  mergedMuon_->Branch("gen_sub_phi",&gen_sub_phi_mergedMuon,"gen_sub_phi/F");
+  mergedMuon_->Branch("gen_sub_eta",&gen_sub_eta_mergedMuon,"gen_sub_eta/F");
+  mergedMuon_->Branch("gen_sub_pt",&gen_sub_pt_mergedMuon,"gen_sub_pt/F");
 
+  muonEfficiencyTree_ = fs->make<TTree>("muonEfficiencyTree","muonEfficiencyTree");
+  muonEfficiencyTree_->Branch("dR_gen",&dR_gen,"dR_gen/F");
+  muonEfficiencyTree_->Branch("num_reco_muon",&num_reco_muon,"num_reco_muon/I");
+  muonEfficiencyTree_->Branch("flag_Id",&flag_Id,"flag_Id/B");
+  muonEfficiencyTree_->Branch("flag_Id_woID",&flag_Id_woID,"flag_Id_woID/B");
+  muonEfficiencyTree_->Branch("flag_Id_any",&flag_Id_any,"flag_Id_any/B");
+  muonEfficiencyTree_->Branch("eff_gen_1_pt",&eff_gen_1_pt,"eff_gen_1_pt/F");
+  muonEfficiencyTree_->Branch("eff_gen_1_phi",&eff_gen_1_phi,"eff_gen_1_phi/F");
+  muonEfficiencyTree_->Branch("eff_gen_1_eta",&eff_gen_1_eta,"eff_gen_1_eta/F");
+  muonEfficiencyTree_->Branch("eff_gen_2_pt",&eff_gen_2_pt,"eff_gen_2_pt/F");
+  muonEfficiencyTree_->Branch("eff_gen_2_phi",&eff_gen_2_phi,"eff_gen_2_phi/F");
+  muonEfficiencyTree_->Branch("eff_gen_2_eta",&eff_gen_2_eta,"eff_gen_2_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_pt",&eff_reco_1_pt,"eff_reco_1_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_phi",&eff_reco_1_phi,"eff_reco_1_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_eta",&eff_reco_1_eta,"eff_reco_1_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_idx",&eff_reco_1_idx,"eff_reco_1_idx/I");
+  muonEfficiencyTree_->Branch("eff_reco_1_highptid",&eff_reco_1_highptid,"eff_reco_1_highptid/B");
+  muonEfficiencyTree_->Branch("eff_reco_1_trackerhighptid",&eff_reco_1_trackerhighptid,"eff_reco_1_trackerhighptid/B");
+  muonEfficiencyTree_->Branch("eff_reco_2_pt",&eff_reco_2_pt,"eff_reco_2_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_phi",&eff_reco_2_phi,"eff_reco_2_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_eta",&eff_reco_2_eta,"eff_reco_2_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_idx",&eff_reco_2_idx,"eff_reco_2_idx/I");
+  muonEfficiencyTree_->Branch("eff_reco_2_highptid",&eff_reco_2_highptid,"eff_reco_2_highptid/B");
+  muonEfficiencyTree_->Branch("eff_reco_2_trackerhighptid",&eff_reco_2_trackerhighptid,"eff_reco_2_trackerhighptid/B");
 }
 
 
@@ -491,23 +598,115 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     }
   }
   if (pv){
-    for (const auto& muon : *muonHandle){
+    for (size_t i = 0; i < promptMuons.size();i++){
+      bool gen_pair = false;
+      int index = -1;
+      for (size_t j = i + 1; j < promptMuons.size();j++){
+        if (reco::deltaR(*(promptMuons.at(i)),*(promptMuons.at(j))) < 0.1) {
+		gen_pair = true; 
+		index = j;
+		break;
+	}
+      }
+      if (!gen_pair) continue;
+      int idx_any1 = -1;  
+      int idx_any2 = -1;  
+      int idx_any1_woID = -1;  
+      int idx_any2_woID = -1;  
+      int idx_G    = -1;  
+
+      int sub_muon_high_pt_flag = 0;
+      int match_idx1 = -1;
+      int match_idx2 = -1;
+      bool n_match = false;
+      for (size_t iMuon = 0; iMuon < muonHandle->size(); ++iMuon) {
+	const reco::Muon& muon = (*muonHandle)[iMuon];
+	if (reco::deltaR(muon,*(promptMuons.at(i)))> 0.1) continue;
+	if (muon::isHighPtMuon(muon,*pv)) sub_muon_high_pt_flag ++;
+	bool T = muon::isTrackerHighPtMuon(muon, *pv);
+        bool G = muon::isHighPtMuon(muon, *pv);
+	bool m1 = (reco::deltaR(muon,*(promptMuons.at(i))) < 0.03) && fabs((muon.pt() - promptMuons.at(i)->pt())/promptMuons.at(i)->pt()) < 0.1;
+	bool m2 = (reco::deltaR(muon,*(promptMuons.at(index))) < 0.03) && fabs((muon.pt() - promptMuons.at(index)->pt())/promptMuons.at(index)->pt()) < 0.1;
+	if (m1 && !m2) match_idx1 = (int)iMuon;
+	else if (!m1 && m2) match_idx2 = (int)iMuon;
+	else if (m1 && m2){
+	  if (match_idx1 < 0) match_idx1 = (int)iMuon;
+          else if ((int)iMuon != match_idx1 && match_idx2 < 0) match_idx2 = (int)iMuon;
+	}
+	if (idx_any1_woID < 0) idx_any1_woID = (int)iMuon; 
+        else if ((int)iMuon != idx_any1_woID && idx_any2_woID < 0) idx_any2_woID = (int)iMuon;
+        if (!(T || G)) continue;
+
+        if (G && idx_G < 0) idx_G = (int)iMuon;
+
+        if (idx_any1 < 0) idx_any1 = (int)iMuon;
+        else if ((int)iMuon != idx_any1 && idx_any2 < 0) idx_any2 = (int)iMuon;
+
+      }
+	      //std::cout<<"gen 1 pt " << promptMuons.at(i)->pt() << " | gen 2 pt "<< promptMuons.at(index)->pt() << " | reco 1 pt "<< (*muonHandle)[idx_any1].pt() <<" | reco 2 pt" << (*muonHandle)[idx_any2].pt()<<std::endl;
+      eff_gen_1_pt =	 promptMuons.at(i)->pt();
+      eff_gen_1_phi =	 promptMuons.at(i)->phi();
+      eff_gen_1_eta =	 promptMuons.at(i)->eta();
+      eff_gen_2_pt =	 promptMuons.at(index)->pt();
+      eff_gen_2_phi =	 promptMuons.at(index)->phi();
+      eff_gen_2_eta =	 promptMuons.at(index)->eta();
+      eff_reco_1_idx = -1;
+      eff_reco_2_idx = -1;
+      if (match_idx1 >= 0){
+      	eff_reco_1_pt 	= (*muonHandle)[match_idx1].pt();
+      	eff_reco_1_phi 	= (*muonHandle)[match_idx1].phi();
+      	eff_reco_1_eta 	= (*muonHandle)[match_idx1].eta();
+      	eff_reco_1_idx 	= match_idx1;
+      	eff_reco_1_highptid 	= muon::isHighPtMuon((*muonHandle)[match_idx1],*pv);
+      	eff_reco_1_trackerhighptid 	= muon::isTrackerHighPtMuon((*muonHandle)[match_idx1],*pv);
+      }
+      if (match_idx2 >= 0){
+      	eff_reco_2_pt 	= (*muonHandle)[match_idx2].pt();
+      	eff_reco_2_phi 	= (*muonHandle)[match_idx2].phi();
+      	eff_reco_2_eta 	= (*muonHandle)[match_idx2].eta();
+      	eff_reco_2_idx 	= match_idx2;
+      	eff_reco_2_highptid 	= muon::isHighPtMuon((*muonHandle)[match_idx2],*pv);
+      	eff_reco_2_trackerhighptid 	= muon::isTrackerHighPtMuon((*muonHandle)[match_idx2],*pv);
+      }
+      dR_gen = reco::deltaR(*(promptMuons.at(i)),*(promptMuons.at(index)));
+      num_reco_muon = sub_muon_high_pt_flag;
+      flag_Id = (idx_G >= 0) && (idx_any2 >= 0);
+      flag_Id_woID = (idx_any2_woID >= 0);
+      flag_Id_any = (idx_any2 >= 0);
+      muonEfficiencyTree_->Fill();
+      
+
+    }
+    for (size_t i = 0; i < muonHandle->size(); ++i) {
+      const reco::Muon& muon = (*muonHandle)[i];
+
       int close_muon = 0;
-      for (const auto& muon_sub : *muonHandle){
-        double dR = sqrt(pow(muon.eta() - muon_sub.eta(),2)+pow(muon.phi() - muon_sub.phi(),2));
-        if (dR < 0.1) close_muon ++;
+      for (size_t j = 0; j < muonHandle->size(); ++j) {
+        const reco::Muon& muon_sub = (*muonHandle)[j];
+        double dR = reco::deltaR(muon, muon_sub);
+	//double dR = sqrt(pow(muon_sub.eta()-muon.eta(),2)+pow(muon_sub.phi()-muon.phi(),2));
+	//if (muon::isHighPtMuon(muon_sub,*pv) && (&muon != &muon_sub) && dR < 0.1) sub_muon_high_pt_flag ++;
+	if (!muon::isLooseMuon(muon_sub)) continue;
+        if (dR < 0.1 && i != j ) close_muon ++;
       }
       int gen_muon = 0;
+      std::vector<reco::GenParticleRef> target_muon;
       for (auto gen : promptMuons){
-        double dR = sqrt(pow(gen->eta()-muon.eta(),2)+pow(gen->phi()-muon.phi(),2));
+        double dR = reco::deltaR(*gen, muon);
         if (dR < 0.1){
           gen_muon ++;
+	  target_muon.push_back(gen);
         }      
       }
-      if (!muon::isTightMuon(muon,*pv)) continue;
+      if (!muon::isHighPtMuon(muon,*pv)) continue;
+      // if (gen_muon == 2){
+      //    dR_gen = reco::deltaR(*(target_muon.at(0)), *(target_muon.at(1)));
+      //    num_reco_muon = sub_muon_high_pt_flag;
+      //    muonEfficiencyTree_->Fill();
+      // }
       //std::cout<<muon.isEnergyValid()<<" | "<<muon.calEnergy().towerS9<<" | "<<muon.calEnergy().emS25<<" | "<<muon.calEnergy().hadS9<<" | "<<muon.calEnergy().hoS9<<" | "<<muon.pt()<<" | "<<gen_muon<<" | "<<muon.eta()<<" | "<<muon.phi()<<" | "<<close_muon<<std::endl;
-      if (gen_muon == 1 && close_muon == 1){
-      	pT_muon = muon.pt();
+      if (gen_muon == 1 && close_muon == 0){
+      	  pT_muon = muon.pt();
           eta_muon = muon.eta();
           phi_muon = muon.phi();
           em_muon = muon.calEnergy().em;
@@ -519,10 +718,22 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           hadMax_muon = muon.calEnergy().hadMax;
           ho_muon = muon.calEnergy().ho;
           hoS9_muon = muon.calEnergy().hoS9;
+          isGlobal_muon = muon.isGlobalMuon();
+          isTracker_muon = muon.isTrackerMuon();
+          numOfMatchedStations_muon = muon.numberOfMatchedStations();
+          numOfChambers_muon = muon.numberOfChambers();
+          segCompatibility_muon = muon::segmentCompatibility(muon);
+          caloCompatibility_muon = muon.caloCompatibility();
+          chi2LocalPosition_muon = muon.combinedQuality().chi2LocalPosition;
+          trkKink_muon = muon.combinedQuality().trkKink;
+          glbKink_muon = muon.combinedQuality().glbKink;
+	  gen_eta_muon = target_muon.at(0)->eta();
+	  gen_phi_muon = target_muon.at(0)->phi();
+	  gen_pt_muon = target_muon.at(0)->pt();
           muon_->Fill();
       } 
-      if (gen_muon == 2 && close_muon == 1){
-      	pT_mergedMuon = muon.pt();
+      if (gen_muon == 2 && close_muon == 0){
+      	  pT_mergedMuon = muon.pt();
           eta_mergedMuon = muon.eta();
           phi_mergedMuon = muon.phi();
           em_mergedMuon = muon.calEnergy().em;
@@ -534,8 +745,24 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           hadMax_mergedMuon = muon.calEnergy().hadMax;
           ho_mergedMuon = muon.calEnergy().ho;
           hoS9_mergedMuon = muon.calEnergy().hoS9;
+          isGlobal_mergedMuon = muon.isGlobalMuon();
+          isTracker_mergedMuon = muon.isTrackerMuon();
+          numOfMatchedStations_mergedMuon = muon.numberOfMatchedStations();
+          numOfChambers_mergedMuon = muon.numberOfChambers();
+          segCompatibility_mergedMuon = muon::segmentCompatibility(muon);
+          caloCompatibility_mergedMuon = muon.caloCompatibility();
+          chi2LocalPosition_mergedMuon = muon.combinedQuality().chi2LocalPosition;
+          trkKink_mergedMuon = muon.combinedQuality().trkKink;
+          glbKink_mergedMuon = muon.combinedQuality().glbKink;
+	  gen_eta_mergedMuon = target_muon.at(0)->eta();
+	  gen_phi_mergedMuon = target_muon.at(0)->phi();
+	  gen_pt_mergedMuon = target_muon.at(0)->pt();
+	  gen_sub_eta_mergedMuon = target_muon.at(1)->eta();
+	  gen_sub_phi_mergedMuon = target_muon.at(1)->phi();
+	  gen_sub_pt_mergedMuon = target_muon.at(1)->pt();
           mergedMuon_->Fill();
       } 
+      target_muon.clear();
     
     }
   }

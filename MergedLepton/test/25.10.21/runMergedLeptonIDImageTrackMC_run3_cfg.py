@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.Eras.Era_Run3_cff import Run3
 
-process = cms.Process('mergedMuonAnalyzer',Run3)
+process = cms.Process('mergedLeptonIDAnalyzer',Run3)
 
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -27,7 +27,7 @@ process.source = cms.Source("PoolSource",
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('hists_Muon.root')
+    fileName = cms.string('hists_Image_wdRcut.root')
 )
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -44,7 +44,7 @@ process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
 process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
 process.load("ZprimeTo4l.MergedLepton.MergedLeptonIDProducer_cfi")
-process.load("ZprimeTo4l.MergedLepton.MergedMuon_cfi")
+process.load("ZprimeTo4l.MergedLepton.MergedLeptonIDImageTrack_cfi")
 
 
 runVIDmodules = [
@@ -75,7 +75,7 @@ process.hltFilter.throw = cms.bool(False)
 process.hltFilter.HLTPaths = cms.vstring("HLT_Mu12_IP6*") # HLT_Mu9_IP6_part* # HLT_IsoMu24_v*
 process.hltFilter.TriggerResultsTag = cms.InputTag("TriggerResults","","HLT")
 
-process.mergedMuon.isMC = cms.bool(False)
+process.mergedLeptonIDImageTrack.isMC = cms.bool(False)
 
 process.p = cms.Path(
     process.evtCounter+
@@ -85,7 +85,7 @@ process.p = cms.Path(
     process.mergedLeptonIDProducer20UL18+
     process.egammaPostRecoSeq+
     process.modifiedHEEPIDVarValueMaps2nd+
-    process.mergedMuon
+    process.mergedLeptonIDImageTrack
 )
 
 # Automatic addition of the customisation function from Configuration.DataProcessing.Utils
