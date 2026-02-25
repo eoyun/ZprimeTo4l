@@ -325,7 +325,7 @@ trackCandsVetos_([&iConfig]() {
   return vetos;
 }()),
 packedPFcandToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("packedPFcand"))),
-muonTkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("muonTkIsoCalc"), consumesCollector()),
+muonTkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("muonTkIsoCalc"), collector_),
 genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genptc"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
