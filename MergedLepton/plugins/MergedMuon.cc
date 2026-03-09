@@ -103,7 +103,7 @@ private:
   const edm::EDGetTokenT<edm::View<reco::GenParticle>> genptcToken_;
 
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
-  const edm::EDGetTokenT<double> prefweight_token;
+  const edm::EDGetTokenT<double> prefweightToken_;
 
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> triggerobjectsToken_;
@@ -327,7 +327,12 @@ packedPFcandToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParamete
 muonTkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("muonTkIsoCalc")),
 genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genptc"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
-prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
+prefweightToken_([&iConfig, this]() {
+  const auto prefTag = iConfig.getParameter<edm::InputTag>("prefiringWeight");
+  if (prefTag.label().empty())
+    return edm::EDGetTokenT<double>();
+  return consumes<double>(prefTag);
+}()),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
@@ -544,9 +549,12 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   double aWeight = 1.;
 
   if (isMC_) {
-    edm::Handle<double> theprefweight;
-    iEvent.getByToken(prefweight_token, theprefweight);
-    double prefiringweight = *theprefweight;
+    double prefiringweight = 1.;
+    if (!prefweightToken_.isUninitialized()) {
+      edm::Handle<double> theprefweight;
+      if (iEvent.getByToken(prefweightToken_, theprefweight) && theprefweight.isValid())
+        prefiringweight = *theprefweight;
+    }
 
     edm::Handle<GenEventInfoProduct> genInfo;
     iEvent.getByToken(generatorToken_, genInfo);
