@@ -170,8 +170,8 @@ bool MergedMuonTkIsolFromCands::additionalTrkSel(const reco::TrackBase& addTrk,
 bool MergedMuonTkIsolFromCands::additionalTrkSel(const edm::RefToBase<pat::PackedCandidate>& cand,
                                                  const reco::TrackBase& muTrk,
                                                  const TrkCuts& cuts) {
-  const reco::TrackRef bestTrkRef = cand->bestTrackRef();
-  const reco::Track addTrk = (bestTrkRef.isNonnull() && bestTrkRef.isAvailable()) ? *bestTrkRef : cand->pseudoTrack();
+  const reco::Track* bestTrk = cand->bestTrack();
+  const reco::Track addTrk = bestTrk ? *bestTrk : cand->pseudoTrack();
   const float dR2 = reco::deltaR2(muTrk.eta(), muTrk.phi(), addTrk.eta(), addTrk.phi());
   const float dZ = muTrk.vz() - addTrk.vz();
 
@@ -208,8 +208,8 @@ const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSel
       if (!passPIDVeto(acand->pdgId(), pidVeto))
         continue;
 
-      const reco::TrackRef bestTrkRef = acand->bestTrackRef();
-      const reco::Track atrack = (bestTrkRef.isNonnull() && bestTrkRef.isAvailable()) ? *bestTrkRef : acand->pseudoTrack();
+      const reco::Track* bestTrk = acand->bestTrack();
+      const reco::Track atrack = bestTrk ? *bestTrk : acand->pseudoTrack();
       const TrkCuts& cuts = std::abs(atrack.eta()) < 1.5 ? barrelCuts_ : endcapCuts_;
 
       if (reco::deltaR2(atrack.eta(), atrack.phi(), muTrkRef->eta(), muTrkRef->phi()) <
