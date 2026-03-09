@@ -1,20 +1,42 @@
 import FWCore.ParameterSet.Config as cms
 
+_muTkIsoDefaultCuts = cms.PSet(
+  minPt = cms.double(1.0),
+  maxDR = cms.double(0.3),
+  minDR = cms.double(0.0),
+  minDEta = cms.double(0.005),
+  dEta2nd = cms.double(0.005),
+  dPhi2nd = cms.double(0.05),
+  maxDZ = cms.double(0.1),
+  maxDPtPt = cms.double(0.1),
+  addTrkMinPt = cms.double(10.0),
+  addTrkDR2 = cms.double(0.4),
+  addTrkREguard = cms.double(0.001),
+  addTrkHoE = cms.double(0.1),
+  minHits = cms.int32(8),
+  minPixelHits = cms.int32(1),
+  allowedQualities = cms.vstring(),
+  algosToReject = cms.vstring("jetCoreRegionalStep")
+)
+
 mergedMuon = cms.EDAnalyzer("MergedMuon",
   isMC = cms.bool(True),
   srcMuon = cms.InputTag("slimmedMuons"),
   srcPv = cms.InputTag("offlineSlimmedPrimaryVertices"),
   pileupSummary = cms.InputTag("slimmedAddPileupInfo"),
-  addGsfTrkMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddGsfTrk"),
-  addPackedCandMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddPackedCand"),
-  trkIsoMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleTrkPtIso"),
-  dPerpIn = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","dPerpIn"),
-  alphaTrack = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","alphaTrack"),
-  alphaCalo = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","alphaCalo"),
-  normalizedDParaIn = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","normalizedDParaIn"),
+  trackCands = cms.VInputTag(
+    cms.InputTag("packedPFCandidates"),
+    cms.InputTag("lostTracks")
+  ),
+  trackCandsVetos = cms.vstring("NONE", "NONE"),
+  muonTkIsoCalc = cms.PSet(
+    barrelCuts = _muTkIsoDefaultCuts.clone(),
+    endcapCuts = _muTkIsoDefaultCuts.clone(maxDZ = 0.5)
+  ),
   packedPFcand = cms.InputTag("packedPFCandidates"),
   genptc = cms.InputTag("prunedGenParticles"),
   generator = cms.InputTag("generator"),
+  prefiringWeight = cms.InputTag(""),
   triggerResults = cms.InputTag("TriggerResults","","HLT"),
   triggerObjects = cms.InputTag("slimmedPatTrigger"),
   beamSpot = cms.InputTag("offlineBeamSpot"),
