@@ -6,7 +6,6 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
-#include "FWCore/Framework/interface/EventSetup.h"
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -16,7 +15,6 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 
-#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 
 class MergedMuonTkIsolFromCands {
@@ -47,8 +45,9 @@ public:
     explicit TrkCuts(const edm::ParameterSet& para);
   };
 
-  TrkCuts cuts_;
+  TrkCuts barrelCuts_, endcapCuts_;
 
+  explicit MergedMuonTkIsolFromCands(const edm::ParameterSet& para);
   explicit MergedMuonTkIsolFromCands(const edm::ParameterSet& para, edm::ConsumesCollector iC);
   MergedMuonTkIsolFromCands(const MergedMuonTkIsolFromCands&) = default;
   ~MergedMuonTkIsolFromCands() = default;
@@ -87,11 +86,9 @@ public:
       const pat::Muon& mu,
       const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
       const std::vector<MergedMuonTkIsolFromCands::PIDVeto>& candVetos,
-      const edm::EventSetup& iSetup);
+      const TransientTrackBuilder& ttBuilder);
 
 private:
-  edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> ttbToken_;
-
   static bool passTrkSel(const reco::TrackBase& trk,
                          const double trkPt,
                          const TrkCuts& cuts,

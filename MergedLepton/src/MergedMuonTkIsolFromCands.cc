@@ -6,7 +6,6 @@
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
-#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "TMath.h"
 
@@ -39,9 +38,14 @@ MergedMuonTkIsolFromCands::TrkCuts::TrkCuts(const edm::ParameterSet& para) {
   std::sort(algosToReject.begin(), algosToReject.end());
 }
 
+MergedMuonTkIsolFromCands::MergedMuonTkIsolFromCands(const edm::ParameterSet& para)
+    : barrelCuts_(para.getParameter<edm::ParameterSet>("barrelCuts")),
+      endcapCuts_(para.getParameter<edm::ParameterSet>("endcapCuts")) {}
+
 MergedMuonTkIsolFromCands::MergedMuonTkIsolFromCands(const edm::ParameterSet& para, edm::ConsumesCollector iC)
-    : cuts_(para.getParameter<edm::ParameterSet>("cuts")),
-      ttbToken_(iC.esConsumes(edm::ESInputTag("", "TransientTrackBuilder"))) {}
+    : MergedMuonTkIsolFromCands(para) {
+  (void)iC;
+}
 
 double MergedMuonTkIsolFromCands::calIsol(const reco::TrackBase& muTrk,
                                           const edm::Handle<edm::View<pat::PackedCandidate>>& cands,
@@ -58,7 +62,7 @@ double MergedMuonTkIsolFromCands::calIsol(const double muEta,
                                           const PIDVeto pidVeto) const {
   double ptSum = 0.;
 
-  const TrkCuts& cuts = cuts_;
+  const TrkCuts& cuts = std::abs(muEta) < 1.5 ? barrelCuts_ : endcapCuts_;
 
   for (unsigned idx = 0; idx < cands->size(); ++idx) {
     const auto& cand = cands->refAt(idx);
@@ -92,7 +96,7 @@ double MergedMuonTkIsolFromCands::calIsol(const double muEta,
                                           const reco::TrackBase& addTrk) const {
   double ptSum = 0.;
 
-  const TrkCuts& cuts = cuts_;
+  const TrkCuts& cuts = std::abs(muEta) < 1.5 ? barrelCuts_ : endcapCuts_;
 
   for (auto& trk : tracks) {
     if (passTrkSel(trk, trk.pt(), cuts, muEta, muPhi, muVZ)) {
@@ -181,7 +185,7 @@ const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSel
     const pat::Muon& mu,
     const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
     const std::vector<MergedMuonTkIsolFromCands::PIDVeto>& candVetos,
-    const edm::EventSetup& iSetup) {
+    const TransientTrackBuilder& TTbuilder) {
   std::vector<std::pair<pat::PackedCandidateRef, double>> additionalCands;
 
   const reco::TrackRef muTrkRef = mu.muonBestTrack();
@@ -189,7 +193,6 @@ const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSel
     return pat::PackedCandidateRef();
 
   auto fitter = KalmanVertexFitter();
-  const TransientTrackBuilder& TTbuilder = iSetup.getData(ttbToken_);
   auto firstMu = TTbuilder.build(muTrkRef);
 
   for (unsigned iHandle = 0; iHandle < cands.size(); iHandle++) {
@@ -205,7 +208,7 @@ const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSel
         continue;
 
       const reco::Track* atrack = acand->bestTrack();
-      const TrkCuts& cuts = cuts_;
+      const TrkCuts& cuts = std::abs(atrack->eta()) < 1.5 ? barrelCuts_ : endcapCuts_;
 
       if (reco::deltaR2(atrack->eta(), atrack->phi(), muTrkRef->eta(), muTrkRef->phi()) <
           cuts.addTrkREguard * cuts.addTrkREguard)

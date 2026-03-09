@@ -13,7 +13,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
@@ -110,8 +109,6 @@ private:
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> triggerobjectsToken_;
 
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
-
-  edm::ConsumesCollector collector_ = consumesCollector();
 
   const std::vector<std::string> trigList_;
 
@@ -327,7 +324,7 @@ trackCandsVetos_([&iConfig]() {
   return vetos;
 }()),
 packedPFcandToken_(consumes<edm::View<pat::PackedCandidate>>(iConfig.getParameter<edm::InputTag>("packedPFcand"))),
-muonTkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("muonTkIsoCalc"), collector_),
+muonTkIsoCalc_(iConfig.getParameter<edm::ParameterSet>("muonTkIsoCalc")),
 genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genptc"))),
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 prefweight_token(consumes<double>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
@@ -685,12 +682,13 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       
 
     }
+    const auto& ttBuilder = iSetup.getData(ttbToken_);
     for (size_t i = 0; i < muonHandle->size(); ++i) {
       const reco::Muon& muon = (*muonHandle)[i];
 
       const reco::TrackRef muTrkRef = muon.muonBestTrack();
       if (muTrkRef.isNonnull()) {
-        const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, iSetup);
+        const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
         const reco::TrackBase& addTrk = addPackedCand.isNonnull() ? static_cast<const reco::TrackBase&>(*(addPackedCand->bestTrack()))
                                                                   : static_cast<const reco::TrackBase&>(*muTrkRef);
         double muTkIso = 0.;
