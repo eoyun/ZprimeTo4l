@@ -18,8 +18,8 @@ do
 	#cp runMergedLeptonIDImageMC_run3_cfg.py ./crab/${name_list[$i]}
 	cd ./crab/${name_list[$i]}
 	#crab submit submit_crab.py
-	#crab status -d crab_projects/crab_Image_match_${name_list[$i]} 
+	crab status -d crab_projects/crab_Image_match_${name_list[$i]} 
 	#crab kill -d crab_projects/crab_Image_${name_list[$i]} 
-	crab resubmit -d crab_projects/crab_Image_match_${name_list[$i]} 
+	#crab resubmit -d crab_projects/crab_Image_match_${name_list[$i]} 
 	cd ../..
 done
