@@ -30,8 +30,7 @@ mergedMuon = cms.EDAnalyzer("MergedMuon",
   ),
   trackCandsVetos = cms.vstring("NONE", "NONE"),
   muonTkIsoCalc = cms.PSet(
-    barrelCuts = _muTkIsoDefaultCuts.clone(),
-    endcapCuts = _muTkIsoDefaultCuts.clone(maxDZ = 0.5)
+    cuts = _muTkIsoDefaultCuts.clone()
   ),
   packedPFcand = cms.InputTag("packedPFCandidates"),
   genptc = cms.InputTag("prunedGenParticles"),

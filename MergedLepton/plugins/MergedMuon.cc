@@ -111,6 +111,8 @@ private:
 
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
 
+  edm::ConsumesCollector collector_ = consumesCollector();
+
   const std::vector<std::string> trigList_;
 
   const edm::FileInPath purwgtPath_;

@@ -47,7 +47,7 @@ public:
     explicit TrkCuts(const edm::ParameterSet& para);
   };
 
-  TrkCuts barrelCuts_, endcapCuts_;
+  TrkCuts cuts_;
 
   explicit MergedMuonTkIsolFromCands(const edm::ParameterSet& para, edm::ConsumesCollector iC);
   MergedMuonTkIsolFromCands(const MergedMuonTkIsolFromCands&) = default;
