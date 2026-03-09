@@ -170,15 +170,16 @@ bool MergedMuonTkIsolFromCands::additionalTrkSel(const reco::TrackBase& addTrk,
 bool MergedMuonTkIsolFromCands::additionalTrkSel(const edm::RefToBase<pat::PackedCandidate>& cand,
                                                  const reco::TrackBase& muTrk,
                                                  const TrkCuts& cuts) {
-  const reco::Track* addTrk = cand->bestTrack();
-  const float dR2 = reco::deltaR2(muTrk.eta(), muTrk.phi(), addTrk->eta(), addTrk->phi());
-  const float dZ = muTrk.vz() - addTrk->vz();
+  const reco::TrackRef bestTrkRef = cand->bestTrackRef();
+  const reco::Track addTrk = (bestTrkRef.isNonnull() && bestTrkRef.isAvailable()) ? *bestTrkRef : cand->pseudoTrack();
+  const float dR2 = reco::deltaR2(muTrk.eta(), muTrk.phi(), addTrk.eta(), addTrk.phi());
+  const float dZ = muTrk.vz() - addTrk.vz();
 
   return dR2 <= cuts.addTrkDR2 && std::abs(dZ) < cuts.maxDZ &&
-         addTrk->hitPattern().numberOfValidHits() >= cuts.minHits &&
-         addTrk->hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits && cand->trackHighPurity() &&
-         cand->hcalFraction() < cuts.addTrkHoE / (1. + cuts.addTrkHoE) && passAlgo(*addTrk, cuts.algosToReject) &&
-         addTrk->pt() > cuts.addTrkMinPt;
+         addTrk.hitPattern().numberOfValidHits() >= cuts.minHits &&
+         addTrk.hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits && cand->trackHighPurity() &&
+         cand->hcalFraction() < cuts.addTrkHoE / (1. + cuts.addTrkHoE) && passAlgo(addTrk, cuts.algosToReject) &&
+         addTrk.pt() > cuts.addTrkMinPt;
 }
 
 const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSelector(
@@ -189,7 +190,7 @@ const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSel
   std::vector<std::pair<pat::PackedCandidateRef, double>> additionalCands;
 
   const reco::TrackRef muTrkRef = mu.muonBestTrack();
-  if (muTrkRef.isNull())
+  if (muTrkRef.isNull() || !muTrkRef.isAvailable())
     return pat::PackedCandidateRef();
 
   auto fitter = KalmanVertexFitter();
@@ -207,16 +208,17 @@ const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSel
       if (!passPIDVeto(acand->pdgId(), pidVeto))
         continue;
 
-      const reco::Track* atrack = acand->bestTrack();
-      const TrkCuts& cuts = std::abs(atrack->eta()) < 1.5 ? barrelCuts_ : endcapCuts_;
+      const reco::TrackRef bestTrkRef = acand->bestTrackRef();
+      const reco::Track atrack = (bestTrkRef.isNonnull() && bestTrkRef.isAvailable()) ? *bestTrkRef : acand->pseudoTrack();
+      const TrkCuts& cuts = std::abs(atrack.eta()) < 1.5 ? barrelCuts_ : endcapCuts_;
 
-      if (reco::deltaR2(atrack->eta(), atrack->phi(), muTrkRef->eta(), muTrkRef->phi()) <
+      if (reco::deltaR2(atrack.eta(), atrack.phi(), muTrkRef->eta(), muTrkRef->phi()) <
           cuts.addTrkREguard * cuts.addTrkREguard)
         continue;
 
       if (additionalTrkSel(acand, *muTrkRef, cuts)) {
-        if (std::isnan(atrack->dzError()) || std::isinf(atrack->dzError()) || std::isnan(atrack->dxyError()) ||
-            std::isinf(atrack->dxyError()) || std::isnan(atrack->d0Error()) || std::isinf(atrack->d0Error()))
+        if (std::isnan(atrack.dzError()) || std::isinf(atrack.dzError()) || std::isnan(atrack.dxyError()) ||
+            std::isinf(atrack.dxyError()) || std::isnan(atrack.d0Error()) || std::isinf(atrack.d0Error()))
           continue;
 
         std::vector<reco::TransientTrack> trackPair;

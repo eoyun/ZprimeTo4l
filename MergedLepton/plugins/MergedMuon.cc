@@ -695,9 +695,13 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       const reco::Muon& muon = (*muonHandle)[i];
 
       const reco::TrackRef muTrkRef = muon.muonBestTrack();
-      if (muTrkRef.isNonnull()) {
+      if (muTrkRef.isNonnull() && muTrkRef.isAvailable()) {
         const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
-        const reco::TrackBase& addTrk = addPackedCand.isNonnull() ? static_cast<const reco::TrackBase&>(*(addPackedCand->bestTrack()))
+        const reco::TrackRef addPackedTrkRef = addPackedCand.isNonnull() ? addPackedCand->bestTrackRef() : reco::TrackRef();
+        const reco::Track addPackedTrk = (addPackedTrkRef.isNonnull() && addPackedTrkRef.isAvailable())
+                                           ? *addPackedTrkRef
+                                           : (addPackedCand.isNonnull() ? addPackedCand->pseudoTrack() : reco::Track());
+        const reco::TrackBase& addTrk = addPackedCand.isNonnull() ? static_cast<const reco::TrackBase&>(addPackedTrk)
                                                                   : static_cast<const reco::TrackBase&>(*muTrkRef);
         double muTkIso = 0.;
         for (const auto& candHandle : trackCandsHandles)
