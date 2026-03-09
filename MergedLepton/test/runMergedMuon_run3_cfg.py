@@ -41,9 +41,6 @@ process.GlobalTag.globaltag = cms.string("124X_mcRun3_2022_realistic_v12")
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 process.load("Geometry.CommonTopologies.bareGlobalTrackingGeometry_cfi")
 process.load("RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi")
-process.load("ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi")
-process.load("ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi")
-process.load("ZprimeTo4l.MergedLepton.MergedLeptonIDProducer_cfi")
 process.load("ZprimeTo4l.MergedLepton.MergedMuon_cfi")
 
 
@@ -61,13 +58,8 @@ setupEgammaPostRecoSeq(process,
                        phoIDModules=[],
                        era='2022-Prompt')
 
-process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone(
-    elesMiniAOD=cms.InputTag("slimmedElectrons")
-)
-
-
 process.evtCounter = cms.EDAnalyzer('SimpleEventCounter')
-process.evtCounter.isMC = cms.bool(False)
+process.evtCounter.isMC = cms.bool(True)
 
 from HLTrigger.HLTfilters.hltHighLevel_cfi import hltHighLevel
 process.hltFilter = hltHighLevel.clone()
@@ -75,16 +67,12 @@ process.hltFilter.throw = cms.bool(False)
 process.hltFilter.HLTPaths = cms.vstring("HLT_Mu12_IP6*") # HLT_Mu9_IP6_part* # HLT_IsoMu24_v*
 process.hltFilter.TriggerResultsTag = cms.InputTag("TriggerResults","","HLT")
 
-process.mergedMuon.isMC = cms.bool(False)
+process.mergedMuon.isMC = cms.bool(True)
 
 process.p = cms.Path(
     process.evtCounter+
     #process.hltFilter+
-    process.ModifiedHEEPIDVarValueMaps+
-    process.ModifiedEcalRecHitIsolationScone+
-    process.mergedLeptonIDProducer20UL18+
     process.egammaPostRecoSeq+
-    process.modifiedHEEPIDVarValueMaps2nd+
     process.mergedMuon
 )
 
