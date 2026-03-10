@@ -611,101 +611,193 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     }
   }
   if (pv){
-    for (size_t i = 0; i < promptMuons.size();i++){
-      bool gen_pair = false;
+    for (size_t i = 0; i < promptMuons.size(); ++i) {
       int index = -1;
-      for (size_t j = i + 1; j < promptMuons.size();j++){
-        if (reco::deltaR(*(promptMuons.at(i)),*(promptMuons.at(j))) < 0.1) {
-		gen_pair = true; 
-		index = j;
-		break;
-	}
+    
+      // gen pair 찾기
+      for (size_t j = i + 1; j < promptMuons.size(); ++j) {
+        const auto& gen1 = *(promptMuons.at(i));
+        const auto& gen2 = *(promptMuons.at(j));
+    
+        if (reco::deltaR(gen1, gen2) >= 0.1) continue;
+    
+        // leading / subleading pt cut
+        float pt1 = gen1.pt();
+        float pt2 = gen2.pt();
+        float leadPt = std::max(pt1, pt2);
+        float subleadPt = std::min(pt1, pt2);
+    
+        if (leadPt < 50.0) continue;
+        if (subleadPt < 20.0) continue;
+    
+        index = (int)j;
+        break;
       }
-      if (!gen_pair) continue;
-      int idx_any1 = -1;  
-      int idx_any2 = -1;  
-      int idx_any1_woID = -1;  
-      int idx_any2_woID = -1;  
-      int idx_G    = -1;  
-
+    
+      if (index < 0) continue;
+    
+      const auto& gen1 = *(promptMuons.at(i));
+      const auto& gen2 = *(promptMuons.at(index));
+    
+      int idx_any1 = -1;
+      int idx_any2 = -1;
+      int idx_any1_woID = -1;
+      int idx_any2_woID = -1;
+      int idx_G = -1;
+    
       int sub_muon_high_pt_flag = 0;
-      int match_idx1 = -1;
-      int match_idx2 = -1;
+    
+      // gen1/gen2에 대한 best / second-best reco match 저장
+      int best_idx1 = -1, second_idx1 = -1;
+      int best_idx2 = -1, second_idx2 = -1;
+      float best_dr1 = 999.f, second_dr1 = 999.f;
+      float best_dr2 = 999.f, second_dr2 = 999.f;
+    
       for (size_t iMuon = 0; iMuon < muonHandle->size(); ++iMuon) {
-	const reco::Muon& muon = (*muonHandle)[iMuon];
-	if (reco::deltaR(muon,*(promptMuons.at(i)))> 0.1) continue;
-	if (muon::isHighPtMuon(muon,*pv)) sub_muon_high_pt_flag ++;
-	bool T = muon::isTrackerHighPtMuon(muon, *pv);
+        const reco::Muon& muon = (*muonHandle)[iMuon];
+    
+        // 기존 counting/flag용 후보는 gen1 주변 reco만 보던 구조를 유지
+        if (reco::deltaR(muon, gen1) > 0.1) continue;
+    
+        if (muon::isHighPtMuon(muon, *pv)) sub_muon_high_pt_flag++;
+    
+        bool T = muon::isTrackerHighPtMuon(muon, *pv);
         bool G = muon::isHighPtMuon(muon, *pv);
-	bool m1 = (reco::deltaR(muon,*(promptMuons.at(i))) < 0.03) && fabs((muon.pt() - promptMuons.at(i)->pt())/promptMuons.at(i)->pt()) < 0.1;
-	bool m2 = (reco::deltaR(muon,*(promptMuons.at(index))) < 0.03) && fabs((muon.pt() - promptMuons.at(index)->pt())/promptMuons.at(index)->pt()) < 0.1;
-	if (m1 && !m2) match_idx1 = (int)iMuon;
-	else if (!m1 && m2) match_idx2 = (int)iMuon;
-	else if (m1 && m2){
-	  if (match_idx1 < 0) match_idx1 = (int)iMuon;
-          else if ((int)iMuon != match_idx1 && match_idx2 < 0) match_idx2 = (int)iMuon;
-	}
-	if (idx_any1_woID < 0) idx_any1_woID = (int)iMuon; 
+    
+        // woID reco count
+        if (idx_any1_woID < 0) idx_any1_woID = (int)iMuon;
         else if ((int)iMuon != idx_any1_woID && idx_any2_woID < 0) idx_any2_woID = (int)iMuon;
-        if (!(T || G)) continue;
-
-        if (G && idx_G < 0) idx_G = (int)iMuon;
-
-        if (idx_any1 < 0) idx_any1 = (int)iMuon;
-        else if ((int)iMuon != idx_any1 && idx_any2 < 0) idx_any2 = (int)iMuon;
-
+    
+        // ID reco count
+        if (T || G) {
+          if (G && idx_G < 0) idx_G = (int)iMuon;
+    
+          if (idx_any1 < 0) idx_any1 = (int)iMuon;
+          else if ((int)iMuon != idx_any1 && idx_any2 < 0) idx_any2 = (int)iMuon;
+        }
+    
+        // ---------- gen1 matching candidate ----------
+        float dr1 = reco::deltaR(muon, gen1);
+        if (dr1 < 0.03) {
+          if (dr1 < best_dr1) {
+            second_dr1 = best_dr1;
+            second_idx1 = best_idx1;
+            best_dr1 = dr1;
+            best_idx1 = (int)iMuon;
+          } else if (dr1 < second_dr1) {
+            second_dr1 = dr1;
+            second_idx1 = (int)iMuon;
+          }
+        }
+    
+        // ---------- gen2 matching candidate ----------
+        float dr2 = reco::deltaR(muon, gen2);
+        if (dr2 < 0.03) {
+          if (dr2 < best_dr2) {
+            second_dr2 = best_dr2;
+            second_idx2 = best_idx2;
+            best_dr2 = dr2;
+            best_idx2 = (int)iMuon;
+          } else if (dr2 < second_dr2) {
+            second_dr2 = dr2;
+            second_idx2 = (int)iMuon;
+          }
+        }
       }
-	      //std::cout<<"gen 1 pt " << promptMuons.at(i)->pt() << " | gen 2 pt "<< promptMuons.at(index)->pt() << " | reco 1 pt "<< (*muonHandle)[idx_any1].pt() <<" | reco 2 pt" << (*muonHandle)[idx_any2].pt()<<std::endl;
-      eff_gen_1_pt =	 promptMuons.at(i)->pt();
-      eff_gen_1_phi =	 promptMuons.at(i)->phi();
-      eff_gen_1_eta =	 promptMuons.at(i)->eta();
-      eff_gen_2_pt =	 promptMuons.at(index)->pt();
-      eff_gen_2_phi =	 promptMuons.at(index)->phi();
-      eff_gen_2_eta =	 promptMuons.at(index)->eta();
+    
+      // 최종 unique matching
+      int match_idx1 = best_idx1;
+      int match_idx2 = best_idx2;
+    
+      // 둘이 같은 reco muon을 잡은 경우 처리
+      if (match_idx1 >= 0 && match_idx2 >= 0 && match_idx1 == match_idx2) {
+        if (best_dr1 <= best_dr2) {
+          // gen1이 그 reco를 유지, gen2는 second-best 시도
+          match_idx2 = second_idx2;
+          if (match_idx2 == match_idx1) match_idx2 = -1;
+        } else {
+          // gen2가 그 reco를 유지, gen1은 second-best 시도
+          match_idx1 = second_idx1;
+          if (match_idx1 == match_idx2) match_idx1 = -1;
+        }
+      }
+    
+      // 혹시 second-best도 같은 경우 방지
+      if (match_idx1 >= 0 && match_idx2 >= 0 && match_idx1 == match_idx2) {
+        match_idx2 = -1;
+      }
+    
+      // tree 변수 채우기 전 초기화
+      eff_gen_1_pt  = gen1.pt();
+      eff_gen_1_phi = gen1.phi();
+      eff_gen_1_eta = gen1.eta();
+    
+      eff_gen_2_pt  = gen2.pt();
+      eff_gen_2_phi = gen2.phi();
+      eff_gen_2_eta = gen2.eta();
+    
       eff_reco_1_idx = -1;
       eff_reco_2_idx = -1;
-      if (match_idx1 >= 0){
-      	eff_reco_1_pt 	= (*muonHandle)[match_idx1].pt();
-      	eff_reco_1_phi 	= (*muonHandle)[match_idx1].phi();
-      	eff_reco_1_eta 	= (*muonHandle)[match_idx1].eta();
-      	eff_reco_1_idx 	= match_idx1;
-      	eff_reco_1_highptid 	= muon::isHighPtMuon((*muonHandle)[match_idx1],*pv);
-      	eff_reco_1_trackerhighptid 	= muon::isTrackerHighPtMuon((*muonHandle)[match_idx1],*pv);
+    
+      eff_reco_1_pt  = -999.f;
+      eff_reco_1_phi = -999.f;
+      eff_reco_1_eta = -999.f;
+      eff_reco_1_highptid = 0;
+      eff_reco_1_trackerhighptid = 0;
+    
+      eff_reco_2_pt  = -999.f;
+      eff_reco_2_phi = -999.f;
+      eff_reco_2_eta = -999.f;
+      eff_reco_2_highptid = 0;
+      eff_reco_2_trackerhighptid = 0;
+    
+      if (match_idx1 >= 0) {
+        eff_reco_1_pt  = (*muonHandle)[match_idx1].pt();
+        eff_reco_1_phi = (*muonHandle)[match_idx1].phi();
+        eff_reco_1_eta = (*muonHandle)[match_idx1].eta();
+        eff_reco_1_idx = match_idx1;
+        eff_reco_1_highptid =
+            muon::isHighPtMuon((*muonHandle)[match_idx1], *pv);
+        eff_reco_1_trackerhighptid =
+            muon::isTrackerHighPtMuon((*muonHandle)[match_idx1], *pv);
       }
-      if (match_idx2 >= 0){
-      	eff_reco_2_pt 	= (*muonHandle)[match_idx2].pt();
-      	eff_reco_2_phi 	= (*muonHandle)[match_idx2].phi();
-      	eff_reco_2_eta 	= (*muonHandle)[match_idx2].eta();
-      	eff_reco_2_idx 	= match_idx2;
-      	eff_reco_2_highptid 	= muon::isHighPtMuon((*muonHandle)[match_idx2],*pv);
-      	eff_reco_2_trackerhighptid 	= muon::isTrackerHighPtMuon((*muonHandle)[match_idx2],*pv);
+    
+      if (match_idx2 >= 0) {
+        eff_reco_2_pt  = (*muonHandle)[match_idx2].pt();
+        eff_reco_2_phi = (*muonHandle)[match_idx2].phi();
+        eff_reco_2_eta = (*muonHandle)[match_idx2].eta();
+        eff_reco_2_idx = match_idx2;
+        eff_reco_2_highptid =
+            muon::isHighPtMuon((*muonHandle)[match_idx2], *pv);
+        eff_reco_2_trackerhighptid =
+            muon::isTrackerHighPtMuon((*muonHandle)[match_idx2], *pv);
       }
-      dR_gen = reco::deltaR(*(promptMuons.at(i)),*(promptMuons.at(index)));
+    
+      dR_gen = reco::deltaR(gen1, gen2);
       num_reco_muon = sub_muon_high_pt_flag;
       flag_Id = (idx_G >= 0) && (idx_any2 >= 0);
       flag_Id_woID = (idx_any2_woID >= 0);
       flag_Id_any = (idx_any2 >= 0);
+    
       muonEfficiencyTree_->Fill();
-      
-
     }
     const auto& ttBuilder = iSetup.getData(ttbToken_);
     for (size_t i = 0; i < muonHandle->size(); ++i) {
       const reco::Muon& muon = (*muonHandle)[i];
 
       const reco::TrackRef muTrkRef = muon.muonBestTrack();
-      if (muTrkRef.isNonnull() && muTrkRef.isAvailable()) {
-        const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
-        const reco::Track* addPackedBestTrk = addPackedCand.isNonnull() ? addPackedCand->bestTrack() : nullptr;
-        const reco::Track addPackedTrk = addPackedBestTrk ? *addPackedBestTrk
-                                                          : (addPackedCand.isNonnull() ? addPackedCand->pseudoTrack() : reco::Track());
-        const reco::TrackBase& addTrk = addPackedCand.isNonnull() ? static_cast<const reco::TrackBase&>(addPackedTrk)
-                                                                  : static_cast<const reco::TrackBase&>(*muTrkRef);
-        double muTkIso = 0.;
-        for (const auto& candHandle : trackCandsHandles)
-          muTkIso += muonTkIsoCalc_.calIsol(*muTrkRef, candHandle, addTrk, MergedMuonTkIsolFromCands::PIDVeto::NONE);
-        (void)muTkIso;
-      }
+      // if (muTrkRef.isNonnull() && muTrkRef.isAvailable()) {
+      //   const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
+      //   const reco::Track* addPackedBestTrk = addPackedCand.isNonnull() ? addPackedCand->bestTrack() : nullptr;
+      //   const reco::Track addPackedTrk = addPackedBestTrk ? *addPackedBestTrk
+      //                                                     : (addPackedCand.isNonnull() ? addPackedCand->pseudoTrack() : reco::Track());
+      //   const reco::TrackBase& addTrk = addPackedCand.isNonnull() ? static_cast<const reco::TrackBase&>(addPackedTrk)
+      //                                                             : static_cast<const reco::TrackBase&>(*muTrkRef);
+      //   double muTkIso = 0.;
+      //   for (const auto& candHandle : trackCandsHandles)
+      //     muTkIso += muonTkIsoCalc_.calIsol(*muTrkRef, candHandle, addTrk, MergedMuonTkIsolFromCands::PIDVeto::NONE);
+      //   (void)muTkIso;
+      // }
 
       int close_muon = 0;
       for (size_t j = 0; j < muonHandle->size(); ++j) {

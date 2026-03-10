@@ -184,6 +184,8 @@ private:
   int label_num_ele;
   int label_num_ele_hard;
   float pT_gsfele;
+  float eta_gsfele;
+  float phi_gsfele;
   int isAddTrk;
   int isEleCleaningID;
   std::vector<float> dEta;// original trk, add trk
@@ -443,6 +445,8 @@ void MergedLeptonIDImageBarrel::beginJob() {
   ImageTree_->Branch("NumEle",&label_num_ele,"NumEle/I");
   ImageTree_->Branch("NumEleHard",&label_num_ele_hard,"NumEleHard/I");
   ImageTree_->Branch("pT",&pT_gsfele,"pT/F");
+  ImageTree_->Branch("eta",&eta_gsfele,"eta/F");
+  ImageTree_->Branch("phi",&phi_gsfele,"phi/F");
   ImageTree_->Branch("IsAddTrk",&isAddTrk,"IsAddTrk/I");
   ImageTree_->Branch("IsEleCleaningID",&isEleCleaningID,"IsEleCleaningID/I");
   ImageTree_->Branch("dPhi",&dPhi,32000,0);
@@ -563,8 +567,8 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
     EBtime.push_back(crystal.time());
     auto idEB = EBDetId(crystal.detid());
     const auto& crystalGeo = caloGeom->getGeometry(crystal.detid());
-    EBix.push_back(idEB.iphi());
-    EBiy.push_back(idEB.ieta());
+    EBix.push_back(idEB.ieta());
+    EBiy.push_back(idEB.iphi());
     EBzside.push_back(idEB.zside());
     EBx.push_back((float)crystalGeo->getPosition().x());
     EBy.push_back((float)crystalGeo->getPosition().y());
@@ -683,6 +687,8 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
     int matched_gen_ele = 0;
     int matched_gen_prompt_ele = 0;
     pT_gsfele = electron.pt();
+    eta_gsfele = electron.eta();
+    phi_gsfele = electron.phi();
     std::vector<size_t> index_gen_ele;
     //for (const auto& ele : promptEles){
     for (size_t iEle = 0; iEle <promptEles.size(); ++iEle){
@@ -731,8 +737,8 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
       const auto& hitPosition = caloGeom->getGeometry(detID);
     	if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
 
-      int dX = matched_ix-id_xtal.iphi();
-      int dY = matched_iy-id_xtal.ieta();
+      int dX = matched_ix-id_xtal.ieta();
+      int dY = matched_iy-id_xtal.iphi();
       //std::cout<<dX<<" | "<<abs(dX)<<" | "<<id_xtal.ix()<<" | "<<matchedCrystal->ix()<<std::endl;
       if (abs(dX) <= halfSize && abs(dY) <= halfSize){
         int iX = dX + halfSize;
@@ -741,12 +747,13 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
       }
     }
     //}
-   // for (const auto& row : EBImage) {
-   //   for (const auto& pixel : row) {
-   //     std::cout << pixel << " ";
-   //   }
-   //   std::cout << std::endl;
-   // }
+    std::cout<<matched_ix << " | "<<matched_iy<<std::endl;
+    for (const auto& row : EBImage) {
+      for (const auto& pixel : row) {
+        std::cout << pixel << " ";
+      }
+      std::cout << std::endl;
+    }
     //matched_ix=ESDetId(electron.superCluster()->preshowerClusters().seed()).six();
     //matched_iy=ESDetId(electron.superCluster()->preshowerClusters().seed()).siy();
     matched_ix=std::numeric_limits<int>::min();
