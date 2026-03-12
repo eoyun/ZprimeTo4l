@@ -183,13 +183,17 @@ bool MergedMuonTkIsolFromCands::additionalTrkSel(const edm::RefToBase<pat::Packe
 }
 
 const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSelector(
-    const pat::Muon& mu,
+    const reco::Muon& mu,
     const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
     const std::vector<MergedMuonTkIsolFromCands::PIDVeto>& candVetos,
     const TransientTrackBuilder& TTbuilder) {
   std::vector<std::pair<pat::PackedCandidateRef, double>> additionalCands;
 
+  
   const reco::TrackRef muTrkRef = mu.muonBestTrack();
+  
+  
+  //std::cout<<" hello ### "<<muTrkRef.isNull()<<" | "<<muTrkRef.pt()<<" | "<<muTrkRef.eta()<<" | "<<muTrkRef.phi()<<std::endl;
   if (muTrkRef.isNull() || !muTrkRef.isAvailable())
     return pat::PackedCandidateRef();
 

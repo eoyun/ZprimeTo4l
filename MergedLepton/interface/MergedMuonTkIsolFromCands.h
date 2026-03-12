@@ -83,7 +83,7 @@ public:
   bool additionalTrkSel(const edm::RefToBase<pat::PackedCandidate>& cand, const reco::TrackBase& muTrk, const TrkCuts& cuts);
 
   const pat::PackedCandidateRef additionalPackedCandSelector(
-      const pat::Muon& mu,
+      const reco::Muon& mu,
       const std::vector<edm::Handle<edm::View<pat::PackedCandidate>>>& cands,
       const std::vector<MergedMuonTkIsolFromCands::PIDVeto>& candVetos,
       const TransientTrackBuilder& ttBuilder);
