@@ -229,10 +229,14 @@ private:
   int eff_reco_2_idx;
   bool eff_reco_2_highptid;
   bool eff_reco_2_trackerhighptid;
-  bool add_track_flag;
-  float add_track_pt;
-  float add_track_eta;
-  float add_track_phi;
+  bool add1_track_flag;
+  float add1_track_pt;
+  float add1_track_eta;
+  float add1_track_phi;
+  bool add2_track_flag;
+  float add2_track_pt;
+  float add2_track_eta;
+  float add2_track_phi;
 
   PositionCalc posCalcLog_;
 
@@ -543,10 +547,14 @@ void MergedMuon::beginJob() {
   muonEfficiencyTree_->Branch("eff_reco_2_idx",&eff_reco_2_idx,"eff_reco_2_idx/I");
   muonEfficiencyTree_->Branch("eff_reco_2_highptid",&eff_reco_2_highptid,"eff_reco_2_highptid/B");
   muonEfficiencyTree_->Branch("eff_reco_2_trackerhighptid",&eff_reco_2_trackerhighptid,"eff_reco_2_trackerhighptid/B");
-  muonEfficiencyTree_->Branch("add_trk_flag",&add_track_flag,"add_trk_flag/B");
-  muonEfficiencyTree_->Branch("add_trk_pt",&add_track_pt,"add_trk_pt/F");
-  muonEfficiencyTree_->Branch("add_trk_eta",&add_track_eta,"add_trk_eta/F");
-  muonEfficiencyTree_->Branch("add_trk_phi",&add_track_phi,"add_trk_phi/F");
+  muonEfficiencyTree_->Branch("add1_trk_flag",&add1_track_flag,"add1_trk_flag/B");
+  muonEfficiencyTree_->Branch("add1_trk_pt",&add1_track_pt,"add1_trk_pt/F");
+  muonEfficiencyTree_->Branch("add1_trk_eta",&add1_track_eta,"add1_trk_eta/F");
+  muonEfficiencyTree_->Branch("add1_trk_phi",&add1_track_phi,"add1_trk_phi/F");
+  muonEfficiencyTree_->Branch("add2_trk_flag",&add2_track_flag,"add2_trk_flag/B");
+  muonEfficiencyTree_->Branch("add2_trk_pt",&add2_track_pt,"add2_trk_pt/F");
+  muonEfficiencyTree_->Branch("add2_trk_eta",&add2_track_eta,"add2_trk_eta/F");
+  muonEfficiencyTree_->Branch("add2_trk_phi",&add2_track_phi,"add2_trk_phi/F");
 }
 
 
@@ -660,10 +668,14 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     
       
       int sub_muon_high_pt_flag = 0;
-      bool addTrkFlag = false;
-      float addTrkPt = -999.f;
-      float addTrkEta = 999.f;
-      float addTrkPhi = 999.f;
+      bool add1TrkFlag = false;
+      float add1TrkPt = -999.f;
+      float add1TrkEta = 999.f;
+      float add1TrkPhi = 999.f;
+      bool add2TrkFlag = false;
+      float add2TrkPt = -999.f;
+      float add2TrkEta = 999.f;
+      float add2TrkPhi = 999.f;
       
     
       // gen1/gen2에 대한 best / second-best reco match 저장
@@ -674,14 +686,6 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     
       for (size_t iMuon = 0; iMuon < muonHandle->size(); ++iMuon) {
         const reco::Muon& muon = (*muonHandle)[iMuon];
-        const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
-        const reco::Track* addPackedBestTrk = addPackedCand.isNonnull() ? addPackedCand->bestTrack() : nullptr;
-        if (addPackedCand.isNonnull()) {
-	  addTrkFlag = true;
-	  addTrkPt = addPackedBestTrk->pt();
-	  addTrkEta = addPackedBestTrk->eta();
-	  addTrkPhi = addPackedBestTrk->phi();
-	}
         // 기존 counting/flag용 후보는 gen1 주변 reco만 보던 구조를 유지
         if (reco::deltaR(muon, gen1) > 0.1) continue;
     
@@ -785,7 +789,16 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         eff_reco_1_highptid =
             muon::isHighPtMuon((*muonHandle)[match_idx1], *pv);
         eff_reco_1_trackerhighptid =
-            muon::isTrackerHighPtMuon((*muonHandle)[match_idx1], *pv);
+        muon::isTrackerHighPtMuon((*muonHandle)[match_idx1], *pv);
+        const reco::Muon& muon = (*muonHandle)[match_idx1];
+        const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
+        const reco::Track* addPackedBestTrk = addPackedCand.isNonnull() ? addPackedCand->bestTrack() : nullptr;
+        if (addPackedCand.isNonnull()) {
+	  add1TrkFlag = true;
+	  add1TrkPt = addPackedBestTrk->pt();
+	  add1TrkEta = addPackedBestTrk->eta();
+	  add1TrkPhi = addPackedBestTrk->phi();
+	}
       }
     
       if (match_idx2 >= 0) {
@@ -797,12 +810,25 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             muon::isHighPtMuon((*muonHandle)[match_idx2], *pv);
         eff_reco_2_trackerhighptid =
             muon::isTrackerHighPtMuon((*muonHandle)[match_idx2], *pv);
+        const reco::Muon& muon = (*muonHandle)[match_idx2];
+        const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
+        const reco::Track* addPackedBestTrk = addPackedCand.isNonnull() ? addPackedCand->bestTrack() : nullptr;
+        if (addPackedCand.isNonnull()) {
+	  add2TrkFlag = true;
+	  add2TrkPt = addPackedBestTrk->pt();
+	  add2TrkEta = addPackedBestTrk->eta();
+	  add2TrkPhi = addPackedBestTrk->phi();
+	}
       }
 
-      add_track_flag = addTrkFlag;
-      add_track_pt = addTrkPt;
-      add_track_eta = addTrkEta;
-      add_track_phi = addTrkPhi;
+      add1_track_flag = add1TrkFlag;
+      add1_track_pt = add1TrkPt;
+      add1_track_eta = add1TrkEta;
+      add1_track_phi = add1TrkPhi;
+      add2_track_flag = add2TrkFlag;
+      add2_track_pt = add2TrkPt;
+      add2_track_eta = add2TrkEta;
+      add2_track_phi = add2TrkPhi;
     
       dR_gen = reco::deltaR(gen1, gen2);
       num_reco_muon = sub_muon_high_pt_flag;
@@ -837,7 +863,7 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	  target_muon.push_back(gen);
         }      
       }
-      if (!muon::isHighPtMuon(muon,*pv)) continue;
+      if (!muon::isHighPtMuon(muon,*pv) ) continue;
       // if (gen_muon == 2){
       //    dR_gen = reco::deltaR(*(target_muon.at(0)), *(target_muon.at(1)));
       //    num_reco_muon = sub_muon_high_pt_flag;

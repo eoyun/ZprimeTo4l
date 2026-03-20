@@ -178,8 +178,10 @@ bool MergedMuonTkIsolFromCands::additionalTrkSel(const edm::RefToBase<pat::Packe
   return dR2 <= cuts.addTrkDR2 && std::abs(dZ) < cuts.maxDZ &&
          addTrk.hitPattern().numberOfValidHits() >= cuts.minHits &&
          addTrk.hitPattern().numberOfValidPixelHits() >= cuts.minPixelHits && cand->trackHighPurity() &&
-         cand->hcalFraction() < cuts.addTrkHoE / (1. + cuts.addTrkHoE) && passAlgo(addTrk, cuts.algosToReject) &&
+         passAlgo(addTrk, cuts.algosToReject) &&
          addTrk.pt() > cuts.addTrkMinPt;
+         //cand->hcalFraction() < cuts.addTrkHoE / (1. + cuts.addTrkHoE) && passAlgo(addTrk, cuts.algosToReject) &&
+         //addTrk.pt() > cuts.addTrkMinPt;
 }
 
 const pat::PackedCandidateRef MergedMuonTkIsolFromCands::additionalPackedCandSelector(
