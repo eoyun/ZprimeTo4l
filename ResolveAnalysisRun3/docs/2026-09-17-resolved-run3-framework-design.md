@@ -142,7 +142,10 @@ ResolveAnalysisRun3/
 | `mu_rochesterSF[j]` | 적용된 Rochester 계수 |
 | `mu_tunePeta, mu_tunePphi[j]` | TuneP 방향 |
 | `mu_innerPt[j]` | inner-track pt(neighbor subtraction 재료) |
-| `mu_recoPt/eta/phi[j]` | reco(SF lookup) |
+| `mu_recoPt/eta/phi[j]` | reco(SF lookup + neighbor self 방향) |
+| `mu_recoVz[j]` | [cm] muon vertex z (neighbor dz 비교: self) |
+| `mu_innerEta/innerPhi/innerVz[j]` | inner-track 방향+vz (neighbor 로 쓰일 때 checkIso 재현) |
+| `mu_innerDxyBS[j]` | [cm] inner-track signed dxy wrt beamspot (neighbor 컷, signed) |
 | `mu_isHighPt, mu_isTrackerHighPt[j]` | 두 ID 결과(하나로 합치지 않음) |
 | `mu_relPtErr, mu_trkLayers, mu_pixelHits, mu_matchedStations, mu_dxy, mu_dz[j]` | ID 입력변수 |
 | `mu_trackIso[j]` | raw track iso |
