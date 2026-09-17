@@ -13,6 +13,10 @@ static void test_parse_ok() {
       "muon": {
         "tunePptMin": 20.0, "etaMax": 2.4, "modIsoRelMax": 0.1,
         "neighbor": { "drMin": 0.01, "drMax": 0.3, "dzMax": 0.2, "dxyBSMax": 0.1 }
+      },
+      "electron": {
+        "gapLo": 1.4442, "gapHi": 1.566, "eeEtaMax": 2.5,
+        "heepMaskLoose": 1968, "heepAllPass": 4095
       }
     },
     "massCuts": { "dileptonMassMin": 1.0, "signalMassMin": 200.0 }
@@ -23,6 +27,10 @@ static void test_parse_ok() {
   CHECK_CLOSE(cfg.muon.modIsoRelMax, 0.1, 1e-9);
   CHECK_CLOSE(cfg.muon.neighbor.drMax, 0.3, 1e-9);
   CHECK_CLOSE(cfg.muon.neighbor.dxyBSMax, 0.1, 1e-9);
+  CHECK_CLOSE(cfg.electron.gapLo, 1.4442, 1e-9);
+  CHECK_CLOSE(cfg.electron.eeEtaMax, 2.5, 1e-9);
+  CHECK(cfg.electron.heepMaskLoose == 1968);
+  CHECK(cfg.electron.heepAllPass == 4095);
   CHECK_CLOSE(cfg.massCuts.signalMassMin, 200.0, 1e-9);
 }
 

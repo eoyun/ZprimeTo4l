@@ -5,10 +5,20 @@
 // 의존: Muon.h, Config.h. (기존 checkIso / ResolvedMuCRanalyzer 재현)
 #include <vector>
 #include "ZprimeTo4l/ResolveAnalysisRun3/interface/Muon.h"
+#include "ZprimeTo4l/ResolveAnalysisRun3/interface/Electron.h"
 #include "ZprimeTo4l/ResolveAnalysisRun3/interface/Config.h"
 
 namespace raRun3 {
 namespace ObjectSelector {
+
+// ===== electron =====
+// acceptance: |etaSC| < eeEtaMax 이고 EB-EE gap(gapLo~gapHi) 밖.
+bool passElectronAccept(const Electron& ele, const Config& cfg);
+
+// P: accept + 기존 modified-HEEP VID 통과.
+std::vector<Electron> selectElectronsP(const std::vector<Electron>& all, const Config& cfg);
+
+// ===== muon =====
 
 // acceptance: tuneP pt > min, |tuneP eta| < max.
 bool passMuonAccept(const Muon& mu, const Config& cfg);

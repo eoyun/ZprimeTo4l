@@ -22,6 +22,26 @@ double deltaR2(double eta1, double phi1, double eta2, double phi2) {
 namespace raRun3 {
 namespace ObjectSelector {
 
+// ===== electron =====
+
+bool passElectronAccept(const Electron& ele, const Config& cfg) {
+  const double a = std::abs(ele.etaSC);
+  if (a > cfg.electron.eeEtaMax) return false;                 // |etaSC|>2.5 reject
+  if (a > cfg.electron.gapLo && a < cfg.electron.gapHi) return false;  // EB-EE gap veto
+  return true;
+}
+
+std::vector<Electron> selectElectronsP(const std::vector<Electron>& all, const Config& cfg) {
+  std::vector<Electron> out;
+  for (const auto& ele : all) {
+    if (passElectronAccept(ele, cfg) && ele.passModHeep)  // 기존 VID 결과 재사용
+      out.push_back(ele);
+  }
+  return out;
+}
+
+// ===== muon =====
+
 bool passMuonAccept(const Muon& mu, const Config& cfg) {
   // 기존 ResolvedMuCRanalyzer 는 acceptance 를 reco eta(aMuon->eta())로 판정한다.
   return mu.corrTunePpt > cfg.muon.tunePptMin &&

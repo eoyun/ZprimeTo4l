@@ -12,7 +12,9 @@ struct Electron {
   // 보정 전/후 mass kinematics
   double rawPt = 0., rawEta = 0., rawPhi = 0., rawEnergy = 0.;   // polarP4(), energy()
   double corrPt = 0., corrEta = 0., corrPhi = 0., corrM = 0.;    // ecalTrkEnergyPostCorr 적용
-  bool   passModHeep = false;  // 기존 VID 결과 (재현 기준)
+  bool   passModHeep = false;  // 기존 VID 결과 electronID("modifiedHeepElectronID")
+  int    modHeepBitmap = 0;    // userInt("modifiedHeepElectronID") — F 마스크 판정용
+  int    addGsfIdx     = -1;   // reciprocal-GSF 상대 electron index (없으면 -1)
 };
 
 }  // namespace raRun3

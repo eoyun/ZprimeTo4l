@@ -39,6 +39,15 @@ raRun3::Config parse(const json& j) {
   cfg.muon.neighbor.dzMax    = required<double>(nb, "dzMax", "objects.muon.neighbor");
   cfg.muon.neighbor.dxyBSMax = required<double>(nb, "dxyBSMax", "objects.muon.neighbor");
 
+  if (!j.at("objects").contains("electron"))
+    throw std::runtime_error("Config: missing 'objects.electron'");
+  const json& el = j.at("objects").at("electron");
+  cfg.electron.gapLo        = required<double>(el, "gapLo", "objects.electron");
+  cfg.electron.gapHi        = required<double>(el, "gapHi", "objects.electron");
+  cfg.electron.eeEtaMax     = required<double>(el, "eeEtaMax", "objects.electron");
+  cfg.electron.heepMaskLoose = required<int>(el, "heepMaskLoose", "objects.electron");
+  cfg.electron.heepAllPass   = required<int>(el, "heepAllPass", "objects.electron");
+
   if (!j.contains("massCuts"))
     throw std::runtime_error("Config: missing 'massCuts'");
   const json& mc = j.at("massCuts");

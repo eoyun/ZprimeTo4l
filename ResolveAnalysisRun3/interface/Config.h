@@ -21,14 +21,23 @@ struct MuonCuts {
   NeighborCuts neighbor;
 };
 
+struct ElectronCuts {
+  double gapLo    = 0.;   // EB-EE gap 하한 (|etaSC| 1.4442)
+  double gapHi    = 0.;   // EB-EE gap 상한 (|etaSC| 1.566)
+  double eeEtaMax = 0.;   // |etaSC| 상한 (2.5)
+  int    heepMaskLoose = 0;  // 0x7B0 = 1968 : F denominator 마스크
+  int    heepAllPass   = 0;  // 0xFFF = 4095 : 12 컷 전부 통과 값
+};
+
 struct MassCuts {
   double dileptonMassMin = 0.;  // [GeV] 각 pair mll 하한
   double signalMassMin   = 0.;  // [GeV] m4l SR 하한
 };
 
 struct Config {
-  MuonCuts muon;
-  MassCuts massCuts;
+  MuonCuts     muon;
+  ElectronCuts electron;
+  MassCuts     massCuts;
 };
 
 // 파일 경로 / 문자열에서 로드. 필수 키 누락 시 std::runtime_error.
