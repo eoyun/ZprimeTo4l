@@ -40,6 +40,12 @@ double modifiedMuonIso(const Muon& self, const std::vector<Muon>& idPool, const 
 // accept+ID 통과 muon 을 idPool 로 삼아, modified iso/tuneP pt < 컷 인 P muon 반환.
 std::vector<Muon> selectMuonsP(const std::vector<Muon>& all, const Config& cfg);
 
+// F(loose denominator): tracker muon + accept + P 아님(index 로 제외) + loose track 조건.
+// (기존 ResolvedMuCRanalyzer nonHighPtMuons 재현. iso 는 보지 않는다.)
+std::vector<Muon> selectMuonsF(const std::vector<Muon>& all,
+                               const std::vector<Muon>& passP,
+                               const Config& cfg);
+
 }  // namespace ObjectSelector
 }  // namespace raRun3
 #endif

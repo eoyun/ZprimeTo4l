@@ -6,6 +6,7 @@
 namespace raRun3 {
 
 struct Electron {
+  int    index  = -1;  // ntuple 원본 collection index (P/F 교차 제외, pair index 용)
   int    charge = 0;
   double selEt  = 0.;   // [GeV] selection용 ET = pat::Electron::et()
   double etaSC  = 0.;   // supercluster eta (acceptance 기준)

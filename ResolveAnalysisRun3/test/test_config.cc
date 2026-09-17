@@ -12,7 +12,9 @@ static void test_parse_ok() {
     "objects": {
       "muon": {
         "tunePptMin": 20.0, "etaMax": 2.4, "modIsoRelMax": 0.1,
-        "neighbor": { "drMin": 0.01, "drMax": 0.3, "dzMax": 0.2, "dxyBSMax": 0.1 }
+        "neighbor": { "drMin": 0.01, "drMax": 0.3, "dzMax": 0.2, "dxyBSMax": 0.1 },
+        "fake": { "trkLayersMin": 5, "pixelHitsMin": 0, "matchedStationsMin": 1,
+                  "dxyMax": 0.2, "dzMax": 0.5 }
       },
       "electron": {
         "gapLo": 1.4442, "gapHi": 1.566, "eeEtaMax": 2.5,
@@ -31,6 +33,8 @@ static void test_parse_ok() {
   CHECK_CLOSE(cfg.electron.eeEtaMax, 2.5, 1e-9);
   CHECK(cfg.electron.heepMaskLoose == 1968);
   CHECK(cfg.electron.heepAllPass == 4095);
+  CHECK(cfg.muon.fake.trkLayersMin == 5);
+  CHECK_CLOSE(cfg.muon.fake.dzMax, 0.5, 1e-9);
   CHECK_CLOSE(cfg.massCuts.signalMassMin, 200.0, 1e-9);
 }
 

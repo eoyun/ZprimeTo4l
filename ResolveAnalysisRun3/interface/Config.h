@@ -14,11 +14,21 @@ struct NeighborCuts {
   double dxyBSMax = 0.;  // [cm] neighbor.innerDxyBS 상한 (signed, 기존 checkIso 재현)
 };
 
+// muon F(loose denominator) 전용 컷 (기존 ResolvedMuCRanalyzer nonHighPtMuons 재현).
+struct MuonFakeCuts {
+  int    trkLayersMin       = 0;  // trkLayers > min (원본 >5 → min=5)
+  int    pixelHitsMin       = 0;  // pixelHits > min (원본 >0 → min=0)
+  int    matchedStationsMin = 0;  // matchedStations >= min (원본 >=1 → min=1)
+  double dxyMax             = 0.; // |dxy(PV)| < max (0.2)
+  double dzMax              = 0.; // |dz(PV)|  < max (0.5)
+};
+
 struct MuonCuts {
   double       tunePptMin = 0.;  // [GeV]
   double       etaMax     = 0.;  // |eta| 상한
   double       modIsoRelMax = 0.;  // modified iso / TuneP pt 상한
   NeighborCuts neighbor;
+  MuonFakeCuts fake;
 };
 
 struct ElectronCuts {

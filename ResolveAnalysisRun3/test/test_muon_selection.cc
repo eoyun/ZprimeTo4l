@@ -12,6 +12,8 @@ static Config makeCfg() {
   c.muon.etaMax = 2.4;
   c.muon.modIsoRelMax = 0.1;
   c.muon.neighbor = {0.01, 0.3, 0.2, 0.1};
+  // MuonFakeCuts: trkLayersMin, pixelHitsMin, matchedStationsMin, dxyMax, dzMax
+  c.muon.fake = {5, 0, 1, 0.2, 0.5};
   c.massCuts = {1.0, 200.0};
   return c;
 }
@@ -102,9 +104,31 @@ static void test_selectMuonsP() {
   CHECK(passP.size() == 1);
 }
 
+// 6) muon F (loose denominator): tracker + accept + P 제외 + loose track 조건.
+static void test_selectMuonsF() {
+  Config cfg = makeCfg();
+  // F 자격 muon 기본형: tracker + loose track 통과.
+  auto fMuon = []() {
+    Muon m = baseMuon();
+    m.isTrackerMuon = true;
+    m.trkLayers = 6; m.pixelHits = 1; m.matchedStations = 1; m.dxy = 0.1; m.dz = 0.1;
+    return m;
+  };
+  Muon pMu = fMuon(); pMu.index = 0;               // P collection 에 있음 → 제외
+  Muon fMu = fMuon(); fMu.index = 1;               // F
+  Muon notTracker = fMuon(); notTracker.index = 2; notTracker.isTrackerMuon = false; // 탈락
+  Muon fewLayers  = fMuon(); fewLayers.index = 3; fewLayers.trkLayers = 5;           // >5 실패
+  std::vector<Muon> all = {pMu, fMu, notTracker, fewLayers};
+  std::vector<Muon> passP = {pMu};                 // pMu 는 P
+  std::vector<Muon> passF = ObjectSelector::selectMuonsF(all, passP, cfg);
+  CHECK(passF.size() == 1);
+  CHECK(passF.front().index == 1);
+}
+
 int main() {
   RUN(test_accept_uses_recoEta);
   RUN(test_accept_boundary);
+  RUN(test_selectMuonsF);
   RUN(test_isNeighbor_dr_window);
   RUN(test_isNeighbor_dz_dxy);
   RUN(test_modifiedIso_subtracts_highest);

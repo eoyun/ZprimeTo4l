@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <set>
 
 namespace {
 
@@ -112,6 +113,29 @@ std::vector<Muon> selectMuonsP(const std::vector<Muon>& all, const Config& cfg) 
       passP.push_back(mu);
   }
   return passP;
+}
+
+std::vector<Muon> selectMuonsF(const std::vector<Muon>& all,
+                               const std::vector<Muon>& passP,
+                               const Config& cfg) {
+  // P collection 의 index 집합 (F 는 여기 없는 것만)
+  std::set<int> pIdx;
+  for (const auto& p : passP) pIdx.insert(p.index);
+
+  const auto& fc = cfg.muon.fake;
+  std::vector<Muon> out;
+  for (const auto& mu : all) {
+    if (!mu.isTrackerMuon) continue;              // tracker muon
+    if (!passMuonAccept(mu, cfg)) continue;       // tunePpt>=min & |recoEta|<=max
+    if (pIdx.count(mu.index)) continue;           // P 는 제외
+    if (!(mu.trkLayers > fc.trkLayersMin)) continue;               // >5
+    if (!(mu.pixelHits > fc.pixelHitsMin)) continue;               // >0
+    if (!(std::abs(mu.dxy) < fc.dxyMax)) continue;                 // <0.2
+    if (!(std::abs(mu.dz) < fc.dzMax)) continue;                   // <0.5
+    if (!(mu.matchedStations >= fc.matchedStationsMin)) continue;  // >=1
+    out.push_back(mu);
+  }
+  return out;
 }
 
 }  // namespace ObjectSelector

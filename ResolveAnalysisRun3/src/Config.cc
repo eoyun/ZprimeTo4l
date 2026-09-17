@@ -39,6 +39,15 @@ raRun3::Config parse(const json& j) {
   cfg.muon.neighbor.dzMax    = required<double>(nb, "dzMax", "objects.muon.neighbor");
   cfg.muon.neighbor.dxyBSMax = required<double>(nb, "dxyBSMax", "objects.muon.neighbor");
 
+  if (!mu.contains("fake"))
+    throw std::runtime_error("Config: missing 'objects.muon.fake'");
+  const json& mf = mu.at("fake");
+  cfg.muon.fake.trkLayersMin       = required<int>(mf, "trkLayersMin", "objects.muon.fake");
+  cfg.muon.fake.pixelHitsMin       = required<int>(mf, "pixelHitsMin", "objects.muon.fake");
+  cfg.muon.fake.matchedStationsMin = required<int>(mf, "matchedStationsMin", "objects.muon.fake");
+  cfg.muon.fake.dxyMax             = required<double>(mf, "dxyMax", "objects.muon.fake");
+  cfg.muon.fake.dzMax              = required<double>(mf, "dzMax", "objects.muon.fake");
+
   if (!j.at("objects").contains("electron"))
     throw std::runtime_error("Config: missing 'objects.electron'");
   const json& el = j.at("objects").at("electron");

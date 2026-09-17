@@ -6,6 +6,7 @@
 namespace raRun3 {
 
 struct Muon {
+  int    index  = -1;  // ntuple 원본 collection index (P/F 교차 제외, pair index 용)
   int    charge = 0;
 
   // --- kinematics (Particle Flow 아님: TuneP 사용) ---
