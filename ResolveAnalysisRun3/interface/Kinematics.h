@@ -23,6 +23,21 @@ inline double energy(const P4& v) {
   return std::sqrt(px(v) * px(v) + py(v) * py(v) + pz(v) * pz(v) + v.mass * v.mass);
 }
 
+// phi 차이를 [-pi, pi] 로 감싼다.
+inline double deltaPhi(double phi1, double phi2) {
+  double d = phi1 - phi2;
+  while (d >  M_PI) d -= 2.0 * M_PI;
+  while (d < -M_PI) d += 2.0 * M_PI;
+  return d;
+}
+
+// deltaR^2 = deta^2 + dphi^2 (pairing/neighbor 공용).
+inline double deltaR2(double eta1, double phi1, double eta2, double phi2) {
+  const double deta = eta1 - eta2;
+  const double dphi = deltaPhi(phi1, phi2);
+  return deta * deta + dphi * dphi;
+}
+
 // 두 입자의 불변질량 M = sqrt( (E1+E2)^2 - |p1+p2|^2 ).
 inline double invariantMass(const P4& a, const P4& b) {
   const double e = energy(a) + energy(b);

@@ -2,23 +2,11 @@
 // 어떻게: neighbor 후보를 TuneP pt 로 정렬해 최고 하나만 빼는 modified iso.
 // 의존: ObjectSelector.h, <algorithm>, <cmath>.
 #include "ZprimeTo4l/ResolveAnalysisRun3/interface/ObjectSelector.h"
+#include "ZprimeTo4l/ResolveAnalysisRun3/interface/Kinematics.h"  // deltaR2
 
 #include <algorithm>
 #include <cmath>
 #include <set>
-
-namespace {
-
-// deltaR^2 (phi 는 [-pi,pi] 로 감싼다).
-double deltaR2(double eta1, double phi1, double eta2, double phi2) {
-  double dphi = phi1 - phi2;
-  while (dphi >  M_PI) dphi -= 2.0 * M_PI;
-  while (dphi < -M_PI) dphi += 2.0 * M_PI;
-  const double deta = eta1 - eta2;
-  return deta * deta + dphi * dphi;
-}
-
-}  // namespace
 
 namespace raRun3 {
 namespace ObjectSelector {

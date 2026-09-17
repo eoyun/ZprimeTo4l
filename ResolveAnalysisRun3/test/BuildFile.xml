@@ -15,3 +15,6 @@
 <bin file="test_electron_selection.cc" name="raRun3_test_electron_selection">
   <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
 </bin>
+<bin file="test_candidate.cc" name="raRun3_test_candidate">
+  <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
+</bin>
