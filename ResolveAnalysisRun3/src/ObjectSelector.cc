@@ -55,9 +55,10 @@ std::vector<Electron> selectElectronsF(const std::vector<Electron>& all, const C
 // ===== muon =====
 
 bool passMuonAccept(const Muon& mu, const Config& cfg) {
-  // 기존 ResolvedMuCRanalyzer 는 acceptance 를 reco eta(aMuon->eta())로 판정한다.
-  return mu.corrTunePpt > cfg.muon.tunePptMin &&
-         std::abs(mu.recoEta) < cfg.muon.etaMax;
+  // 기존 ResolvedMuCRanalyzer 는 (pt < ptThres || |eta| > 2.4) 로 reject → 경계값 포함.
+  // 따라서 keep 조건은 pt >= ptThres AND |eta| <= etaMax (>=, <=). reco eta(aMuon->eta()) 사용.
+  return mu.corrTunePpt >= cfg.muon.tunePptMin &&
+         std::abs(mu.recoEta) <= cfg.muon.etaMax;
 }
 
 bool passMuonId(const Muon& mu) {

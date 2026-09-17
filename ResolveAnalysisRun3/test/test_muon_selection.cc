@@ -37,6 +37,17 @@ static void test_accept_uses_recoEta() {
   CHECK(ObjectSelector::passMuonAccept(m, cfg) == false);
 }
 
+// 0b) 경계값 포함: pt=20, |eta|=2.4 는 통과, 그 바로 밖은 탈락 (기존 <20/>2.4 reject 재현).
+static void test_accept_boundary() {
+  Config cfg = makeCfg();  // tunePptMin=20, etaMax=2.4
+  Muon onEdge = baseMuon(); onEdge.corrTunePpt = 20.0; onEdge.recoEta = 2.4;
+  Muon lowPt  = baseMuon(); lowPt.corrTunePpt = 19.999;
+  Muon hiEta  = baseMuon(); hiEta.recoEta = 2.401;
+  CHECK(ObjectSelector::passMuonAccept(onEdge, cfg) == true);
+  CHECK(ObjectSelector::passMuonAccept(lowPt, cfg) == false);
+  CHECK(ObjectSelector::passMuonAccept(hiEta, cfg) == false);
+}
+
 // 1) neighbor 판정: dR 창 안/밖.
 static void test_isNeighbor_dr_window() {
   Config cfg = makeCfg();
@@ -93,6 +104,7 @@ static void test_selectMuonsP() {
 
 int main() {
   RUN(test_accept_uses_recoEta);
+  RUN(test_accept_boundary);
   RUN(test_isNeighbor_dr_window);
   RUN(test_isNeighbor_dz_dxy);
   RUN(test_modifiedIso_subtracts_highest);
