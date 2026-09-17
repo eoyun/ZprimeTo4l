@@ -1,0 +1,39 @@
+#ifndef ResolveAnalysisRun3_Config_h
+#define ResolveAnalysisRun3_Config_h
+// 무엇: 후단의 모든 물리 컷 값을 담는 struct + JSON 로더 선언.
+// 어떻게: selection.json → Config. 누락 키는 예외(기본값으로 때우지 않음).
+// 의존: 로더 구현(Config.cc)만 nlohmann/json 에 의존. 헤더는 순수 struct.
+#include <string>
+
+namespace raRun3 {
+
+struct NeighborCuts {
+  double drMin    = 0.;  // deltaR 하한 (self-매칭/중복 track 배제)
+  double drMax    = 0.;  // deltaR 상한
+  double dzMax    = 0.;  // [cm] |self.recoVz - neighbor.innerVz| 상한
+  double dxyBSMax = 0.;  // [cm] neighbor.innerDxyBS 상한 (signed, 기존 checkIso 재현)
+};
+
+struct MuonCuts {
+  double       tunePptMin = 0.;  // [GeV]
+  double       etaMax     = 0.;  // |eta| 상한
+  double       modIsoRelMax = 0.;  // modified iso / TuneP pt 상한
+  NeighborCuts neighbor;
+};
+
+struct MassCuts {
+  double dileptonMassMin = 0.;  // [GeV] 각 pair mll 하한
+  double signalMassMin   = 0.;  // [GeV] m4l SR 하한
+};
+
+struct Config {
+  MuonCuts muon;
+  MassCuts massCuts;
+};
+
+// 파일 경로 / 문자열에서 로드. 필수 키 누락 시 std::runtime_error.
+Config loadConfig(const std::string& path);
+Config loadConfigFromString(const std::string& jsonText);
+
+}  // namespace raRun3
+#endif

@@ -5,3 +5,7 @@
 <bin file="test_kinematics.cc" name="raRun3_test_kinematics">
   <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
 </bin>
+<bin file="test_config.cc" name="raRun3_test_config">
+  <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
+  <use name="json"/>
+</bin>
