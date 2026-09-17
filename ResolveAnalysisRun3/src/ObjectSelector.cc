@@ -40,6 +40,18 @@ std::vector<Electron> selectElectronsP(const std::vector<Electron>& all, const C
   return out;
 }
 
+std::vector<Electron> selectElectronsF(const std::vector<Electron>& all, const Config& cfg) {
+  std::vector<Electron> out;
+  for (const auto& ele : all) {
+    if (ele.passModHeep) continue;                 // P 는 F 가 아니다
+    if (!passElectronAccept(ele, cfg)) continue;   // acceptance
+    // 마스크 안 된 비트(mask=0 위치)만 전부 통과하면 loose denominator.
+    if ((ele.modHeepBitmap | cfg.electron.heepMaskLoose) == cfg.electron.heepAllPass)
+      out.push_back(ele);
+  }
+  return out;
+}
+
 // ===== muon =====
 
 bool passMuonAccept(const Muon& mu, const Config& cfg) {

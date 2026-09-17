@@ -18,6 +18,10 @@ bool passElectronAccept(const Electron& ele, const Config& cfg);
 // P: accept + 기존 modified-HEEP VID 통과.
 std::vector<Electron> selectElectronsP(const std::vector<Electron>& all, const Config& cfg);
 
+// F: P 아님 + accept + 마스크 통과 (modHeepBitmap | heepMaskLoose) == heepAllPass.
+// (loose denominator — 기존 ResolvedEleCRanalyzer nonHeepEles 재현)
+std::vector<Electron> selectElectronsF(const std::vector<Electron>& all, const Config& cfg);
+
 // ===== muon =====
 
 // acceptance: tuneP pt > min, |tuneP eta| < max.

@@ -48,8 +48,26 @@ static void test_accept_ee_and_gap() {
   CHECK(ObjectSelector::passElectronAccept(gap, cfg) == false);
 }
 
+// F: P 아님 + accept + (bitmap | 0x7B0) == 0xFFF.
+// 마스크 안 된 필수 비트 = 0xFFF & ~0x7B0 = 0x84F (bits 0,1,2,3,6,11).
+static void test_selectElectronsF() {
+  Config cfg = makeCfg();
+  Electron f = baseEle();
+  f.passModHeep = false; f.modHeepBitmap = 0x84F;   // 필수 비트 전부 → masked 통과 → F
+  Electron failMask = baseEle();
+  failMask.passModHeep = false; failMask.modHeepBitmap = 0x84E;  // bit0 빠짐 → F 아님
+  Electron isP = baseEle();
+  isP.passModHeep = true; isP.modHeepBitmap = 0xFFF;  // P 는 F 아님
+  Electron gapF = baseEle();
+  gapF.passModHeep = false; gapF.modHeepBitmap = 0x84F; gapF.etaSC = 1.5;  // gap → 탈락
+  std::vector<Electron> all = {f, failMask, isP, gapF};
+  std::vector<Electron> passF = ObjectSelector::selectElectronsF(all, cfg);
+  CHECK(passF.size() == 1);
+}
+
 int main() {
   RUN(test_selectElectronsP);
   RUN(test_accept_ee_and_gap);
+  RUN(test_selectElectronsF);
   REPORT();
 }
