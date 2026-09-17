@@ -9,3 +9,6 @@
   <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
   <use name="json"/>
 </bin>
+<bin file="test_muon_selection.cc" name="raRun3_test_muon_selection">
+  <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
+</bin>
