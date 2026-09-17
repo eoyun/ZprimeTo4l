@@ -17,6 +17,7 @@ struct Muon {
   // --- ID 결과 (CMSSW muon::isHighPtMuon / isTrackerHighPtMuon) ---
   bool   isHighPt        = false;  // global high-pT ID
   bool   isTrackerHighPt = false;  // tracker high-pT ID
+  bool   isTrackerMuon   = false;  // muon::isTrackerMuon (F loose denominator 용)
 
   // --- modified isolation 재료 ---
   double trackIso = 0.;   // [GeV] raw track isolation

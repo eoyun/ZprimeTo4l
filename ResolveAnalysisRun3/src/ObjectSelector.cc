@@ -23,8 +23,9 @@ namespace raRun3 {
 namespace ObjectSelector {
 
 bool passMuonAccept(const Muon& mu, const Config& cfg) {
+  // 기존 ResolvedMuCRanalyzer 는 acceptance 를 reco eta(aMuon->eta())로 판정한다.
   return mu.corrTunePpt > cfg.muon.tunePptMin &&
-         std::abs(mu.tunePeta) < cfg.muon.etaMax;
+         std::abs(mu.recoEta) < cfg.muon.etaMax;
 }
 
 bool passMuonId(const Muon& mu) {

@@ -28,6 +28,15 @@ static Muon baseMuon() {
   return m;
 }
 
+// 0) acceptance 는 reco eta 로 판정 (기존 aMuon->eta() 재현, tunePeta 아님).
+static void test_accept_uses_recoEta() {
+  Config cfg = makeCfg();
+  Muon m = baseMuon();
+  m.recoEta = 2.5;   // reco eta 창 밖(>2.4) → 탈락해야 함
+  m.tunePeta = 0.0;  // tunePeta 는 창 안 — 여기에 속으면 안 됨
+  CHECK(ObjectSelector::passMuonAccept(m, cfg) == false);
+}
+
 // 1) neighbor 판정: dR 창 안/밖.
 static void test_isNeighbor_dr_window() {
   Config cfg = makeCfg();
@@ -83,6 +92,7 @@ static void test_selectMuonsP() {
 }
 
 int main() {
+  RUN(test_accept_uses_recoEta);
   RUN(test_isNeighbor_dr_window);
   RUN(test_isNeighbor_dz_dxy);
   RUN(test_modifiedIso_subtracts_highest);
