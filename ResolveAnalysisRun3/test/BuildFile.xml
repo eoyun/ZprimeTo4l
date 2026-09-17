@@ -1,0 +1,4 @@
+<!-- 각 테스트를 독립 실행파일로 빌드. 패키지 라이브러리(위 export)를 링크한다. -->
+<bin file="test_smoke.cc" name="raRun3_test_smoke">
+  <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
+</bin>

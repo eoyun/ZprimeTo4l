@@ -1,0 +1,8 @@
+<!-- src/*.cc 를 libZprimeTo4l_ResolveAnalysisRun3 로 빌드하고, -->
+<!-- 이 라이브러리를 쓰는 쪽(test, bin, plugins)에 의존성을 물려준다. -->
+<use name="root"/>       <!-- TMath 등 -->
+<use name="rootmath"/>   <!-- ROOT 수학 -->
+<use name="json"/>       <!-- nlohmann/json 3.10.2 : #include <nlohmann/json.hpp> -->
+<export>
+  <lib name="1"/>
+</export>
