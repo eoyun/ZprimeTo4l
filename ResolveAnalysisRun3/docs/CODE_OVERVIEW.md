@@ -12,15 +12,20 @@
 
 ---
 
-## interface/NtupleSchema.h  ★공유 계약
-**용도:** Events.root branch **이름을 한 곳에서만** 정의. writer(ntuplizer)와 reader가 같은 상수를
-써서 이름이 어긋날 수 없게 함. schema 바꾸면 `kVersion` 증가.
+## interface/NtupleSchema.h  ★공유 계약 (flat, v2)
+**용도:** Events.root의 **flat branch 이름**(muon_pt, electron_pt …)을 한 곳에서만 정의.
+모든 branch는 std::vector<float/int> flat 배열 → 외부 condor/uproot가 struct 없이 바로 읽음.
+writer/reader가 같은 상수를 써서 어긋날 수 없음. schema 변경 시 `kVersion` 증가.
 ```cpp
 namespace raRun3::schema {
-  constexpr int kVersion = 1;
-  namespace ev  { /* run, lumi, event, genWeight, puTrue, hltFired, passMETfilters */ }
-  namespace mu  { /* mu_index, mu_corrTunePpt, mu_rawTunePpt, ... mu_dz  (24개) */ }
-  namespace ele { /* ele_index, ele_selEt, ele_rawPt.., ele_corrPt.., addGsfIdx (15개) */ }
+  constexpr int kVersion = 2;
+  constexpr float kMissing = -999.f;   // ValueMap 못 읽었을 때 study 변수 sentinel
+  namespace ev  { /* run,lumi,event,genWeight,puTrue,nPV,rho,hltFired,passMETfilters */ }
+  namespace mu  { /* muon_pt(=corr),muon_ptRaw, muon_eta.., neighbor 기하, ID, ID입력 (24개) */ }
+  namespace ele { /* electron_pt/ptRaw/et, corr/raw p4, ID결과,
+                     + modified-HEEP study: 표준(hOverE,sigmaIeta,dEtaInSeed,dPhiIn,e2x5/e5x5,
+                       iso,missingHits,dxy,ecalDriven) + modified VM(modTrkIso,EcalRecHitIso,
+                       union5x5*,dEtaInSeed2nd,dPhiInSC2nd,dPerpIn,alpha*,normDParaIn) */ }
   namespace trig{ /* trigObj_pt/eta/phi/filterBits */ }
 }
 // 확장: jet 추가 시 namespace jet 만 더하면 됨.
