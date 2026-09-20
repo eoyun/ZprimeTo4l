@@ -125,37 +125,49 @@ namespace CandidateBuilder {
 }
 ```
 
-## plugins/ResolvedNtuplizer.cc  (cmsRun EDAnalyzer)
-**용도:** MiniAOD → Events.root. acceptance 수준(ID 무관) object 저장, correction 전/후,
-느슨한 skim, skim 이전 정규화. 물리 최종컷은 안 함.
+## plugins/ResolvedNtuplizer.cc  (cmsRun EDAnalyzer) — flat 출력
+**용도:** MiniAOD → Events.root(flat). acceptance 수준(ID 무관) object 저장, correction 전/후,
+modified-HEEP study 변수 전부, 느슨한 skim, skim 이전 정규화. 물리 최종컷은 안 함.
 ```cpp
 class ResolvedNtuplizer : one::EDAnalyzer<one::SharedResources> {
-  beginJob():  TTree "Events" + 모든 branch(NtupleSchema 이름) 등록;
-               norm TH1(Nevents/sumw/sumw2), meta TH1(kVersion, muonCorrApplied=0)
+  beginJob():  TTree "Events" + 모든 flat branch(NtupleSchema 이름) 등록;
+               norm TH1(Nevents/sumw/sumw2), meta TH1(kVersion=2, muonCorrApplied=0)
   analyze():   clear
-               weight(genWeight,puTrue) → norm 에 skim 이전 합산
+               weight(genWeight,puTrue) → norm 에 skim 이전 합산 ; rho, nPV
                run/lumi/event
-               HLT(trigList OR) → hltFired ; METfilter → passMETfilters
+               HLT(trigList OR) → hltFired ; METfilter → passMETfilters  (컷 아님, 플래그)
                trigger objects(원하는 path 매칭) 저장
-               PV 없으면 return
-               muon 루프:  tunePpt>=20 & |eta|<2.4 (ID무관) → 모든 mu_* branch
-                          (corrTunePpt=raw, meta muonCorrApplied=0 로 미적용 표시)
-               electron 루프: |etaSC|<2.5 & gap밖 (ID무관) → 모든 ele_* branch
-                          (corr = ecalTrkEnergyPostCorr 진짜값; addGsfIdx 계산)
-               skim: (nMu+nEle) < minLeptons 면 return
+               PV 없으면 return                                   (하드 드롭)
+               muon 루프:  tunePpt>=20 & |eta|<2.4 (ID무관) → 모든 muon_* branch
+                          (muon_pt=muon_ptRaw, meta muonCorrApplied=0 로 미적용 표시)
+               electron 루프: |etaSC|<2.5 & gap밖 (ID무관) → 모든 electron_* branch
+                          - kinematics: raw(polarP4) + corr(ecalTrkEnergyPostCorr) 둘 다
+                          - ID: passModHeep, modHeepBitmap, addGsfIdx
+                          - HEEP study 표준: hOverE/sigmaIeta/dEtaInSeed/dPhiIn/e2x5/e5x5/
+                            iso3종/missingHits/dxy/dz/ecalDriven  (electron 메서드)
+                          - HEEP study modified: modTrkIso/modEcalHcalIso/union5x5*/
+                            dEtaInSeed2nd/dPhiInSC2nd/dPerpIn/alpha*/normDParaIn
+                            (ValueMap; 못 읽으면 -999 sentinel = kMissing)
+               skim: (nMu+nEle) < minLeptons 면 return              (하드 드롭)
                tree_->Fill()
 }
 DEFINE_FWK_MODULE(ResolvedNtuplizer);
+// 정밀도 정책: kinematics=float(검출기 분해능에 충분, 용량 절반), 정수=int,
+//   event=ULong64, 불변질량 계산=double, 정규화 누적(norm)=double.
+// 선택 정책: trigger/METfilter/ID 는 컷 아님(플래그·전부 저장) → 후단서 자유 선택.
+//   하드 드롭은 PV없음 + skim(<minLeptons) + object acceptance 뿐. 정규화는 skim 이전 기록.
 ```
 
 ## python/ResolvedNtuplizer_cfi.py
 **용도:** ntuplizer 기본 PSet(InputTag·skim 기준). cfg에서 override.
 ```python
 resolvedNtuplizer = cms.EDAnalyzer('ResolvedNtuplizer',
-  isMC, srcMuon, srcEle, srcPv, beamSpot,
+  isMC, srcMuon, srcEle, srcPv, beamSpot, rho,
   addGsfTrk=modifiedHEEPIDVarValueMaps2nd:eleAddGsfTrk,
+  modHeepModule='modifiedHEEPIDVarValueMaps2nd',      # modified-HEEP study VM 소스 instance
+  modEcalIso=ModifiedEcalRecHitIsolationScone:EcalRecHitIso,
   generator, pileupSummary, triggerResults, triggerObjects, METfilters,
-  trigList=[], METfilterList=[],                 # 사용자 조사
+  trigList=[], METfilterList=[],                       # 사용자 조사
   muPtMinStore, muEtaMaxStore, eleEtaMaxStore, eleGapLo, eleGapHi, minLeptonsSkim)
 ```
 
@@ -199,7 +211,7 @@ ResolveAnalysisRun3/test/BuildFile.xml   : test_*.cc → 실행파일 (패키지
 MiniAOD
   │  plugins/ResolvedNtuplizer  (NtupleSchema 이름으로 branch 채움)
   ▼
-Events.root  ── mu_*/ele_*/trig_*/ev_* + norm/meta
+Events.root  ── (flat) muon_*/electron_*/trigObj_* + event 스칼라 + norm/meta
   │  (Plan 4) NtupleReader: NtupleSchema 이름으로 읽어 Event/Muon/Electron struct 로
   ▼
 ObjectSelector(P/F) → CandidateBuilder(pairing) → [Plan 4] RegionSelector(채널/trigger/mass/SR·CR)
