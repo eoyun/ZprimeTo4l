@@ -59,7 +59,7 @@ setupEgammaPostRecoSeq(process,
                        era='2022-Prompt')
 
 process.evtCounter = cms.EDAnalyzer('SimpleEventCounter')
-process.evtCounter.isMC = cms.bool(False)
+process.evtCounter.isMC = cms.bool(True)
 
 from HLTrigger.HLTfilters.hltHighLevel_cfi import hltHighLevel
 process.hltFilter = hltHighLevel.clone()

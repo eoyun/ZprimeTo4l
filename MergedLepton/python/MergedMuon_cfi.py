@@ -22,8 +22,19 @@ _muTkIsoDefaultCuts = cms.PSet(
 mergedMuon = cms.EDAnalyzer("MergedMuon",
   isMC = cms.bool(True),
   srcMuon = cms.InputTag("slimmedMuons"),
+  srcMET = cms.InputTag("slimmedMETsPuppi"),
+  METfilters = cms.InputTag("TriggerResults","","PAT"),
+  METfilterList = cms.vstring(
+    "Flag_goodVertices",
+    "Flag_globalSuperTightHalo2016Filter",
+    "Flag_EcalDeadCellTriggerPrimitiveFilter",
+    "Flag_BadPFMuonFilter",
+    "Flag_BadPFMuonDzFilter",
+    "Flag_hfNoisyHitsFilter",
+    "Flag_eeBadScFilter",
+    "Flag_ecalBadCalibFilter"
+  ),
   srcPv = cms.InputTag("offlineSlimmedPrimaryVertices"),
-  pileupSummary = cms.InputTag("slimmedAddPileupInfo"),
   trackCands = cms.VInputTag(
     cms.InputTag("packedPFCandidates"),
     cms.InputTag("lostTracks")
@@ -44,7 +55,6 @@ mergedMuon = cms.EDAnalyzer("MergedMuon",
     "HLT_Mu9_IP6*",
     "HLT_Mu12_IP6*"
   ),
-  PUrwgt = cms.FileInPath("ZprimeTo4l/MergedLepton/data/BPH_Mu9_or_Mu12_IP6_PUrwgt.root"),
   IPthresTag = cms.double(6.),
   dzThres = cms.double(0.1),
   d0Thres = cms.double(0.06),

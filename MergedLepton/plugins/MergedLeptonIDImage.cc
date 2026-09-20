@@ -191,6 +191,7 @@ private:
   std::vector<float> etaEleTrk;// original trk, add trk
   std::vector<float> phiEleTrk;
   float genDR;
+  float weight;
 
   int imageSize_;
   int ESimageSize_;
@@ -452,6 +453,7 @@ void MergedLeptonIDImage::beginJob() {
   ImageTree_->Branch("phiEleTrk",&phiEleTrk,32000,0);
   ImageTree_->Branch("etaEleTrk",&etaEleTrk,32000,0);
   ImageTree_->Branch("genDR",&genDR,"genDR/F");
+  ImageTree_->Branch("weight",&weight,"weight/F");
 }
 
 void MergedLeptonIDImage::endJob() {
@@ -463,7 +465,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
   double aWeight = 1.;
-
+  float mcweight = 0.;
   if (isMC_) {
     edm::Handle<double> theprefweight;
     iEvent.getByToken(prefweight_token, theprefweight);
@@ -471,7 +473,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
 
     edm::Handle<GenEventInfoProduct> genInfo;
     iEvent.getByToken(generatorToken_, genInfo);
-    double mcweight = genInfo->weight();
+    mcweight = genInfo->weight();
 
     aWeight = prefiringweight*mcweight/std::abs(mcweight);
 
@@ -811,6 +813,7 @@ void MergedLeptonIDImage::analyze(const edm::Event& iEvent, const edm::EventSetu
     EEImage_branch = EEImage;
     ES1Image_branch = ESImage_plane1;
     ES2Image_branch = ESImage_plane2;
+    weight=mcweight;
     //std::cout << matched_gen_prompt_ele <<" | "<<matched_gen_ele<<std::endl;
     //std::cout << "----" << std::endl;
     label_num_ele_hard = matched_gen_prompt_ele;

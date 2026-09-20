@@ -17,8 +17,9 @@ process.source = cms.Source("PoolSource",
     # 'file:MiniAOD.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/489/00000/4144d69c-dc68-4443-b307-765fdaaef674.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/488/00000/05236315-30ed-4c16-9288-2a5b7c8786e0.root'
-    'file:MiniAODv4_1_2000_1.root'
+    #'file:MiniAODv4_1.root'
     #'/store/data/Run2022E/Muon/MINIAOD/PromptReco-v1/000/359/045/00000/f0d64bed-172f-470b-bdf3-7abc1be22c5d.root'
+    '/store/mc/Run3Summer22MiniAODv4/WtoLNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/MINIAODSIM/130X_mcRun3_2022_realistic_v5-v2/2520000/03d57826-8e8d-4b11-8683-c75d0310b16f.root'
     #"/store/mc/Run3Summer22MiniAODv4/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/MINIAODSIM/130X_mcRun3_2022_realistic_v5-v2/2520000/017afd05-e111-41dc-9802-86e708952417.root"
     ),
     secondaryFileNames = cms.untracked.vstring()
@@ -37,8 +38,8 @@ process.printContent.verbose = True
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-#process.GlobalTag.globaltag = cms.string("124X_mcRun3_2022_realistic_v12")
-process.GlobalTag.globaltag = cms.string("124X_dataRun3_Prompt_v4")
+process.GlobalTag.globaltag = cms.string("124X_mcRun3_2022_realistic_v12")
+#process.GlobalTag.globaltag = cms.string("124X_dataRun3_Prompt_v4")
 #process.GlobalTag.globaltag = cms.string("124X_dataRun3_v15")
 
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
@@ -70,25 +71,21 @@ process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone
 
 
 process.evtCounter = cms.EDAnalyzer('SimpleEventCounter')
-process.evtCounter.isMC = cms.bool(False)
+process.evtCounter.isMC = cms.bool(True)
 
 from HLTrigger.HLTfilters.hltHighLevel_cfi import hltHighLevel
 process.hltFilter = hltHighLevel.clone()
 process.hltFilter.throw = cms.bool(False)
-#process.hltFilter.HLTPaths = cms.vstring("HLT_Mu50*") # HLT_Mu9_IP6_part* # HLT_IsoMu24_v*
-process.hltFilter.HLTPaths = ["HLT_Mu55_v*","HLT_Mu50_v*","HLT_CascadeMu100_v*","HLT_HighPtTkMu100_v*"] # HLT_Mu9_IP6_part* # HLT_IsoMu24_v*
+process.hltFilter.HLTPaths = cms.vstring("HLT_IsoMu24*") # HLT_Mu9_IP6_part* # HLT_IsoMu24_v*
+#process.hltFilter.HLTPaths = ["HLT_Mu55_v*","HLT_Mu50_v*","HLT_CascadeMu100_v*","HLT_HighPtTkMu100_v*"] # HLT_Mu9_IP6_part* # HLT_IsoMu24_v*
 process.hltFilter.TriggerResultsTag = cms.InputTag("TriggerResults","","HLT")
 
-process.MuonJpsi.isMC = cms.bool(False)
+process.MuonJpsi.isMC = cms.bool(True)
 
 process.p = cms.Path(
     process.evtCounter+
     #process.hltFilter+
-    process.ModifiedHEEPIDVarValueMaps+
-    process.ModifiedEcalRecHitIsolationScone+
-    process.mergedLeptonIDProducer20UL18+
     process.egammaPostRecoSeq+
-    process.modifiedHEEPIDVarValueMaps2nd+
     process.MuonJpsi
 )
 

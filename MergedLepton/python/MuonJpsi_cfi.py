@@ -3,6 +3,18 @@ import FWCore.ParameterSet.Config as cms
 MuonJpsi = cms.EDAnalyzer("MuonJpsi",
   isMC = cms.bool(True),
   srcMuon = cms.InputTag("slimmedMuons"),
+  srcMET = cms.InputTag("slimmedMETsPuppi"),
+  METfilters = cms.InputTag("TriggerResults","","PAT"),
+  METfilterList = cms.vstring(
+    "Flag_goodVertices",
+    "Flag_globalSuperTightHalo2016Filter",
+    "Flag_EcalDeadCellTriggerPrimitiveFilter",
+    "Flag_BadPFMuonFilter",
+    "Flag_BadPFMuonDzFilter",
+    "Flag_hfNoisyHitsFilter",
+    "Flag_eeBadScFilter",
+    "Flag_ecalBadCalibFilter"
+  ),
   srcPv = cms.InputTag("offlineSlimmedPrimaryVertices"),
   pileupSummary = cms.InputTag("slimmedAddPileupInfo"),
   addGsfTrkMap = cms.InputTag("modifiedHEEPIDVarValueMaps2nd","eleAddGsfTrk"),

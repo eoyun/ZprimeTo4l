@@ -25,6 +25,7 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source('PoolSource',
     fileNames = cms.untracked.vstring(
         # 'root://cms-xrd-global.cern.ch//store/mc/Run3.../MINIAODSIM/....root'
+    '/store/mc/Run3Summer22MiniAODv4/WtoLNu-2Jets_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/MINIAODSIM/130X_mcRun3_2022_realistic_v5-v2/2520000/03d57826-8e8d-4b11-8683-c75d0310b16f.root'
     ),
     secondaryFileNames = cms.untracked.vstring()
 )
@@ -38,7 +39,7 @@ process.TFileService = cms.Service('TFileService',
 
 # ---- [USER] Global Tag / Geometry / MagneticField (Run-3 era 에 맞게) ----
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string('')   # [USER] 예: '130X_mcRun3_2022_realistic_v5'
+process.GlobalTag.globaltag = cms.string('130X_mcRun3_2022_realistic_v5')   # [USER] 예: '130X_mcRun3_2022_realistic_v5'
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('TrackingTools.TransientTrack.TransientTrackBuilder_cfi')

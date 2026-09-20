@@ -5,6 +5,7 @@
 #include "ZprimeTo4l/ModifiedHEEP/interface/ModifiedDEtaInSeed.h"
 #include "ZprimeTo4l/MergedLepton/interface/MergedMuonTkIsolFromCands.h"
 
+#include "DataFormats/PatCandidates/interface/MET.h"
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -69,6 +70,7 @@
 #include "DataFormats/EgammaReco/interface/PreshowerCluster.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/MuonReco/interface/MuonEnergy.h"
+#include "DataFormats/MuonReco/interface/MuonPFIsolation.h"
 
 
 #include "TH1D.h"
@@ -94,8 +96,10 @@ private:
 
 
   const edm::EDGetTokenT<edm::View<reco::Muon>> srcMuon_;
+  const edm::EDGetTokenT<edm::View<pat::MET>> metToken_;
+  const edm::EDGetTokenT<edm::TriggerResults> METfilterToken_;
+  const std::vector<std::string> METfilterList_;
   const edm::EDGetTokenT<edm::View<reco::Vertex>> pvToken_;
-  const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
   const std::vector<edm::EDGetTokenT<edm::View<pat::PackedCandidate>>> trackCandsTokens_;
   const std::vector<MergedMuonTkIsolFromCands::PIDVeto> trackCandsVetos_;
   const edm::EDGetTokenT<edm::View<pat::PackedCandidate>> packedPFcandToken_;
@@ -111,8 +115,6 @@ private:
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
 
   const std::vector<std::string> trigList_;
-
-  const edm::FileInPath purwgtPath_;
 
   const bool isMC_;
 
@@ -137,9 +139,6 @@ private:
   const double kaonMass_ = 0.493677;
   const double kaonMassErr_ = 0.000016;
   const double jpsiMass_ = 3.0969;
-
-  std::unique_ptr<TFile> purwgtFile_;
-  TH1D* purwgt_;
 
   std::map<std::string,TH1*> histo1d_;
   std::map<std::string,TH2*> histo2d_;
@@ -167,10 +166,11 @@ private:
   float chi2LocalPosition_muon;
   float trkKink_muon;
   float glbKink_muon;
+  float pfrelIso04_muon;
   float gen_eta_muon;
   float gen_phi_muon;
   float gen_pt_muon;
-
+  float weight_muon;
 
   TTree* mergedMuon_ = nullptr;
 
@@ -201,6 +201,7 @@ private:
   float gen_sub_eta_mergedMuon;
   float gen_sub_phi_mergedMuon;
   float gen_sub_pt_mergedMuon;
+  float weight_mergedMuon;
 
   TTree* muonEfficiencyTree_ = nullptr;
 
@@ -209,6 +210,7 @@ private:
   bool flag_Id;
   bool flag_Id_woID;
   bool flag_Id_any;
+  float eff_weight;
   float eff_gen_1_pt;
   float eff_gen_1_eta;
   float eff_gen_1_phi;
@@ -222,6 +224,56 @@ private:
   int eff_reco_1_idx;
   bool eff_reco_1_highptid;
   bool eff_reco_1_trackerhighptid;
+  float eff_reco_1_em;
+  float eff_reco_1_emS9;
+  float eff_reco_1_emS25;
+  float eff_reco_1_emMax;
+  float eff_reco_1_had;
+  float eff_reco_1_hadS9;
+  float eff_reco_1_hadMax;
+  float eff_reco_1_ho;
+  float eff_reco_1_hoS9;
+  bool eff_reco_1_isGlobal;
+  bool eff_reco_1_isTracker;
+  bool eff_reco_1_isPFMuon;
+  bool eff_reco_1_isPFIsolationValid;
+  int eff_reco_1_numOfMatchedStations;
+  int eff_reco_1_numOfChambers;
+  double eff_reco_1_segCompatibility;
+  double eff_reco_1_caloCompatibility;
+  float eff_reco_1_chi2LocalPosition;
+  float eff_reco_1_trkKink;
+  float eff_reco_1_glbKink;
+  float eff_reco_1_pfrelIso04;
+  bool eff_reco_1_isLoose;
+  bool eff_reco_1_isMedium;
+  bool eff_reco_1_isTight;
+  int eff_reco_1_nValidMuonHits;
+  float eff_reco_1_normChi2_global;
+  int eff_reco_1_nValidPixelHits;
+  int eff_reco_1_trkLayers;
+  int eff_reco_1_pixelLayers;
+  float eff_reco_1_normChi2_inner;
+  float eff_reco_1_validFraction;
+  float eff_reco_1_tunePtErrorOverPt;
+  float eff_reco_1_dxy_PV;
+  float eff_reco_1_dz_PV;
+  int eff_reco_1_nMatches;
+  float eff_reco_1_innerTrk_pt;
+  float eff_reco_1_innerTrk_eta;
+  float eff_reco_1_innerTrk_phi;
+  float eff_reco_1_outerTrk_pt;
+  float eff_reco_1_outerTrk_eta;
+  float eff_reco_1_outerTrk_phi;
+  float eff_reco_1_globalTrk_pt;
+  float eff_reco_1_globalTrk_eta;
+  float eff_reco_1_globalTrk_phi;
+  float eff_reco_1_bestTrk_pt;
+  float eff_reco_1_bestTrk_eta;
+  float eff_reco_1_bestTrk_phi;
+  float eff_reco_1_tunePTrk_pt;
+  float eff_reco_1_tunePTrk_eta;
+  float eff_reco_1_tunePTrk_phi;
   float eff_reco_2_pt;
   float eff_reco_2_eta;
   float eff_reco_2_phi;
@@ -229,6 +281,56 @@ private:
   int eff_reco_2_idx;
   bool eff_reco_2_highptid;
   bool eff_reco_2_trackerhighptid;
+  float eff_reco_2_em;
+  float eff_reco_2_emS9;
+  float eff_reco_2_emS25;
+  float eff_reco_2_emMax;
+  float eff_reco_2_had;
+  float eff_reco_2_hadS9;
+  float eff_reco_2_hadMax;
+  float eff_reco_2_ho;
+  float eff_reco_2_hoS9;
+  bool eff_reco_2_isGlobal;
+  bool eff_reco_2_isTracker;
+  bool eff_reco_2_isPFMuon;
+  bool eff_reco_2_isPFIsolationValid;
+  int eff_reco_2_numOfMatchedStations;
+  int eff_reco_2_numOfChambers;
+  double eff_reco_2_segCompatibility;
+  double eff_reco_2_caloCompatibility;
+  float eff_reco_2_chi2LocalPosition;
+  float eff_reco_2_trkKink;
+  float eff_reco_2_glbKink;
+  float eff_reco_2_pfrelIso04;
+  bool eff_reco_2_isLoose;
+  bool eff_reco_2_isMedium;
+  bool eff_reco_2_isTight;
+  int eff_reco_2_nValidMuonHits;
+  float eff_reco_2_normChi2_global;
+  int eff_reco_2_nValidPixelHits;
+  int eff_reco_2_trkLayers;
+  int eff_reco_2_pixelLayers;
+  float eff_reco_2_normChi2_inner;
+  float eff_reco_2_validFraction;
+  float eff_reco_2_tunePtErrorOverPt;
+  float eff_reco_2_dxy_PV;
+  float eff_reco_2_dz_PV;
+  int eff_reco_2_nMatches;
+  float eff_reco_2_innerTrk_pt;
+  float eff_reco_2_innerTrk_eta;
+  float eff_reco_2_innerTrk_phi;
+  float eff_reco_2_outerTrk_pt;
+  float eff_reco_2_outerTrk_eta;
+  float eff_reco_2_outerTrk_phi;
+  float eff_reco_2_globalTrk_pt;
+  float eff_reco_2_globalTrk_eta;
+  float eff_reco_2_globalTrk_phi;
+  float eff_reco_2_bestTrk_pt;
+  float eff_reco_2_bestTrk_eta;
+  float eff_reco_2_bestTrk_phi;
+  float eff_reco_2_tunePTrk_pt;
+  float eff_reco_2_tunePTrk_eta;
+  float eff_reco_2_tunePTrk_phi;
   bool add1_track_flag;
   float add1_track_pt;
   float add1_track_eta;
@@ -237,6 +339,10 @@ private:
   float add2_track_pt;
   float add2_track_eta;
   float add2_track_phi;
+  float eff_MET;
+  float eff_MET_phi;
+  float eff_MET_cor;
+  float eff_MET_cor_XY_phi;
 
   PositionCalc posCalcLog_;
 
@@ -315,8 +421,10 @@ public:
 
 MergedMuon::MergedMuon(const edm::ParameterSet& iConfig) :
 srcMuon_(consumes<edm::View<reco::Muon>>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
+metToken_(consumes<edm::View<pat::MET>>(iConfig.getParameter<edm::InputTag>("srcMET"))),
+METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
+METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 pvToken_(consumes<edm::View<reco::Vertex>>(iConfig.getParameter<edm::InputTag>("srcPv"))),
-pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
 trackCandsTokens_([&iConfig, this]() {
   std::vector<edm::EDGetTokenT<edm::View<pat::PackedCandidate>>> tokens;
   const auto trackCands = iConfig.getParameter<std::vector<edm::InputTag>>("trackCands");
@@ -347,7 +455,6 @@ triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>(
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
-purwgtPath_(iConfig.getParameter<edm::FileInPath>("PUrwgt")),
 isMC_(iConfig.getParameter<bool>("isMC")),
 ptThresTag_(iConfig.getParameter<double>("ptThresTag")),
 IPthresTag_(iConfig.getParameter<double>("IPthresTag")),
@@ -456,14 +563,10 @@ void MergedMuon::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
 
-  purwgtFile_ = std::make_unique<TFile>(purwgtPath_.fullPath().c_str(),"READ");
-  purwgt_ = static_cast<TH1D*>(purwgtFile_->Get("PUrwgt"));
-
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",30,0.,30.);
   histo1d_["mva_HasTrkEB"] = fs->make<TH1D>("mva_HasTrkEB","MVA score",200,-1.,1.);
   histo1d_["nPV"] = fs->make<TH1D>("nPV","nPV",99,0.,99.);
-  histo1d_["PUsummary"] = fs->make<TH1D>("PUsummary","PUsummary",99,0.,99.);
 
   
   muon_ = fs->make<TTree>("muonTree","muonTree");
@@ -488,9 +591,11 @@ void MergedMuon::beginJob() {
   muon_->Branch("chi2LocalPosition",&chi2LocalPosition_muon,"chi2LocalPosition/F"); 
   muon_->Branch("trkKink",&trkKink_muon,"trkKink/F"); 
   muon_->Branch("glbKink",&glbKink_muon,"glbKink/F"); 
+  muon_->Branch("pfrelIso04",&pfrelIso04_muon,"pfrelIso04/F"); 
   muon_->Branch("gen_phi",&gen_phi_muon,"gen_phi/F");
   muon_->Branch("gen_eta",&gen_eta_muon,"gen_eta/F");
   muon_->Branch("gen_pt",&gen_pt_muon,"gen_pt/F");
+  muon_->Branch("weight",&weight_muon,"weight/F");
 
   mergedMuon_ = fs->make<TTree>("mergedMuonTree","mergedMuonTree");
   mergedMuon_->Branch("pT",&pT_mergedMuon,"pT/F"); 
@@ -520,6 +625,7 @@ void MergedMuon::beginJob() {
   mergedMuon_->Branch("gen_sub_phi",&gen_sub_phi_mergedMuon,"gen_sub_phi/F");
   mergedMuon_->Branch("gen_sub_eta",&gen_sub_eta_mergedMuon,"gen_sub_eta/F");
   mergedMuon_->Branch("gen_sub_pt",&gen_sub_pt_mergedMuon,"gen_sub_pt/F");
+  mergedMuon_->Branch("weight",&weight_mergedMuon,"weight/F");
 
   muonEfficiencyTree_ = fs->make<TTree>("muonEfficiencyTree","muonEfficiencyTree");
   muonEfficiencyTree_->Branch("dR_gen",&dR_gen,"dR_gen/F");
@@ -540,6 +646,56 @@ void MergedMuon::beginJob() {
   muonEfficiencyTree_->Branch("eff_reco_1_idx",&eff_reco_1_idx,"eff_reco_1_idx/I");
   muonEfficiencyTree_->Branch("eff_reco_1_highptid",&eff_reco_1_highptid,"eff_reco_1_highptid/B");
   muonEfficiencyTree_->Branch("eff_reco_1_trackerhighptid",&eff_reco_1_trackerhighptid,"eff_reco_1_trackerhighptid/B");
+  muonEfficiencyTree_->Branch("eff_reco_1_em",&eff_reco_1_em,"eff_reco_1_em/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_emS9",&eff_reco_1_emS9,"eff_reco_1_ems9/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_emS25",&eff_reco_1_emS25,"eff_reco_1_emS25/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_emMax",&eff_reco_1_emMax,"eff_reco_1_emMax/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_had",&eff_reco_1_had,"eff_reco_1_had/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_hadS9",&eff_reco_1_hadS9,"eff_reco_1_hadS9/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_hadMax",&eff_reco_1_hadMax,"eff_reco_1_hadMax/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_ho",&eff_reco_1_ho,"eff_reco_1_ho/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_hoS9",&eff_reco_1_hoS9,"eff_reco_1_hoS9/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_isGlobal",&eff_reco_1_isGlobal,"eff_reco_1_isGlobal/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_isTracker",&eff_reco_1_isTracker,"eff_reco_1_isTracker/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_isPFMuon",&eff_reco_1_isPFMuon,"eff_reco_1_isPFMuon/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_isPFIsolationValid",&eff_reco_1_isPFIsolationValid,"eff_reco_1_isPFIsolationValid/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_numOfMatchedStations",&eff_reco_1_numOfMatchedStations,"eff_reco_1_numOfMatchedStations/I"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_numOfChambers",&eff_reco_1_numOfChambers,"eff_reco_1_numOfChambers/I"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_segCompatibility",&eff_reco_1_segCompatibility,"eff_reco_1_segCompatibility/D"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_caloCompatibility",&eff_reco_1_caloCompatibility,"eff_reco_1_caloCompatibility/D"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_chi2LocalPosition",&eff_reco_1_chi2LocalPosition,"eff_reco_1_chi2LocalPosition/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_trkKink",&eff_reco_1_trkKink,"eff_reco_1_trkKink/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_glbKink",&eff_reco_1_glbKink,"eff_reco_1_glbKink/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_1_pfrelIso04",&eff_reco_1_pfrelIso04,"eff_reco_1_pfrelIso04/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_isLoose",&eff_reco_1_isLoose,"eff_reco_1_isLoose/O");
+  muonEfficiencyTree_->Branch("eff_reco_1_isMedium",&eff_reco_1_isMedium,"eff_reco_1_isMedium/O");
+  muonEfficiencyTree_->Branch("eff_reco_1_isTight",&eff_reco_1_isTight,"eff_reco_1_isTight/O");
+  muonEfficiencyTree_->Branch("eff_reco_1_nValidMuonHits",&eff_reco_1_nValidMuonHits,"eff_reco_1_nValidMuonHits/I");
+  muonEfficiencyTree_->Branch("eff_reco_1_normChi2_global",&eff_reco_1_normChi2_global,"eff_reco_1_normChi2_global/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_nValidPixelHits",&eff_reco_1_nValidPixelHits,"eff_reco_1_nValidPixelHits/I");
+  muonEfficiencyTree_->Branch("eff_reco_1_trkLayers",&eff_reco_1_trkLayers,"eff_reco_1_trkLayers/I");
+  muonEfficiencyTree_->Branch("eff_reco_1_pixelLayers",&eff_reco_1_pixelLayers,"eff_reco_1_pixelLayers/I");
+  muonEfficiencyTree_->Branch("eff_reco_1_normChi2_inner",&eff_reco_1_normChi2_inner,"eff_reco_1_normChi2_inner/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_validFraction",&eff_reco_1_validFraction,"eff_reco_1_validFraction/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_tunePtErrorOverPt",&eff_reco_1_tunePtErrorOverPt,"eff_reco_1_tunePtErrorOverPt/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_dxy_PV",&eff_reco_1_dxy_PV,"eff_reco_1_dxy_PV/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_dz_PV",&eff_reco_1_dz_PV,"eff_reco_1_dz_PV/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_nMatches",&eff_reco_1_nMatches,"eff_reco_1_nMatches/I");
+  muonEfficiencyTree_->Branch("eff_reco_1_innerTrk_pt",&eff_reco_1_innerTrk_pt,"eff_reco_1_innerTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_innerTrk_eta",&eff_reco_1_innerTrk_eta,"eff_reco_1_innerTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_innerTrk_phi",&eff_reco_1_innerTrk_phi,"eff_reco_1_innerTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_outerTrk_pt",&eff_reco_1_outerTrk_pt,"eff_reco_1_outerTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_outerTrk_eta",&eff_reco_1_outerTrk_eta,"eff_reco_1_outerTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_outerTrk_phi",&eff_reco_1_outerTrk_phi,"eff_reco_1_outerTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_globalTrk_pt",&eff_reco_1_globalTrk_pt,"eff_reco_1_globalTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_globalTrk_eta",&eff_reco_1_globalTrk_eta,"eff_reco_1_globalTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_globalTrk_phi",&eff_reco_1_globalTrk_phi,"eff_reco_1_globalTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_bestTrk_pt",&eff_reco_1_bestTrk_pt,"eff_reco_1_bestTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_bestTrk_eta",&eff_reco_1_bestTrk_eta,"eff_reco_1_bestTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_bestTrk_phi",&eff_reco_1_bestTrk_phi,"eff_reco_1_bestTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_tunePTrk_pt",&eff_reco_1_tunePTrk_pt,"eff_reco_1_tunePTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_tunePTrk_eta",&eff_reco_1_tunePTrk_eta,"eff_reco_1_tunePTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_tunePTrk_phi",&eff_reco_1_tunePTrk_phi,"eff_reco_1_tunePTrk_phi/F");
   muonEfficiencyTree_->Branch("eff_reco_2_pt",&eff_reco_2_pt,"eff_reco_2_pt/F");
   muonEfficiencyTree_->Branch("eff_reco_2_phi",&eff_reco_2_phi,"eff_reco_2_phi/F");
   muonEfficiencyTree_->Branch("eff_reco_2_eta",&eff_reco_2_eta,"eff_reco_2_eta/F");
@@ -547,6 +703,56 @@ void MergedMuon::beginJob() {
   muonEfficiencyTree_->Branch("eff_reco_2_idx",&eff_reco_2_idx,"eff_reco_2_idx/I");
   muonEfficiencyTree_->Branch("eff_reco_2_highptid",&eff_reco_2_highptid,"eff_reco_2_highptid/B");
   muonEfficiencyTree_->Branch("eff_reco_2_trackerhighptid",&eff_reco_2_trackerhighptid,"eff_reco_2_trackerhighptid/B");
+  muonEfficiencyTree_->Branch("eff_reco_2_em",&eff_reco_2_em,"eff_reco_2_em/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_emS9",&eff_reco_2_emS9,"eff_reco_2_ems9/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_emS25",&eff_reco_2_emS25,"eff_reco_2_emS25/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_emMax",&eff_reco_2_emMax,"eff_reco_2_emMax/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_had",&eff_reco_2_had,"eff_reco_2_had/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_hadS9",&eff_reco_2_hadS9,"eff_reco_2_hadS9/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_hadMax",&eff_reco_2_hadMax,"eff_reco_2_hadMax/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_ho",&eff_reco_2_ho,"eff_reco_2_ho/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_hoS9",&eff_reco_2_hoS9,"eff_reco_2_hoS9/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_isGlobal",&eff_reco_2_isGlobal,"eff_reco_2_isGlobal/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_isTracker",&eff_reco_2_isTracker,"eff_reco_2_isTracker/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_isPFMuon",&eff_reco_2_isPFMuon,"eff_reco_2_isPFMuon/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_isPFIsolationValid",&eff_reco_2_isPFIsolationValid,"eff_reco_2_isPFIsolationValid/B"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_numOfMatchedStations",&eff_reco_2_numOfMatchedStations,"eff_reco_2_numOfMatchedStations/I"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_numOfChambers",&eff_reco_2_numOfChambers,"eff_reco_2_numOfChambers/I"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_segCompatibility",&eff_reco_2_segCompatibility,"eff_reco_2_segCompatibility/D"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_caloCompatibility",&eff_reco_2_caloCompatibility,"eff_reco_2_caloCompatibility/D"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_chi2LocalPosition",&eff_reco_2_chi2LocalPosition,"eff_reco_2_chi2LocalPosition/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_trkKink",&eff_reco_2_trkKink,"eff_reco_2_trkKink/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_glbKink",&eff_reco_2_glbKink,"eff_reco_2_glbKink/F"); 
+  muonEfficiencyTree_->Branch("eff_reco_2_pfrelIso04",&eff_reco_2_pfrelIso04,"eff_reco_2_pfrelIso04/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_isLoose",&eff_reco_2_isLoose,"eff_reco_2_isLoose/O");
+  muonEfficiencyTree_->Branch("eff_reco_2_isMedium",&eff_reco_2_isMedium,"eff_reco_2_isMedium/O");
+  muonEfficiencyTree_->Branch("eff_reco_2_isTight",&eff_reco_2_isTight,"eff_reco_2_isTight/O");
+  muonEfficiencyTree_->Branch("eff_reco_2_nValidMuonHits",&eff_reco_2_nValidMuonHits,"eff_reco_2_nValidMuonHits/I");
+  muonEfficiencyTree_->Branch("eff_reco_2_normChi2_global",&eff_reco_2_normChi2_global,"eff_reco_2_normChi2_global/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_nValidPixelHits",&eff_reco_2_nValidPixelHits,"eff_reco_2_nValidPixelHits/I");
+  muonEfficiencyTree_->Branch("eff_reco_2_trkLayers",&eff_reco_2_trkLayers,"eff_reco_2_trkLayers/I");
+  muonEfficiencyTree_->Branch("eff_reco_2_pixelLayers",&eff_reco_2_pixelLayers,"eff_reco_2_pixelLayers/I");
+  muonEfficiencyTree_->Branch("eff_reco_2_normChi2_inner",&eff_reco_2_normChi2_inner,"eff_reco_2_normChi2_inner/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_validFraction",&eff_reco_2_validFraction,"eff_reco_2_validFraction/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_tunePtErrorOverPt",&eff_reco_2_tunePtErrorOverPt,"eff_reco_2_tunePtErrorOverPt/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_dxy_PV",&eff_reco_2_dxy_PV,"eff_reco_2_dxy_PV/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_dz_PV",&eff_reco_2_dz_PV,"eff_reco_2_dz_PV/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_nMatches",&eff_reco_2_nMatches,"eff_reco_2_nMatches/I");
+  muonEfficiencyTree_->Branch("eff_reco_2_innerTrk_pt",&eff_reco_2_innerTrk_pt,"eff_reco_2_innerTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_innerTrk_eta",&eff_reco_2_innerTrk_eta,"eff_reco_2_innerTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_innerTrk_phi",&eff_reco_2_innerTrk_phi,"eff_reco_2_innerTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_outerTrk_pt",&eff_reco_2_outerTrk_pt,"eff_reco_2_outerTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_outerTrk_eta",&eff_reco_2_outerTrk_eta,"eff_reco_2_outerTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_outerTrk_phi",&eff_reco_2_outerTrk_phi,"eff_reco_2_outerTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_globalTrk_pt",&eff_reco_2_globalTrk_pt,"eff_reco_2_globalTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_globalTrk_eta",&eff_reco_2_globalTrk_eta,"eff_reco_2_globalTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_globalTrk_phi",&eff_reco_2_globalTrk_phi,"eff_reco_2_globalTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_bestTrk_pt",&eff_reco_2_bestTrk_pt,"eff_reco_2_bestTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_bestTrk_eta",&eff_reco_2_bestTrk_eta,"eff_reco_2_bestTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_bestTrk_phi",&eff_reco_2_bestTrk_phi,"eff_reco_2_bestTrk_phi/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_tunePTrk_pt",&eff_reco_2_tunePTrk_pt,"eff_reco_2_tunePTrk_pt/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_tunePTrk_eta",&eff_reco_2_tunePTrk_eta,"eff_reco_2_tunePTrk_eta/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_tunePTrk_phi",&eff_reco_2_tunePTrk_phi,"eff_reco_2_tunePTrk_phi/F");
   muonEfficiencyTree_->Branch("add1_trk_flag",&add1_track_flag,"add1_trk_flag/B");
   muonEfficiencyTree_->Branch("add1_trk_pt",&add1_track_pt,"add1_trk_pt/F");
   muonEfficiencyTree_->Branch("add1_trk_eta",&add1_track_eta,"add1_trk_eta/F");
@@ -555,55 +761,39 @@ void MergedMuon::beginJob() {
   muonEfficiencyTree_->Branch("add2_trk_pt",&add2_track_pt,"add2_trk_pt/F");
   muonEfficiencyTree_->Branch("add2_trk_eta",&add2_track_eta,"add2_trk_eta/F");
   muonEfficiencyTree_->Branch("add2_trk_phi",&add2_track_phi,"add2_trk_phi/F");
+  muonEfficiencyTree_->Branch("eff_weight",&eff_weight,"eff_weight/F");
+  muonEfficiencyTree_->Branch("eff_MET",&eff_MET,"eff_MET/F");
+  muonEfficiencyTree_->Branch("eff_MET_phi",&eff_MET_phi,"eff_MET_phi/F");
+  muonEfficiencyTree_->Branch("eff_MET_cor",&eff_MET_cor,"eff_MET_cor/F");
+  muonEfficiencyTree_->Branch("eff_MET_cor_XY_phi",&eff_MET_cor_XY_phi,"eff_MET_cor_XY_phi/F");
 }
 
 
 void MergedMuon::endJob() {
-  purwgtFile_->Close();
 }
 
 
 void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<edm::View<reco::Vertex>> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
-  double aWeight = 1.;
-
+  double mcweight = 1.;
   if (isMC_) {
-    double prefiringweight = 1.;
-    if (!prefweightToken_.isUninitialized()) {
-      edm::Handle<double> theprefweight;
-      if (iEvent.getByToken(prefweightToken_, theprefweight) && theprefweight.isValid())
-        prefiringweight = *theprefweight;
-    }
-
     edm::Handle<GenEventInfoProduct> genInfo;
     iEvent.getByToken(generatorToken_, genInfo);
-    double mcweight = genInfo->weight();
-
-    aWeight = prefiringweight*mcweight/std::abs(mcweight);
-
-    edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
-    iEvent.getByToken(pileupToken_, pusummary);
-
-    for (unsigned int idx = 0; idx < pusummary->size(); ++idx) {
-      const auto& apu = pusummary->refAt(idx);
-
-      int bx = apu->getBunchCrossing();
-
-      if (bx==0) { // in-time PU only
-        auto npu = apu->getTrueNumInteractions();
-        aWeight *= purwgt_->GetBinContent( purwgt_->FindBin(apu->getTrueNumInteractions()) );
-        histo1d_["PUsummary"]->Fill( static_cast<float>(npu)+0.5, aWeight );
-
-        break;
-      }
-    }
+    mcweight = genInfo->weight();
   }
   
   
   edm::Handle<edm::View<reco::Muon>> muonHandle;
   iEvent.getByToken(srcMuon_, muonHandle);
-  
+
+  edm::Handle<edm::View<pat::MET>> metHandle;
+  iEvent.getByToken(metToken_, metHandle);
+
+  // edm::Handle<edm::TriggerResults> METfilterHandle;
+  // iEvent.getByToken(METfilterToken_,METfilterHandle);
+  // edm::TriggerNames METfilters = iEvent.triggerNames(*METfilterHandle);
+
   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
   iEvent.getByToken(genptcToken_, genptcHandle);
 
@@ -616,6 +806,40 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   std::vector<reco::GenParticleRef> promptMuons;
   std::vector<reco::GenParticleRef> Muons;
+
+  // unsigned int nPassedFilters = 0;
+  //
+  // for (unsigned int iTrig = 0; iTrig < METfilterHandle.product()->size(); iTrig++) {
+  //   const std::string trigname = METfilters.triggerName(iTrig);
+  //   if (METfilterHandle.product()->accept(iTrig)) {
+  //     for (const auto& filterName : METfilterList_) {
+  //       if (trigname.find(filterName) != std::string::npos)
+  //         nPassedFilters++;
+  //     }
+  //   }
+  // }
+  //
+  // if (nPassedFilters != METfilterList_.size())
+  //   return;
+  //
+  // edm::Handle<edm::TriggerResults> trigResultHandle;
+  // iEvent.getByToken(triggerToken_, trigResultHandle);
+  // edm::TriggerNames trigList = iEvent.triggerNames(*trigResultHandle);
+  // bool isFired = false;
+  // for (unsigned int iTrig = 0; iTrig != trigResultHandle.product()->size(); iTrig++) {
+  //   const std::string trigName = trigList.triggerName(iTrig);
+  //   for (unsigned int jTrig = 0; jTrig != trigList_.size(); jTrig++) {
+  //     const std::string& wanted = trigList_.at(jTrig);
+  //     const std::string stem = wanted.substr(0, wanted.find("*"));
+  //     if (trigName.find(stem) != std::string::npos) {
+  //       if (trigResultHandle.product()->accept(iTrig))
+  //         isFired = true;
+  //     }
+  //   }
+  // }
+  // if (!isFired)
+  //   return;
+
   for (unsigned int idx =0; idx<genptcHandle->size();++idx){
 	  const auto& genPtc = genptcHandle->refAt(idx);
 	  //std::cout <<"flag : "<< genPtc->statusFlags().flags_<<" | status : "<<genPtc->status()<<" | pdg : " <<genPtc->pdgId()<<" | hard "<<genPtc->isHardProcess()  <<std::endl;    
@@ -632,31 +856,37 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   }
   if (pv){
     const auto& ttBuilder = iSetup.getData(ttbToken_);
+    std::vector<bool> usedPrompt(promptMuons.size(), false);
     for (size_t i = 0; i < promptMuons.size(); ++i) {
+      if (usedPrompt[i]) continue;
       int index = -1;
-    
-      // gen pair 찾기
+
+      // gen pair 찾기 (이미 페어로 잡힌 gen muon은 재사용하지 않음)
       for (size_t j = i + 1; j < promptMuons.size(); ++j) {
+        if (usedPrompt[j]) continue;
         const auto& gen1 = *(promptMuons.at(i));
         const auto& gen2 = *(promptMuons.at(j));
-    
+
         if (reco::deltaR(gen1, gen2) >= 0.1) continue;
-    
+
         // leading / subleading pt cut
         float pt1 = gen1.pt();
         float pt2 = gen2.pt();
         float leadPt = std::max(pt1, pt2);
         float subleadPt = std::min(pt1, pt2);
-    
+
         if (leadPt < 50.0) continue;
         if (subleadPt < 20.0) continue;
-    
+
         index = (int)j;
         break;
       }
-    
+
       if (index < 0) continue;
-    
+
+      usedPrompt[i] = true;
+      usedPrompt[(size_t)index] = true;
+
       const auto& gen1 = *(promptMuons.at(i));
       const auto& gen2 = *(promptMuons.at(index));
     
@@ -707,8 +937,9 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         }
     
         // ---------- gen1 matching candidate ----------
-        float dr1 = reco::deltaR(muon, gen1);
-        if (dr1 < 0.03) {
+        float dr1  = reco::deltaR(muon, gen1);
+        float dpt1 = std::abs(muon.pt() - gen1.pt()) / gen1.pt();
+        if (dr1 < 0.03 && dpt1 < 0.30 && muon.charge() == gen1.charge()) {
           if (dr1 < best_dr1) {
             second_dr1 = best_dr1;
             second_idx1 = best_idx1;
@@ -719,10 +950,11 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             second_idx1 = (int)iMuon;
           }
         }
-    
+
         // ---------- gen2 matching candidate ----------
-        float dr2 = reco::deltaR(muon, gen2);
-        if (dr2 < 0.03) {
+        float dr2  = reco::deltaR(muon, gen2);
+        float dpt2 = std::abs(muon.pt() - gen2.pt()) / gen2.pt();
+        if (dr2 < 0.03 && dpt2 < 0.30 && muon.charge() == gen2.charge()) {
           if (dr2 < best_dr2) {
             second_dr2 = best_dr2;
             second_idx2 = best_idx2;
@@ -772,24 +1004,206 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       eff_reco_1_pt  = -999.f;
       eff_reco_1_phi = -999.f;
       eff_reco_1_eta = -999.f;
+      eff_reco_1_dr  = -999.f;
       eff_reco_1_highptid = 0;
       eff_reco_1_trackerhighptid = 0;
-    
+      eff_reco_1_em = -999.f;
+      eff_reco_1_emS9 = -999.f;
+      eff_reco_1_emS25 = -999.f;
+      eff_reco_1_emMax = -999.f;
+      eff_reco_1_had = -999.f;
+      eff_reco_1_hadS9 = -999.f;
+      eff_reco_1_hadMax = -999.f;
+      eff_reco_1_ho = -999.f;
+      eff_reco_1_hoS9 = -999.f;
+      eff_reco_1_isGlobal = false;
+      eff_reco_1_isTracker = false;
+      eff_reco_1_isPFMuon = false;
+      eff_reco_1_isPFIsolationValid = false;
+      eff_reco_1_numOfMatchedStations = -999;
+      eff_reco_1_numOfChambers = -999;
+      eff_reco_1_segCompatibility = -999.;
+      eff_reco_1_caloCompatibility = -999.;
+      eff_reco_1_chi2LocalPosition = -999.f;
+      eff_reco_1_trkKink = -999.f;
+      eff_reco_1_glbKink = -999.f;
+      eff_reco_1_pfrelIso04 = -999.f;
+      eff_reco_1_isLoose = false;
+      eff_reco_1_isMedium = false;
+      eff_reco_1_isTight = false;
+      eff_reco_1_nValidMuonHits = -999;
+      eff_reco_1_normChi2_global = -999.f;
+      eff_reco_1_nValidPixelHits = -999;
+      eff_reco_1_trkLayers = -999;
+      eff_reco_1_pixelLayers = -999;
+      eff_reco_1_normChi2_inner = -999.f;
+      eff_reco_1_validFraction = -999.f;
+      eff_reco_1_tunePtErrorOverPt = -999.f;
+      eff_reco_1_dxy_PV = -999.f;
+      eff_reco_1_dz_PV = -999.f;
+      eff_reco_1_nMatches = -999;
+      eff_reco_1_innerTrk_pt = -999.f;
+      eff_reco_1_innerTrk_eta = -999.f;
+      eff_reco_1_innerTrk_phi = -999.f;
+      eff_reco_1_outerTrk_pt = -999.f;
+      eff_reco_1_outerTrk_eta = -999.f;
+      eff_reco_1_outerTrk_phi = -999.f;
+      eff_reco_1_globalTrk_pt = -999.f;
+      eff_reco_1_globalTrk_eta = -999.f;
+      eff_reco_1_globalTrk_phi = -999.f;
+      eff_reco_1_bestTrk_pt = -999.f;
+      eff_reco_1_bestTrk_eta = -999.f;
+      eff_reco_1_bestTrk_phi = -999.f;
+      eff_reco_1_tunePTrk_pt = -999.f;
+      eff_reco_1_tunePTrk_eta = -999.f;
+      eff_reco_1_tunePTrk_phi = -999.f;
+
       eff_reco_2_pt  = -999.f;
       eff_reco_2_phi = -999.f;
       eff_reco_2_eta = -999.f;
+      eff_reco_2_dr  = -999.f;
       eff_reco_2_highptid = 0;
       eff_reco_2_trackerhighptid = 0;
-    
+      eff_reco_2_em = -999.f;
+      eff_reco_2_emS9 = -999.f;
+      eff_reco_2_emS25 = -999.f;
+      eff_reco_2_emMax = -999.f;
+      eff_reco_2_had = -999.f;
+      eff_reco_2_hadS9 = -999.f;
+      eff_reco_2_hadMax = -999.f;
+      eff_reco_2_ho = -999.f;
+      eff_reco_2_hoS9 = -999.f;
+      eff_reco_2_isGlobal = false;
+      eff_reco_2_isTracker = false;
+      eff_reco_2_isPFMuon = false;
+      eff_reco_2_isPFIsolationValid = false;
+      eff_reco_2_numOfMatchedStations = -999;
+      eff_reco_2_numOfChambers = -999;
+      eff_reco_2_segCompatibility = -999.;
+      eff_reco_2_caloCompatibility = -999.;
+      eff_reco_2_chi2LocalPosition = -999.f;
+      eff_reco_2_trkKink = -999.f;
+      eff_reco_2_glbKink = -999.f;
+      eff_reco_2_pfrelIso04 = -999.f;
+      eff_reco_2_isLoose = false;
+      eff_reco_2_isMedium = false;
+      eff_reco_2_isTight = false;
+      eff_reco_2_nValidMuonHits = -999;
+      eff_reco_2_normChi2_global = -999.f;
+      eff_reco_2_nValidPixelHits = -999;
+      eff_reco_2_trkLayers = -999;
+      eff_reco_2_pixelLayers = -999;
+      eff_reco_2_normChi2_inner = -999.f;
+      eff_reco_2_validFraction = -999.f;
+      eff_reco_2_tunePtErrorOverPt = -999.f;
+      eff_reco_2_dxy_PV = -999.f;
+      eff_reco_2_dz_PV = -999.f;
+      eff_reco_2_nMatches = -999;
+      eff_reco_2_innerTrk_pt = -999.f;
+      eff_reco_2_innerTrk_eta = -999.f;
+      eff_reco_2_innerTrk_phi = -999.f;
+      eff_reco_2_outerTrk_pt = -999.f;
+      eff_reco_2_outerTrk_eta = -999.f;
+      eff_reco_2_outerTrk_phi = -999.f;
+      eff_reco_2_globalTrk_pt = -999.f;
+      eff_reco_2_globalTrk_eta = -999.f;
+      eff_reco_2_globalTrk_phi = -999.f;
+      eff_reco_2_bestTrk_pt = -999.f;
+      eff_reco_2_bestTrk_eta = -999.f;
+      eff_reco_2_bestTrk_phi = -999.f;
+      eff_reco_2_tunePTrk_pt = -999.f;
+      eff_reco_2_tunePTrk_eta = -999.f;
+      eff_reco_2_tunePTrk_phi = -999.f;
+
       if (match_idx1 >= 0) {
         eff_reco_1_pt  = (*muonHandle)[match_idx1].pt();
         eff_reco_1_phi = (*muonHandle)[match_idx1].phi();
         eff_reco_1_eta = (*muonHandle)[match_idx1].eta();
+        eff_reco_1_dr  = reco::deltaR((*muonHandle)[match_idx1], gen1);
         eff_reco_1_idx = match_idx1;
         eff_reco_1_highptid =
             muon::isHighPtMuon((*muonHandle)[match_idx1], *pv);
         eff_reco_1_trackerhighptid =
         muon::isTrackerHighPtMuon((*muonHandle)[match_idx1], *pv);
+        eff_reco_1_em = (*muonHandle)[match_idx1].calEnergy().em;
+        eff_reco_1_emS9 = (*muonHandle)[match_idx1].calEnergy().emS9;
+        eff_reco_1_emS25 = (*muonHandle)[match_idx1].calEnergy().emS25;
+        eff_reco_1_emMax = (*muonHandle)[match_idx1].calEnergy().emMax;
+        eff_reco_1_had = (*muonHandle)[match_idx1].calEnergy().had;
+        eff_reco_1_hadS9 = (*muonHandle)[match_idx1].calEnergy().hadS9;
+        eff_reco_1_hadMax = (*muonHandle)[match_idx1].calEnergy().hadMax;
+        eff_reco_1_ho = (*muonHandle)[match_idx1].calEnergy().ho;
+        eff_reco_1_hoS9 = (*muonHandle)[match_idx1].calEnergy().hoS9;
+        eff_reco_1_isGlobal = (*muonHandle)[match_idx1].isGlobalMuon();
+        eff_reco_1_isTracker = (*muonHandle)[match_idx1].isTrackerMuon();
+        eff_reco_1_isPFMuon = (*muonHandle)[match_idx1].isPFMuon();
+        eff_reco_1_isPFIsolationValid = (*muonHandle)[match_idx1].isPFIsolationValid();
+        eff_reco_1_numOfMatchedStations = (*muonHandle)[match_idx1].numberOfMatchedStations();
+        eff_reco_1_numOfChambers = (*muonHandle)[match_idx1].numberOfChambers();
+        eff_reco_1_segCompatibility = muon::segmentCompatibility((*muonHandle)[match_idx1]);
+        eff_reco_1_caloCompatibility = (*muonHandle)[match_idx1].caloCompatibility();
+        eff_reco_1_chi2LocalPosition = (*muonHandle)[match_idx1].combinedQuality().chi2LocalPosition;
+        eff_reco_1_trkKink = (*muonHandle)[match_idx1].combinedQuality().trkKink;
+        eff_reco_1_glbKink = (*muonHandle)[match_idx1].combinedQuality().glbKink;
+	if (eff_reco_1_isPFMuon && eff_reco_1_isPFIsolationValid){
+      	  auto iso04 = (*muonHandle)[match_idx1].pfIsolationR04();
+	  eff_reco_1_pfrelIso04 =
+            ( iso04.sumChargedHadronPt
+            + std::max(0.f,
+                  iso04.sumNeutralHadronEt
+                + iso04.sumPhotonEt
+                - 0.5f * iso04.sumPUPt ) )
+            / (*muonHandle)[match_idx1].pt();
+	}
+        eff_reco_1_isLoose  = muon::isLooseMuon((*muonHandle)[match_idx1]);
+        eff_reco_1_isMedium = muon::isMediumMuon((*muonHandle)[match_idx1]);
+        eff_reco_1_isTight  = muon::isTightMuon((*muonHandle)[match_idx1], *pv);
+        const auto& glbTrk1 = (*muonHandle)[match_idx1].globalTrack();
+        if (glbTrk1.isNonnull()) {
+          eff_reco_1_nValidMuonHits  = glbTrk1->hitPattern().numberOfValidMuonHits();
+          eff_reco_1_normChi2_global = glbTrk1->normalizedChi2();
+        }
+        const auto& innTrk1 = (*muonHandle)[match_idx1].innerTrack();
+        if (innTrk1.isNonnull()) {
+          eff_reco_1_nValidPixelHits = innTrk1->hitPattern().numberOfValidPixelHits();
+          eff_reco_1_trkLayers       = innTrk1->hitPattern().trackerLayersWithMeasurement();
+          eff_reco_1_pixelLayers     = innTrk1->hitPattern().pixelLayersWithMeasurement();
+          eff_reco_1_normChi2_inner  = innTrk1->normalizedChi2();
+          eff_reco_1_validFraction   = innTrk1->validFraction();
+          eff_reco_1_dxy_PV          = innTrk1->dxy(pv->position());
+          eff_reco_1_dz_PV           = innTrk1->dz(pv->position());
+        }
+        const auto& tunePTrk1 = (*muonHandle)[match_idx1].tunePMuonBestTrack();
+        if (tunePTrk1.isNonnull() && tunePTrk1->pt() > 0.f)
+          eff_reco_1_tunePtErrorOverPt = tunePTrk1->ptError() / tunePTrk1->pt();
+        eff_reco_1_nMatches = (*muonHandle)[match_idx1].numberOfMatches(reco::Muon::SegmentAndTrackArbitration);
+        if (innTrk1.isNonnull()) {
+          eff_reco_1_innerTrk_pt  = innTrk1->pt();
+          eff_reco_1_innerTrk_eta = innTrk1->eta();
+          eff_reco_1_innerTrk_phi = innTrk1->phi();
+        }
+        const auto& outTrk1 = (*muonHandle)[match_idx1].outerTrack();
+        if (outTrk1.isNonnull()) {
+          eff_reco_1_outerTrk_pt  = outTrk1->pt();
+          eff_reco_1_outerTrk_eta = outTrk1->eta();
+          eff_reco_1_outerTrk_phi = outTrk1->phi();
+        }
+        if (glbTrk1.isNonnull()) {
+          eff_reco_1_globalTrk_pt  = glbTrk1->pt();
+          eff_reco_1_globalTrk_eta = glbTrk1->eta();
+          eff_reco_1_globalTrk_phi = glbTrk1->phi();
+        }
+        const auto& bestTrk1 = (*muonHandle)[match_idx1].muonBestTrack();
+        if (bestTrk1.isNonnull()) {
+          eff_reco_1_bestTrk_pt  = bestTrk1->pt();
+          eff_reco_1_bestTrk_eta = bestTrk1->eta();
+          eff_reco_1_bestTrk_phi = bestTrk1->phi();
+        }
+        if (tunePTrk1.isNonnull()) {
+          eff_reco_1_tunePTrk_pt  = tunePTrk1->pt();
+          eff_reco_1_tunePTrk_eta = tunePTrk1->eta();
+          eff_reco_1_tunePTrk_phi = tunePTrk1->phi();
+        }
         const reco::Muon& muon = (*muonHandle)[match_idx1];
         const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
         const reco::Track* addPackedBestTrk = addPackedCand.isNonnull() ? addPackedCand->bestTrack() : nullptr;
@@ -805,11 +1219,91 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         eff_reco_2_pt  = (*muonHandle)[match_idx2].pt();
         eff_reco_2_phi = (*muonHandle)[match_idx2].phi();
         eff_reco_2_eta = (*muonHandle)[match_idx2].eta();
+        eff_reco_2_dr  = reco::deltaR((*muonHandle)[match_idx2], gen2);
         eff_reco_2_idx = match_idx2;
         eff_reco_2_highptid =
             muon::isHighPtMuon((*muonHandle)[match_idx2], *pv);
         eff_reco_2_trackerhighptid =
             muon::isTrackerHighPtMuon((*muonHandle)[match_idx2], *pv);
+        eff_reco_2_em = (*muonHandle)[match_idx2].calEnergy().em;
+        eff_reco_2_emS9 = (*muonHandle)[match_idx2].calEnergy().emS9;
+        eff_reco_2_emS25 = (*muonHandle)[match_idx2].calEnergy().emS25;
+        eff_reco_2_emMax = (*muonHandle)[match_idx2].calEnergy().emMax;
+        eff_reco_2_had = (*muonHandle)[match_idx2].calEnergy().had;
+        eff_reco_2_hadS9 = (*muonHandle)[match_idx2].calEnergy().hadS9;
+        eff_reco_2_hadMax = (*muonHandle)[match_idx2].calEnergy().hadMax;
+        eff_reco_2_ho = (*muonHandle)[match_idx2].calEnergy().ho;
+        eff_reco_2_hoS9 = (*muonHandle)[match_idx2].calEnergy().hoS9;
+        eff_reco_2_isGlobal = (*muonHandle)[match_idx2].isGlobalMuon();
+        eff_reco_2_isTracker = (*muonHandle)[match_idx2].isTrackerMuon();
+        eff_reco_2_isPFMuon = (*muonHandle)[match_idx2].isPFMuon();
+        eff_reco_2_isPFIsolationValid = (*muonHandle)[match_idx2].isPFIsolationValid();
+        eff_reco_2_numOfMatchedStations = (*muonHandle)[match_idx2].numberOfMatchedStations();
+        eff_reco_2_numOfChambers = (*muonHandle)[match_idx2].numberOfChambers();
+        eff_reco_2_segCompatibility = muon::segmentCompatibility((*muonHandle)[match_idx2]);
+        eff_reco_2_caloCompatibility = (*muonHandle)[match_idx2].caloCompatibility();
+        eff_reco_2_chi2LocalPosition = (*muonHandle)[match_idx2].combinedQuality().chi2LocalPosition;
+        eff_reco_2_trkKink = (*muonHandle)[match_idx2].combinedQuality().trkKink;
+        eff_reco_2_glbKink = (*muonHandle)[match_idx2].combinedQuality().glbKink;
+	if (eff_reco_2_isPFMuon && eff_reco_2_isPFIsolationValid){
+      	  auto iso04 = (*muonHandle)[match_idx2].pfIsolationR04();
+	  eff_reco_2_pfrelIso04 =
+            ( iso04.sumChargedHadronPt
+            + std::max(0.f,
+                  iso04.sumNeutralHadronEt
+                + iso04.sumPhotonEt
+                - 0.5f * iso04.sumPUPt ) )
+            / (*muonHandle)[match_idx2].pt();
+	}
+        eff_reco_2_isLoose  = muon::isLooseMuon((*muonHandle)[match_idx2]);
+        eff_reco_2_isMedium = muon::isMediumMuon((*muonHandle)[match_idx2]);
+        eff_reco_2_isTight  = muon::isTightMuon((*muonHandle)[match_idx2], *pv);
+        const auto& glbTrk2 = (*muonHandle)[match_idx2].globalTrack();
+        if (glbTrk2.isNonnull()) {
+          eff_reco_2_nValidMuonHits  = glbTrk2->hitPattern().numberOfValidMuonHits();
+          eff_reco_2_normChi2_global = glbTrk2->normalizedChi2();
+        }
+        const auto& innTrk2 = (*muonHandle)[match_idx2].innerTrack();
+        if (innTrk2.isNonnull()) {
+          eff_reco_2_nValidPixelHits = innTrk2->hitPattern().numberOfValidPixelHits();
+          eff_reco_2_trkLayers       = innTrk2->hitPattern().trackerLayersWithMeasurement();
+          eff_reco_2_pixelLayers     = innTrk2->hitPattern().pixelLayersWithMeasurement();
+          eff_reco_2_normChi2_inner  = innTrk2->normalizedChi2();
+          eff_reco_2_validFraction   = innTrk2->validFraction();
+          eff_reco_2_dxy_PV          = innTrk2->dxy(pv->position());
+          eff_reco_2_dz_PV           = innTrk2->dz(pv->position());
+        }
+        const auto& tunePTrk2 = (*muonHandle)[match_idx2].tunePMuonBestTrack();
+        if (tunePTrk2.isNonnull() && tunePTrk2->pt() > 0.f)
+          eff_reco_2_tunePtErrorOverPt = tunePTrk2->ptError() / tunePTrk2->pt();
+        eff_reco_2_nMatches = (*muonHandle)[match_idx2].numberOfMatches(reco::Muon::SegmentAndTrackArbitration);
+        if (innTrk2.isNonnull()) {
+          eff_reco_2_innerTrk_pt  = innTrk2->pt();
+          eff_reco_2_innerTrk_eta = innTrk2->eta();
+          eff_reco_2_innerTrk_phi = innTrk2->phi();
+        }
+        const auto& outTrk2 = (*muonHandle)[match_idx2].outerTrack();
+        if (outTrk2.isNonnull()) {
+          eff_reco_2_outerTrk_pt  = outTrk2->pt();
+          eff_reco_2_outerTrk_eta = outTrk2->eta();
+          eff_reco_2_outerTrk_phi = outTrk2->phi();
+        }
+        if (glbTrk2.isNonnull()) {
+          eff_reco_2_globalTrk_pt  = glbTrk2->pt();
+          eff_reco_2_globalTrk_eta = glbTrk2->eta();
+          eff_reco_2_globalTrk_phi = glbTrk2->phi();
+        }
+        const auto& bestTrk2 = (*muonHandle)[match_idx2].muonBestTrack();
+        if (bestTrk2.isNonnull()) {
+          eff_reco_2_bestTrk_pt  = bestTrk2->pt();
+          eff_reco_2_bestTrk_eta = bestTrk2->eta();
+          eff_reco_2_bestTrk_phi = bestTrk2->phi();
+        }
+        if (tunePTrk2.isNonnull()) {
+          eff_reco_2_tunePTrk_pt  = tunePTrk2->pt();
+          eff_reco_2_tunePTrk_eta = tunePTrk2->eta();
+          eff_reco_2_tunePTrk_phi = tunePTrk2->phi();
+        }
         const reco::Muon& muon = (*muonHandle)[match_idx2];
         const auto addPackedCand = muonTkIsoCalc_.additionalPackedCandSelector(muon, trackCandsHandles, trackCandsVetos_, ttBuilder);
         const reco::Track* addPackedBestTrk = addPackedCand.isNonnull() ? addPackedCand->bestTrack() : nullptr;
@@ -835,7 +1329,12 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       flag_Id = (idx_G >= 0) && (idx_any2 >= 0);
       flag_Id_woID = (idx_any2_woID >= 0);
       flag_Id_any = (idx_any2 >= 0);
-    
+      eff_weight = mcweight;
+      const auto& aMET = metHandle->at(0);
+      eff_MET_cor_XY_phi = aMET.corPhi(pat::MET::TypeXY);
+      eff_MET_phi = aMET.phi();
+      eff_MET = aMET.pt();
+      eff_MET_cor = aMET.corPt(pat::MET::Type1);
       muonEfficiencyTree_->Fill();
     }
     for (size_t i = 0; i < muonHandle->size(); ++i) {
@@ -870,7 +1369,7 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       //    muonEfficiencyTree_->Fill();
       // }
       //std::cout<<muon.isEnergyValid()<<" | "<<muon.calEnergy().towerS9<<" | "<<muon.calEnergy().emS25<<" | "<<muon.calEnergy().hadS9<<" | "<<muon.calEnergy().hoS9<<" | "<<muon.pt()<<" | "<<gen_muon<<" | "<<muon.eta()<<" | "<<muon.phi()<<" | "<<close_muon<<std::endl;
-      if (gen_muon == 1 && close_muon == 0){
+      if (gen_muon == 1 && muon.isPFMuon() && muon.isPFIsolationValid()){
       	  pT_muon = muon.pt();
           eta_muon = muon.eta();
           phi_muon = muon.phi();
@@ -892,9 +1391,18 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           chi2LocalPosition_muon = muon.combinedQuality().chi2LocalPosition;
           trkKink_muon = muon.combinedQuality().trkKink;
           glbKink_muon = muon.combinedQuality().glbKink;
+	  auto iso04 = muon.pfIsolationR04();
+	  pfrelIso04_muon =
+            ( iso04.sumChargedHadronPt
+            + std::max(0.f,
+                  iso04.sumNeutralHadronEt
+                + iso04.sumPhotonEt
+                - 0.5f * iso04.sumPUPt ) )
+            / muon.pt();
 	  gen_eta_muon = target_muon.at(0)->eta();
 	  gen_phi_muon = target_muon.at(0)->phi();
 	  gen_pt_muon = target_muon.at(0)->pt();
+	  weight_muon = mcweight;
           muon_->Fill();
       } 
       if (gen_muon == 2 && close_muon == 0){
@@ -925,6 +1433,7 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	  gen_sub_eta_mergedMuon = target_muon.at(1)->eta();
 	  gen_sub_phi_mergedMuon = target_muon.at(1)->phi();
 	  gen_sub_pt_mergedMuon = target_muon.at(1)->pt();
+	  weight_mergedMuon = mcweight;
           mergedMuon_->Fill();
       } 
       target_muon.clear();

@@ -192,6 +192,7 @@ private:
   std::vector<float> dPhi;
   std::vector<float> etaEleTrk;// original trk, add trk
   std::vector<float> phiEleTrk;
+  std::vector<int> EleXY;
   float genDR;
 
   int imageSize_;
@@ -454,6 +455,7 @@ void MergedLeptonIDImageBarrel::beginJob() {
   ImageTree_->Branch("phiEleTrk",&phiEleTrk,32000,0);
   ImageTree_->Branch("etaEleTrk",&etaEleTrk,32000,0);
   ImageTree_->Branch("genDR",&genDR,"genDR/F");
+  ImageTree_->Branch("EleXY",&EleXY,32000,0);
 }
 
 void MergedLeptonIDImageBarrel::endJob() {
@@ -519,10 +521,12 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
 
   std::vector<reco::GenParticleRef> promptEles;
   std::vector<reco::GenParticleRef> Eles;
+  std::cout<<"##################### evt statt ###################"<<std::endl;
   for (unsigned int idx =0; idx<genptcHandle->size();++idx){
 	  const auto& genPtc = genptcHandle->refAt(idx);
-	  //std::cout <<"flag : "<< genPtc->statusFlags().flags_<<" | status : "<<genPtc->status()<<" | pdg : " <<genPtc->pdgId()<<" | hard "<<genPtc->isHardProcess()  <<std::endl;    
-	  if ( ( std::abs(genPtc->pdgId())==11 ) && genPtc->fromHardProcessFinalState() ) promptEles.push_back(genPtc.castTo<reco::GenParticleRef>());
+	  std::cout <<"flag : "<< genPtc->statusFlags().flags_<<" | status : "<<genPtc->status()<<" | pdg : " <<genPtc->pdgId()<<" | hard "<<genPtc->isHardProcess() <<" | fromhard : " <<genPtc->fromHardProcessFinalState()<<" | pt : "<< genPtc->pt()<<" | eta : "<<genPtc->eta()<<" | phi : "<<genPtc->phi() <<std::endl;    
+	  //if ( ( std::abs(genPtc->pdgId())==11 ) && genPtc->fromHardProcessFinalState() ) promptEles.push_back(genPtc.castTo<reco::GenParticleRef>());
+	  if ( ( std::abs(genPtc->pdgId())==11 )) promptEles.push_back(genPtc.castTo<reco::GenParticleRef>());
 	  if ( ( std::abs(genPtc->pdgId())==11 ) && genPtc->isPromptFinalState() ) Eles.push_back(genPtc.castTo<reco::GenParticleRef>());
   }
 
@@ -594,10 +598,10 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
     const auto& addGsfTrk = (*addGsfTrkMap)[aEle];
     const auto& addPackedCand = (*addPackedCandHandle)[aEle];
     const reco::TrackBase* addTrk = addGsfTrk.get();
-    //calculate 1st and 2nd ele position
+    //calculate first and 2nd ele position
     //
-   // float eta_1st = seedPosition.eta() - electron.deltaEtaSeedClusterTrackAtCalo();
-   // float phi_1st = reco::reduceRange( seedPosition.phi() - electron.deltaPhiSeedClusterTrackAtCalo());
+   // float eta_first = seedPosition.eta() - electron.deltaEtaSeedClusterTrackAtCalo();
+   // float phi_first = reco::reduceRange( seedPosition.phi() - electron.deltaPhiSeedClusterTrackAtCalo());
 
     auto beamSpot = beamSpotHandle.product();
 
@@ -674,6 +678,7 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
     //std::cout<<"5x5 energy : "<<electron.e5x5()<<std::endl;
     //std::cout<<electron.superCluster()->seed()->eta()<<" | "<<seedPosition.eta()<<std::endl;
     //std::cout<<orgGsfTrk.get()->pt()<<" | add : "<<addTrk->pt()<<" | "<<isAddTrk<<std::endl;
+    std::vector<float> genelexy;
     int halfSize = imageSize_ / 2;
     //int EShalfSize = ESimageSize_ / 2;
     std::vector<std::vector<float>> EBImage(imageSize_,std::vector<float>(imageSize_,0.0));
@@ -690,6 +695,7 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
     eta_gsfele = electron.eta();
     phi_gsfele = electron.phi();
     std::vector<size_t> index_gen_ele;
+    std::vector<float> geneleetaphi; 
     //for (const auto& ele : promptEles){
     for (size_t iEle = 0; iEle <promptEles.size(); ++iEle){
        const auto ele = *(promptEles.at(iEle));
@@ -699,6 +705,8 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
        if (dR < 0.1){ 
           matched_gen_prompt_ele ++;
 	  index_gen_ele.push_back(iEle);
+	  geneleetaphi.push_back(ele.eta());
+	  geneleetaphi.push_back(ele.phi());
 	  //std::cout<< ele->eta()<<" | "<<ele->phi()<<" gen"<<std::endl;
        }
     }
@@ -731,23 +739,108 @@ void MergedLeptonIDImageBarrel::analyze(const edm::Event& iEvent, const edm::Eve
     //  }
     //}
     //if (matchedCrystal){
+    float first_mindeta_first_gen = std::numeric_limits<float>::max();
+    float first_mindphi_first_gen = std::numeric_limits<float>::max();
+    float first_mindeta_second_gen = std::numeric_limits<float>::max();
+    float first_mindphi_second_gen = std::numeric_limits<float>::max();
+    float second_mindeta_first_gen = std::numeric_limits<float>::max();
+    float second_mindphi_first_gen = std::numeric_limits<float>::max();
+    float second_mindeta_second_gen = std::numeric_limits<float>::max();
+    float second_mindphi_second_gen = std::numeric_limits<float>::max();
+    int first_mindeta_index_first_gen = -1;
+    int second_mindeta_index_first_gen = -1;
+    int first_mindeta_index_second_gen = -1;
+    int second_mindeta_index_second_gen = -1;
+    int first_mindphi_index_first_gen = -1;
+    int second_mindphi_index_first_gen = -1;
+    int first_mindphi_index_second_gen = -1;
+    int second_mindphi_index_second_gen = -1;
     for (const auto& hit : *EBrecHitHandle){
       const auto& detID = hit.id();
       auto id_xtal =EBDetId(hit.detid());
       const auto& hitPosition = caloGeom->getGeometry(detID);
-    	if (hitPosition->getPosition().z() * seedPosition.z() < 0) continue;
 
       int dX = matched_ix-id_xtal.ieta();
       int dY = matched_iy-id_xtal.iphi();
       //std::cout<<dX<<" | "<<abs(dX)<<" | "<<id_xtal.ix()<<" | "<<matchedCrystal->ix()<<std::endl;
       if (abs(dX) <= halfSize && abs(dY) <= halfSize){
-        int iX = dX + halfSize;
-        int iY = dY + halfSize;
+	int iX = dX + halfSize;
+	int iY = dY + halfSize;
         EBImage[iX][iY] = hit.energy();
+	if (geneleetaphi.size() == 4){
+	  float deta_first_iter = std::abs(hitPosition->getPosition().eta() - geneleetaphi.at(0)); 
+	  float deta_second_iter = std::abs(hitPosition->getPosition().eta() - geneleetaphi.at(2));
+	  float dphi_first_iter = std::abs(hitPosition->getPosition().phi() - geneleetaphi.at(1)); 
+	  float dphi_second_iter = std::abs(hitPosition->getPosition().phi() - geneleetaphi.at(3));
+	  if (deta_first_iter < first_mindeta_first_gen){
+	    second_mindeta_first_gen = first_mindeta_first_gen;
+	    first_mindeta_first_gen = deta_first_iter;
+	    second_mindeta_index_first_gen = first_mindeta_index_first_gen;
+	    first_mindeta_index_first_gen = iX;
+	  } else if (deta_first_iter < second_mindeta_first_gen){
+	    second_mindeta_first_gen = deta_first_iter;
+	    second_mindeta_index_first_gen = iX;
+	  }
+	  if (deta_second_iter < first_mindeta_second_gen){
+	    second_mindeta_second_gen = first_mindeta_second_gen;
+	    first_mindeta_second_gen = deta_second_iter;
+	    second_mindeta_index_second_gen = first_mindeta_index_second_gen;
+	    first_mindeta_index_second_gen = iX;
+	  } else if (deta_second_iter < second_mindeta_second_gen){
+	    second_mindeta_first_gen = deta_second_iter;
+	    second_mindeta_index_second_gen = iX;
+	  }
+	  if (dphi_first_iter < first_mindphi_first_gen){
+	    second_mindphi_first_gen = first_mindphi_first_gen;
+	    first_mindphi_first_gen = dphi_first_iter;
+	    second_mindphi_index_first_gen = first_mindphi_index_first_gen;
+	    first_mindphi_index_first_gen = iY;
+	  } else if (dphi_first_iter < second_mindphi_first_gen){
+	    second_mindphi_first_gen = dphi_first_iter;
+	    second_mindphi_index_first_gen = iY;
+	  }
+	  if (dphi_second_iter < first_mindphi_second_gen){
+	    second_mindphi_second_gen = first_mindphi_second_gen;
+	    first_mindphi_second_gen = dphi_second_iter;
+	    second_mindphi_index_second_gen = first_mindphi_index_second_gen;
+	    first_mindphi_index_second_gen = iY;
+	  } else if (dphi_second_iter < second_mindphi_second_gen){
+	    second_mindphi_first_gen = dphi_second_iter;
+	    second_mindphi_index_second_gen = iY;
+	  }
+	}
       }
     }
+    int subeta_first_gen;
+    int subphi_first_gen;
+    int subeta_second_gen;
+    int subphi_second_gen;
+    int sign;
+    if (geneleetaphi.size() == 4){
+      if (first_mindeta_index_first_gen > second_mindeta_index_first_gen) sign = -1;
+      else sign = 1;
+      subeta_first_gen = (int) sign * first_mindeta_first_gen / (first_mindeta_first_gen + second_mindeta_first_gen) * 14; 
+      if (first_mindeta_index_second_gen > second_mindeta_index_second_gen) sign = -1;
+      else sign = 1;
+      subeta_second_gen = (int) sign * first_mindeta_second_gen / (first_mindeta_second_gen + second_mindeta_second_gen) * 14; 
+      if (first_mindphi_index_first_gen > second_mindphi_index_first_gen) sign = -1;
+      else sign = 1;
+      subphi_first_gen = (int) sign * first_mindphi_first_gen / (first_mindphi_first_gen + second_mindphi_second_gen) * 14; 
+      if (first_mindphi_index_second_gen > second_mindphi_index_second_gen) sign = -1;
+      else sign = 1;
+      subphi_second_gen = (int) sign * first_mindphi_second_gen / (first_mindphi_second_gen + second_mindphi_second_gen) * 14; 
+      EleXY.push_back(first_mindeta_index_first_gen * 14 + subeta_first_gen);
+      EleXY.push_back(first_mindphi_index_first_gen * 14 + subphi_first_gen);
+      EleXY.push_back(first_mindeta_index_second_gen * 14 + subeta_second_gen);
+      EleXY.push_back(first_mindphi_index_second_gen * 14 + subphi_second_gen);
+      std::cout<< " 1st eta :" <<first_mindeta_index_first_gen * 14 + subeta_first_gen <<
+	      " | 1st phi : " <<first_mindphi_index_first_gen * 14 + subphi_first_gen <<
+	      " | 2nd eta : " <<first_mindeta_index_second_gen * 14 + subeta_second_gen <<
+	      " | 2nd phi : " <<first_mindphi_index_second_gen * 14 + subphi_second_gen <<std::endl;
+
+    }
     //}
-    std::cout<<matched_ix << " | "<<matched_iy<<std::endl;
+    std::cout<<matched_ix << " | "<<matched_iy<<" | genele phi eta : "<<geneleetaphi.size()<<std::endl;
     for (const auto& row : EBImage) {
       for (const auto& pixel : row) {
         std::cout << pixel << " ";

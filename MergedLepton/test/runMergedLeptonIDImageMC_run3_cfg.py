@@ -17,7 +17,7 @@ process.source = cms.Source("PoolSource",
     # 'file:MiniAOD.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/489/00000/4144d69c-dc68-4443-b307-765fdaaef674.root'
     #'/store/data/Run2022C/ParkingSingleMuon0/MINIAOD/PromptReco-v1/000/356/488/00000/05236315-30ed-4c16-9288-2a5b7c8786e0.root'
-    'file:MiniAODv4_1.root'
+    'file:step4_MiniAOD.root'
     #"/store/mc/Run3Summer22MiniAODv4/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/MINIAODSIM/130X_mcRun3_2022_realistic_v5-v2/2520000/017afd05-e111-41dc-9802-86e708952417.root"
     ),
     secondaryFileNames = cms.untracked.vstring()
