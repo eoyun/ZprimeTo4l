@@ -7,8 +7,8 @@ resolvedNtuplizer = cms.EDAnalyzer('ResolvedNtuplizer',
     srcEle          = cms.InputTag('slimmedElectrons'),
     srcPv           = cms.InputTag('offlineSlimmedPrimaryVertices'),
     beamSpot        = cms.InputTag('offlineBeamSpot'),
-    # modified-HEEP producer 가 만드는 추가 GSF track ValueMap (사용자 cfg 에서 정확히 지정)
-    addGsfTrk       = cms.InputTag('ModifiedHEEPIDVarValueMaps', 'eleAddGsfTrack'),
+    # modified-HEEP producer(2nd instance)가 만드는 추가 GSF track ValueMap
+    addGsfTrk       = cms.InputTag('modifiedHEEPIDVarValueMaps2nd', 'eleAddGsfTrk'),
     generator       = cms.InputTag('generator'),
     pileupSummary   = cms.InputTag('slimmedAddPileupInfo'),
     triggerResults  = cms.InputTag('TriggerResults', '', 'HLT'),
