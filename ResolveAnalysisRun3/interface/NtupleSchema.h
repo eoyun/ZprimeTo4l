@@ -24,6 +24,8 @@ constexpr const char* lumi      = "lumi";
 constexpr const char* event     = "event";
 constexpr const char* genWeight = "genWeight";  // MC weight (data=1)
 constexpr const char* puTrue    = "puTrue";     // in-time true interactions (MC)
+constexpr const char* hltFired  = "hltFired";   // 설정된 wanted path 중 하나라도 발화(0/1)
+constexpr const char* passMETfilters = "passMETfilters";  // 모든 요구 filter 통과(0/1)
 }  // namespace ev
 
 // ---- muon 가변길이 배열 (후단 Muon struct 대응) ----

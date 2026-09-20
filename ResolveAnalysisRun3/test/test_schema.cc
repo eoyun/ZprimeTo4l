@@ -16,7 +16,7 @@ static void test_names_prefix_and_version() {
 // 대표 branch 이름들이 서로 유일한지(오타로 겹치지 않는지) 확인.
 static void test_names_unique() {
   std::set<std::string> names = {
-    ev::run, ev::lumi, ev::event, ev::genWeight, ev::puTrue,
+    ev::run, ev::lumi, ev::event, ev::genWeight, ev::puTrue, ev::hltFired, ev::passMETfilters,
     mu::index, mu::charge, mu::corrTunePpt, mu::rawTunePpt, mu::tunePeta, mu::tunePphi,
     mu::isHighPt, mu::isTrackerHighPt, mu::isTrackerMuon, mu::trackIso, mu::innerPt,
     mu::recoEta, mu::recoPhi, mu::recoVz, mu::innerEta, mu::innerPhi, mu::innerVz,
@@ -28,7 +28,7 @@ static void test_names_unique() {
     trig::pt, trig::eta, trig::phi, trig::filterBits,
   };
   // 위 목록에 넣은 항목 수 (중복 있으면 set 크기가 작아짐)
-  CHECK(names.size() == 48);
+  CHECK(names.size() == 50);
 }
 
 int main() {
