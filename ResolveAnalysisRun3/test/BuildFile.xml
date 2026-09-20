@@ -18,3 +18,6 @@
 <bin file="test_candidate.cc" name="raRun3_test_candidate">
   <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
 </bin>
+<bin file="test_schema.cc" name="raRun3_test_schema">
+  <use name="ZprimeTo4l/ResolveAnalysisRun3"/>
+</bin>
