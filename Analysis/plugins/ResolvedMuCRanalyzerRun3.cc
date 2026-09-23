@@ -124,20 +124,23 @@ triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.g
 METfilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
 trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
 rochesterPath_(iConfig.getParameter<edm::FileInPath>("rochesterPath")),
-triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
-muonIdIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdIsoSFpath")),
-muonBoostIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonBoostIsoSFpath")),
-muonRecoSFpath_(iConfig.getParameter<edm::FileInPath>("muonRecoSFpath")),
-FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
-purwgt_(std::move(correction::CorrectionSet::from_file((iConfig.getParameter<edm::FileInPath>("PUrwgt")).fullPath()))),
-puname_(iConfig.getParameter<std::string>("PUname")),
+// --- 2016/Run-2 payload 비활성화 (Run-3 payload 준비되면 되살리기) ---
+// triggerSFpath_(iConfig.getParameter<edm::FileInPath>("triggerSF")),
+// muonIdIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonIdIsoSFpath")),
+// muonBoostIsoSFpath_(iConfig.getParameter<edm::FileInPath>("muonBoostIsoSFpath")),
+// muonRecoSFpath_(iConfig.getParameter<edm::FileInPath>("muonRecoSFpath")),
+// FFpath_(iConfig.getParameter<edm::FileInPath>("FFpath")),
+// purwgt_(std::move(correction::CorrectionSet::from_file((iConfig.getParameter<edm::FileInPath>("PUrwgt")).fullPath()))),
+// puname_(iConfig.getParameter<std::string>("PUname")),
 muScaleBias_(iConfig.getParameter<std::vector<double>>("muScaleBias")),
 muSmearFactors_(iConfig.getParameter<std::vector<double>>("muSmearFactors")),
 muSmearParams_(iConfig.getParameter<std::vector<double>>("muSmearParams")),
 ptThres_(iConfig.getParameter<double>("ptThres")),
 ptThresTrig_(iConfig.getParameter<double>("ptThresTrig")),
 ffSystCL95_(iConfig.getParameter<double>("ffSystCL95")),
-mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonBoostIsoSFpath_,muonRecoSFpath_) {
+// mucorrHelper_ 는 checkIso(순수 geometry) 용으로만 RoccoR 1-인자 생성. SF payload 는 안 씀.
+// 원본(전체 payload): mucorrHelper_(rochesterPath_,triggerSFpath_,muonIdIsoSFpath_,muonBoostIsoSFpath_,muonRecoSFpath_)
+mucorrHelper_(rochesterPath_) {
   usesResource("TFileService");
 }
 
@@ -152,10 +155,11 @@ void ResolvedMuCRanalyzerRun3::beginJob() {
   TH1::SetDefaultSumw2();
   edm::Service<TFileService> fs;
 
-  FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
-  drFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_dr_all"));
-  ptFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_all"));
-  ffFit_ = (static_cast<TH1D*>(FFfile_->Get("all_dr_3P0F_rebin")))->Fit(drFF_,"RS");
+  // --- FF payload(RMFF_run2.root) 비활성화 (Run-3 FF 준비되면 되살리기) ---
+  // FFfile_ = std::make_unique<TFile>(FFpath_.fullPath().c_str(),"READ");
+  // drFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_dr_all"));
+  // ptFF_ = static_cast<TF1*>(FFfile_->FindObjectAny("RMFF_all"));
+  // ffFit_ = (static_cast<TH1D*>(FFfile_->Get("all_dr_3P0F_rebin")))->Fit(drFF_,"RS");
 
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
@@ -392,7 +396,8 @@ void ResolvedMuCRanalyzerRun3::beginJob() {
 }
 
 void ResolvedMuCRanalyzerRun3::endJob() {
-  FFfile_->Close();
+  // FF payload 비활성화로 FFfile_ 미사용 → Close 생략
+  // FFfile_->Close();
 }
 
 void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -412,9 +417,10 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
   double aWeight = 1.;
-  double purwgtUp = 1.;
-  double purwgtDn = 1.;
-  double purwgtNo = 1.;
+  // PU payload 비활성화로 purwgt* 미사용 (Run-3 PU 준비되면 되살리기)
+  // double purwgtUp = 1.;
+  // double purwgtDn = 1.;
+  // double purwgtNo = 1.;
 
   if (isMC_) {
     edm::Handle<GenEventInfoProduct> genInfo;
@@ -423,24 +429,26 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
 
     aWeight = mcweight/std::abs(mcweight);
 
-    edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
-    iEvent.getByToken(pileupToken_, pusummary);
-
-    for (unsigned int idx = 0; idx < pusummary->size(); ++idx) {
-      const auto& apu = pusummary->refAt(idx);
-
-      int bx = apu->getBunchCrossing();
-
-      if (bx==0) { // in-time PU only
-        purwgtUp = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"up"});
-        purwgtDn = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"down"});
-        purwgtNo = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"nominal"});
-
-        aWeight *= purwgtNo;
-
-        break;
-      }
-    }
+    // --- PU reweight payload(puWeights20UL16.json) 비활성화 (Run-3 PU 준비되면 되살리기) ---
+    // purwgtUp/Dn/No 는 1. 로 유지되어 PU 보정 없이 진행.
+    // edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
+    // iEvent.getByToken(pileupToken_, pusummary);
+    //
+    // for (unsigned int idx = 0; idx < pusummary->size(); ++idx) {
+    //   const auto& apu = pusummary->refAt(idx);
+    //
+    //   int bx = apu->getBunchCrossing();
+    //
+    //   if (bx==0) { // in-time PU only
+    //     purwgtUp = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"up"});
+    //     purwgtDn = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"down"});
+    //     purwgtNo = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"nominal"});
+    //
+    //     aWeight *= purwgtNo;
+    //
+    //     break;
+    //   }
+    // }
   }
 
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
@@ -637,7 +645,8 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
     const auto& trigObj = trigObjs.at(idx);
 
     const auto& leadMu = allHighPtMuons.front();
-    const bool isGlobal = std::find(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),leadMu)!=isolatedHighPtMuons.end();
+    // isGlobal 은 trigger SF(비활성) 분기용 → 미사용이므로 주석
+    // const bool isGlobal = std::find(isolatedHighPtMuons.begin(),isolatedHighPtMuons.end(),leadMu)!=isolatedHighPtMuons.end();
 
     if ( reco::deltaR2(trigObj->eta(),
                        trigObj->phi(),
@@ -645,17 +654,18 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
                        leadMu->tunePMuonBestTrack()->phi()) < 0.01 ) {
       trigMatched = true;
 
-      if (isMC_) {
-        if (isGlobal) {
-          aWeight *= mucorrHelper_.trigSFglobal(leadMu);
-          trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(leadMu) /
-                              mucorrHelper_.trigSFglobal(leadMu) );
-        } else {
-          aWeight *= mucorrHelper_.trigSFtracker(leadMu);
-          trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(leadMu) /
-                              mucorrHelper_.trigSFtracker(leadMu) );
-        }
-      }
+      // --- trigger SF payload 비활성화 (Run-3 muon SF 준비되면 되살리기) ---
+      // if (isMC_) {
+      //   if (isGlobal) {
+      //     aWeight *= mucorrHelper_.trigSFglobal(leadMu);
+      //     trigSyst.push_back( mucorrHelper_.trigSFglobalSyst(leadMu) /
+      //                         mucorrHelper_.trigSFglobal(leadMu) );
+      //   } else {
+      //     aWeight *= mucorrHelper_.trigSFtracker(leadMu);
+      //     trigSyst.push_back( mucorrHelper_.trigSFtrackerSyst(leadMu) /
+      //                         mucorrHelper_.trigSFtracker(leadMu) );
+      //   }
+      // }
 
       break;
     }
@@ -715,60 +725,64 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
   std::vector<double> isoSyst;
   std::vector<double> recoSyst;
 
-  auto systSFratio = [] (const std::vector<double>& vec) -> std::pair<double,double> {
-    double up = 1., dn = 1.;
+  // --- SF systematic ratio helper 비활성화 (SF payload 부재) ---
+  // auto systSFratio = [] (const std::vector<double>& vec) -> std::pair<double,double> {
+  //   double up = 1., dn = 1.;
+  //
+  //   for (const auto& systOverSF : vec) {
+  //     up *= (1.+systOverSF);
+  //     dn *= std::max(1.-systOverSF,0.);
+  //   }
+  //
+  //   return std::make_pair(up,dn); // ratio to the nominal
+  // };
 
-    for (const auto& systOverSF : vec) {
-      up *= (1.+systOverSF);
-      dn *= std::max(1.-systOverSF,0.);
-    }
+  // --- muon boostIso SF payload(muIso20UL16.root) 비활성화 (Run-3 준비되면 되살리기) ---
+  // auto boostIsoSFupdn = [this,&boostedMuons,&primaryVertex] (const double wgt) -> std::pair<double,double> {
+  //   if (!isMC_)
+  //     return std::make_pair(wgt,wgt);
+  //
+  //   double wgtUp = wgt;
+  //   double wgtDn = wgt;
+  //
+  //   for (const auto& aMu : boostedMuons) {
+  //     auto apair = mucorrHelper_.boostIsoSFupdn(aMu,*primaryVertex);
+  //     wgtUp *= apair.first;
+  //     wgtDn *= apair.second;
+  //   }
+  //
+  //   return std::make_pair(wgtUp,wgtDn);
+  // };
 
-    return std::make_pair(up,dn); // ratio to the nominal
-  };
-
-  auto boostIsoSFupdn = [this,&boostedMuons,&primaryVertex] (const double wgt) -> std::pair<double,double> {
-    if (!isMC_)
-      return std::make_pair(wgt,wgt);
-
-    double wgtUp = wgt;
-    double wgtDn = wgt;
-
-    for (const auto& aMu : boostedMuons) {
-      auto apair = mucorrHelper_.boostIsoSFupdn(aMu,*primaryVertex);
-      wgtUp *= apair.first;
-      wgtDn *= apair.second;
-    }
-
-    return std::make_pair(wgtUp,wgtDn);
-  };
-
-  if (isMC_) {
-    for (const auto& aMu : isolatedHighPtMuons) {
-      aWeight *= mucorrHelper_.highptIdSF(aMu);
-      aWeight *= mucorrHelper_.looseIsoSF(aMu);
-      aWeight *= mucorrHelper_.recoSF(aMu);
-      idSyst.push_back( mucorrHelper_.highptIdSFsyst(aMu)/mucorrHelper_.highptIdSF(aMu) );
-      recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
-
-      if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
-        isoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
-    }
-
-    for (const auto& aMu : isolatedHighPtTrackerMuons) {
-      aWeight *= mucorrHelper_.trkHighptIdSF(aMu);
-      aWeight *= mucorrHelper_.looseIsoSFtracker(aMu);
-      aWeight *= mucorrHelper_.recoSF(aMu);
-      idSyst.push_back( mucorrHelper_.trkHighptIdSFsyst(aMu)/mucorrHelper_.trkHighptIdSF(aMu) );
-
-      if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
-        isoSyst.push_back( mucorrHelper_.looseIsoSFtrackerSyst(aMu)/mucorrHelper_.looseIsoSFtracker(aMu) );
-    }
-
-    for (const auto& aMu : nonHighPtMuons) {
-      aWeight *= mucorrHelper_.recoSF(aMu);
-      recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
-    }
-  }
+  // --- muon ID/ISO/RECO SF payload 비활성화 (Run-3 muon SF 준비되면 되살리기) ---
+  // idSyst/isoSyst/recoSyst/trigSyst 는 빈 채로 유지 → systematic ratio = 1.
+  // if (isMC_) {
+  //   for (const auto& aMu : isolatedHighPtMuons) {
+  //     aWeight *= mucorrHelper_.highptIdSF(aMu);
+  //     aWeight *= mucorrHelper_.looseIsoSF(aMu);
+  //     aWeight *= mucorrHelper_.recoSF(aMu);
+  //     idSyst.push_back( mucorrHelper_.highptIdSFsyst(aMu)/mucorrHelper_.highptIdSF(aMu) );
+  //     recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
+  //
+  //     if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
+  //       isoSyst.push_back( mucorrHelper_.looseIsoSFsyst(aMu)/mucorrHelper_.looseIsoSF(aMu) );
+  //   }
+  //
+  //   for (const auto& aMu : isolatedHighPtTrackerMuons) {
+  //     aWeight *= mucorrHelper_.trkHighptIdSF(aMu);
+  //     aWeight *= mucorrHelper_.looseIsoSFtracker(aMu);
+  //     aWeight *= mucorrHelper_.recoSF(aMu);
+  //     idSyst.push_back( mucorrHelper_.trkHighptIdSFsyst(aMu)/mucorrHelper_.trkHighptIdSF(aMu) );
+  //
+  //     if (std::find(boostedMuons.begin(),boostedMuons.end(),aMu)==boostedMuons.end())
+  //       isoSyst.push_back( mucorrHelper_.looseIsoSFtrackerSyst(aMu)/mucorrHelper_.looseIsoSFtracker(aMu) );
+  //   }
+  //
+  //   for (const auto& aMu : nonHighPtMuons) {
+  //     aWeight *= mucorrHelper_.recoSF(aMu);
+  //     recoSyst.push_back( mucorrHelper_.recoSFsyst(aMu)/mucorrHelper_.recoSF(aMu) );
+  //   }
+  // }
 
   auto checkTrackerMuPair = [&isolatedHighPtMuons] (const std::pair<pat::MuonRef,pat::MuonRef>& apair, bool checkId=true) -> bool {
     if (!checkId)
@@ -780,19 +794,21 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
     return !check1st && !check2nd;
   };
 
-  auto valFF = [this] (const double dr, const double pt) {
-    const double ff1 = drFF_->Eval(dr);
-    const double ff2 = ptFF_->Eval(pt);
-
-    return (ff1+ff2)/2.;
-  };
-
-  auto ciFF = [this] (const double dr, const double pt) {
-    const double ff1 = drFF_->Eval(dr);
-    const double ff2 = ptFF_->Eval(pt);
-
-    return std::abs(ff1-ff2)/2.;
-  };
+  // --- FF payload(RMFF_run2.root) 비활성화 (Run-3 FF 준비되면 되살리기) ---
+  // valFF/ciFF 는 drFF_/ptFF_ (미로드) 에 의존 → 정의·호출 모두 주석.
+  // auto valFF = [this] (const double dr, const double pt) {
+  //   const double ff1 = drFF_->Eval(dr);
+  //   const double ff2 = ptFF_->Eval(pt);
+  //
+  //   return (ff1+ff2)/2.;
+  // };
+  //
+  // auto ciFF = [this] (const double dr, const double pt) {
+  //   const double ff1 = drFF_->Eval(dr);
+  //   const double ff2 = ptFF_->Eval(pt);
+  //
+  //   return std::abs(ff1-ff2)/2.;
+  // };
 
   switch (allHighPtMuons.size()) {
     case 4:
@@ -808,34 +824,36 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
           auto lvecM3 = lvecFromTuneP(pair2.first);
           auto lvecM4 = lvecFromTuneP(pair2.second);
 
-          lvecM1 *= mucorrHelper_.smear(pair1.first,muSmearParams_,muSmearFactors_,isMC_);
-          lvecM2 *= mucorrHelper_.smear(pair1.second,muSmearParams_,muSmearFactors_,isMC_);
-          lvecM3 *= mucorrHelper_.smear(pair2.first,muSmearParams_,muSmearFactors_,isMC_);
-          lvecM4 *= mucorrHelper_.smear(pair2.second,muSmearParams_,muSmearFactors_,isMC_);
-          const auto lvecM1alt = lvecM1*mucorrHelper_.altScale(pair1.first,muScaleBias_,isMC_);
-          const auto lvecM2alt = lvecM2*mucorrHelper_.altScale(pair1.second,muScaleBias_,isMC_);
-          const auto lvecM3alt = lvecM3*mucorrHelper_.altScale(pair2.first,muScaleBias_,isMC_);
-          const auto lvecM4alt = lvecM4*mucorrHelper_.altScale(pair2.second,muScaleBias_,isMC_);
-
-          if (isMC_) {
-            edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-            iEvent.getByToken(genptcToken_, genptcHandle);
-
-            lvecM1 *= mucorrHelper_.nominalMC(pair1.first,genptcHandle);
-            lvecM2 *= mucorrHelper_.nominalMC(pair1.second,genptcHandle);
-            lvecM3 *= mucorrHelper_.nominalMC(pair2.first,genptcHandle);
-            lvecM4 *= mucorrHelper_.nominalMC(pair2.second,genptcHandle);
-          } else {
-            lvecM1 *= mucorrHelper_.nominalData(pair1.first);
-            lvecM2 *= mucorrHelper_.nominalData(pair1.second);
-            lvecM3 *= mucorrHelper_.nominalData(pair2.first);
-            lvecM4 *= mucorrHelper_.nominalData(pair2.second);
-          }
-
-          const auto lvecM1smear = lvecM1*mucorrHelper_.smear(pair1.first,muSmearParams_,{0.46,0.46},isMC_);
-          const auto lvecM2smear = lvecM2*mucorrHelper_.smear(pair1.second,muSmearParams_,{0.46,0.46},isMC_);
-          const auto lvecM3smear = lvecM3*mucorrHelper_.smear(pair2.first,muSmearParams_,{0.46,0.46},isMC_);
-          const auto lvecM4smear = lvecM4*mucorrHelper_.smear(pair2.second,muSmearParams_,{0.46,0.46},isMC_);
+          // --- muon momentum 보정(RoccoR smear/altScale/nominal) 비활성화 → raw TuneP 사용 ---
+          // Run-3 muon momentum 보정 준비되면 아래 블록 되살리기.
+          // lvecM1 *= mucorrHelper_.smear(pair1.first,muSmearParams_,muSmearFactors_,isMC_);
+          // lvecM2 *= mucorrHelper_.smear(pair1.second,muSmearParams_,muSmearFactors_,isMC_);
+          // lvecM3 *= mucorrHelper_.smear(pair2.first,muSmearParams_,muSmearFactors_,isMC_);
+          // lvecM4 *= mucorrHelper_.smear(pair2.second,muSmearParams_,muSmearFactors_,isMC_);
+          // const auto lvecM1alt = lvecM1*mucorrHelper_.altScale(pair1.first,muScaleBias_,isMC_);
+          // const auto lvecM2alt = lvecM2*mucorrHelper_.altScale(pair1.second,muScaleBias_,isMC_);
+          // const auto lvecM3alt = lvecM3*mucorrHelper_.altScale(pair2.first,muScaleBias_,isMC_);
+          // const auto lvecM4alt = lvecM4*mucorrHelper_.altScale(pair2.second,muScaleBias_,isMC_);
+          //
+          // if (isMC_) {
+          //   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+          //   iEvent.getByToken(genptcToken_, genptcHandle);
+          //
+          //   lvecM1 *= mucorrHelper_.nominalMC(pair1.first,genptcHandle);
+          //   lvecM2 *= mucorrHelper_.nominalMC(pair1.second,genptcHandle);
+          //   lvecM3 *= mucorrHelper_.nominalMC(pair2.first,genptcHandle);
+          //   lvecM4 *= mucorrHelper_.nominalMC(pair2.second,genptcHandle);
+          // } else {
+          //   lvecM1 *= mucorrHelper_.nominalData(pair1.first);
+          //   lvecM2 *= mucorrHelper_.nominalData(pair1.second);
+          //   lvecM3 *= mucorrHelper_.nominalData(pair2.first);
+          //   lvecM4 *= mucorrHelper_.nominalData(pair2.second);
+          // }
+          //
+          // const auto lvecM1smear = lvecM1*mucorrHelper_.smear(pair1.first,muSmearParams_,{0.46,0.46},isMC_);
+          // const auto lvecM2smear = lvecM2*mucorrHelper_.smear(pair1.second,muSmearParams_,{0.46,0.46},isMC_);
+          // const auto lvecM3smear = lvecM3*mucorrHelper_.smear(pair2.first,muSmearParams_,{0.46,0.46},isMC_);
+          // const auto lvecM4smear = lvecM4*mucorrHelper_.smear(pair2.second,muSmearParams_,{0.46,0.46},isMC_);
 
           const auto lvecA1 = lvecM1 + lvecM2;
           const auto lvecA2 = lvecM3 + lvecM4;
@@ -844,25 +862,27 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
           const double dr2ll2 = reco::deltaR2(lvecM3.eta(),lvecM3.phi(),lvecM4.eta(),lvecM4.phi());
           const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
           const double m4l = std::min(lvec4l.M(),2499.9); // truncate at 2.5 TeV
-          const double m4lAlt = std::min((lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M(),2499.9);
-          const double m4lsmear = std::min((lvecM1smear+lvecM2smear+lvecM3smear+lvecM4smear).M(),2499.9);
+          // m4lAlt/m4lsmear 는 momentum 보정 variant 에 의존 → 비활성화
+          // const double m4lAlt = std::min((lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M(),2499.9);
+          // const double m4lsmear = std::min((lvecM1smear+lvecM2smear+lvecM3smear+lvecM4smear).M(),2499.9);
 
           if ( m4l > 50. /*&& (m4l < 500. || isMC_) (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
-            histo1d_["4P0F_CR_llll_invM_altMuScale"]->Fill(m4lAlt, aWeight);
-            histo1d_["4P0F_CR_llll_invM_altMuSmear"]->Fill(m4lsmear, aWeight);
-            histo1d_["4P0F_CR_llll_invM_idUp"]->Fill(m4l, aWeight*systSFratio(idSyst).first);
-            histo1d_["4P0F_CR_llll_invM_idDn"]->Fill(m4l, aWeight*systSFratio(idSyst).second);
-            histo1d_["4P0F_CR_llll_invM_isoUp"]->Fill(m4l, aWeight*systSFratio(isoSyst).first);
-            histo1d_["4P0F_CR_llll_invM_isoDn"]->Fill(m4l, aWeight*systSFratio(isoSyst).second);
-            histo1d_["4P0F_CR_llll_invM_muBoostIsoUp"]->Fill(m4l, boostIsoSFupdn(aWeight).first);
-            histo1d_["4P0F_CR_llll_invM_muBoostIsoDn"]->Fill(m4l, boostIsoSFupdn(aWeight).second);
-            histo1d_["4P0F_CR_llll_invM_trigUp"]->Fill(m4l, aWeight*systSFratio(trigSyst).first);
-            histo1d_["4P0F_CR_llll_invM_trigDn"]->Fill(m4l, aWeight*systSFratio(trigSyst).second);
-            histo1d_["4P0F_CR_llll_invM_recoUp"]->Fill(m4l, aWeight*systSFratio(recoSyst).first);
-            histo1d_["4P0F_CR_llll_invM_recoDn"]->Fill(m4l, aWeight*systSFratio(recoSyst).second);
-            histo1d_["4P0F_CR_llll_invM_PUrwgtUp"]->Fill(m4l, aWeight*purwgtUp/purwgtNo);
-            histo1d_["4P0F_CR_llll_invM_PUrwgtDn"]->Fill(m4l, aWeight*purwgtDn/purwgtNo);
+            // --- systematic variation fill 비활성화 (SF/PU/FF/momentum payload 부재) ---
+            // histo1d_["4P0F_CR_llll_invM_altMuScale"]->Fill(m4lAlt, aWeight);
+            // histo1d_["4P0F_CR_llll_invM_altMuSmear"]->Fill(m4lsmear, aWeight);
+            // histo1d_["4P0F_CR_llll_invM_idUp"]->Fill(m4l, aWeight*systSFratio(idSyst).first);
+            // histo1d_["4P0F_CR_llll_invM_idDn"]->Fill(m4l, aWeight*systSFratio(idSyst).second);
+            // histo1d_["4P0F_CR_llll_invM_isoUp"]->Fill(m4l, aWeight*systSFratio(isoSyst).first);
+            // histo1d_["4P0F_CR_llll_invM_isoDn"]->Fill(m4l, aWeight*systSFratio(isoSyst).second);
+            // histo1d_["4P0F_CR_llll_invM_muBoostIsoUp"]->Fill(m4l, boostIsoSFupdn(aWeight).first);
+            // histo1d_["4P0F_CR_llll_invM_muBoostIsoDn"]->Fill(m4l, boostIsoSFupdn(aWeight).second);
+            // histo1d_["4P0F_CR_llll_invM_trigUp"]->Fill(m4l, aWeight*systSFratio(trigSyst).first);
+            // histo1d_["4P0F_CR_llll_invM_trigDn"]->Fill(m4l, aWeight*systSFratio(trigSyst).second);
+            // histo1d_["4P0F_CR_llll_invM_recoUp"]->Fill(m4l, aWeight*systSFratio(recoSyst).first);
+            // histo1d_["4P0F_CR_llll_invM_recoDn"]->Fill(m4l, aWeight*systSFratio(recoSyst).second);
+            // histo1d_["4P0F_CR_llll_invM_PUrwgtUp"]->Fill(m4l, aWeight*purwgtUp/purwgtNo);
+            // histo1d_["4P0F_CR_llll_invM_PUrwgtDn"]->Fill(m4l, aWeight*purwgtDn/purwgtNo);
           }
 
           if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
@@ -1044,25 +1064,26 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
           auto lvecM2 = lvecFromTuneP(pair1.second);
           auto lvecM3 = lvecFromTuneP(pair2.first);
           auto lvecM4 = lvecFromTuneP(pair2.second);
-          auto lvecM1alt = lvecM1*mucorrHelper_.altScale(pair1.first,muScaleBias_,isMC_);
-          auto lvecM2alt = lvecM2*mucorrHelper_.altScale(pair1.second,muScaleBias_,isMC_);
-          auto lvecM3alt = lvecM3*mucorrHelper_.altScale(pair2.first,muScaleBias_,isMC_);
-          auto lvecM4alt = lvecM4*mucorrHelper_.altScale(pair2.second,muScaleBias_,isMC_);
-
-          if (isMC_) {
-            edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-            iEvent.getByToken(genptcToken_, genptcHandle);
-
-            lvecM1 *= mucorrHelper_.nominalMC(pair1.first,genptcHandle);
-            lvecM2 *= mucorrHelper_.nominalMC(pair1.second,genptcHandle);
-            lvecM3 *= mucorrHelper_.nominalMC(pair2.first,genptcHandle);
-            lvecM4 *= mucorrHelper_.nominalMC(pair2.second,genptcHandle);
-          } else {
-            lvecM1 *= mucorrHelper_.nominalData(pair1.first);
-            lvecM2 *= mucorrHelper_.nominalData(pair1.second);
-            lvecM3 *= mucorrHelper_.nominalData(pair2.first);
-            lvecM4 *= mucorrHelper_.nominalData(pair2.second);
-          }
+          // --- muon momentum 보정 비활성화 → raw TuneP 사용 (Run-3 준비되면 되살리기) ---
+          // auto lvecM1alt = lvecM1*mucorrHelper_.altScale(pair1.first,muScaleBias_,isMC_);
+          // auto lvecM2alt = lvecM2*mucorrHelper_.altScale(pair1.second,muScaleBias_,isMC_);
+          // auto lvecM3alt = lvecM3*mucorrHelper_.altScale(pair2.first,muScaleBias_,isMC_);
+          // auto lvecM4alt = lvecM4*mucorrHelper_.altScale(pair2.second,muScaleBias_,isMC_);
+          //
+          // if (isMC_) {
+          //   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+          //   iEvent.getByToken(genptcToken_, genptcHandle);
+          //
+          //   lvecM1 *= mucorrHelper_.nominalMC(pair1.first,genptcHandle);
+          //   lvecM2 *= mucorrHelper_.nominalMC(pair1.second,genptcHandle);
+          //   lvecM3 *= mucorrHelper_.nominalMC(pair2.first,genptcHandle);
+          //   lvecM4 *= mucorrHelper_.nominalMC(pair2.second,genptcHandle);
+          // } else {
+          //   lvecM1 *= mucorrHelper_.nominalData(pair1.first);
+          //   lvecM2 *= mucorrHelper_.nominalData(pair1.second);
+          //   lvecM3 *= mucorrHelper_.nominalData(pair2.first);
+          //   lvecM4 *= mucorrHelper_.nominalData(pair2.second);
+          // }
 
           const auto lvecA1 = lvecM1 + lvecM2;
           const auto lvecA2 = lvecM3 + lvecM4;
@@ -1071,16 +1092,17 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
           const double dr2ll2 = reco::deltaR2(lvecM3.eta(),lvecM3.phi(),lvecM4.eta(),lvecM4.phi());
           const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
           const double m4l = lvec4l.M();
-          const double m4lAlt = (lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M();
-
-          const double drFake = std::sqrt( std::min({ reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
-                                                                    allHighPtMuons.at(2)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(2)->tunePMuonBestTrack()->phi()),
-                                                      reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
-                                                                    allHighPtMuons.front()->tunePMuonBestTrack()->eta(),allHighPtMuons.front()->tunePMuonBestTrack()->phi()),
-                                                      reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
-                                                                    allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(1)->tunePMuonBestTrack()->phi()) }) );
-          const double ff = std::max( valFF(drFake,nonHighPtMuons.front()->tunePMuonBestTrack()->pt()), 0.);
-          const double ci = ciFF(drFake,nonHighPtMuons.front()->tunePMuonBestTrack()->pt());
+          // m4lAlt(momentum variant) 및 FF(payload) 비활성화
+          // const double m4lAlt = (lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M();
+          //
+          // const double drFake = std::sqrt( std::min({ reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
+          //                                                           allHighPtMuons.at(2)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(2)->tunePMuonBestTrack()->phi()),
+          //                                             reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
+          //                                                           allHighPtMuons.front()->tunePMuonBestTrack()->eta(),allHighPtMuons.front()->tunePMuonBestTrack()->phi()),
+          //                                             reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
+          //                                                           allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(1)->tunePMuonBestTrack()->phi()) }) );
+          // const double ff = std::max( valFF(drFake,nonHighPtMuons.front()->tunePMuonBestTrack()->pt()), 0.);
+          // const double ci = ciFF(drFake,nonHighPtMuons.front()->tunePMuonBestTrack()->pt());
 
           if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["3P1F_llll_pt"]->Fill(lvec4l.pt(), aWeight);
@@ -1093,10 +1115,11 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
             histo1d_["3P1F_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
 
             histo1d_["3P1F_CR_llll_invM"]->Fill(m4l, aWeight);
-            histo1d_["3P1F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff);
-            histo1d_["3P1F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAlt, aWeight*ff);
-            histo1d_["3P1F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff+ci));
-            histo1d_["3P1F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff-std::min(ff,ci)));
+            // FF payload 부재로 xFF 계열 비활성화
+            // histo1d_["3P1F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff);
+            // histo1d_["3P1F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAlt, aWeight*ff);
+            // histo1d_["3P1F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff+ci));
+            // histo1d_["3P1F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff-std::min(ff,ci)));
           }
 
           if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
@@ -1130,12 +1153,13 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
               histo1d_["3P1F_CR_dr_ME"]->Fill(drPass, aWeight);
             }
 
-            histo1d_["3P1F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff);
-
-            histo1d_["3P1F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff);
-            histo1d_["3P1F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff);
-            histo1d_["3P1F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff);
-            histo1d_["3P1F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff);
+            // FF payload 부재로 xFF 계열 비활성화
+            // histo1d_["3P1F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff);
+            //
+            // histo1d_["3P1F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff);
+            // histo1d_["3P1F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff);
+            // histo1d_["3P1F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff);
+            // histo1d_["3P1F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff);
           } // CR
         } // paired
       } // 3P1F
@@ -1218,25 +1242,26 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
             auto lvecM2 = lvecFromTuneP(pair1.second);
             auto lvecM3 = lvecFromTuneP(pair2.first);
             auto lvecM4 = lvecFromTuneP(pair2.second);
-            auto lvecM1alt = lvecM1*mucorrHelper_.altScale(pair1.first,muScaleBias_,isMC_);
-            auto lvecM2alt = lvecM2*mucorrHelper_.altScale(pair1.second,muScaleBias_,isMC_);
-            auto lvecM3alt = lvecM3*mucorrHelper_.altScale(pair2.first,muScaleBias_,isMC_);
-            auto lvecM4alt = lvecM4*mucorrHelper_.altScale(pair2.second,muScaleBias_,isMC_);
-
-            if (isMC_) {
-              edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
-              iEvent.getByToken(genptcToken_, genptcHandle);
-
-              lvecM1 *= mucorrHelper_.nominalMC(pair1.first,genptcHandle);
-              lvecM2 *= mucorrHelper_.nominalMC(pair1.second,genptcHandle);
-              lvecM3 *= mucorrHelper_.nominalMC(pair2.first,genptcHandle);
-              lvecM4 *= mucorrHelper_.nominalMC(pair2.second,genptcHandle);
-            } else {
-              lvecM1 *= mucorrHelper_.nominalData(pair1.first);
-              lvecM2 *= mucorrHelper_.nominalData(pair1.second);
-              lvecM3 *= mucorrHelper_.nominalData(pair2.first);
-              lvecM4 *= mucorrHelper_.nominalData(pair2.second);
-            }
+            // --- muon momentum 보정 비활성화 → raw TuneP 사용 (Run-3 준비되면 되살리기) ---
+            // auto lvecM1alt = lvecM1*mucorrHelper_.altScale(pair1.first,muScaleBias_,isMC_);
+            // auto lvecM2alt = lvecM2*mucorrHelper_.altScale(pair1.second,muScaleBias_,isMC_);
+            // auto lvecM3alt = lvecM3*mucorrHelper_.altScale(pair2.first,muScaleBias_,isMC_);
+            // auto lvecM4alt = lvecM4*mucorrHelper_.altScale(pair2.second,muScaleBias_,isMC_);
+            //
+            // if (isMC_) {
+            //   edm::Handle<edm::View<reco::GenParticle>> genptcHandle;
+            //   iEvent.getByToken(genptcToken_, genptcHandle);
+            //
+            //   lvecM1 *= mucorrHelper_.nominalMC(pair1.first,genptcHandle);
+            //   lvecM2 *= mucorrHelper_.nominalMC(pair1.second,genptcHandle);
+            //   lvecM3 *= mucorrHelper_.nominalMC(pair2.first,genptcHandle);
+            //   lvecM4 *= mucorrHelper_.nominalMC(pair2.second,genptcHandle);
+            // } else {
+            //   lvecM1 *= mucorrHelper_.nominalData(pair1.first);
+            //   lvecM2 *= mucorrHelper_.nominalData(pair1.second);
+            //   lvecM3 *= mucorrHelper_.nominalData(pair2.first);
+            //   lvecM4 *= mucorrHelper_.nominalData(pair2.second);
+            // }
 
             const auto lvecA1 = lvecM1 + lvecM2;
             const auto lvecA2 = lvecM3 + lvecM4;
@@ -1245,7 +1270,8 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
             const double dr2ll2 = reco::deltaR2(lvecM3.eta(),lvecM3.phi(),lvecM4.eta(),lvecM4.phi());
             const double dr2A12 = reco::deltaR2(lvecA1.eta(),lvecA1.phi(),lvecA2.eta(),lvecA2.phi());
             const double m4l = lvec4l.M();
-            const double m4lAlt = (lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M();
+            // m4lAlt(momentum variant) 비활성화
+            // const double m4lAlt = (lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M();
 
             const double drFake1 = std::sqrt( std::min({ reco::deltaR2(nonHighPtMuons.front()->tunePMuonBestTrack()->eta(),nonHighPtMuons.front()->tunePMuonBestTrack()->phi(),
                                                                        nonHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),nonHighPtMuons.at(1)->tunePMuonBestTrack()->phi()),
@@ -1260,11 +1286,12 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
                                                          reco::deltaR2(nonHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),nonHighPtMuons.at(1)->tunePMuonBestTrack()->phi(),
                                                                        allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(),allHighPtMuons.at(1)->tunePMuonBestTrack()->phi()) }) );
 
-            const double ff1 = std::max( valFF(drFake1,nonHighPtMuons.front()->tunePMuonBestTrack()->pt()), 0.);
-            const double ci1 = ciFF(drFake1,nonHighPtMuons.front()->tunePMuonBestTrack()->pt());
-
-            const double ff2 = std::max( valFF(drFake2,nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt()), 0.);
-            const double ci2 = ciFF(drFake2,nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt());
+            // FF payload 부재로 ff1/ci1/ff2/ci2 및 xFF 계열 비활성화
+            // const double ff1 = std::max( valFF(drFake1,nonHighPtMuons.front()->tunePMuonBestTrack()->pt()), 0.);
+            // const double ci1 = ciFF(drFake1,nonHighPtMuons.front()->tunePMuonBestTrack()->pt());
+            //
+            // const double ff2 = std::max( valFF(drFake2,nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt()), 0.);
+            // const double ci2 = ciFF(drFake2,nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt());
 
             if ( m4l > 50. && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
               histo1d_["2P2F_P1_pt"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
@@ -1291,18 +1318,19 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
               histo1d_["2P2F_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
 
               histo1d_["2P2F_CR_llll_invM"]->Fill(m4l, aWeight);
-              histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff1);
-              histo1d_["2P2F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAlt, aWeight*ff1);
-              histo1d_["2P2F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff1+ci1));
-              histo1d_["2P2F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1)));
-              histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff2);
-              histo1d_["2P2F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAlt, aWeight*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff2+ci2));
-              histo1d_["2P2F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff2-std::min(ff2,ci2)));
-              histo1d_["2P2F_CR_llll_invM_xFF2"]->Fill(m4l, aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_llll_invM_altMuScale_xFF2"]->Fill(m4lAlt, aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_llll_invM_xFF2_ffUp"]->Fill(m4l, aWeight*(ff1+ci1)*(ff2+ci2));
-              histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2)));
+              // FF payload 부재로 xFF/xFF2 계열 비활성화
+              // histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff1);
+              // histo1d_["2P2F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAlt, aWeight*ff1);
+              // histo1d_["2P2F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff1+ci1));
+              // histo1d_["2P2F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1)));
+              // histo1d_["2P2F_CR_llll_invM_xFF"]->Fill(m4l, aWeight*ff2);
+              // histo1d_["2P2F_CR_llll_invM_altMuScale_xFF"]->Fill(m4lAlt, aWeight*ff2);
+              // histo1d_["2P2F_CR_llll_invM_xFF_ffUp"]->Fill(m4l, aWeight*(ff2+ci2));
+              // histo1d_["2P2F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff2-std::min(ff2,ci2)));
+              // histo1d_["2P2F_CR_llll_invM_xFF2"]->Fill(m4l, aWeight*ff1*ff2);
+              // histo1d_["2P2F_CR_llll_invM_altMuScale_xFF2"]->Fill(m4lAlt, aWeight*ff1*ff2);
+              // histo1d_["2P2F_CR_llll_invM_xFF2_ffUp"]->Fill(m4l, aWeight*(ff1+ci1)*(ff2+ci2));
+              // histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2)));
             }
 
             if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
@@ -1315,47 +1343,48 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
               histo1d_["2P2F_CR_ll2_pt"]->Fill(lvecA2.pt(), aWeight);
               histo1d_["2P2F_CR_ll2_dr"]->Fill(std::sqrt(dr2ll2), aWeight);
 
-              histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff1);
-              histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff2);
-
-              histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff1);
-              histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff1);
-              histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff2);
-              histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff2);
-
-              histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff1);
-              histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff1);
-              histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff2);
-              histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff2);
-
-              histo1d_["2P2F_CR_ll1ll2_dr_xFF2"]->Fill(std::sqrt(dr2A12), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll1_invM_xFF2"]->Fill(lvecA1.M(), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll1_dr_xFF2"]->Fill(std::sqrt(dr2ll1), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll2_invM_xFF2"]->Fill(lvecA2.M(), aWeight*ff1*ff2);
-              histo1d_["2P2F_CR_ll2_dr_xFF2"]->Fill(std::sqrt(dr2ll2), aWeight*ff1*ff2);
+              // FF payload 부재로 xFF/xFF2 계열 비활성화
+              // histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff1);
+              // histo1d_["2P2F_CR_ll1ll2_dr_xFF"]->Fill(std::sqrt(dr2A12), aWeight*ff2);
+              //
+              // histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff1);
+              // histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff1);
+              // histo1d_["2P2F_CR_ll1_invM_xFF"]->Fill(lvecA1.M(), aWeight*ff2);
+              // histo1d_["2P2F_CR_ll1_dr_xFF"]->Fill(std::sqrt(dr2ll1), aWeight*ff2);
+              //
+              // histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff1);
+              // histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff1);
+              // histo1d_["2P2F_CR_ll2_invM_xFF"]->Fill(lvecA2.M(), aWeight*ff2);
+              // histo1d_["2P2F_CR_ll2_dr_xFF"]->Fill(std::sqrt(dr2ll2), aWeight*ff2);
+              //
+              // histo1d_["2P2F_CR_ll1ll2_dr_xFF2"]->Fill(std::sqrt(dr2A12), aWeight*ff1*ff2);
+              // histo1d_["2P2F_CR_ll1_invM_xFF2"]->Fill(lvecA1.M(), aWeight*ff1*ff2);
+              // histo1d_["2P2F_CR_ll1_dr_xFF2"]->Fill(std::sqrt(dr2ll1), aWeight*ff1*ff2);
+              // histo1d_["2P2F_CR_ll2_invM_xFF2"]->Fill(lvecA2.M(), aWeight*ff1*ff2);
+              // histo1d_["2P2F_CR_ll2_dr_xFF2"]->Fill(std::sqrt(dr2ll2), aWeight*ff1*ff2);
 
               if ( std::abs( nonHighPtMuons.front()->tunePMuonBestTrack()->eta() ) < 1.2 ) {
                 histo1d_["2P2F_CR_pt_MB"]->Fill(nonHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
                 histo1d_["2P2F_CR_dr_MB"]->Fill(drFake1, aWeight);
-                histo1d_["2P2F_CR_pt_MB_xFF"]->Fill(nonHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight*ff1);
-                histo1d_["2P2F_CR_dr_MB_xFF"]->Fill(drFake1, aWeight*ff1);
+                // histo1d_["2P2F_CR_pt_MB_xFF"]->Fill(nonHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight*ff1);
+                // histo1d_["2P2F_CR_dr_MB_xFF"]->Fill(drFake1, aWeight*ff1);
               } else {
                 histo1d_["2P2F_CR_pt_ME"]->Fill(nonHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
                 histo1d_["2P2F_CR_dr_ME"]->Fill(drFake1, aWeight);
-                histo1d_["2P2F_CR_pt_ME_xFF"]->Fill(nonHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight*ff1);
-                histo1d_["2P2F_CR_dr_ME_xFF"]->Fill(drFake1, aWeight*ff1);
+                // histo1d_["2P2F_CR_pt_ME_xFF"]->Fill(nonHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight*ff1);
+                // histo1d_["2P2F_CR_dr_ME_xFF"]->Fill(drFake1, aWeight*ff1);
               }
 
               if ( std::abs( nonHighPtMuons.at(1)->tunePMuonBestTrack()->eta() ) < 1.2 ) {
                 histo1d_["2P2F_CR_pt_MB"]->Fill(nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight);
                 histo1d_["2P2F_CR_dr_MB"]->Fill(drFake2, aWeight);
-                histo1d_["2P2F_CR_pt_MB_xFF"]->Fill(nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight*ff2);
-                histo1d_["2P2F_CR_dr_MB_xFF"]->Fill(drFake2, aWeight*ff2);
+                // histo1d_["2P2F_CR_pt_MB_xFF"]->Fill(nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight*ff2);
+                // histo1d_["2P2F_CR_dr_MB_xFF"]->Fill(drFake2, aWeight*ff2);
               } else {
                 histo1d_["2P2F_CR_pt_ME"]->Fill(nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight);
                 histo1d_["2P2F_CR_dr_ME"]->Fill(drFake2, aWeight);
-                histo1d_["2P2F_CR_pt_ME_xFF"]->Fill(nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight*ff2);
-                histo1d_["2P2F_CR_dr_ME_xFF"]->Fill(drFake2, aWeight*ff2);
+                // histo1d_["2P2F_CR_pt_ME_xFF"]->Fill(nonHighPtMuons.at(1)->tunePMuonBestTrack()->pt(), aWeight*ff2);
+                // histo1d_["2P2F_CR_dr_ME_xFF"]->Fill(drFake2, aWeight*ff2);
               }
 
               histo1d_["2P2F_CR_pt_P1"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->pt(), aWeight);
