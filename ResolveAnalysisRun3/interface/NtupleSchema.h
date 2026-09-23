@@ -12,7 +12,9 @@
 namespace raRun3 {
 namespace schema {
 
-constexpr int kVersion = 2;  // v2: flat 이름(muon_/electron_) + modified-HEEP study 변수 추가
+constexpr int kVersion = 4;  // v3: electron scale/smearing 후단(correctionlib) 적용 →
+                             //     ntuplizer 는 raw + 보정입력(r9,seedGain)만 저장(corr 제거)
+                             // v4: 표준 HEEP V70 pass/bitmap 추가 (modified HEEP 대조용)
 
 // ---- event 스칼라 ----
 namespace ev {
@@ -35,6 +37,7 @@ constexpr const char* pt              = "muon_pt";           // TuneP pt (보정
 constexpr const char* ptRaw           = "muon_ptRaw";        // TuneP pt (보정 전)
 constexpr const char* eta             = "muon_eta";          // TuneP eta
 constexpr const char* phi             = "muon_phi";          // TuneP phi
+constexpr const char* recoPt          = "muon_recoPt";      // reco 방향(neighbor self)
 constexpr const char* recoEta         = "muon_recoEta";      // reco 방향(neighbor self)
 constexpr const char* recoPhi         = "muon_recoPhi";
 constexpr const char* recoVz          = "muon_recoVz";
@@ -56,24 +59,25 @@ constexpr const char* dz              = "muon_dz";           // wrt PV
 }  // namespace mu
 
 // ---- electron flat 배열 (prefix electron_) ----
+// kinematics 는 MiniAOD slimmedElectron 의 reco 값(= EGM scale/smearing "적용 전").
+// 실제 scale(data)/smear(MC) 보정은 후단에서 correctionlib 로 적용한다(deferred).
+// 그래서 여기엔 raw kinematics + 보정 입력(etaSC, r9, seedGain)만 저장하고, corrected 는 저장 안 함.
 namespace ele {
-// 기본 / kinematics (correction 전/후)
 constexpr const char* index       = "electron_index";
 constexpr const char* charge      = "electron_charge";
 constexpr const char* et          = "electron_et";          // selection ET = et() (ECAL, PF 아님)
-constexpr const char* ptRaw       = "electron_ptRaw";       // polarP4() pt (보정 전)
+constexpr const char* ptRaw       = "electron_ptRaw";       // polarP4() pt (보정 전 = correctionlib 입력 pt)
 constexpr const char* etaRaw      = "electron_etaRaw";
 constexpr const char* phiRaw      = "electron_phiRaw";
 constexpr const char* energyRaw   = "electron_energyRaw";   // energy()
-constexpr const char* pt          = "electron_pt";          // 보정 후 pt (ecalTrkEnergyPostCorr)
-constexpr const char* eta         = "electron_eta";
-constexpr const char* phi         = "electron_phi";
-constexpr const char* mass        = "electron_mass";
-constexpr const char* energyCorr  = "electron_energyCorr";  // ecalTrkEnergyPostCorr
-constexpr const char* etaSC       = "electron_etaSC";       // supercluster eta (acceptance)
+constexpr const char* etaSC       = "electron_etaSC";       // supercluster eta (acceptance + 보정 입력 ScEta)
+constexpr const char* r9          = "electron_r9";          // full5x5_r9 (보정 입력 + shower shape)
+constexpr const char* seedGain    = "electron_seedGain";    // seed 결정체 gain(12/6/1) (보정 입력)
 // ID 결과
 constexpr const char* passModHeep   = "electron_passModHeep";   // electronID(...)
 constexpr const char* modHeepBitmap = "electron_modHeepBitmap"; // userInt(...) 12-bit
+constexpr const char* passHeepV70   = "electron_passHeepV70";   // electronID("heepElectronID-HEEPV70")
+constexpr const char* heepV70Bitmap = "electron_heepV70Bitmap"; // userInt("heepElectronID-HEEPV70") 12-bit
 constexpr const char* addGsfIdx     = "electron_addGsfIdx";     // reciprocal-GSF 상대 index(-1=없음)
 // --- modified-HEEP study: 표준 HEEP 입력 (pat::Electron 메서드) ---
 constexpr const char* hOverE        = "electron_hOverE";           // hadronicOverEm  [bit6]

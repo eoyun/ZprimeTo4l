@@ -79,6 +79,7 @@ private:
   const edm::EDGetTokenT<reco::BeamSpot>           bsToken_;
   const edm::EDGetTokenT<double>                   rhoToken_;
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfToken_;
+  const edm::EDGetTokenT<edm::ValueMap<int>>              seedGainToken_;
   const edm::EDGetTokenT<GenEventInfoProduct>          genToken_;
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> puToken_;
   const edm::EDGetTokenT<edm::TriggerResults>         trigResToken_;
@@ -108,15 +109,15 @@ private:
   // muon
   std::vector<int>   mu_index_, mu_charge_, mu_isHighPt_, mu_isTrackerHighPt_, mu_isTrackerMuon_,
                      mu_trkLayers_, mu_pixelHits_, mu_matchedStations_;
-  std::vector<float> mu_pt_, mu_ptRaw_, mu_eta_, mu_phi_, mu_recoEta_, mu_recoPhi_, mu_recoVz_,
+  std::vector<float> mu_pt_, mu_ptRaw_, mu_eta_, mu_phi_,mu_recoPt_, mu_recoEta_, mu_recoPhi_, mu_recoVz_,
                      mu_innerPt_, mu_innerEta_, mu_innerPhi_, mu_innerVz_, mu_innerDxyBS_,
                      mu_trackIso_, mu_relPtErr_, mu_dxy_, mu_dz_;
 
-  // electron 기본
-  std::vector<int>   ele_index_, ele_charge_, ele_passModHeep_, ele_modHeepBitmap_, ele_addGsfIdx_,
-                     ele_missingHits_, ele_ecalDriven_;
-  std::vector<float> ele_et_, ele_ptRaw_, ele_etaRaw_, ele_phiRaw_, ele_energyRaw_,
-                     ele_pt_, ele_eta_, ele_phi_, ele_mass_, ele_energyCorr_, ele_etaSC_,
+  // electron 기본 (kinematics = raw; scale/smearing 은 후단 correctionlib 적용)
+  std::vector<int>   ele_index_, ele_charge_, ele_passModHeep_, ele_modHeepBitmap_,
+                     ele_passHeepV70_, ele_heepV70Bitmap_, ele_addGsfIdx_,
+                     ele_missingHits_, ele_ecalDriven_, ele_seedGain_;
+  std::vector<float> ele_et_, ele_ptRaw_, ele_etaRaw_, ele_phiRaw_, ele_energyRaw_, ele_etaSC_, ele_r9_,
                      ele_hOverE_, ele_sigmaIeta_, ele_dEtaInSeed_, ele_dPhiIn_, ele_e2x5_, ele_e5x5_,
                      ele_dr03TkSumPt_, ele_dr03EcalIso_, ele_dr03HcalIso_, ele_dxy_, ele_dz_;
   // electron modified ValueMap (map: branch 이름 → 값 배열) + ecal iso
@@ -136,6 +137,7 @@ ResolvedNtuplizer::ResolvedNtuplizer(const edm::ParameterSet& iConfig) :
   bsToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
   rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho"))),
   addGsfToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrk"))),
+  seedGainToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("seedGain"))),
   genToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
   puToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
   trigResToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
@@ -179,6 +181,7 @@ void ResolvedNtuplizer::beginJob() {
   tree_->Branch(sch::mu::ptRaw, &mu_ptRaw_);
   tree_->Branch(sch::mu::eta, &mu_eta_);
   tree_->Branch(sch::mu::phi, &mu_phi_);
+  tree_->Branch(sch::mu::recoPt, &mu_recoEta_);
   tree_->Branch(sch::mu::recoEta, &mu_recoEta_);
   tree_->Branch(sch::mu::recoPhi, &mu_recoPhi_);
   tree_->Branch(sch::mu::recoVz, &mu_recoVz_);
@@ -205,14 +208,13 @@ void ResolvedNtuplizer::beginJob() {
   tree_->Branch(sch::ele::etaRaw, &ele_etaRaw_);
   tree_->Branch(sch::ele::phiRaw, &ele_phiRaw_);
   tree_->Branch(sch::ele::energyRaw, &ele_energyRaw_);
-  tree_->Branch(sch::ele::pt, &ele_pt_);
-  tree_->Branch(sch::ele::eta, &ele_eta_);
-  tree_->Branch(sch::ele::phi, &ele_phi_);
-  tree_->Branch(sch::ele::mass, &ele_mass_);
-  tree_->Branch(sch::ele::energyCorr, &ele_energyCorr_);
   tree_->Branch(sch::ele::etaSC, &ele_etaSC_);
+  tree_->Branch(sch::ele::r9, &ele_r9_);
+  tree_->Branch(sch::ele::seedGain, &ele_seedGain_);
   tree_->Branch(sch::ele::passModHeep, &ele_passModHeep_);
   tree_->Branch(sch::ele::modHeepBitmap, &ele_modHeepBitmap_);
+  tree_->Branch(sch::ele::passHeepV70, &ele_passHeepV70_);
+  tree_->Branch(sch::ele::heepV70Bitmap, &ele_heepV70Bitmap_);
   tree_->Branch(sch::ele::addGsfIdx, &ele_addGsfIdx_);
   tree_->Branch(sch::ele::hOverE, &ele_hOverE_);
   tree_->Branch(sch::ele::sigmaIeta, &ele_sigmaIeta_);
@@ -245,16 +247,17 @@ void ResolvedNtuplizer::beginJob() {
 void ResolvedNtuplizer::clearBuffers() {
   mu_index_.clear(); mu_charge_.clear(); mu_isHighPt_.clear(); mu_isTrackerHighPt_.clear();
   mu_isTrackerMuon_.clear(); mu_trkLayers_.clear(); mu_pixelHits_.clear(); mu_matchedStations_.clear();
-  mu_pt_.clear(); mu_ptRaw_.clear(); mu_eta_.clear(); mu_phi_.clear(); mu_recoEta_.clear();
+  mu_pt_.clear(); mu_ptRaw_.clear(); mu_eta_.clear(); mu_phi_.clear();mu_recoPt_.clear(); mu_recoEta_.clear();
   mu_recoPhi_.clear(); mu_recoVz_.clear(); mu_innerPt_.clear(); mu_innerEta_.clear();
   mu_innerPhi_.clear(); mu_innerVz_.clear(); mu_innerDxyBS_.clear(); mu_trackIso_.clear();
   mu_relPtErr_.clear(); mu_dxy_.clear(); mu_dz_.clear();
 
   ele_index_.clear(); ele_charge_.clear(); ele_passModHeep_.clear(); ele_modHeepBitmap_.clear();
+  ele_passHeepV70_.clear(); ele_heepV70Bitmap_.clear();
   ele_addGsfIdx_.clear(); ele_missingHits_.clear(); ele_ecalDriven_.clear();
   ele_et_.clear(); ele_ptRaw_.clear(); ele_etaRaw_.clear(); ele_phiRaw_.clear(); ele_energyRaw_.clear();
-  ele_pt_.clear(); ele_eta_.clear(); ele_phi_.clear(); ele_mass_.clear(); ele_energyCorr_.clear();
-  ele_etaSC_.clear(); ele_hOverE_.clear(); ele_sigmaIeta_.clear(); ele_dEtaInSeed_.clear();
+  ele_etaSC_.clear(); ele_r9_.clear(); ele_seedGain_.clear();
+  ele_hOverE_.clear(); ele_sigmaIeta_.clear(); ele_dEtaInSeed_.clear();
   ele_dPhiIn_.clear(); ele_e2x5_.clear(); ele_e5x5_.clear(); ele_dr03TkSumPt_.clear();
   ele_dr03EcalIso_.clear(); ele_dr03HcalIso_.clear(); ele_dxy_.clear(); ele_dz_.clear();
   ele_modEcalHcalIso_.clear();
@@ -348,7 +351,7 @@ void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     mu_pt_.push_back(tunePpt);  // 현재 raw=corr (meta muonCorrApplied=0)
     mu_eta_.push_back(m.tunePMuonBestTrack()->eta());
     mu_phi_.push_back(m.tunePMuonBestTrack()->phi());
-    mu_recoEta_.push_back(m.eta()); mu_recoPhi_.push_back(m.phi()); mu_recoVz_.push_back(m.vz());
+    mu_recoPt_.push_back(m.pt()); mu_recoEta_.push_back(m.eta()); mu_recoPhi_.push_back(m.phi()); mu_recoVz_.push_back(m.vz());
     mu_innerPt_.push_back(m.innerTrack()->pt());
     mu_innerEta_.push_back(m.innerTrack()->eta()); mu_innerPhi_.push_back(m.innerTrack()->phi());
     mu_innerVz_.push_back(m.innerTrack()->vz());
@@ -369,6 +372,7 @@ void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   edm::Handle<edm::View<pat::Electron>> eleHandle; iEvent.getByToken(eleToken_, eleHandle);
   edm::Handle<edm::ValueMap<reco::GsfTrackRef>> addGsfMap; iEvent.getByToken(addGsfToken_, addGsfMap);
   const bool haveAddGsf = addGsfMap.isValid();
+  edm::Handle<edm::ValueMap<int>> seedGainMap; iEvent.getByToken(seedGainToken_, seedGainMap);
 
   // modified ValueMap handle 들
   std::map<std::string, edm::Handle<edm::ValueMap<float>>> modH;
@@ -408,20 +412,24 @@ void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&
       }
     }
 
-    // correction 전/후 (electron 은 둘 다 진짜값)
-    const double post = e.userFloat("ecalTrkEnergyPostCorr");
+    // kinematics = raw(slimmedElectron reco). scale/smearing 은 후단 correctionlib 적용(deferred).
     const auto rawP4 = e.polarP4();
-    const auto corrP4 = rawP4 * post / e.energy();
+
+    // seedGain(12/6/1): ElectronSeedGainProducer 의 ValueMap<int>. 없으면 -1 sentinel.
+    int seedGain = -1;
+    if (seedGainMap.isValid() && seedGainMap->contains(eref.id())) seedGain = (*seedGainMap)[eref];
 
     ele_index_.push_back((int)i); ele_charge_.push_back(e.charge());
     ele_et_.push_back(e.et());
     ele_ptRaw_.push_back(rawP4.pt()); ele_etaRaw_.push_back(rawP4.eta()); ele_phiRaw_.push_back(rawP4.phi());
     ele_energyRaw_.push_back(e.energy());
-    ele_pt_.push_back(corrP4.pt()); ele_eta_.push_back(corrP4.eta()); ele_phi_.push_back(corrP4.phi());
-    ele_mass_.push_back(corrP4.M()); ele_energyCorr_.push_back(post);
     ele_etaSC_.push_back(e.superCluster()->eta());
+    ele_r9_.push_back(e.full5x5_r9());          // 보정 입력 + shower shape
+    ele_seedGain_.push_back(seedGain);          // 보정 입력
     ele_passModHeep_.push_back(e.electronID("modifiedHeepElectronID") ? 1 : 0);
     ele_modHeepBitmap_.push_back(e.userInt("modifiedHeepElectronID"));
+    ele_passHeepV70_.push_back(e.electronID("heepElectronID-HEEPV70") ? 1 : 0);   // 표준 HEEP 대조
+    ele_heepV70Bitmap_.push_back(e.userInt("heepElectronID-HEEPV70"));
     ele_addGsfIdx_.push_back(addGsfIdx);
 
     // --- 표준 HEEP 입력 (electron 메서드) ---
