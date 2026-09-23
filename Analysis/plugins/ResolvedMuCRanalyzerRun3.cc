@@ -57,9 +57,6 @@ private:
   const edm::EDGetTokenT<GenEventInfoProduct> generatorToken_;
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> pileupToken_;
   const edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
-  const edm::EDGetTokenT<float> prefweight_token;
-  const edm::EDGetTokenT<float> prefweightUp_token_;
-  const edm::EDGetTokenT<float> prefweightDn_token_;
 
   const edm::EDGetTokenT<edm::TriggerResults> METfilterToken_;
   const edm::EDGetTokenT<edm::TriggerResults> triggerToken_;
@@ -121,9 +118,6 @@ genptcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::In
 generatorToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
 pileupToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
 beamspotToken_(consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpot"))),
-prefweight_token(consumes<float>(edm::InputTag("prefiringweight:nonPrefiringProb"))),
-prefweightUp_token_(consumes<float>(edm::InputTag("prefiringweight:nonPrefiringProbUp"))),
-prefweightDn_token_(consumes<float>(edm::InputTag("prefiringweight:nonPrefiringProbDown"))),
 METfilterToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("METfilters"))),
 triggerToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
 triggerobjectsToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
@@ -375,8 +369,6 @@ void ResolvedMuCRanalyzerRun3::beginJob() {
   histo1d_["4P0F_CR_llll_invM_recoDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_recoDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_PUrwgtUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_PUrwgtUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_invM_PUrwgtDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_PUrwgtDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
-  histo1d_["4P0F_CR_llll_invM_prefireUp"] = fs->make<TH1D>("4P0F_CR_llll_invM_prefireUp","4P0F CR M(4l);M [GeV];",500,0.,2500.);
-  histo1d_["4P0F_CR_llll_invM_prefireDn"] = fs->make<TH1D>("4P0F_CR_llll_invM_prefireDn","4P0F CR M(4l);M [GeV];",500,0.,2500.);
   histo1d_["4P0F_CR_llll_pt"] = fs->make<TH1D>("4P0F_CR_llll_pt","4P0F CR p_{T}(4l);p_{T} [GeV];",100,0.,200.);
   histo1d_["4P0F_CR_ll1ll2_dr"] = fs->make<TH1D>("4P0F_CR_ll1ll2_dr","4P0F CR dR(ll1ll2)",64,0.,6.4);
   histo1d_["4P0F_CR_ll1_invM"] = fs->make<TH1D>("4P0F_CR_ll1_invM","4P0F CR M(ll1);M [GeV];",100,0.,200.);
@@ -423,28 +415,13 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
   double purwgtUp = 1.;
   double purwgtDn = 1.;
   double purwgtNo = 1.;
-  float prefireNo = 1.;
-  float prefireUp = 1.;
-  float prefireDn = 1.;
 
   if (isMC_) {
-    edm::Handle<float> theprefweight;
-    iEvent.getByToken(prefweight_token, theprefweight);
-    prefireNo = *theprefweight;
-
-    edm::Handle<float> theprefweightUp;
-    iEvent.getByToken(prefweightUp_token_, theprefweightUp);
-    prefireUp = *theprefweightUp;
-
-    edm::Handle<float> theprefweightDn;
-    iEvent.getByToken(prefweightDn_token_, theprefweightDn);
-    prefireDn = *theprefweightDn;
-
     edm::Handle<GenEventInfoProduct> genInfo;
     iEvent.getByToken(generatorToken_, genInfo);
     double mcweight = genInfo->weight();
 
-    aWeight = prefireNo*mcweight/std::abs(mcweight);
+    aWeight = mcweight/std::abs(mcweight);
 
     edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
     iEvent.getByToken(pileupToken_, pusummary);
@@ -886,8 +863,6 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
             histo1d_["4P0F_CR_llll_invM_recoDn"]->Fill(m4l, aWeight*systSFratio(recoSyst).second);
             histo1d_["4P0F_CR_llll_invM_PUrwgtUp"]->Fill(m4l, aWeight*purwgtUp/purwgtNo);
             histo1d_["4P0F_CR_llll_invM_PUrwgtDn"]->Fill(m4l, aWeight*purwgtDn/purwgtNo);
-            histo1d_["4P0F_CR_llll_invM_prefireUp"]->Fill(m4l, aWeight*prefireUp/prefireNo);
-            histo1d_["4P0F_CR_llll_invM_prefireDn"]->Fill(m4l, aWeight*prefireDn/prefireNo);
           }
 
           if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
