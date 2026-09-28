@@ -12,9 +12,10 @@
 namespace raRun3 {
 namespace schema {
 
-constexpr int kVersion = 4;  // v3: electron scale/smearing 후단(correctionlib) 적용 →
+constexpr int kVersion = 5;  // v3: electron scale/smearing 후단(correctionlib) 적용 →
                              //     ntuplizer 는 raw + 보정입력(r9,seedGain)만 저장(corr 제거)
                              // v4: 표준 HEEP V70 pass/bitmap 추가 (modified HEEP 대조용)
+                             // v5: hard-process final-state gen lepton(e/mu) 저장 (gen 매칭은 후처리)
 
 // ---- event 스칼라 ----
 namespace ev {
@@ -117,6 +118,17 @@ constexpr const char* eta        = "trigObj_eta";
 constexpr const char* phi        = "trigObj_phi";
 constexpr const char* filterBits = "trigObj_filterBits";
 }  // namespace trig
+
+// ---- hard-process final-state gen lepton flat 배열 (prefix gen_) ----
+// 선택: fromHardProcessFinalState() && (|pdgId|==11 || |pdgId|==13). MC 만 채움.
+// reco<->gen 매칭은 저장 안 함(후처리). ΔR_gen pairing 은 momIdx 로(같은 A 형제 = 같은 momIdx).
+namespace gen {
+constexpr const char* pt     = "gen_pt";
+constexpr const char* eta    = "gen_eta";
+constexpr const char* phi    = "gen_phi";
+constexpr const char* pdgId  = "gen_pdgId";   // 11=e-, -11=e+, 13=mu-, -13=mu+ (부호=charge)
+constexpr const char* momIdx = "gen_momIdx";  // mother 의 prunedGenParticles index (형제 그룹핑 키; 없으면 -1)
+}  // namespace gen
 
 // modified ValueMap 을 못 읽었을 때(잘못된 InputTag 등) 저장할 명시적 sentinel.
 constexpr float kMissing = -999.f;

@@ -32,6 +32,8 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
 #include "ZprimeTo4l/ResolveAnalysisRun3/interface/NtupleSchema.h"
 
@@ -81,6 +83,7 @@ private:
   const edm::EDGetTokenT<edm::ValueMap<reco::GsfTrackRef>> addGsfToken_;
   const edm::EDGetTokenT<edm::ValueMap<int>>              seedGainToken_;
   const edm::EDGetTokenT<GenEventInfoProduct>          genToken_;
+  const edm::EDGetTokenT<edm::View<reco::GenParticle>> genPtcToken_;   // prunedGenParticles (hard-process gen lepton)
   const edm::EDGetTokenT<edm::View<PileupSummaryInfo>> puToken_;
   const edm::EDGetTokenT<edm::TriggerResults>         trigResToken_;
   const edm::EDGetTokenT<edm::View<pat::TriggerObjectStandAlone>> trigObjToken_;
@@ -127,6 +130,10 @@ private:
   // trigger
   std::vector<float> trig_pt_, trig_eta_, trig_phi_;
   std::vector<int>   trig_filterBits_;
+
+  // hard-process final-state gen lepton (e/mu; MC only)
+  std::vector<float> gen_pt_, gen_eta_, gen_phi_;
+  std::vector<int>   gen_pdgId_, gen_momIdx_;
 };
 
 ResolvedNtuplizer::ResolvedNtuplizer(const edm::ParameterSet& iConfig) :
@@ -139,6 +146,7 @@ ResolvedNtuplizer::ResolvedNtuplizer(const edm::ParameterSet& iConfig) :
   addGsfToken_(consumes<edm::ValueMap<reco::GsfTrackRef>>(iConfig.getParameter<edm::InputTag>("addGsfTrk"))),
   seedGainToken_(consumes<edm::ValueMap<int>>(iConfig.getParameter<edm::InputTag>("seedGain"))),
   genToken_(consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("generator"))),
+  genPtcToken_(consumes<edm::View<reco::GenParticle>>(iConfig.getParameter<edm::InputTag>("genptc"))),
   puToken_(consumes<edm::View<PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("pileupSummary"))),
   trigResToken_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("triggerResults"))),
   trigObjToken_(consumes<edm::View<pat::TriggerObjectStandAlone>>(iConfig.getParameter<edm::InputTag>("triggerObjects"))),
@@ -238,6 +246,12 @@ void ResolvedNtuplizer::beginJob() {
   tree_->Branch(sch::trig::phi, &trig_phi_);
   tree_->Branch(sch::trig::filterBits, &trig_filterBits_);
 
+  tree_->Branch(sch::gen::pt, &gen_pt_);
+  tree_->Branch(sch::gen::eta, &gen_eta_);
+  tree_->Branch(sch::gen::phi, &gen_phi_);
+  tree_->Branch(sch::gen::pdgId, &gen_pdgId_);
+  tree_->Branch(sch::gen::momIdx, &gen_momIdx_);
+
   norm_ = fs->make<TH1D>("norm", "normalization (pre-skim)", 3, 0., 3.);  // Nevents/sumw/sumw2
   meta_ = fs->make<TH1D>("meta", "metadata", 2, 0., 2.);
   meta_->SetBinContent(1, static_cast<double>(sch::kVersion));
@@ -264,6 +278,7 @@ void ResolvedNtuplizer::clearBuffers() {
   for (auto& kv : ele_modBuf_) kv.second.clear();
 
   trig_pt_.clear(); trig_eta_.clear(); trig_phi_.clear(); trig_filterBits_.clear();
+  gen_pt_.clear(); gen_eta_.clear(); gen_phi_.clear(); gen_pdgId_.clear(); gen_momIdx_.clear();
 }
 
 void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&) {
@@ -279,6 +294,23 @@ void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     iEvent.getByToken(puToken_, pu);
     for (unsigned i = 0; i < pu->size(); ++i)
       if (pu->at(i).getBunchCrossing() == 0) { b_puTrue_ = pu->at(i).getTrueNumInteractions(); break; }
+
+    // hard-process final-state gen lepton(e/mu) 저장 — 관례: MergedEleSigAnalyzer
+    // (fromHardProcessFinalState). 매칭/ΔR_gen pairing 은 후처리(momIdx = mother key).
+    edm::Handle<edm::View<reco::GenParticle>> genPtc;
+    iEvent.getByToken(genPtcToken_, genPtc);
+    for (unsigned i = 0; i < genPtc->size(); ++i) {
+      const auto& gp = genPtc->at(i);
+      const int absId = std::abs(gp.pdgId());
+      if ((absId != 11 && absId != 13) || !gp.fromHardProcessFinalState())
+        continue;
+      gen_pt_.push_back(gp.pt());
+      gen_eta_.push_back(gp.eta());
+      gen_phi_.push_back(gp.phi());
+      gen_pdgId_.push_back(gp.pdgId());
+      // mother 의 collection index (형제 = 같은 momIdx). numberOfMothers==0 이면 -1.
+      gen_momIdx_.push_back(gp.numberOfMothers() > 0 ? static_cast<int>(gp.motherRef(0).key()) : -1);
+    }
   }
   const double w = b_genWeight_;
   norm_->AddBinContent(1, 1.0);

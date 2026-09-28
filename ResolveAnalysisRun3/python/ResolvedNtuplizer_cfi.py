@@ -10,10 +10,13 @@ resolvedNtuplizer = cms.EDAnalyzer('ResolvedNtuplizer',
     rho             = cms.InputTag('fixedGridRhoFastjetAll'),
     # modified-HEEP producer(2nd instance)가 만드는 추가 GSF track ValueMap
     addGsfTrk       = cms.InputTag('modifiedHEEPIDVarValueMaps2nd', 'eleAddGsfTrk'),
+    # seed 결정체 gain ValueMap<int> (ElectronSeedGainProducer 출력) — correctionlib scale 입력
+    seedGain        = cms.InputTag('seedGainEle'),
     # modified-HEEP study 변수 소스: producer instance(module) 이름 + ECAL iso ValueMap
     modHeepModule   = cms.string('modifiedHEEPIDVarValueMaps2nd'),
     modEcalIso      = cms.InputTag('ModifiedEcalRecHitIsolationScone', 'EcalRecHitIso'),
     generator       = cms.InputTag('generator'),
+    genptc          = cms.InputTag('prunedGenParticles'),   # hard-process gen lepton(e/mu) 저장용
     pileupSummary   = cms.InputTag('slimmedAddPileupInfo'),
     triggerResults  = cms.InputTag('TriggerResults', '', 'HLT'),
     triggerObjects  = cms.InputTag('slimmedPatTrigger'),
