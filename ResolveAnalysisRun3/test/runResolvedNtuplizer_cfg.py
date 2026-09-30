@@ -12,7 +12,10 @@
 # =============================================================================
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process('raRun3Ntuple')
+# Run-3 era modifier 필수: 이걸 줘야 run3_common 이 적용돼 CaloGeometryBuilder 가 CASTOR 를
+# 제외한다(Run-3 GT엔 PCastorRcd 없음 → 안 주면 'No PCastorRcd record' 에러). 그 외 Run-3 기본값도 정렬.
+from Configuration.Eras.Era_Run3_cff import Run3
+process = cms.Process('raRun3Ntuple', Run3)
 
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -49,22 +52,30 @@ process.load('RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi')
 process.load('ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi')
 process.load('ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi')
 
-# ---- VID + egamma post-reco: ecalTrkEnergyPostCorr(보정) + modifiedHeepElectronID 생성 ----
+# ---- VID + egamma post-reco: modifiedHeepElectronID(VID) 생성 ----
+# NOTE: energy scale/smearing 은 후단 correctionlib 로 적용하므로 runEnergyCorrections=False.
+#       (옛 .dat 기반 ecalTrkEnergyPostCorr 안 씀 → 2022 .dat 없어도 됨)
 runVIDmodules = [
     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff',
     'ZprimeTo4l.ModifiedHEEP.Identification.modifiedHeepElectronID_cff',
 ]
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
-                       runEnergyCorrections=True,   # → userFloat("ecalTrkEnergyPostCorr")
+                       runEnergyCorrections=False,  # scale/smearing 은 후단 correctionlib (여기선 끔)
                        runVID=True,                 # → electronID/userInt("modifiedHeepElectronID")
                        eleIDModules=runVIDmodules,
                        phoIDModules=[],
-                       era='2022-Prompt')           # [USER] Run-3 era 에 맞게 (예: 2022-Prompt / 2023-Prompt)
+                       era='2022-Prompt')           # [USER] Run-3 era (VID 용; energy corr 안 씀)
 
 # egamma post-reco 뒤에 slimmedElectrons 로 다시 도는 2nd instance (addGsfTrk 여기서 나옴)
 process.modifiedHEEPIDVarValueMaps2nd = process.ModifiedHEEPIDVarValueMaps.clone(
     elesMiniAOD = cms.InputTag('slimmedElectrons')
+)
+
+# seed 결정체 gain(12/6/1) ValueMap<int> — correctionlib scale 입력 (릴리스 기성 producer 재사용)
+process.seedGainEle = cms.EDProducer('ElectronSeedGainProducer',
+    src = cms.InputTag('slimmedElectrons')
+    # recHitsEB/EE 기본값: reducedEgamma:reducedEBRecHits / reducedEERecHits
 )
 
 # ---- ntuplizer ----
@@ -87,5 +98,6 @@ process.p = cms.Path(
     + process.ModifiedEcalRecHitIsolationScone
     + process.egammaPostRecoSeq
     + process.modifiedHEEPIDVarValueMaps2nd
+    + process.seedGainEle
     + process.resolvedNtuplizer
 )

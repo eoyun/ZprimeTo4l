@@ -9,10 +9,11 @@ using namespace raRun3::schema;
 // flat 이름 규칙(prefix) + 버전 확인.
 static void test_names_prefix_and_version() {
   CHECK(std::string(mu::pt).rfind("muon_", 0) == 0);
-  CHECK(std::string(ele::pt).rfind("electron_", 0) == 0);
+  CHECK(std::string(ele::ptRaw).rfind("electron_", 0) == 0);
+  CHECK(std::string(ele::seedGain).rfind("electron_", 0) == 0);
   CHECK(std::string(ele::modTrkIso).rfind("electron_", 0) == 0);
   CHECK(std::string(trig::pt).rfind("trigObj_", 0) == 0);
-  CHECK(kVersion >= 2);
+  CHECK(kVersion >= 3);
 }
 
 // 모든 branch 이름을 모아 중복이 없는지(set 크기 == 나열 개수) 확인. 매직넘버 없이 무결성만.
@@ -25,7 +26,7 @@ static void test_names_unique() {
     mu::isHighPt, mu::isTrackerHighPt, mu::isTrackerMuon, mu::trackIso, mu::relPtErr,
     mu::trkLayers, mu::pixelHits, mu::matchedStations, mu::dxy, mu::dz,
     ele::index, ele::charge, ele::et, ele::ptRaw, ele::etaRaw, ele::phiRaw, ele::energyRaw,
-    ele::pt, ele::eta, ele::phi, ele::mass, ele::energyCorr, ele::etaSC,
+    ele::etaSC, ele::r9, ele::seedGain,
     ele::passModHeep, ele::modHeepBitmap, ele::addGsfIdx,
     ele::hOverE, ele::sigmaIeta, ele::dEtaInSeed, ele::dPhiIn, ele::e2x5, ele::e5x5,
     ele::dr03TkSumPt, ele::dr03EcalIso, ele::dr03HcalIso, ele::missingHits, ele::dxy, ele::dz,

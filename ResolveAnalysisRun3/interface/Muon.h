@@ -26,6 +26,7 @@ struct Muon {
 
   // --- neighbor 기하 (checkIso 재현용) ---
   // self 로 쓸 때: recoEta/recoPhi/recoVz. neighbor 로 쓸 때: innerEta/innerPhi/innerVz/innerDxyBS.
+  double recoPt    = 0.;  // muon reco 방향 eta (deltaR 기준: self)
   double recoEta    = 0.;  // muon reco 방향 eta (deltaR 기준: self)
   double recoPhi    = 0.;  // muon reco 방향 phi
   double recoVz     = 0.;  // [cm] muon vertex z (dz 비교: self)
