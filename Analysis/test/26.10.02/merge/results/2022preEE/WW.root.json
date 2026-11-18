@@ -1,0 +1,35 @@
+{
+  "output": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/results/2022preEE/WW.root",
+  "inputs": [
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/WW/part_0000.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/WW/part_0001.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/WW/part_0002.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/WW/part_0003.root"
+  ],
+  "tree_entries": {
+    "resolvedMuCRanalyzerRun3/numerTree": 2,
+    "resolvedMuCRanalyzerRun3/denomTree": 5
+  },
+  "normalization": {
+    "resolvedMuCRanalyzerRun3/totWeightedSum": [
+      0.0,
+      749866.0,
+      0.0
+    ],
+    "resolvedMuCRanalyzerRun3/cutflow": [
+      0.0,
+      749866.0,
+      749537.0,
+      749534.0,
+      673811.0,
+      672733.0,
+      622634.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "root_version": "6.26/11"
+}

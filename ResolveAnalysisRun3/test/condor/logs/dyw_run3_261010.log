@@ -1,0 +1,48 @@
+DY_Jets: 100 files
+DY_Jets: done
+DY_Jets_ext1: 100 files
+DY_Jets_ext1: done
+DY_Jets_ext2: 100 files
+DY_Jets_ext2: done
+W_Jets: 100 files
+W_Jets: done
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EB_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EB_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EB_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EB_cutflow.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EE_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EE_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EE_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_prompt_EE_cutflow.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EB_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EB_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EB_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EB_cutflow.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EE_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EE_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EE_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/DY_fake_EE_cutflow.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EB_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EB_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EB_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EB_cutflow.pdf has been created
+TGraphAsymmErrors::Divide:0: RuntimeWarning: Number of graph points is different than histogram bins - 1 points have been skipped
+TGraphAsymmErrors::Divide:0: RuntimeWarning: Number of graph points is different than histogram bins - 1 points have been skipped
+TGraphAsymmErrors::Divide:0: RuntimeWarning: Number of graph points is different than histogram bins - 1 points have been skipped
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EE_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EE_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EE_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_prompt_EE_cutflow.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EB_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EB_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EB_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EB_cutflow.pdf has been created
+TGraphAsymmErrors::Divide:0: RuntimeWarning: Number of graph points is different than histogram bins - 1 points have been skipped
+TGraphAsymmErrors::Divide:0: RuntimeWarning: Number of graph points is different than histogram bins - 1 points have been skipped
+TGraphAsymmErrors::Divide:0: RuntimeWarning: Number of graph points is different than histogram bins - 1 points have been skipped
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EE_rate_vs_pt.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EE_rate_vs_pt.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EE_cutflow.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files/W_fake_EE_cutflow.pdf has been created
+Plots: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_run3_100files
+Counts: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/out/dyw_run3_100files

@@ -1,0 +1,6 @@
+ERROR: OSError: [Errno 30] Read-only file system: '/u/user/eoyun/.crab3.512'
+
+ Look for more details in crab.log file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/crab/HToAATo4L_H250A10_22/crab_projects/crab_resolvedMuCR_HToAATo4L_H250A10_22/crab.log
+  If you can't figure out the problem, please send email to
+	cmstalk+computing-tools@dovecotmta.cern.ch with the crab.log file or crab.log URL.
+  Please use 'crab uploadlog' to upload the log file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/crab/HToAATo4L_H250A10_22/crab_projects/crab_resolvedMuCR_HToAATo4L_H250A10_22/crab.log to the CRAB cache.

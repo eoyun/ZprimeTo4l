@@ -1,0 +1,58 @@
+host: cluster337.knu.ac.kr  files: 34
+Parallelizing  with 4 processes.
+hadd Target file: BsToJPsiPhi.root
+hadd compression setting for all output: 1
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_3.root
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_27.root
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_19.root
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_10.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_11.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_1.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_28.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_4.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_12.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_29.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_20.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_5.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_13.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_2.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_21.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_6.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_30.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_14.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_22.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_7.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_23.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_31.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_15.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_8.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_24.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_32.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_16.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_9.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_25.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_33.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_17.root
+hadd Source file 9: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_26.root
+hadd Target path: /tmp/partial3_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/
+hadd Target path: /tmp/partial3_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/evtCounter
+hadd Source file 9: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_34.root
+hadd Source file 9: /pnfs/knu.ac.kr/data/cms/store/user/yeo/BsToJPsiPhi_JPsiToMuMu_PhiToKK_EtaPtFilter_SoftQCDnonD_TuneCP5_13p6TeV_pythia8-evtgen/muonJpsi_BsToJPsiPhi/261105_004135/0000/out_18.root
+hadd Target path: /tmp/partial1_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/
+hadd Target path: /tmp/partial1_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/evtCounter
+hadd Target path: /tmp/partial0_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/
+hadd Target path: /tmp/partial2_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/
+hadd Target path: /tmp/partial0_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/evtCounter
+hadd Target path: /tmp/partial2_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/evtCounter
+hadd Target path: /tmp/partial3_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/MuonJpsi
+hadd Target path: /tmp/partial2_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/MuonJpsi
+hadd Target path: /tmp/partial1_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/MuonJpsi
+hadd Target path: /tmp/partial0_a698225c-dce5-11f1-ac65-8915e69bbeef.root:/MuonJpsi
+hadd Source file 1: /tmp/partial0_a698225c-dce5-11f1-ac65-8915e69bbeef.root
+hadd Source file 2: /tmp/partial1_a698225c-dce5-11f1-ac65-8915e69bbeef.root
+hadd Source file 3: /tmp/partial2_a698225c-dce5-11f1-ac65-8915e69bbeef.root
+hadd Source file 4: /tmp/partial3_a698225c-dce5-11f1-ac65-8915e69bbeef.root
+hadd Target path: BsToJPsiPhi.root:/
+hadd Target path: BsToJPsiPhi.root:/evtCounter
+hadd Target path: BsToJPsiPhi.root:/MuonJpsi
+-rw-r--r-- 1 eoyun cms 42603498 Nov 10 18:05 BsToJPsiPhi.root

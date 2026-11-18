@@ -1,0 +1,79 @@
+host: cluster299.knu.ac.kr  files: 55
+Parallelizing  with 4 processes.
+hadd Target file: TbarB-s-channel.root
+hadd compression setting for all output: 1
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_10.root
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_23.root
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_49.root
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_36.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_11.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_37.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_4.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_24.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_38.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_12.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_50.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_25.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_39.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_26.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_51.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_13.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_3.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_27.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_52.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_40.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_14.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_28.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_53.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_15.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_41.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_29.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_16.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_54.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_42.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_2.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_17.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_55.root
+hadd Source file 9: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_43.root
+hadd Source file 9: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_30.root
+hadd Source file 9: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_18.root
+hadd Source file 9: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_5.root
+hadd Source file 10: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_44.root
+hadd Source file 10: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_31.root
+hadd Source file 10: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_19.root
+hadd Source file 11: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_45.root
+hadd Source file 10: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_6.root
+hadd Source file 11: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_32.root
+hadd Source file 11: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_1.root
+hadd Source file 12: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_46.root
+hadd Source file 12: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_33.root
+hadd Source file 11: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_7.root
+hadd Source file 12: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_20.root
+hadd Source file 13: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_47.root
+hadd Source file 13: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_34.root
+hadd Source file 12: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_8.root
+hadd Source file 13: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_21.root
+hadd Source file 14: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_48.root
+hadd Source file 14: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_35.root
+hadd Source file 13: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_9.root
+hadd Source file 14: /pnfs/knu.ac.kr/data/cms/store/user/yeo/TbarBtoLminusNuB-s-channel-4FS_TuneCP5_13p6TeV_amcatnlo-pythia8/muonJpsi_TbarB-s-channel/261105_004647/0000/out_22.root
+hadd Target path: /tmp/partial1_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/
+hadd Target path: /tmp/partial2_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/
+hadd Target path: /tmp/partial1_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/evtCounter
+hadd Target path: /tmp/partial2_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/evtCounter
+hadd Target path: /tmp/partial3_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/
+hadd Target path: /tmp/partial0_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/
+hadd Target path: /tmp/partial3_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/evtCounter
+hadd Target path: /tmp/partial0_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/evtCounter
+hadd Target path: /tmp/partial2_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/MuonJpsi
+hadd Target path: /tmp/partial3_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/MuonJpsi
+hadd Target path: /tmp/partial1_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/MuonJpsi
+hadd Target path: /tmp/partial0_d2015b38-dce6-11f1-a137-6315e69bbeef.root:/MuonJpsi
+hadd Source file 1: /tmp/partial0_d2015b38-dce6-11f1-a137-6315e69bbeef.root
+hadd Source file 2: /tmp/partial1_d2015b38-dce6-11f1-a137-6315e69bbeef.root
+hadd Source file 3: /tmp/partial2_d2015b38-dce6-11f1-a137-6315e69bbeef.root
+hadd Source file 4: /tmp/partial3_d2015b38-dce6-11f1-a137-6315e69bbeef.root
+hadd Target path: TbarB-s-channel.root:/
+hadd Target path: TbarB-s-channel.root:/evtCounter
+hadd Target path: TbarB-s-channel.root:/MuonJpsi
+-rw-r--r-- 1 eoyun cms 80963977 Nov 10 18:12 TbarB-s-channel.root

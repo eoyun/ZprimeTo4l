@@ -1,0 +1,10 @@
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/DY_cutflow_pt20.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/DY_cutflow_pt20.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/DY_cutflow_pt35.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/DY_cutflow_pt35.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/W_cutflow_pt20.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/W_cutflow_pt20.pdf has been created
+Info in <TCanvas::Print>: png file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/W_cutflow_pt35.png has been created
+Info in <TCanvas::Print>: pdf file /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only/W_cutflow_pt35.pdf has been created
+PASS: unmatched counts reproduce previous study; all cutflows monotonic, paired baselines identical.
+Plots: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/ResolveAnalysisRun3/test/condor/imgs/dyw_cutflow_only

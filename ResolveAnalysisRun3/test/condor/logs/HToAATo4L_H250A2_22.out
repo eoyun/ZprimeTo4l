@@ -1,0 +1,10 @@
+added 5 files, entries=90759
+=== cutflow hists_HToAATo4L_H250A2_22.root ===
+events                 : 90759
+gen pairs formed       : 90170
+gen pairs selected     : 83814  (dR_gen min=0.0006 max=3.0024)
+reco e pT>10           : 117100
+denominator EB / EE    : 80624 / 13919
+numerator before EB/EE : 11252 / 2951
+numerator after  EB/EE : 61555 / 5513
+wrote hists_HToAATo4L_H250A2_22.root

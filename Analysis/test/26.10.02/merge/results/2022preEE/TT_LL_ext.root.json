@@ -1,0 +1,37 @@
+{
+  "output": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/results/2022preEE/TT_LL_ext.root",
+  "inputs": [
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_LL_ext/part_0000.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_LL_ext/part_0001.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_LL_ext/part_0002.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_LL_ext/part_0003.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_LL_ext/part_0004.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_LL_ext/part_0005.root"
+  ],
+  "tree_entries": {
+    "resolvedMuCRanalyzerRun3/numerTree": 299,
+    "resolvedMuCRanalyzerRun3/denomTree": 5213
+  },
+  "normalization": {
+    "resolvedMuCRanalyzerRun3/totWeightedSum": [
+      0.0,
+      5619224.0,
+      0.0
+    ],
+    "resolvedMuCRanalyzerRun3/cutflow": [
+      0.0,
+      5619224.0,
+      5615864.0,
+      5615839.0,
+      5039330.0,
+      5015559.0,
+      3809199.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "root_version": "6.26/11"
+}

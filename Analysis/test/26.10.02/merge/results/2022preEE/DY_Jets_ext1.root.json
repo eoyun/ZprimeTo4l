@@ -1,0 +1,48 @@
+{
+  "output": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/results/2022preEE/DY_Jets_ext1.root",
+  "inputs": [
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0000.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0001.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0002.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0003.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0004.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0005.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0006.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0007.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0008.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0009.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0010.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0011.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0012.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0013.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0014.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0015.root",
+    "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0016.root"
+  ],
+  "tree_entries": {
+    "resolvedMuCRanalyzerRun3/numerTree": 337,
+    "resolvedMuCRanalyzerRun3/denomTree": 9681
+  },
+  "normalization": {
+    "resolvedMuCRanalyzerRun3/totWeightedSum": [
+      0.0,
+      3154044.0,
+      0.0
+    ],
+    "resolvedMuCRanalyzerRun3/cutflow": [
+      0.0,
+      3154044.0,
+      3153268.0,
+      3153257.0,
+      2606049.0,
+      2594135.0,
+      2590961.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "root_version": "6.26/11"
+}

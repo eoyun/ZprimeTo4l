@@ -93,6 +93,7 @@ private:
   // modified-HEEP ValueMap 토큰 (map: branch 이름 → token)
   std::map<std::string, edm::EDGetTokenT<edm::ValueMap<float>>> modTokens_;
   edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoToken_;
+  edm::EDGetTokenT<edm::ValueMap<float>> ecalIsoRun3Token_;
 
   // skim / 저장 기준
   const double muPtMinStore_, muEtaMaxStore_, eleEtaMaxStore_, eleGapLo_, eleGapHi_;
@@ -118,14 +119,15 @@ private:
 
   // electron 기본 (kinematics = raw; scale/smearing 은 후단 correctionlib 적용)
   std::vector<int>   ele_index_, ele_charge_, ele_passModHeep_, ele_modHeepBitmap_,
-                     ele_passHeepV70_, ele_heepV70Bitmap_, ele_addGsfIdx_,
+                     ele_passHeepV70_, ele_heepV70Bitmap_,
+                     ele_passModifiedHEEPRun3ID_, ele_bitmapModifiedHEEPRun3ID_, ele_addGsfIdx_,
                      ele_missingHits_, ele_ecalDriven_, ele_seedGain_;
   std::vector<float> ele_et_, ele_ptRaw_, ele_etaRaw_, ele_phiRaw_, ele_energyRaw_, ele_etaSC_, ele_r9_,
                      ele_hOverE_, ele_sigmaIeta_, ele_dEtaInSeed_, ele_dPhiIn_, ele_e2x5_, ele_e5x5_,
                      ele_dr03TkSumPt_, ele_dr03EcalIso_, ele_dr03HcalIso_, ele_dxy_, ele_dz_;
   // electron modified ValueMap (map: branch 이름 → 값 배열) + ecal iso
   std::map<std::string, std::vector<float>> ele_modBuf_;
-  std::vector<float> ele_modEcalHcalIso_;
+  std::vector<float> ele_modEcalHcalIso_, ele_modEcalHcalIsoRun3_;
 
   // trigger
   std::vector<float> trig_pt_, trig_eta_, trig_phi_;
@@ -154,6 +156,7 @@ ResolvedNtuplizer::ResolvedNtuplizer(const edm::ParameterSet& iConfig) :
   trigList_(iConfig.getParameter<std::vector<std::string>>("trigList")),
   metFilterList_(iConfig.getParameter<std::vector<std::string>>("METfilterList")),
   ecalIsoToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("modEcalIso"))),
+  ecalIsoRun3Token_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("modEcalIsoRun3"))),
   muPtMinStore_(iConfig.getParameter<double>("muPtMinStore")),
   muEtaMaxStore_(iConfig.getParameter<double>("muEtaMaxStore")),
   eleEtaMaxStore_(iConfig.getParameter<double>("eleEtaMaxStore")),
@@ -223,6 +226,8 @@ void ResolvedNtuplizer::beginJob() {
   tree_->Branch(sch::ele::modHeepBitmap, &ele_modHeepBitmap_);
   tree_->Branch(sch::ele::passHeepV70, &ele_passHeepV70_);
   tree_->Branch(sch::ele::heepV70Bitmap, &ele_heepV70Bitmap_);
+  tree_->Branch(sch::ele::passModifiedHEEPRun3ID, &ele_passModifiedHEEPRun3ID_);
+  tree_->Branch(sch::ele::bitmapModifiedHEEPRun3ID, &ele_bitmapModifiedHEEPRun3ID_);
   tree_->Branch(sch::ele::addGsfIdx, &ele_addGsfIdx_);
   tree_->Branch(sch::ele::hOverE, &ele_hOverE_);
   tree_->Branch(sch::ele::sigmaIeta, &ele_sigmaIeta_);
@@ -238,6 +243,7 @@ void ResolvedNtuplizer::beginJob() {
   tree_->Branch(sch::ele::dz, &ele_dz_);
   tree_->Branch(sch::ele::ecalDriven, &ele_ecalDriven_);
   tree_->Branch(sch::ele::modEcalHcalIso, &ele_modEcalHcalIso_);
+  tree_->Branch(sch::ele::modEcalHcalIsoRun3, &ele_modEcalHcalIsoRun3_);
   for (const auto& mv : kModVMs)
     tree_->Branch(mv.branch, &ele_modBuf_[mv.branch]);  // map 값 주소 고정
 
@@ -268,13 +274,14 @@ void ResolvedNtuplizer::clearBuffers() {
 
   ele_index_.clear(); ele_charge_.clear(); ele_passModHeep_.clear(); ele_modHeepBitmap_.clear();
   ele_passHeepV70_.clear(); ele_heepV70Bitmap_.clear();
+  ele_passModifiedHEEPRun3ID_.clear(); ele_bitmapModifiedHEEPRun3ID_.clear();
   ele_addGsfIdx_.clear(); ele_missingHits_.clear(); ele_ecalDriven_.clear();
   ele_et_.clear(); ele_ptRaw_.clear(); ele_etaRaw_.clear(); ele_phiRaw_.clear(); ele_energyRaw_.clear();
   ele_etaSC_.clear(); ele_r9_.clear(); ele_seedGain_.clear();
   ele_hOverE_.clear(); ele_sigmaIeta_.clear(); ele_dEtaInSeed_.clear();
   ele_dPhiIn_.clear(); ele_e2x5_.clear(); ele_e5x5_.clear(); ele_dr03TkSumPt_.clear();
   ele_dr03EcalIso_.clear(); ele_dr03HcalIso_.clear(); ele_dxy_.clear(); ele_dz_.clear();
-  ele_modEcalHcalIso_.clear();
+  ele_modEcalHcalIso_.clear(); ele_modEcalHcalIsoRun3_.clear();
   for (auto& kv : ele_modBuf_) kv.second.clear();
 
   trig_pt_.clear(); trig_eta_.clear(); trig_phi_.clear(); trig_filterBits_.clear();
@@ -410,6 +417,7 @@ void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&
   std::map<std::string, edm::Handle<edm::ValueMap<float>>> modH;
   for (const auto& mv : kModVMs) iEvent.getByToken(modTokens_[mv.branch], modH[mv.branch]);
   edm::Handle<edm::ValueMap<float>> ecalIsoH; iEvent.getByToken(ecalIsoToken_, ecalIsoH);
+  edm::Handle<edm::ValueMap<float>> ecalIsoRun3H; iEvent.getByToken(ecalIsoRun3Token_, ecalIsoRun3H);
 
   // ValueMap 안전 읽기: 없거나 ref 미포함이면 sentinel(-999).
   auto readVM = [](const edm::Handle<edm::ValueMap<float>>& h,
@@ -462,6 +470,8 @@ void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&
     ele_modHeepBitmap_.push_back(e.userInt("modifiedHeepElectronID"));
     ele_passHeepV70_.push_back(e.electronID("heepElectronID-HEEPV70") ? 1 : 0);   // 표준 HEEP 대조
     ele_heepV70Bitmap_.push_back(e.userInt("heepElectronID-HEEPV70"));
+    ele_passModifiedHEEPRun3ID_.push_back(e.electronID("ModifiedHEEPRun3ID") ? 1 : 0);
+    ele_bitmapModifiedHEEPRun3ID_.push_back(e.userInt("ModifiedHEEPRun3ID"));
     ele_addGsfIdx_.push_back(addGsfIdx);
 
     // --- 표준 HEEP 입력 (electron 메서드) ---
@@ -481,6 +491,7 @@ void ResolvedNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
     // --- modified 변수 (ValueMap; 없으면 sentinel) ---
     ele_modEcalHcalIso_.push_back(readVM(ecalIsoH, eref));
+    ele_modEcalHcalIsoRun3_.push_back(readVM(ecalIsoRun3H, eref));
     for (const auto& mv : kModVMs)
       ele_modBuf_[mv.branch].push_back(readVM(modH[mv.branch], eref));
   }

@@ -1,0 +1,33 @@
+{
+  "output": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224528_522399/smoke_results/2022preEE/ZZ.root",
+  "inputs": [
+    "/pnfs/knu.ac.kr/data/cms/store/user/yeo/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_ZZ/261002_075445/0000/hists_1.root",
+    "/pnfs/knu.ac.kr/data/cms/store/user/yeo/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_ZZ/261002_075445/0000/hists_2.root"
+  ],
+  "tree_entries": {
+    "resolvedMuCRanalyzerRun3/numerTree": 36,
+    "resolvedMuCRanalyzerRun3/denomTree": 1
+  },
+  "normalization": {
+    "resolvedMuCRanalyzerRun3/totWeightedSum": [
+      0.0,
+      1822.0,
+      0.0
+    ],
+    "resolvedMuCRanalyzerRun3/cutflow": [
+      0.0,
+      1822.0,
+      1821.0,
+      1821.0,
+      1602.0,
+      1581.0,
+      1188.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "root_version": "6.26/11"
+}

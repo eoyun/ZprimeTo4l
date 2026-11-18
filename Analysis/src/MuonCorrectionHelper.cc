@@ -1,5 +1,6 @@
 #include "ZprimeTo4l/Analysis/interface/MuonCorrectionHelper.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "ZprimeTo4l/MergedLepton/interface/MuonTrackIsolation.h"
 
 #include <cmath>
 
@@ -64,18 +65,7 @@ std::pair<double,double> MuonCorrectionHelper::boostIsoSFupdn(const pat::MuonRef
 bool MuonCorrectionHelper::checkIso(const pat::MuonRef& mu,
                                     const reco::TrackRef& trk,
                                     const reco::BeamSpot& bs) {
-  const double dr2 = reco::deltaR2(mu->eta(),mu->phi(),trk->eta(),trk->phi());
-
-  if (dr2 > 0.09 || dr2 < 0.0001)
-    return false;
-
-  if ( std::abs(mu->vz() - trk->vz()) > 0.2 )
-    return false;
-
-  if ( trk->dxy( bs.position() ) > 0.1 )
-    return false;
-
-  return true;
+  return mergedMuonIso::checkIso(*mu, *trk, bs);
 }
 
 double MuonCorrectionHelper::recoSF(const pat::MuonRef& mu) {

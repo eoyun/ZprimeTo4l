@@ -8,4 +8,6 @@ __init__.py
 *crab*
 ./MergedLepton/test/25*
 ./MergedLepton/test/26*
+./Analysis/test/26*
+./ResolvedAnalysisRun3/test/26*
 *.dat

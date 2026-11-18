@@ -1,5 +1,6 @@
 #include <memory>
 #include <iostream>
+#include <cmath>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -7,6 +8,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
+#include "FWCore/Utilities/interface/Exception.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
@@ -163,6 +165,15 @@ void ResolvedMuCRanalyzerRun3::beginJob() {
 
   histo1d_["totWeightedSum"] = fs->make<TH1D>("totWeightedSum","totWeightedSum",1,0.,1.);
   histo1d_["cutflow"] = fs->make<TH1D>("cutflow","cutflow",10,0.,10.);
+
+  // Unweighted MC PU distributions before this analyzer's event selections.
+  // Match the data pileupCalc histogram: 100 bins over [0, 100).
+  if (isMC_) {
+    histo1d_["pileup_nPUtrue"] = fs->make<TH1D>("pileup_nPUtrue",
+        "MC true pileup before selection;True mean interactions (BX=0);Events",100,0.,100.);
+    histo1d_["pileup_nPU"] = fs->make<TH1D>("pileup_nPU",
+        "MC observed pileup before selection;PU interactions (BX=0);Events",100,0.,100.);
+  }
 
   // 3P0F
   histo1d_["3P0F_P1_pt"] = fs->make<TH1D>("3P0F_P1_pt","3P0F Pass M1 p_{T};p_{T} [GeV];",200,0.,500.);
@@ -429,26 +440,29 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
 
     aWeight = mcweight/std::abs(mcweight);
 
-    // --- PU reweight payload(puWeights20UL16.json) 비활성화 (Run-3 PU 준비되면 되살리기) ---
-    // purwgtUp/Dn/No 는 1. 로 유지되어 PU 보정 없이 진행.
-    // edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
-    // iEvent.getByToken(pileupToken_, pusummary);
-    //
-    // for (unsigned int idx = 0; idx < pusummary->size(); ++idx) {
-    //   const auto& apu = pusummary->refAt(idx);
-    //
-    //   int bx = apu->getBunchCrossing();
-    //
-    //   if (bx==0) { // in-time PU only
-    //     purwgtUp = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"up"});
-    //     purwgtDn = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"down"});
-    //     purwgtNo = purwgt_->at(puname_)->evaluate({apu->getTrueNumInteractions(),"nominal"});
-    //
-    //     aWeight *= purwgtNo;
-    //
-    //     break;
-    //   }
-    // }
+    edm::Handle<edm::View<PileupSummaryInfo>> pusummary;
+    iEvent.getByToken(pileupToken_, pusummary);
+
+    float nPUtrue = -1.f;
+    int nPU = -1;
+    unsigned int inTimeEntries = 0;
+    for (const auto& pu : *pusummary) {
+      if (pu.getBunchCrossing() != 0)
+        continue;
+      ++inTimeEntries;
+      nPUtrue = pu.getTrueNumInteractions();
+      nPU = pu.getPU_NumInteractions();
+    }
+    if (inTimeEntries != 1 || !std::isfinite(nPUtrue) || nPUtrue < 0.f || nPU < 0) {
+      throw cms::Exception("InvalidPileupSummary")
+          << "Expected one valid BX=0 pileup entry in event " << iEvent.id()
+          << "; entries=" << inTimeEntries << ", nPUtrue=" << nPUtrue << ", nPU=" << nPU;
+    }
+
+    // Keep the MC probability distribution independent of generator sign and SFs.
+    // PU reweighting remains disabled until the Run-3 payload is ready.
+    histo1d_["pileup_nPUtrue"]->Fill(nPUtrue, 1.);
+    histo1d_["pileup_nPU"]->Fill(nPU, 1.);
   }
 
   histo1d_["totWeightedSum"]->Fill(0.5,aWeight);
@@ -866,7 +880,7 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
           // const double m4lAlt = std::min((lvecM1alt+lvecM2alt+lvecM3alt+lvecM4alt).M(),2499.9);
           // const double m4lsmear = std::min((lvecM1smear+lvecM2smear+lvecM3smear+lvecM4smear).M(),2499.9);
 
-          if ( m4l > 50. /*&& (m4l < 500. || isMC_) (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && (m4l < 500. || isMC_)/* (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_llll_invM"]->Fill(m4l, aWeight);
             // --- systematic variation fill 비활성화 (SF/PU/FF/momentum payload 부재) ---
             // histo1d_["4P0F_CR_llll_invM_altMuScale"]->Fill(m4lAlt, aWeight);
@@ -885,7 +899,7 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
             // histo1d_["4P0F_CR_llll_invM_PUrwgtDn"]->Fill(m4l, aWeight*purwgtDn/purwgtNo);
           }
 
-          if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500./* (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             histo1d_["4P0F_CR_P1_eta"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->eta(), aWeight);
             histo1d_["4P0F_CR_P1_phi"]->Fill(allHighPtMuons.front()->tunePMuonBestTrack()->phi(), aWeight);
             histo1d_["4P0F_CR_P2_eta"]->Fill(allHighPtMuons.at(1)->tunePMuonBestTrack()->eta(), aWeight);
@@ -1122,7 +1136,7 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
             // histo1d_["3P1F_CR_llll_invM_xFF_ffDn"]->Fill(m4l, aWeight*(ff-std::min(ff,ci)));
           }
 
-          if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+          if ( m4l > 50. && m4l < 500./* (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
             const auto& fakePair = ( nonHighPtMuons.front()==pair1.first || nonHighPtMuons.front()==pair1.second ) ? pair1 : pair2;
             const auto& passPartner = ( nonHighPtMuons.front()==fakePair.first ) ? fakePair.second : fakePair.first;
 
@@ -1333,7 +1347,7 @@ void ResolvedMuCRanalyzerRun3::analyze(const edm::Event& iEvent, const edm::Even
               // histo1d_["2P2F_CR_llll_invM_xFF2_ffDn"]->Fill(m4l, aWeight*(ff1-std::min(ff1,ci1))*(ff2-std::min(ff2,ci2)));
             }
 
-            if ( m4l > 50. /*&& m4l < 500. (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
+            if ( m4l > 50. && m4l < 500./* (unblinded)*/ && lvecA1.M() > 1. && lvecA2.M() > 1. ) {
               histo1d_["2P2F_CR_llll_pt"]->Fill(lvec4l.pt(), aWeight);
               histo1d_["2P2F_CR_ll1ll2_dr"]->Fill(std::sqrt(dr2A12), aWeight);
               histo1d_["2P2F_CR_ll1_invM"]->Fill(lvecA1.M(), aWeight);

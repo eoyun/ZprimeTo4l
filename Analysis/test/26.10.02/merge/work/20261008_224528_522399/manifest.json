@@ -1,0 +1,32 @@
+{
+  "config": {
+    "storage_root": "/pnfs/knu.ac.kr/data/cms/store/user/yeo",
+    "output_root": "results",
+    "cmssw_release": "/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_0_13",
+    "scram_arch": "el8_amd64_gcc11",
+    "chunk_size": 300,
+    "request_memory_mb": 4096,
+    "request_disk_mb": 51200,
+    "max_jobs": 4,
+    "retries": 2,
+    "era_overrides": {}
+  },
+  "smoke": true,
+  "samples": [
+    {
+      "sample": "ZZ",
+      "dataset": "/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/Run3Summer22MiniAODv4-130X_mcRun3_2022_realistic_v5-v2/MINIAODSIM",
+      "era": "2022preEE",
+      "timestamp": "261002_075445",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_ZZ/261002_075445",
+      "status_source": "saved CRAB log",
+      "expected_jobs": 1021,
+      "input_count": 1021,
+      "input_list": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224528_522399/lists/ZZ_all.txt",
+      "input_list_sha256": "e33263b5e2eda106d87bfd683544c0330e4e7e8cbc084690d181b1bb4776bed0",
+      "output": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224528_522399/smoke_results/2022preEE/ZZ.root",
+      "state": "ready",
+      "merge_jobs": 1
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+Running: ['hadd', '-n', '50', '/home/condor/dir_1393259/root-merge-v93vmtbr/merged.root', '@/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224528_522399/lists/ZZ_final.txt']
+hadd Target file: /home/condor/dir_1393259/root-merge-v93vmtbr/merged.root
+hadd compression setting for all output: 1
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_ZZ/261002_075445/0000/hists_1.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/ZZto4L_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_ZZ/261002_075445/0000/hists_2.root
+hadd Target path: /home/condor/dir_1393259/root-merge-v93vmtbr/merged.root:/
+hadd Target path: /home/condor/dir_1393259/root-merge-v93vmtbr/merged.root:/evtCounter
+hadd Target path: /home/condor/dir_1393259/root-merge-v93vmtbr/merged.root:/resolvedMuCRanalyzerRun3
+Verified and published: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224528_522399/smoke_results/2022preEE/ZZ.root

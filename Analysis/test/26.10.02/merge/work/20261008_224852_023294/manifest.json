@@ -1,0 +1,167 @@
+{
+  "config": {
+    "storage_root": "/pnfs/knu.ac.kr/data/cms/store/user/yeo",
+    "output_root": "results",
+    "cmssw_release": "/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_0_13",
+    "scram_arch": "el8_amd64_gcc11",
+    "chunk_size": 300,
+    "request_memory_mb": 4096,
+    "request_disk_mb": 51200,
+    "max_jobs": 4,
+    "retries": 2,
+    "era_overrides": {}
+  },
+  "smoke": false,
+  "samples": [
+    {
+      "sample": "HToAATo4L_H2000A10_22",
+      "dataset": "/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080321",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H2000A10_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H2000A10_22/261002_080321",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H2000A10_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H2000A1_22",
+      "dataset": "/HToAATo4L_H2000A1_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080348",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H2000A1_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H2000A1_22/261002_080348",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H2000A1_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H750A10_22",
+      "dataset": "/HToAATo4L_H750A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080408",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H750A10_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H750A10_22/261002_080408",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H750A10_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H750A1_22",
+      "dataset": "/HToAATo4L_H750A1_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080429",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H750A1_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H750A1_22/261002_080429",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H750A1_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H250A10_22",
+      "dataset": "/HToAATo4L_H250A10_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080453",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H250A10_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H250A10_22/261002_080453",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H250A10_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H250A1_22",
+      "dataset": "/HToAATo4L_H250A1_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080517",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H250A1_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H250A1_22/261002_080517",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H250A1_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H2000A2_22",
+      "dataset": "/HToAATo4L_H2000A2_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080542",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H2000A2_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H2000A2_22/261002_080542",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H2000A2_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H2000A5_22",
+      "dataset": "/HToAATo4L_H2000A5_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080606",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H2000A5_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H2000A5_22/261002_080606",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H2000A5_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H750A2_22",
+      "dataset": "/HToAATo4L_H750A2_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080633",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H750A2_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H750A2_22/261002_080633",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H750A2_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H750A5_22",
+      "dataset": "/HToAATo4L_H750A5_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_080828",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H750A5_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H750A5_22/261002_080828",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H750A5_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H250A2_22",
+      "dataset": "/HToAATo4L_H250A2_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_081128",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H250A2_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H250A2_22/261002_081128",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H250A2_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H250A5_22",
+      "dataset": "/HToAATo4L_H250A5_TuneCP5_13p6TeV-pythia8/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_081411",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H250A5_TuneCP5_13p6TeV-pythia8/resolvedMuCR_HToAATo4L_H250A5_22/261002_081411",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H250A5_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H250A0p4_22",
+      "dataset": "/HToAATo4L_H250A0p4_TuneCP5_13p6TeV-pythia8_v1/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_081644",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H250A0p4_TuneCP5_13p6TeV-pythia8_v1/resolvedMuCR_HToAATo4L_H250A0p4_22/261002_081644",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H250A0p4_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H750A0p4_22",
+      "dataset": "/HToAATo4L_H750A0p4_TuneCP5_13p6TeV-pythia8_v1/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_081911",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H750A0p4_TuneCP5_13p6TeV-pythia8_v1/resolvedMuCR_HToAATo4L_H750A0p4_22/261002_081911",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H750A0p4_22.txt"
+    },
+    {
+      "sample": "HToAATo4L_H2000A0p4_22",
+      "dataset": "/HToAATo4L_H2000A0p4_TuneCP5_13p6TeV-pythia8_v1/yeo-Run3Summer22_MiniAODv4_v1-5443ed9e0a49f9c5d5f0b2fff4804347/USER",
+      "era": "2022preEE",
+      "timestamp": "261002_082136",
+      "source": "/pnfs/knu.ac.kr/data/cms/store/user/yeo/HToAATo4L_H2000A0p4_TuneCP5_13p6TeV-pythia8_v1/resolvedMuCR_HToAATo4L_H2000A0p4_22/261002_082136",
+      "status_source": "saved CRAB log",
+      "state": "blocked",
+      "reason": "CRAB status failed; see status/HToAATo4L_H2000A0p4_22.txt"
+    }
+  ]
+}

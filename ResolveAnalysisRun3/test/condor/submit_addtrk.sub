@@ -1,0 +1,23 @@
+# HTCondor submit: one job per signal sample. Reads samples_signal.txt (one name per line).
+# Each job runs job.sh <sample> on an el9 worker, sources LCG from /cvmfs, reads ntuples
+# from the locally-mounted /pnfs, and returns hists_<sample>.root into out/.
+universe                = vanilla
+executable              = job.sh
+arguments               = $(sample)
+
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files    = fillHeepEffi, filelists/$(sample).txt
+transfer_output_files   = hists_$(sample).root
+transfer_output_remaps  = "hists_$(sample).root = out_addtrk/hists_$(sample).root"
+environment               = "REQUIRE_2NDTRK=1"
+
+output                  = logs/$(sample).out
+error                   = logs/$(sample).err
+log                     = logs/$(sample).log
+
+request_cpus            = 1
+request_memory          = 2048
+requirements            = (OpSysMajorVer == 9)
+
+queue sample from samples_signal.txt

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/condor/dir_805566/check_root.py", line 111, in <module>
+    main()
+  File "/home/condor/dir_805566/check_root.py", line 58, in main
+    with lock.open("x"):
+  File "/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/python3/3.9.14-76a14295dd5255228210eb596893b98c/lib/python3.9/pathlib.py", line 1252, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/cvmfs/cms.cern.ch/el8_amd64_gcc11/external/python3/3.9.14-76a14295dd5255228210eb596893b98c/lib/python3.9/pathlib.py", line 1120, in _opener
+    return self._accessor.open(self, flags, mode)
+FileExistsError: [Errno 17] File exists: '/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext2/part_0000.root.lock'

@@ -14,7 +14,11 @@ resolvedNtuplizer = cms.EDAnalyzer('ResolvedNtuplizer',
     seedGain        = cms.InputTag('seedGainEle'),
     # modified-HEEP study 변수 소스: producer instance(module) 이름 + ECAL iso ValueMap
     modHeepModule   = cms.string('modifiedHEEPIDVarValueMaps2nd'),
-    modEcalIso      = cms.InputTag('ModifiedEcalRecHitIsolationScone', 'EcalRecHitIso'),
+    # ECAL iso ValueMaps must be keyed on the post-reco slimmedElectrons this module reads:
+    # use the 2nd instances from ModHeepSecondInstances_cff (the 1st instances are keyed on the
+    # input-MiniAOD electrons -> always -999 here).
+    modEcalIso      = cms.InputTag('ModifiedEcalRecHitIsolationScone2nd', 'EcalRecHitIso'),
+    modEcalIsoRun3  = cms.InputTag('ModifiedEcalRecHitIsolationSconeRun32nd', 'EcalRecHitIso'),
     generator       = cms.InputTag('generator'),
     genptc          = cms.InputTag('prunedGenParticles'),   # hard-process gen lepton(e/mu) 저장용
     pileupSummary   = cms.InputTag('slimmedAddPileupInfo'),

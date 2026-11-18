@@ -1,0 +1,394 @@
+# Rescue DAG file, created after running
+#   the /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/merge.dag DAG file
+# Created 10/8/2026 15:56:10 UTC
+# Rescue DAG version: 2.0.1 (partial)
+#
+# Total number of Nodes: 193
+# Nodes premarked DONE: 191
+# Nodes that failed: 1
+#   DY_Jets_ext2_part_0000,<ENDLIST>
+
+DONE DoubleMuon_C_part_0000
+RETRY DoubleMuon_C_part_0000 2
+DONE DoubleMuon_C_part_0001
+RETRY DoubleMuon_C_part_0001 2
+DONE DoubleMuon_C_part_0002
+RETRY DoubleMuon_C_part_0002 2
+DONE DoubleMuon_C_final
+RETRY DoubleMuon_C_final 2
+DONE SingleMuon_C_part_0000
+RETRY SingleMuon_C_part_0000 2
+DONE SingleMuon_C_part_0001
+RETRY SingleMuon_C_part_0001 2
+DONE SingleMuon_C_part_0002
+RETRY SingleMuon_C_part_0002 2
+DONE SingleMuon_C_final
+RETRY SingleMuon_C_final 2
+DONE Muon_C_part_0000
+RETRY Muon_C_part_0000 2
+DONE Muon_C_part_0001
+RETRY Muon_C_part_0001 2
+DONE Muon_C_part_0002
+RETRY Muon_C_part_0002 2
+DONE Muon_C_part_0003
+RETRY Muon_C_part_0003 2
+DONE Muon_C_part_0004
+RETRY Muon_C_part_0004 2
+DONE Muon_C_part_0005
+RETRY Muon_C_part_0005 2
+DONE Muon_C_part_0006
+RETRY Muon_C_part_0006 2
+DONE Muon_C_final
+RETRY Muon_C_final 2
+DONE Muon_D_part_0000
+RETRY Muon_D_part_0000 2
+DONE Muon_D_part_0001
+RETRY Muon_D_part_0001 2
+DONE Muon_D_part_0002
+RETRY Muon_D_part_0002 2
+DONE Muon_D_part_0003
+RETRY Muon_D_part_0003 2
+DONE Muon_D_final
+RETRY Muon_D_final 2
+DONE EGamma_C_part_0000
+RETRY EGamma_C_part_0000 2
+DONE EGamma_C_part_0001
+RETRY EGamma_C_part_0001 2
+DONE EGamma_C_part_0002
+RETRY EGamma_C_part_0002 2
+DONE EGamma_C_part_0003
+RETRY EGamma_C_part_0003 2
+DONE EGamma_C_part_0004
+RETRY EGamma_C_part_0004 2
+DONE EGamma_C_part_0005
+RETRY EGamma_C_part_0005 2
+DONE EGamma_C_part_0006
+RETRY EGamma_C_part_0006 2
+DONE EGamma_C_part_0007
+RETRY EGamma_C_part_0007 2
+DONE EGamma_C_part_0008
+RETRY EGamma_C_part_0008 2
+DONE EGamma_C_final
+RETRY EGamma_C_final 2
+DONE EGamma_D_part_0000
+RETRY EGamma_D_part_0000 2
+DONE EGamma_D_part_0001
+RETRY EGamma_D_part_0001 2
+DONE EGamma_D_part_0002
+RETRY EGamma_D_part_0002 2
+DONE EGamma_D_part_0003
+RETRY EGamma_D_part_0003 2
+DONE EGamma_D_final
+RETRY EGamma_D_final 2
+DONE ZZ_part_0000
+RETRY ZZ_part_0000 2
+DONE ZZ_part_0001
+RETRY ZZ_part_0001 2
+DONE ZZ_part_0002
+RETRY ZZ_part_0002 2
+DONE ZZ_part_0003
+RETRY ZZ_part_0003 2
+DONE ZZ_final
+RETRY ZZ_final 2
+DONE ZZ_ext1_part_0000
+RETRY ZZ_ext1_part_0000 2
+DONE ZZ_ext1_part_0001
+RETRY ZZ_ext1_part_0001 2
+DONE ZZ_ext1_part_0002
+RETRY ZZ_ext1_part_0002 2
+DONE ZZ_ext1_part_0003
+RETRY ZZ_ext1_part_0003 2
+DONE ZZ_ext1_final
+RETRY ZZ_ext1_final 2
+DONE WZ_final
+RETRY WZ_final 2
+DONE WZ_ext1_part_0000
+RETRY WZ_ext1_part_0000 2
+DONE WZ_ext1_part_0001
+RETRY WZ_ext1_part_0001 2
+DONE WZ_ext1_part_0002
+RETRY WZ_ext1_part_0002 2
+DONE WZ_ext1_final
+RETRY WZ_ext1_final 2
+DONE WW_part_0000
+RETRY WW_part_0000 2
+DONE WW_part_0001
+RETRY WW_part_0001 2
+DONE WW_part_0002
+RETRY WW_part_0002 2
+DONE WW_part_0003
+RETRY WW_part_0003 2
+DONE WW_final
+RETRY WW_final 2
+DONE DY_Jets_part_0000
+RETRY DY_Jets_part_0000 2
+DONE DY_Jets_part_0001
+RETRY DY_Jets_part_0001 2
+DONE DY_Jets_part_0002
+RETRY DY_Jets_part_0002 2
+DONE DY_Jets_part_0003
+RETRY DY_Jets_part_0003 2
+DONE DY_Jets_part_0004
+RETRY DY_Jets_part_0004 2
+DONE DY_Jets_part_0005
+RETRY DY_Jets_part_0005 2
+DONE DY_Jets_part_0006
+RETRY DY_Jets_part_0006 2
+DONE DY_Jets_part_0007
+RETRY DY_Jets_part_0007 2
+DONE DY_Jets_part_0008
+RETRY DY_Jets_part_0008 2
+DONE DY_Jets_part_0009
+RETRY DY_Jets_part_0009 2
+DONE DY_Jets_part_0010
+RETRY DY_Jets_part_0010 2
+DONE DY_Jets_part_0011
+RETRY DY_Jets_part_0011 2
+DONE DY_Jets_part_0012
+RETRY DY_Jets_part_0012 2
+DONE DY_Jets_part_0013
+RETRY DY_Jets_part_0013 2
+DONE DY_Jets_part_0014
+RETRY DY_Jets_part_0014 2
+DONE DY_Jets_part_0015
+RETRY DY_Jets_part_0015 2
+DONE DY_Jets_part_0016
+RETRY DY_Jets_part_0016 2
+DONE DY_Jets_final
+RETRY DY_Jets_final 2
+DONE DY_Jets_ext1_part_0000
+RETRY DY_Jets_ext1_part_0000 2
+DONE DY_Jets_ext1_part_0001
+RETRY DY_Jets_ext1_part_0001 2
+DONE DY_Jets_ext1_part_0002
+RETRY DY_Jets_ext1_part_0002 2
+DONE DY_Jets_ext1_part_0003
+RETRY DY_Jets_ext1_part_0003 2
+DONE DY_Jets_ext1_part_0004
+RETRY DY_Jets_ext1_part_0004 2
+DONE DY_Jets_ext1_part_0005
+RETRY DY_Jets_ext1_part_0005 2
+DONE DY_Jets_ext1_part_0006
+RETRY DY_Jets_ext1_part_0006 2
+DONE DY_Jets_ext1_part_0007
+RETRY DY_Jets_ext1_part_0007 2
+DONE DY_Jets_ext1_part_0008
+RETRY DY_Jets_ext1_part_0008 2
+DONE DY_Jets_ext1_part_0009
+RETRY DY_Jets_ext1_part_0009 2
+DONE DY_Jets_ext1_part_0010
+RETRY DY_Jets_ext1_part_0010 2
+DONE DY_Jets_ext1_part_0011
+RETRY DY_Jets_ext1_part_0011 2
+DONE DY_Jets_ext1_part_0012
+RETRY DY_Jets_ext1_part_0012 2
+DONE DY_Jets_ext1_part_0013
+RETRY DY_Jets_ext1_part_0013 2
+DONE DY_Jets_ext1_part_0014
+RETRY DY_Jets_ext1_part_0014 2
+DONE DY_Jets_ext1_part_0015
+RETRY DY_Jets_ext1_part_0015 2
+DONE DY_Jets_ext1_part_0016
+RETRY DY_Jets_ext1_part_0016 2
+DONE DY_Jets_ext1_final
+RETRY DY_Jets_ext1_final 2
+RETRY DY_Jets_ext2_part_0000 2
+DONE DY_Jets_ext2_part_0001
+RETRY DY_Jets_ext2_part_0001 2
+DONE DY_Jets_ext2_part_0002
+RETRY DY_Jets_ext2_part_0002 2
+DONE DY_Jets_ext2_part_0003
+RETRY DY_Jets_ext2_part_0003 2
+DONE DY_Jets_ext2_part_0004
+RETRY DY_Jets_ext2_part_0004 2
+DONE DY_Jets_ext2_part_0005
+RETRY DY_Jets_ext2_part_0005 2
+DONE DY_Jets_ext2_part_0006
+RETRY DY_Jets_ext2_part_0006 2
+DONE DY_Jets_ext2_part_0007
+RETRY DY_Jets_ext2_part_0007 2
+DONE DY_Jets_ext2_part_0008
+RETRY DY_Jets_ext2_part_0008 2
+DONE DY_Jets_ext2_part_0009
+RETRY DY_Jets_ext2_part_0009 2
+DONE DY_Jets_ext2_part_0010
+RETRY DY_Jets_ext2_part_0010 2
+DONE DY_Jets_ext2_part_0011
+RETRY DY_Jets_ext2_part_0011 2
+DONE DY_Jets_ext2_part_0012
+RETRY DY_Jets_ext2_part_0012 2
+DONE DY_Jets_ext2_part_0013
+RETRY DY_Jets_ext2_part_0013 2
+DONE DY_Jets_ext2_part_0014
+RETRY DY_Jets_ext2_part_0014 2
+DONE DY_Jets_ext2_part_0015
+RETRY DY_Jets_ext2_part_0015 2
+DONE DY_Jets_ext2_part_0016
+RETRY DY_Jets_ext2_part_0016 2
+RETRY DY_Jets_ext2_final 2
+DONE W_Jets_part_0000
+RETRY W_Jets_part_0000 2
+DONE W_Jets_part_0001
+RETRY W_Jets_part_0001 2
+DONE W_Jets_part_0002
+RETRY W_Jets_part_0002 2
+DONE W_Jets_part_0003
+RETRY W_Jets_part_0003 2
+DONE W_Jets_part_0004
+RETRY W_Jets_part_0004 2
+DONE W_Jets_part_0005
+RETRY W_Jets_part_0005 2
+DONE W_Jets_part_0006
+RETRY W_Jets_part_0006 2
+DONE W_Jets_part_0007
+RETRY W_Jets_part_0007 2
+DONE W_Jets_part_0008
+RETRY W_Jets_part_0008 2
+DONE W_Jets_part_0009
+RETRY W_Jets_part_0009 2
+DONE W_Jets_part_0010
+RETRY W_Jets_part_0010 2
+DONE W_Jets_part_0011
+RETRY W_Jets_part_0011 2
+DONE W_Jets_part_0012
+RETRY W_Jets_part_0012 2
+DONE W_Jets_part_0013
+RETRY W_Jets_part_0013 2
+DONE W_Jets_part_0014
+RETRY W_Jets_part_0014 2
+DONE W_Jets_part_0015
+RETRY W_Jets_part_0015 2
+DONE W_Jets_part_0016
+RETRY W_Jets_part_0016 2
+DONE W_Jets_part_0017
+RETRY W_Jets_part_0017 2
+DONE W_Jets_part_0018
+RETRY W_Jets_part_0018 2
+DONE W_Jets_part_0019
+RETRY W_Jets_part_0019 2
+DONE W_Jets_part_0020
+RETRY W_Jets_part_0020 2
+DONE W_Jets_part_0021
+RETRY W_Jets_part_0021 2
+DONE W_Jets_part_0022
+RETRY W_Jets_part_0022 2
+DONE W_Jets_final
+RETRY W_Jets_final 2
+DONE TT_LL_part_0000
+RETRY TT_LL_part_0000 2
+DONE TT_LL_part_0001
+RETRY TT_LL_part_0001 2
+DONE TT_LL_part_0002
+RETRY TT_LL_part_0002 2
+DONE TT_LL_part_0003
+RETRY TT_LL_part_0003 2
+DONE TT_LL_part_0004
+RETRY TT_LL_part_0004 2
+DONE TT_LL_part_0005
+RETRY TT_LL_part_0005 2
+DONE TT_LL_final
+RETRY TT_LL_final 2
+DONE TT_LL_ext_part_0000
+RETRY TT_LL_ext_part_0000 2
+DONE TT_LL_ext_part_0001
+RETRY TT_LL_ext_part_0001 2
+DONE TT_LL_ext_part_0002
+RETRY TT_LL_ext_part_0002 2
+DONE TT_LL_ext_part_0003
+RETRY TT_LL_ext_part_0003 2
+DONE TT_LL_ext_part_0004
+RETRY TT_LL_ext_part_0004 2
+DONE TT_LL_ext_part_0005
+RETRY TT_LL_ext_part_0005 2
+DONE TT_LL_ext_final
+RETRY TT_LL_ext_final 2
+DONE TT_semiL_part_0000
+RETRY TT_semiL_part_0000 2
+DONE TT_semiL_part_0001
+RETRY TT_semiL_part_0001 2
+DONE TT_semiL_part_0002
+RETRY TT_semiL_part_0002 2
+DONE TT_semiL_part_0003
+RETRY TT_semiL_part_0003 2
+DONE TT_semiL_part_0004
+RETRY TT_semiL_part_0004 2
+DONE TT_semiL_part_0005
+RETRY TT_semiL_part_0005 2
+DONE TT_semiL_part_0006
+RETRY TT_semiL_part_0006 2
+DONE TT_semiL_part_0007
+RETRY TT_semiL_part_0007 2
+DONE TT_semiL_part_0008
+RETRY TT_semiL_part_0008 2
+DONE TT_semiL_part_0009
+RETRY TT_semiL_part_0009 2
+DONE TT_semiL_part_0010
+RETRY TT_semiL_part_0010 2
+DONE TT_semiL_part_0011
+RETRY TT_semiL_part_0011 2
+DONE TT_semiL_part_0012
+RETRY TT_semiL_part_0012 2
+DONE TT_semiL_part_0013
+RETRY TT_semiL_part_0013 2
+DONE TT_semiL_part_0014
+RETRY TT_semiL_part_0014 2
+DONE TT_semiL_part_0015
+RETRY TT_semiL_part_0015 2
+DONE TT_semiL_final
+RETRY TT_semiL_final 2
+DONE TT_semiL_ext1_part_0000
+RETRY TT_semiL_ext1_part_0000 2
+DONE TT_semiL_ext1_part_0001
+RETRY TT_semiL_ext1_part_0001 2
+DONE TT_semiL_ext1_part_0002
+RETRY TT_semiL_ext1_part_0002 2
+DONE TT_semiL_ext1_part_0003
+RETRY TT_semiL_ext1_part_0003 2
+DONE TT_semiL_ext1_part_0004
+RETRY TT_semiL_ext1_part_0004 2
+DONE TT_semiL_ext1_part_0005
+RETRY TT_semiL_ext1_part_0005 2
+DONE TT_semiL_ext1_part_0006
+RETRY TT_semiL_ext1_part_0006 2
+DONE TT_semiL_ext1_part_0007
+RETRY TT_semiL_ext1_part_0007 2
+DONE TT_semiL_ext1_part_0008
+RETRY TT_semiL_ext1_part_0008 2
+DONE TT_semiL_ext1_part_0009
+RETRY TT_semiL_ext1_part_0009 2
+DONE TT_semiL_ext1_part_0010
+RETRY TT_semiL_ext1_part_0010 2
+DONE TT_semiL_ext1_part_0011
+RETRY TT_semiL_ext1_part_0011 2
+DONE TT_semiL_ext1_part_0012
+RETRY TT_semiL_ext1_part_0012 2
+DONE TT_semiL_ext1_part_0013
+RETRY TT_semiL_ext1_part_0013 2
+DONE TT_semiL_ext1_part_0014
+RETRY TT_semiL_ext1_part_0014 2
+DONE TT_semiL_ext1_part_0015
+RETRY TT_semiL_ext1_part_0015 2
+DONE TT_semiL_ext1_part_0016
+RETRY TT_semiL_ext1_part_0016 2
+DONE TT_semiL_ext1_part_0017
+RETRY TT_semiL_ext1_part_0017 2
+DONE TT_semiL_ext1_part_0018
+RETRY TT_semiL_ext1_part_0018 2
+DONE TT_semiL_ext1_final
+RETRY TT_semiL_ext1_final 2
+DONE TW_final
+RETRY TW_final 2
+DONE TW_ext1_final
+RETRY TW_ext1_final 2
+DONE TbarW_final
+RETRY TbarW_final 2
+DONE TbarW_ext1_final
+RETRY TbarW_ext1_final 2
+DONE TBbar-s-channel_final
+RETRY TBbar-s-channel_final 2
+DONE TBbar-t-channel_final
+RETRY TBbar-t-channel_final 2
+DONE TbarB-s-channel_final
+RETRY TbarB-s-channel_final 2
+DONE TbarB-t-channel_final
+RETRY TbarB-t-channel_final 2

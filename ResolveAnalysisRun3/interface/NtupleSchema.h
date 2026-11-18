@@ -12,10 +12,15 @@
 namespace raRun3 {
 namespace schema {
 
-constexpr int kVersion = 5;  // v3: electron scale/smearing 후단(correctionlib) 적용 →
+constexpr int kVersion = 7;  // v3: electron scale/smearing 후단(correctionlib) 적용 →
                              //     ntuplizer 는 raw + 보정입력(r9,seedGain)만 저장(corr 제거)
                              // v4: 표준 HEEP V70 pass/bitmap 추가 (modified HEEP 대조용)
                              // v5: hard-process final-state gen lepton(e/mu) 저장 (gen 매칭은 후처리)
+
+// v6: ModifiedHEEPRun3ID pass and per-cut bitmap added.
+// v7: modified ECAL iso values read from 2nd-instance producers keyed on the post-reco
+//     slimmedElectrons (v6 and earlier: electron_modEcalHcalIso was always -999 because the
+//     ValueMap was keyed on the input-MiniAOD electrons); electron_modEcalHcalIsoRun3 added.
 
 // ---- event 스칼라 ----
 namespace ev {
@@ -79,6 +84,8 @@ constexpr const char* passModHeep   = "electron_passModHeep";   // electronID(..
 constexpr const char* modHeepBitmap = "electron_modHeepBitmap"; // userInt(...) 12-bit
 constexpr const char* passHeepV70   = "electron_passHeepV70";   // electronID("heepElectronID-HEEPV70")
 constexpr const char* heepV70Bitmap = "electron_heepV70Bitmap"; // userInt("heepElectronID-HEEPV70") 12-bit
+constexpr const char* passModifiedHEEPRun3ID = "electron_passModifiedHEEPRun3ID";
+constexpr const char* bitmapModifiedHEEPRun3ID = "electron_bitmapModifiedHEEPRun3ID"; // 12-bit
 constexpr const char* addGsfIdx     = "electron_addGsfIdx";     // reciprocal-GSF 상대 index(-1=없음)
 // --- modified-HEEP study: 표준 HEEP 입력 (pat::Electron 메서드) ---
 constexpr const char* hOverE        = "electron_hOverE";           // hadronicOverEm  [bit6]
@@ -97,6 +104,7 @@ constexpr const char* ecalDriven    = "electron_ecalDriven";       // [bit11]
 // --- modified-HEEP study: modified 변수 (ModifiedHEEP ValueMap; 없으면 -999 sentinel) ---
 constexpr const char* modTrkIso        = "electron_modTrkIso";        // eleTrkPtIso [bit7]
 constexpr const char* modEcalHcalIso   = "electron_modEcalHcalIso";   // EcalRecHitIso [bit8]
+constexpr const char* modEcalHcalIsoRun3 = "electron_modEcalHcalIsoRun3"; // Run3 EcalRecHitIso [Run3 bit8]
 constexpr const char* union5x5covIeIe  = "electron_union5x5covIeIe";
 constexpr const char* union5x5covIeIp  = "electron_union5x5covIeIp";
 constexpr const char* union5x5covIpIp  = "electron_union5x5covIpIp";

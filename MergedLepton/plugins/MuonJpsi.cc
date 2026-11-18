@@ -1,3 +1,4 @@
+#include "ZprimeTo4l/MergedLepton/interface/MuonTrackIsolation.h"
 #include <memory>
 #include <iostream>
 
@@ -191,6 +192,8 @@ private:
   std::vector<float> trkKink_mu_sub_jpsi;
   std::vector<float> glbKink_mu_sub_jpsi;
   std::vector<float> pfrelIso04_mu_sub_jpsi;
+  std::vector<float> trackiso_mu_sub_jpsi; // isolationR03().sumPt (GeV)
+  std::vector<float> modifiedtrackiso_mu_sub_jpsi; // modified R03 track-pT sum (GeV)
   std::vector<int> nValidMuonHits_mu_sub_jpsi;
   std::vector<float> normChi2_global_mu_sub_jpsi;
   std::vector<int> nValidPixelHits_mu_sub_jpsi;
@@ -260,6 +263,8 @@ private:
   std::vector<float> trkKink_mu_jpsi;
   std::vector<float> glbKink_mu_jpsi;
   std::vector<float> pfrelIso04_mu_jpsi;
+  std::vector<float> trackiso_mu_jpsi; // isolationR03().sumPt (GeV)
+  std::vector<float> modifiedtrackiso_mu_jpsi; // modified R03 track-pT sum (GeV)
   std::vector<int> nValidMuonHits_mu_jpsi;
   std::vector<float> normChi2_global_mu_jpsi;
   std::vector<int> nValidPixelHits_mu_jpsi;
@@ -310,6 +315,8 @@ private:
   float phi_muoniso;
   bool mediumID_muoniso;
   float iso04_muoniso;
+  float trackiso_muoniso; // isolationR03().sumPt (GeV)
+  float modifiedtrackiso_muoniso; // modified R03 track-pT sum (GeV)
   float MET;
   float MET_phi;
   float MT;
@@ -346,6 +353,8 @@ private:
   std::vector<float> trkKink_mu_sub;
   std::vector<float> glbKink_mu_sub;
   std::vector<float> pfrelIso04_mu_sub;
+  std::vector<float> trackiso_mu_sub; // isolationR03().sumPt (GeV)
+  std::vector<float> modifiedtrackiso_mu_sub; // modified R03 track-pT sum (GeV)
   std::vector<int> nValidMuonHits_mu_sub;
   std::vector<float> normChi2_global_mu_sub;
   std::vector<int> nValidPixelHits_mu_sub;
@@ -415,6 +424,8 @@ private:
   std::vector<float> trkKink_mu;
   std::vector<float> glbKink_mu;
   std::vector<float> pfrelIso04_mu;
+  std::vector<float> trackiso_mu; // isolationR03().sumPt (GeV)
+  std::vector<float> modifiedtrackiso_mu; // modified R03 track-pT sum (GeV)
   std::vector<int> nValidMuonHits_mu;
   std::vector<float> normChi2_global_mu;
   std::vector<int> nValidPixelHits_mu;
@@ -656,6 +667,8 @@ void MuonJpsi::beginJob() {
   jpsi_->Branch("trkKink_mu_sub_jpsi",&trkKink_mu_sub_jpsi,32000,0);
   jpsi_->Branch("glbKink_mu_sub_jpsi",&glbKink_mu_sub_jpsi,32000,0);
   jpsi_->Branch("pfrelIso04_mu_sub_jpsi",&pfrelIso04_mu_sub_jpsi,32000,0);
+  jpsi_->Branch("trackiso_mu_sub_jpsi",&trackiso_mu_sub_jpsi,32000,0);
+  jpsi_->Branch("modifiedtrackiso_mu_sub_jpsi",&modifiedtrackiso_mu_sub_jpsi,32000,0);
   jpsi_->Branch("nValidMuonHits_mu_sub_jpsi",&nValidMuonHits_mu_sub_jpsi,32000,0);
   jpsi_->Branch("normChi2_global_mu_sub_jpsi",&normChi2_global_mu_sub_jpsi,32000,0);
   jpsi_->Branch("nValidPixelHits_mu_sub_jpsi",&nValidPixelHits_mu_sub_jpsi,32000,0);
@@ -725,6 +738,8 @@ void MuonJpsi::beginJob() {
   jpsi_->Branch("trkKink_mu_jpsi",&trkKink_mu_jpsi,32000,0);
   jpsi_->Branch("glbKink_mu_jpsi",&glbKink_mu_jpsi,32000,0);
   jpsi_->Branch("pfrelIso04_mu_jpsi",&pfrelIso04_mu_jpsi,32000,0);
+  jpsi_->Branch("trackiso_mu_jpsi",&trackiso_mu_jpsi,32000,0);
+  jpsi_->Branch("modifiedtrackiso_mu_jpsi",&modifiedtrackiso_mu_jpsi,32000,0);
   jpsi_->Branch("nValidMuonHits_mu_jpsi",&nValidMuonHits_mu_jpsi,32000,0);
   jpsi_->Branch("normChi2_global_mu_jpsi",&normChi2_global_mu_jpsi,32000,0);
   jpsi_->Branch("nValidPixelHits_mu_jpsi",&nValidPixelHits_mu_jpsi,32000,0);
@@ -774,6 +789,8 @@ void MuonJpsi::beginJob() {
   muon_->Branch("phi_isomu",&phi_muoniso,"phi_isomu/F");
   muon_->Branch("mediumID_isomu",&mediumID_muoniso,"mediumID_isomu/O");
   muon_->Branch("iso04_isomu",&iso04_muoniso,"iso04_isomu/F");
+  muon_->Branch("trackiso_isomu",&trackiso_muoniso,"trackiso_isomu/F");
+  muon_->Branch("modifiedtrackiso_isomu",&modifiedtrackiso_muoniso,"modifiedtrackiso_isomu/F");
   muon_->Branch("weight_mu",&weight_mu,"weight_mu/I");
   muon_->Branch("MET",&MET,"MET/F");
   muon_->Branch("MET_phi",&MET_phi,"MET_phi/F"); 
@@ -810,6 +827,8 @@ void MuonJpsi::beginJob() {
   muon_->Branch("trkKink_mu_sub",&trkKink_mu_sub,32000,0);
   muon_->Branch("glbKink_mu_sub",&glbKink_mu_sub,32000,0);
   muon_->Branch("pfrelIso04_mu_sub",&pfrelIso04_mu_sub,32000,0);
+  muon_->Branch("trackiso_mu_sub",&trackiso_mu_sub,32000,0);
+  muon_->Branch("modifiedtrackiso_mu_sub",&modifiedtrackiso_mu_sub,32000,0);
   muon_->Branch("nValidMuonHits_mu_sub",&nValidMuonHits_mu_sub,32000,0);
   muon_->Branch("normChi2_global_mu_sub",&normChi2_global_mu_sub,32000,0);
   muon_->Branch("nValidPixelHits_mu_sub",&nValidPixelHits_mu_sub,32000,0);
@@ -879,6 +898,8 @@ void MuonJpsi::beginJob() {
   muon_->Branch("trkKink_mu",&trkKink_mu,32000,0);
   muon_->Branch("glbKink_mu",&glbKink_mu,32000,0);
   muon_->Branch("pfrelIso04_mu",&pfrelIso04_mu,32000,0);
+  muon_->Branch("trackiso_mu",&trackiso_mu,32000,0);
+  muon_->Branch("modifiedtrackiso_mu",&modifiedtrackiso_mu,32000,0);
   muon_->Branch("nValidMuonHits_mu",&nValidMuonHits_mu,32000,0);
   muon_->Branch("normChi2_global_mu",&normChi2_global_mu,32000,0);
   muon_->Branch("nValidPixelHits_mu",&nValidPixelHits_mu,32000,0);
@@ -985,6 +1006,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
   trkKink_mu_sub_jpsi.clear();
   glbKink_mu_sub_jpsi.clear();
   pfrelIso04_mu_sub_jpsi.clear();
+  trackiso_mu_sub_jpsi.clear();
+  modifiedtrackiso_mu_sub_jpsi.clear();
   nValidMuonHits_mu_sub_jpsi.clear();
   normChi2_global_mu_sub_jpsi.clear();
   nValidPixelHits_mu_sub_jpsi.clear();
@@ -1054,6 +1077,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
   trkKink_mu_jpsi.clear();
   glbKink_mu_jpsi.clear();
   pfrelIso04_mu_jpsi.clear();
+  trackiso_mu_jpsi.clear();
+  modifiedtrackiso_mu_jpsi.clear();
   nValidMuonHits_mu_jpsi.clear();
   normChi2_global_mu_jpsi.clear();
   nValidPixelHits_mu_jpsi.clear();
@@ -1140,6 +1165,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
   trkKink_mu_sub.clear();
   glbKink_mu_sub.clear();
   pfrelIso04_mu_sub.clear();
+  trackiso_mu_sub.clear();
+  modifiedtrackiso_mu_sub.clear();
   nValidMuonHits_mu_sub.clear();
   normChi2_global_mu_sub.clear();
   nValidPixelHits_mu_sub.clear();
@@ -1209,6 +1236,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
   trkKink_mu.clear();
   glbKink_mu.clear();
   pfrelIso04_mu.clear();
+  trackiso_mu.clear();
+  modifiedtrackiso_mu.clear();
   nValidMuonHits_mu.clear();
   normChi2_global_mu.clear();
   nValidPixelHits_mu.clear();
@@ -1348,6 +1377,9 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
 
+  const auto modifiedTrackIso = mergedMuonIso::modifiedTrackIsoValues(
+      *muonHandle, beamSpotHandle.isValid() ? beamSpotHandle.product() : nullptr);
+
   unsigned int nPassedFilters = 0;
 
   for (unsigned int iTrig = 0; iTrig < METfilterHandle.product()->size(); iTrig++) {
@@ -1426,6 +1458,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
 	    eta_muoniso = muon.eta();
 	    phi_muoniso = muon.phi();
 	    iso04_muoniso = pfrelIso04;
+	    trackiso_muoniso = muon.isIsolationValid() ? muon.isolationR03().sumPt : -999.f;
+	    modifiedtrackiso_muoniso = modifiedTrackIso.at(i);
 	    mediumID_muoniso = isMedium;
 	    dphi = reco::deltaPhi(aMET,muon);
 	    MET = aMET.corPt(pat::MET::Type1);
@@ -1495,6 +1529,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
                              / muon.pt();
           }
           pfrelIso04_mu_jpsi.push_back(pfrelIso04_val);
+          trackiso_mu_jpsi.push_back(muon.isIsolationValid() ? muon.isolationR03().sumPt : -999.f);
+          modifiedtrackiso_mu_jpsi.push_back(modifiedTrackIso.at(i));
           const auto& glbTrk = muon.globalTrack();
           const auto& innTrk = muon.innerTrack();
           const auto& outTrk = muon.outerTrack();
@@ -1577,6 +1613,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
                                  / muon_sub.pt();
           }
           pfrelIso04_mu_sub_jpsi.push_back(pfrelIso04_sub_val);
+          trackiso_mu_sub_jpsi.push_back(muon_sub.isIsolationValid() ? muon_sub.isolationR03().sumPt : -999.f);
+          modifiedtrackiso_mu_sub_jpsi.push_back(modifiedTrackIso.at(j));
           const auto& glbTrkS = muon_sub.globalTrack();
           const auto& innTrkS = muon_sub.innerTrack();
           const auto& outTrkS = muon_sub.outerTrack();
@@ -1636,7 +1674,7 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
     jpsi_->Fill();
     if (noIsoMuflag) return;
 
-    if (aMET.corPt(pat::MET::Type1) > 20 || index_isomu != -1){
+    if (aMET.corPt(pat::MET::Type1) > 20 && index_isomu != -1){
       for (size_t i = 0; i < muonHandle->size(); ++i) {
         const auto& muon = muonHandle->at(i);
         
@@ -1686,6 +1724,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
                                  / muon.pt();
             }
             pfrelIso04_mu.push_back(pfrelIso04_val_m);
+            trackiso_mu.push_back(muon.isIsolationValid() ? muon.isolationR03().sumPt : -999.f);
+            modifiedtrackiso_mu.push_back(modifiedTrackIso.at(i));
             const auto& glbTrkM = muon.globalTrack();
             const auto& innTrkM = muon.innerTrack();
             const auto& outTrkM = muon.outerTrack();
@@ -1768,6 +1808,8 @@ void MuonJpsi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
                                   / muon_sub.pt();
             }
             pfrelIso04_mu_sub.push_back(pfrelIso04_val_ms);
+            trackiso_mu_sub.push_back(muon_sub.isIsolationValid() ? muon_sub.isolationR03().sumPt : -999.f);
+            modifiedtrackiso_mu_sub.push_back(modifiedTrackIso.at(j));
             const auto& glbTrkMS = muon_sub.globalTrack();
             const auto& innTrkMS = muon_sub.innerTrack();
             const auto& outTrkMS = muon_sub.outerTrack();

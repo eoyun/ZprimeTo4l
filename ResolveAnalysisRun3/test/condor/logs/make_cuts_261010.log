@@ -1,0 +1,1849 @@
+make: 'plotCut' is up to date.
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_et_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_et_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_et_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_et_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_et_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_et_EE.png
+plot saved: imgs/cuts/H2000_et_EB.png
+plot saved: imgs/cuts/H2000_et_EE.png
+plot saved: imgs/cuts/H250_et_EB.png
+plot saved: imgs/cuts/H250_et_EE.png
+plot saved: imgs/cuts/H750_et_EB.png
+plot saved: imgs/cuts/H750_et_EE.png
+plot saved: imgs/cuts/all_signal_et_EB.png
+plot saved: imgs/cuts/all_signal_et_EE.png
+done [et dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_et_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_et_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_et_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_et_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_et_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_et_EE_pt.png
+plot saved: imgs/cuts/H2000_et_EB_pt.png
+plot saved: imgs/cuts/H2000_et_EE_pt.png
+plot saved: imgs/cuts/H250_et_EB_pt.png
+plot saved: imgs/cuts/H250_et_EE_pt.png
+plot saved: imgs/cuts/H750_et_EB_pt.png
+plot saved: imgs/cuts/H750_et_EE_pt.png
+plot saved: imgs/cuts/all_signal_et_EB_pt.png
+plot saved: imgs/cuts/all_signal_et_EE_pt.png
+done [et pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sceta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sceta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sceta_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EE.png
+plot saved: imgs/cuts/H2000_sceta_EB.png
+plot saved: imgs/cuts/H2000_sceta_EE.png
+plot saved: imgs/cuts/H250_sceta_EB.png
+plot saved: imgs/cuts/H250_sceta_EE.png
+plot saved: imgs/cuts/H750_sceta_EB.png
+plot saved: imgs/cuts/H750_sceta_EE.png
+plot saved: imgs/cuts/all_signal_sceta_EB.png
+plot saved: imgs/cuts/all_signal_sceta_EE.png
+done [sceta dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sceta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sceta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sceta_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sceta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sceta_EE_pt.png
+plot saved: imgs/cuts/H2000_sceta_EB_pt.png
+plot saved: imgs/cuts/H2000_sceta_EE_pt.png
+plot saved: imgs/cuts/H250_sceta_EB_pt.png
+plot saved: imgs/cuts/H250_sceta_EE_pt.png
+plot saved: imgs/cuts/H750_sceta_EB_pt.png
+plot saved: imgs/cuts/H750_sceta_EE_pt.png
+plot saved: imgs/cuts/all_signal_sceta_EB_pt.png
+plot saved: imgs/cuts/all_signal_sceta_EE_pt.png
+done [sceta pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_detainseed_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_detainseed_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_detainseed_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EE.png
+plot saved: imgs/cuts/H2000_detainseed_EB.png
+plot saved: imgs/cuts/H2000_detainseed_EE.png
+plot saved: imgs/cuts/H250_detainseed_EB.png
+plot saved: imgs/cuts/H250_detainseed_EE.png
+plot saved: imgs/cuts/H750_detainseed_EB.png
+plot saved: imgs/cuts/H750_detainseed_EE.png
+plot saved: imgs/cuts/all_signal_detainseed_EB.png
+plot saved: imgs/cuts/all_signal_detainseed_EE.png
+done [detainseed dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_detainseed_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_detainseed_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_detainseed_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_detainseed_EE_pt.png
+plot saved: imgs/cuts/H2000_detainseed_EB_pt.png
+plot saved: imgs/cuts/H2000_detainseed_EE_pt.png
+plot saved: imgs/cuts/H250_detainseed_EB_pt.png
+plot saved: imgs/cuts/H250_detainseed_EE_pt.png
+plot saved: imgs/cuts/H750_detainseed_EB_pt.png
+plot saved: imgs/cuts/H750_detainseed_EE_pt.png
+plot saved: imgs/cuts/all_signal_detainseed_EB_pt.png
+plot saved: imgs/cuts/all_signal_detainseed_EE_pt.png
+done [detainseed pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dphiin_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dphiin_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dphiin_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EE.png
+plot saved: imgs/cuts/H2000_dphiin_EB.png
+plot saved: imgs/cuts/H2000_dphiin_EE.png
+plot saved: imgs/cuts/H250_dphiin_EB.png
+plot saved: imgs/cuts/H250_dphiin_EE.png
+plot saved: imgs/cuts/H750_dphiin_EB.png
+plot saved: imgs/cuts/H750_dphiin_EE.png
+plot saved: imgs/cuts/all_signal_dphiin_EB.png
+plot saved: imgs/cuts/all_signal_dphiin_EE.png
+done [dphiin dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dphiin_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dphiin_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dphiin_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dphiin_EE_pt.png
+plot saved: imgs/cuts/H2000_dphiin_EB_pt.png
+plot saved: imgs/cuts/H2000_dphiin_EE_pt.png
+plot saved: imgs/cuts/H250_dphiin_EB_pt.png
+plot saved: imgs/cuts/H250_dphiin_EE_pt.png
+plot saved: imgs/cuts/H750_dphiin_EB_pt.png
+plot saved: imgs/cuts/H750_dphiin_EE_pt.png
+plot saved: imgs/cuts/all_signal_dphiin_EB_pt.png
+plot saved: imgs/cuts/all_signal_dphiin_EE_pt.png
+done [dphiin pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sigmaieta_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sigmaieta_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sigmaieta_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EE.png
+plot saved: imgs/cuts/H2000_sigmaieta_EB.png
+plot saved: imgs/cuts/H2000_sigmaieta_EE.png
+plot saved: imgs/cuts/H250_sigmaieta_EB.png
+plot saved: imgs/cuts/H250_sigmaieta_EE.png
+plot saved: imgs/cuts/H750_sigmaieta_EB.png
+plot saved: imgs/cuts/H750_sigmaieta_EE.png
+plot saved: imgs/cuts/all_signal_sigmaieta_EB.png
+plot saved: imgs/cuts/all_signal_sigmaieta_EE.png
+done [sigmaieta dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_sigmaieta_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sigmaieta_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_sigmaieta_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/H2000_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/H2000_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/H250_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/H250_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/H750_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/H750_sigmaieta_EE_pt.png
+plot saved: imgs/cuts/all_signal_sigmaieta_EB_pt.png
+plot saved: imgs/cuts/all_signal_sigmaieta_EE_pt.png
+done [sigmaieta pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_e2x5_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_e2x5_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_e2x5_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EE.png
+plot saved: imgs/cuts/H2000_e2x5_EB.png
+plot saved: imgs/cuts/H2000_e2x5_EE.png
+plot saved: imgs/cuts/H250_e2x5_EB.png
+plot saved: imgs/cuts/H250_e2x5_EE.png
+plot saved: imgs/cuts/H750_e2x5_EB.png
+plot saved: imgs/cuts/H750_e2x5_EE.png
+plot saved: imgs/cuts/all_signal_e2x5_EB.png
+plot saved: imgs/cuts/all_signal_e2x5_EE.png
+done [e2x5 dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_e2x5_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_e2x5_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_e2x5_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_e2x5_EE_pt.png
+plot saved: imgs/cuts/H2000_e2x5_EB_pt.png
+plot saved: imgs/cuts/H2000_e2x5_EE_pt.png
+plot saved: imgs/cuts/H250_e2x5_EB_pt.png
+plot saved: imgs/cuts/H250_e2x5_EE_pt.png
+plot saved: imgs/cuts/H750_e2x5_EB_pt.png
+plot saved: imgs/cuts/H750_e2x5_EE_pt.png
+plot saved: imgs/cuts/all_signal_e2x5_EB_pt.png
+plot saved: imgs/cuts/all_signal_e2x5_EE_pt.png
+done [e2x5 pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_hoe_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_hoe_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_hoe_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EE.png
+plot saved: imgs/cuts/H2000_hoe_EB.png
+plot saved: imgs/cuts/H2000_hoe_EE.png
+plot saved: imgs/cuts/H250_hoe_EB.png
+plot saved: imgs/cuts/H250_hoe_EE.png
+plot saved: imgs/cuts/H750_hoe_EB.png
+plot saved: imgs/cuts/H750_hoe_EE.png
+plot saved: imgs/cuts/all_signal_hoe_EB.png
+plot saved: imgs/cuts/all_signal_hoe_EE.png
+done [hoe dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_hoe_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_hoe_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_hoe_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_hoe_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_hoe_EE_pt.png
+plot saved: imgs/cuts/H2000_hoe_EB_pt.png
+plot saved: imgs/cuts/H2000_hoe_EE_pt.png
+plot saved: imgs/cuts/H250_hoe_EB_pt.png
+plot saved: imgs/cuts/H250_hoe_EE_pt.png
+plot saved: imgs/cuts/H750_hoe_EB_pt.png
+plot saved: imgs/cuts/H750_hoe_EE_pt.png
+plot saved: imgs/cuts/all_signal_hoe_EB_pt.png
+plot saved: imgs/cuts/all_signal_hoe_EE_pt.png
+done [hoe pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_trkiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_trkiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_trkiso_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EE.png
+plot saved: imgs/cuts/H2000_trkiso_EB.png
+plot saved: imgs/cuts/H2000_trkiso_EE.png
+plot saved: imgs/cuts/H250_trkiso_EB.png
+plot saved: imgs/cuts/H250_trkiso_EE.png
+plot saved: imgs/cuts/H750_trkiso_EB.png
+plot saved: imgs/cuts/H750_trkiso_EE.png
+plot saved: imgs/cuts/all_signal_trkiso_EB.png
+plot saved: imgs/cuts/all_signal_trkiso_EE.png
+done [trkiso dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_trkiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_trkiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_trkiso_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_trkiso_EE_pt.png
+plot saved: imgs/cuts/H2000_trkiso_EB_pt.png
+plot saved: imgs/cuts/H2000_trkiso_EE_pt.png
+plot saved: imgs/cuts/H250_trkiso_EB_pt.png
+plot saved: imgs/cuts/H250_trkiso_EE_pt.png
+plot saved: imgs/cuts/H750_trkiso_EB_pt.png
+plot saved: imgs/cuts/H750_trkiso_EE_pt.png
+plot saved: imgs/cuts/all_signal_trkiso_EB_pt.png
+plot saved: imgs/cuts/all_signal_trkiso_EE_pt.png
+done [trkiso pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_caloiso_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_caloiso_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_caloiso_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EE.png
+plot saved: imgs/cuts/H2000_caloiso_EB.png
+plot saved: imgs/cuts/H2000_caloiso_EE.png
+plot saved: imgs/cuts/H250_caloiso_EB.png
+plot saved: imgs/cuts/H250_caloiso_EE.png
+plot saved: imgs/cuts/H750_caloiso_EB.png
+plot saved: imgs/cuts/H750_caloiso_EE.png
+plot saved: imgs/cuts/all_signal_caloiso_EB.png
+plot saved: imgs/cuts/all_signal_caloiso_EE.png
+done [caloiso dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_caloiso_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_caloiso_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_caloiso_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_caloiso_EE_pt.png
+plot saved: imgs/cuts/H2000_caloiso_EB_pt.png
+plot saved: imgs/cuts/H2000_caloiso_EE_pt.png
+plot saved: imgs/cuts/H250_caloiso_EB_pt.png
+plot saved: imgs/cuts/H250_caloiso_EE_pt.png
+plot saved: imgs/cuts/H750_caloiso_EB_pt.png
+plot saved: imgs/cuts/H750_caloiso_EE_pt.png
+plot saved: imgs/cuts/all_signal_caloiso_EB_pt.png
+plot saved: imgs/cuts/all_signal_caloiso_EE_pt.png
+done [caloiso pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dxy_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dxy_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dxy_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EE.png
+plot saved: imgs/cuts/H2000_dxy_EB.png
+plot saved: imgs/cuts/H2000_dxy_EE.png
+plot saved: imgs/cuts/H250_dxy_EB.png
+plot saved: imgs/cuts/H250_dxy_EE.png
+plot saved: imgs/cuts/H750_dxy_EB.png
+plot saved: imgs/cuts/H750_dxy_EE.png
+plot saved: imgs/cuts/all_signal_dxy_EB.png
+plot saved: imgs/cuts/all_signal_dxy_EE.png
+done [dxy dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_dxy_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dxy_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_dxy_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_dxy_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_dxy_EE_pt.png
+plot saved: imgs/cuts/H2000_dxy_EB_pt.png
+plot saved: imgs/cuts/H2000_dxy_EE_pt.png
+plot saved: imgs/cuts/H250_dxy_EB_pt.png
+plot saved: imgs/cuts/H250_dxy_EE_pt.png
+plot saved: imgs/cuts/H750_dxy_EB_pt.png
+plot saved: imgs/cuts/H750_dxy_EE_pt.png
+plot saved: imgs/cuts/all_signal_dxy_EB_pt.png
+plot saved: imgs/cuts/all_signal_dxy_EE_pt.png
+done [dxy pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_misshits_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_misshits_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_misshits_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EE.png
+plot saved: imgs/cuts/H2000_misshits_EB.png
+plot saved: imgs/cuts/H2000_misshits_EE.png
+plot saved: imgs/cuts/H250_misshits_EB.png
+plot saved: imgs/cuts/H250_misshits_EE.png
+plot saved: imgs/cuts/H750_misshits_EB.png
+plot saved: imgs/cuts/H750_misshits_EE.png
+plot saved: imgs/cuts/all_signal_misshits_EB.png
+plot saved: imgs/cuts/all_signal_misshits_EE.png
+done [misshits dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_misshits_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_misshits_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_misshits_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_misshits_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_misshits_EE_pt.png
+plot saved: imgs/cuts/H2000_misshits_EB_pt.png
+plot saved: imgs/cuts/H2000_misshits_EE_pt.png
+plot saved: imgs/cuts/H250_misshits_EB_pt.png
+plot saved: imgs/cuts/H250_misshits_EE_pt.png
+plot saved: imgs/cuts/H750_misshits_EB_pt.png
+plot saved: imgs/cuts/H750_misshits_EE_pt.png
+plot saved: imgs/cuts/all_signal_misshits_EB_pt.png
+plot saved: imgs/cuts/all_signal_misshits_EE_pt.png
+done [misshits pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_ecaldriven_EE.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_ecaldriven_EB.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_ecaldriven_EE.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EE.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EB.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EE.png
+plot saved: imgs/cuts/H2000_ecaldriven_EB.png
+plot saved: imgs/cuts/H2000_ecaldriven_EE.png
+plot saved: imgs/cuts/H250_ecaldriven_EB.png
+plot saved: imgs/cuts/H250_ecaldriven_EE.png
+plot saved: imgs/cuts/H750_ecaldriven_EB.png
+plot saved: imgs/cuts/H750_ecaldriven_EE.png
+plot saved: imgs/cuts/all_signal_ecaldriven_EB.png
+plot saved: imgs/cuts/all_signal_ecaldriven_EE.png
+done [ecaldriven dr]: (15 samples + 3 H-mass + 1 all) x {EB,EE}
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H2000_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H250_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/H750_ecaldriven_EE_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_ecaldriven_EB_pt.png has been created
+Info in <TCanvas::Print>: png file imgs/cuts/all_signal_ecaldriven_EE_pt.png has been created
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A10_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A1_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A10_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A1_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A10_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A1_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A2_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A5_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A2_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A5_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A2_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A5_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H250A0p4_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H750A0p4_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/HToAATo4L_H2000A0p4_22_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/H2000_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/H2000_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/H250_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/H250_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/H750_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/H750_ecaldriven_EE_pt.png
+plot saved: imgs/cuts/all_signal_ecaldriven_EB_pt.png
+plot saved: imgs/cuts/all_signal_ecaldriven_EE_pt.png
+done [ecaldriven pt]: (15 samples + 3 H-mass + 1 all) x {EB,EE}

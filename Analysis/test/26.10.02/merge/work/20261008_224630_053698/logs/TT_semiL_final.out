@@ -1,0 +1,23 @@
+Running: ['hadd', '-n', '50', '/home/condor/dir_3686583/root-merge-50yn1l40/merged.root', '@/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/lists/TT_semiL_final.txt']
+hadd Target file: /home/condor/dir_3686583/root-merge-50yn1l40/merged.root
+hadd compression setting for all output: 1
+hadd Source file 1: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0000.root
+hadd Source file 2: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0001.root
+hadd Source file 3: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0002.root
+hadd Source file 4: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0003.root
+hadd Source file 5: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0004.root
+hadd Source file 6: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0005.root
+hadd Source file 7: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0006.root
+hadd Source file 8: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0007.root
+hadd Source file 9: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0008.root
+hadd Source file 10: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0009.root
+hadd Source file 11: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0010.root
+hadd Source file 12: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0011.root
+hadd Source file 13: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0012.root
+hadd Source file 14: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0013.root
+hadd Source file 15: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0014.root
+hadd Source file 16: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/TT_semiL/part_0015.root
+hadd Target path: /home/condor/dir_3686583/root-merge-50yn1l40/merged.root:/
+hadd Target path: /home/condor/dir_3686583/root-merge-50yn1l40/merged.root:/evtCounter
+hadd Target path: /home/condor/dir_3686583/root-merge-50yn1l40/merged.root:/resolvedMuCRanalyzerRun3
+Verified and published: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/results/2022preEE/TT_semiL.root

@@ -1,0 +1,11 @@
+Running: ['hadd', '-n', '50', '/home/condor/dir_3685446/root-merge-7n2te8o5/merged.root', '@/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/lists/ZZ_ext1_final.txt']
+hadd Target file: /home/condor/dir_3685446/root-merge-7n2te8o5/merged.root
+hadd compression setting for all output: 1
+hadd Source file 1: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/ZZ_ext1/part_0000.root
+hadd Source file 2: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/ZZ_ext1/part_0001.root
+hadd Source file 3: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/ZZ_ext1/part_0002.root
+hadd Source file 4: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/ZZ_ext1/part_0003.root
+hadd Target path: /home/condor/dir_3685446/root-merge-7n2te8o5/merged.root:/
+hadd Target path: /home/condor/dir_3685446/root-merge-7n2te8o5/merged.root:/evtCounter
+hadd Target path: /home/condor/dir_3685446/root-merge-7n2te8o5/merged.root:/resolvedMuCRanalyzerRun3
+Verified and published: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/results/2022preEE/ZZ_ext1.root

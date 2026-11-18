@@ -53,6 +53,9 @@ process.load('RecoLocalCalo.EcalRecAlgos.EcalSeverityLevelESProducer_cfi')
 # ---- modified-HEEP ValueMap producer (electron ID 입력·추가 GSF track) ----
 process.load('ZprimeTo4l.ModifiedHEEP.ModifiedHEEPIdVarValueMapProducer_cfi')
 process.load('ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi')
+# Independent Run3 producers supply the Run3 VID inputs.
+process.load('ZprimeTo4l.ModifiedHEEPRun3.ModifiedHEEPIdVarValueMapProducer_cfi')
+process.load('ZprimeTo4l.ModifiedHEEPRun3.ModifiedEcalRecHitIsolationScone_cfi')
 
 # ---- VID + egamma post-reco: modifiedHeepElectronID(VID) 생성 ----
 # energy scale/smearing 보정은 후단 correctionlib → runEnergyCorrections=False (보정 파일 불필요)
@@ -60,6 +63,7 @@ process.load('ZprimeTo4l.ModifiedHEEP.ModifiedEcalRecHitIsolationScone_cfi')
 runVIDmodules = [
     'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff',
     'ZprimeTo4l.ModifiedHEEP.Identification.modifiedHeepElectronID_cff',
+    'ZprimeTo4l.ModifiedHEEPRun3.Identification.modifiedHeepElectronID_cff',
 ]
 from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
@@ -101,6 +105,8 @@ process.resolvedNtuplizer.METfilterList = cms.vstring(
 process.p = cms.Path(
     process.ModifiedHEEPIDVarValueMaps
     + process.ModifiedEcalRecHitIsolationScone
+    + process.ModifiedHEEPIDVarValueMapsRun3
+    + process.ModifiedEcalRecHitIsolationSconeRun3
     + process.egammaPostRecoSeq
     + process.modifiedHEEPIDVarValueMaps2nd
     + process.seedGainEle

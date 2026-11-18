@@ -1,0 +1,20 @@
+<use name="FWCore/Framework"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/ServiceRegistry"/>
+<use name="FWCore/Common"/>
+<use name="FWCore/Utilities"/>
+<use name="CommonTools/UtilAlgos"/>
+<use name="DataFormats/Common"/>
+<use name="DataFormats/PatCandidates"/>
+<use name="DataFormats/MuonReco"/>
+<use name="DataFormats/TrackReco"/>
+<use name="DataFormats/GsfTrackReco"/>
+<use name="DataFormats/VertexReco"/>
+<use name="DataFormats/BeamSpot"/>
+<use name="DataFormats/HepMCCandidate"/>
+<use name="SimDataFormats/GeneratorProducts"/>
+<use name="SimDataFormats/PileupSummaryInfo"/>
+<use name="root"/>
+<library file="*.cc" name="ZprimeTo4lMergedAnalysisRun3Plugins">
+  <flags EDM_PLUGIN="1"/>
+</library>

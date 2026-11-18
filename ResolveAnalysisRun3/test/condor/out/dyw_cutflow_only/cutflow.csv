@@ -1,0 +1,417 @@
+sample,population,region,pt_min,ID,stage,cut,baseline,passing,fraction,lost_at_step
+DY,prompt,EB,20,nominal,0,Baseline,1071973,1071973,1.0,0
+DY,prompt,EB,20,nominal,1,p_{T},1071973,715329,0.6673013219549373,356644
+DY,prompt,EB,20,nominal,2,SC #eta,1071973,715329,0.6673013219549373,0
+DY,prompt,EB,20,nominal,3,#Delta#eta seed,1071973,704973,0.6576406308740985,10356
+DY,prompt,EB,20,nominal,4,#Delta#phi,1071973,697518,0.6506861646701922,7455
+DY,prompt,EB,20,nominal,5,#sigma_{i#etai#eta},1071973,697518,0.6506861646701922,0
+DY,prompt,EB,20,nominal,6,E ratios,1071973,686482,0.6403911292541883,11036
+DY,prompt,EB,20,nominal,7,H/E,1071973,669064,0.6241425856807961,17418
+DY,prompt,EB,20,nominal,8,Track iso,1071973,664494,0.6198794186047596,4570
+DY,prompt,EB,20,nominal,9,ECAL+HCAL iso,1071973,657805,0.6136395226372306,6689
+DY,prompt,EB,20,nominal,10,d_{xy},1071973,654597,0.6106469099501574,3208
+DY,prompt,EB,20,nominal,11,Missing hits,1071973,652672,0.6088511557660501,1925
+DY,prompt,EB,20,nominal,12,ECAL driven,1071973,649923,0.6062867255052132,2749
+DY,prompt,EB,20,modified,0,Baseline,1071973,1071973,1.0,0
+DY,prompt,EB,20,modified,1,p_{T},1071973,1071973,1.0,0
+DY,prompt,EB,20,modified,2,SC #eta,1071973,1071973,1.0,0
+DY,prompt,EB,20,modified,3,#Delta#eta seed,1071973,1053695,0.9829491974144872,18278
+DY,prompt,EB,20,modified,4,#Delta#phi,1071973,1040832,0.970949828027385,12863
+DY,prompt,EB,20,modified,5,#sigma_{i#etai#eta},1071973,1040832,0.970949828027385,0
+DY,prompt,EB,20,modified,6,E ratios,1071973,1013112,0.9450909677762407,27720
+DY,prompt,EB,20,modified,7,H/E,1071973,980398,0.914573408098898,32714
+DY,prompt,EB,20,modified,8,Track iso,1071973,972573,0.9072737839479166,7825
+DY,prompt,EB,20,modified,9,ECAL+HCAL iso,1071973,960248,0.8957762928730482,12325
+DY,prompt,EB,20,modified,10,d_{xy},1071973,955298,0.8911586392567723,4950
+DY,prompt,EB,20,modified,11,Missing hits,1071973,952566,0.8886100676043147,2732
+DY,prompt,EB,20,modified,12,ECAL driven,1071973,947824,0.8841864487258541,4742
+DY,prompt,EE,20,nominal,0,Baseline,508674,508674,1.0,0
+DY,prompt,EE,20,nominal,1,p_{T},508674,329948,0.6486433354171827,178726
+DY,prompt,EE,20,nominal,2,SC #eta,508674,329948,0.6486433354171827,0
+DY,prompt,EE,20,nominal,3,#Delta#eta seed,508674,316656,0.6225126505384588,13292
+DY,prompt,EE,20,nominal,4,#Delta#phi,508674,309871,0.6091740486048038,6785
+DY,prompt,EE,20,nominal,5,#sigma_{i#etai#eta},508674,306268,0.6020909266052521,3603
+DY,prompt,EE,20,nominal,6,E ratios,508674,306268,0.6020909266052521,0
+DY,prompt,EE,20,nominal,7,H/E,508674,296622,0.583127897238703,9646
+DY,prompt,EE,20,nominal,8,Track iso,508674,293713,0.5774091068149738,2909
+DY,prompt,EE,20,nominal,9,ECAL+HCAL iso,508674,291999,0.5740395616839076,1714
+DY,prompt,EE,20,nominal,10,d_{xy},508674,289451,0.5690304595870833,2548
+DY,prompt,EE,20,nominal,11,Missing hits,508674,289101,0.5683423961122448,350
+DY,prompt,EE,20,nominal,12,ECAL driven,508674,288901,0.5679492169837657,200
+DY,prompt,EE,20,modified,0,Baseline,508674,508674,1.0,0
+DY,prompt,EE,20,modified,1,p_{T},508674,508674,1.0,0
+DY,prompt,EE,20,modified,2,SC #eta,508674,508674,1.0,0
+DY,prompt,EE,20,modified,3,#Delta#eta seed,508674,481358,0.9462995946323185,27316
+DY,prompt,EE,20,modified,4,#Delta#phi,508674,469876,0.9237271808663309,11482
+DY,prompt,EE,20,modified,5,#sigma_{i#etai#eta},508674,463501,0.9111945961460581,6375
+DY,prompt,EE,20,modified,6,E ratios,508674,463501,0.9111945961460581,0
+DY,prompt,EE,20,modified,7,H/E,508674,444555,0.8739487373052289,18946
+DY,prompt,EE,20,modified,8,Track iso,508674,440197,0.8653813640956683,4358
+DY,prompt,EE,20,modified,9,ECAL+HCAL iso,508674,437240,0.8595682106811042,2957
+DY,prompt,EE,20,modified,10,d_{xy},508674,433477,0.8521705453787691,3763
+DY,prompt,EE,20,modified,11,Missing hits,508674,432946,0.851126654792657,531
+DY,prompt,EE,20,modified,12,ECAL driven,508674,432577,0.850401239300613,369
+DY,unmatched,EB,20,nominal,0,Baseline,91030,91030,1.0,0
+DY,unmatched,EB,20,nominal,1,p_{T},91030,31415,0.34510600900801935,59615
+DY,unmatched,EB,20,nominal,2,SC #eta,91030,31415,0.34510600900801935,0
+DY,unmatched,EB,20,nominal,3,#Delta#eta seed,91030,17881,0.196429748434582,13534
+DY,unmatched,EB,20,nominal,4,#Delta#phi,91030,16736,0.1838514775348786,1145
+DY,unmatched,EB,20,nominal,5,#sigma_{i#etai#eta},91030,16736,0.1838514775348786,0
+DY,unmatched,EB,20,nominal,6,E ratios,91030,10451,0.11480830495441063,6285
+DY,unmatched,EB,20,nominal,7,H/E,91030,8970,0.09853894320553663,1481
+DY,unmatched,EB,20,nominal,8,Track iso,91030,8353,0.09176095792595848,617
+DY,unmatched,EB,20,nominal,9,ECAL+HCAL iso,91030,8188,0.08994836866966933,165
+DY,unmatched,EB,20,nominal,10,d_{xy},91030,7852,0.08625727782049873,336
+DY,unmatched,EB,20,nominal,11,Missing hits,91030,7769,0.08534549049763814,83
+DY,unmatched,EB,20,nominal,12,ECAL driven,91030,7718,0.08478523563660331,51
+DY,unmatched,EB,20,modified,0,Baseline,91030,91030,1.0,0
+DY,unmatched,EB,20,modified,1,p_{T},91030,91030,1.0,0
+DY,unmatched,EB,20,modified,2,SC #eta,91030,91030,1.0,0
+DY,unmatched,EB,20,modified,3,#Delta#eta seed,91030,58993,0.6480610787652422,32037
+DY,unmatched,EB,20,modified,4,#Delta#phi,91030,54932,0.6034494122816654,4061
+DY,unmatched,EB,20,modified,5,#sigma_{i#etai#eta},91030,54932,0.6034494122816654,0
+DY,unmatched,EB,20,modified,6,E ratios,91030,40587,0.44586400087883116,14345
+DY,unmatched,EB,20,modified,7,H/E,91030,32079,0.35240030759090407,8508
+DY,unmatched,EB,20,modified,8,Track iso,91030,29550,0.32461825771723607,2529
+DY,unmatched,EB,20,modified,9,ECAL+HCAL iso,91030,28914,0.31763155003844884,636
+DY,unmatched,EB,20,modified,10,d_{xy},91030,27640,0.3036361639020103,1274
+DY,unmatched,EB,20,modified,11,Missing hits,91030,27431,0.3013402175107108,209
+DY,unmatched,EB,20,modified,12,ECAL driven,91030,27200,0.29880259255190594,231
+DY,unmatched,EE,20,nominal,0,Baseline,61965,61965,1.0,0
+DY,unmatched,EE,20,nominal,1,p_{T},61965,24217,0.3908173969176148,37748
+DY,unmatched,EE,20,nominal,2,SC #eta,61965,24217,0.3908173969176148,0
+DY,unmatched,EE,20,nominal,3,#Delta#eta seed,61965,12459,0.2010651174049867,11758
+DY,unmatched,EE,20,nominal,4,#Delta#phi,61965,11235,0.1813120309852336,1224
+DY,unmatched,EE,20,nominal,5,#sigma_{i#etai#eta},61965,8896,0.14356491567820545,2339
+DY,unmatched,EE,20,nominal,6,E ratios,61965,8896,0.14356491567820545,0
+DY,unmatched,EE,20,nominal,7,H/E,61965,6640,0.10715726619866053,2256
+DY,unmatched,EE,20,nominal,8,Track iso,61965,5993,0.09671588800129105,647
+DY,unmatched,EE,20,nominal,9,ECAL+HCAL iso,61965,5893,0.09510207375131123,100
+DY,unmatched,EE,20,nominal,10,d_{xy},61965,5498,0.08872750746389091,395
+DY,unmatched,EE,20,nominal,11,Missing hits,61965,5340,0.08617768094892278,158
+DY,unmatched,EE,20,nominal,12,ECAL driven,61965,5332,0.08604857580892439,8
+DY,unmatched,EE,20,modified,0,Baseline,61965,61965,1.0,0
+DY,unmatched,EE,20,modified,1,p_{T},61965,61965,1.0,0
+DY,unmatched,EE,20,modified,2,SC #eta,61965,61965,1.0,0
+DY,unmatched,EE,20,modified,3,#Delta#eta seed,61965,33525,0.5410312273057372,28440
+DY,unmatched,EE,20,modified,4,#Delta#phi,61965,30356,0.4898894537238764,3169
+DY,unmatched,EE,20,modified,5,#sigma_{i#etai#eta},61965,25549,0.41231340272734607,4807
+DY,unmatched,EE,20,modified,6,E ratios,61965,25549,0.41231340272734607,0
+DY,unmatched,EE,20,modified,7,H/E,61965,20164,0.3254095053659324,5385
+DY,unmatched,EE,20,modified,8,Track iso,61965,18660,0.30113773904623575,1504
+DY,unmatched,EE,20,modified,9,ECAL+HCAL iso,61965,18396,0.29687726942628906,264
+DY,unmatched,EE,20,modified,10,d_{xy},61965,16950,0.2735415153715807,1446
+DY,unmatched,EE,20,modified,11,Missing hits,61965,16507,0.2663923182441701,443
+DY,unmatched,EE,20,modified,12,ECAL driven,61965,16480,0.2659565883966755,27
+DY,prompt,EB,35,nominal,0,Baseline,715329,715329,1.0,0
+DY,prompt,EB,35,nominal,1,p_{T},715329,715329,1.0,0
+DY,prompt,EB,35,nominal,2,SC #eta,715329,715329,1.0,0
+DY,prompt,EB,35,nominal,3,#Delta#eta seed,715329,704973,0.9855227454779549,10356
+DY,prompt,EB,35,nominal,4,#Delta#phi,715329,697518,0.9751009675268303,7455
+DY,prompt,EB,35,nominal,5,#sigma_{i#etai#eta},715329,697518,0.9751009675268303,0
+DY,prompt,EB,35,nominal,6,E ratios,715329,686482,0.9596731014679959,11036
+DY,prompt,EB,35,nominal,7,H/E,715329,669064,0.9353234665447647,17418
+DY,prompt,EB,35,nominal,8,Track iso,715329,664494,0.9289347978342832,4570
+DY,prompt,EB,35,nominal,9,ECAL+HCAL iso,715329,657805,0.919583855820189,6689
+DY,prompt,EB,35,nominal,10,d_{xy},715329,654597,0.915099206099571,3208
+DY,prompt,EB,35,nominal,11,Missing hits,715329,652672,0.9124081366755716,1925
+DY,prompt,EB,35,nominal,12,ECAL driven,715329,649923,0.9085651497422864,2749
+DY,prompt,EB,35,modified,0,Baseline,715329,715329,1.0,0
+DY,prompt,EB,35,modified,1,p_{T},715329,715329,1.0,0
+DY,prompt,EB,35,modified,2,SC #eta,715329,715329,1.0,0
+DY,prompt,EB,35,modified,3,#Delta#eta seed,715329,705143,0.9857603983621522,10186
+DY,prompt,EB,35,modified,4,#Delta#phi,715329,697586,0.9751960286805093,7557
+DY,prompt,EB,35,modified,5,#sigma_{i#etai#eta},715329,697586,0.9751960286805093,0
+DY,prompt,EB,35,modified,6,E ratios,715329,686674,0.9599415094313246,10912
+DY,prompt,EB,35,modified,7,H/E,715329,669245,0.9355764969685277,17429
+DY,prompt,EB,35,modified,8,Track iso,715329,664816,0.9293849403561159,4429
+DY,prompt,EB,35,modified,9,ECAL+HCAL iso,715329,658200,0.9201360492864122,6616
+DY,prompt,EB,35,modified,10,d_{xy},715329,654971,0.9156220424448052,3229
+DY,prompt,EB,35,modified,11,Missing hits,715329,653039,0.9129211873138094,1932
+DY,prompt,EB,35,modified,12,ECAL driven,715329,650287,0.9090740065060972,2752
+DY,prompt,EE,35,nominal,0,Baseline,329948,329948,1.0,0
+DY,prompt,EE,35,nominal,1,p_{T},329948,329948,1.0,0
+DY,prompt,EE,35,nominal,2,SC #eta,329948,329948,1.0,0
+DY,prompt,EE,35,nominal,3,#Delta#eta seed,329948,316656,0.9597148641604132,13292
+DY,prompt,EE,35,nominal,4,#Delta#phi,329948,309871,0.9391510177361281,6785
+DY,prompt,EE,35,nominal,5,#sigma_{i#etai#eta},329948,306268,0.9282311152060325,3603
+DY,prompt,EE,35,nominal,6,E ratios,329948,306268,0.9282311152060325,0
+DY,prompt,EE,35,nominal,7,H/E,329948,296622,0.898996205462679,9646
+DY,prompt,EE,35,nominal,8,Track iso,329948,293713,0.8901796646744335,2909
+DY,prompt,EE,35,nominal,9,ECAL+HCAL iso,329948,291999,0.8849849067125729,1714
+DY,prompt,EE,35,nominal,10,d_{xy},329948,289451,0.8772624777237625,2548
+DY,prompt,EE,35,nominal,11,Missing hits,329948,289101,0.8762017045110139,350
+DY,prompt,EE,35,nominal,12,ECAL driven,329948,288901,0.8755955483894432,200
+DY,prompt,EE,35,modified,0,Baseline,329948,329948,1.0,0
+DY,prompt,EE,35,modified,1,p_{T},329948,329948,1.0,0
+DY,prompt,EE,35,modified,2,SC #eta,329948,329948,1.0,0
+DY,prompt,EE,35,modified,3,#Delta#eta seed,329948,316656,0.9597148641604132,13292
+DY,prompt,EE,35,modified,4,#Delta#phi,329948,309871,0.9391510177361281,6785
+DY,prompt,EE,35,modified,5,#sigma_{i#etai#eta},329948,306268,0.9282311152060325,3603
+DY,prompt,EE,35,modified,6,E ratios,329948,306268,0.9282311152060325,0
+DY,prompt,EE,35,modified,7,H/E,329948,296622,0.898996205462679,9646
+DY,prompt,EE,35,modified,8,Track iso,329948,293926,0.8908252209439063,2696
+DY,prompt,EE,35,modified,9,ECAL+HCAL iso,329948,292259,0.8857729096706147,1667
+DY,prompt,EE,35,modified,10,d_{xy},329948,289681,0.8779595572635688,2578
+DY,prompt,EE,35,modified,11,Missing hits,329948,289330,0.8768957532702123,351
+DY,prompt,EE,35,modified,12,ECAL driven,329948,289130,0.8762895971486416,200
+DY,unmatched,EB,35,nominal,0,Baseline,31415,31415,1.0,0
+DY,unmatched,EB,35,nominal,1,p_{T},31415,31415,1.0,0
+DY,unmatched,EB,35,nominal,2,SC #eta,31415,31415,1.0,0
+DY,unmatched,EB,35,nominal,3,#Delta#eta seed,31415,17881,0.5691866942543371,13534
+DY,unmatched,EB,35,nominal,4,#Delta#phi,31415,16736,0.5327391373547669,1145
+DY,unmatched,EB,35,nominal,5,#sigma_{i#etai#eta},31415,16736,0.5327391373547669,0
+DY,unmatched,EB,35,nominal,6,E ratios,31415,10451,0.33267547349992044,6285
+DY,unmatched,EB,35,nominal,7,H/E,31415,8970,0.28553238898615313,1481
+DY,unmatched,EB,35,nominal,8,Track iso,31415,8353,0.26589208976603534,617
+DY,unmatched,EB,35,nominal,9,ECAL+HCAL iso,31415,8188,0.2606398217412064,165
+DY,unmatched,EB,35,nominal,10,d_{xy},31415,7852,0.2499442941270094,336
+DY,unmatched,EB,35,nominal,11,Missing hits,31415,7769,0.24730224415088334,83
+DY,unmatched,EB,35,nominal,12,ECAL driven,31415,7718,0.24567881585229986,51
+DY,unmatched,EB,35,modified,0,Baseline,31415,31415,1.0,0
+DY,unmatched,EB,35,modified,1,p_{T},31415,31415,1.0,0
+DY,unmatched,EB,35,modified,2,SC #eta,31415,31415,1.0,0
+DY,unmatched,EB,35,modified,3,#Delta#eta seed,31415,19075,0.6071940155976444,12340
+DY,unmatched,EB,35,modified,4,#Delta#phi,31415,17763,0.5654305268183989,1312
+DY,unmatched,EB,35,modified,5,#sigma_{i#etai#eta},31415,17763,0.5654305268183989,0
+DY,unmatched,EB,35,modified,6,E ratios,31415,13497,0.4296355244310043,4266
+DY,unmatched,EB,35,modified,7,H/E,31415,9522,0.30310361292376253,3975
+DY,unmatched,EB,35,modified,8,Track iso,31415,8595,0.27359541620245104,927
+DY,unmatched,EB,35,modified,9,ECAL+HCAL iso,31415,8430,0.26834314817762217,165
+DY,unmatched,EB,35,modified,10,d_{xy},31415,8062,0.25662899888588253,368
+DY,unmatched,EB,35,modified,11,Missing hits,31415,7974,0.25382778927264044,88
+DY,unmatched,EB,35,modified,12,ECAL driven,31415,7921,0.25214069711921056,53
+DY,unmatched,EE,35,nominal,0,Baseline,24217,24217,1.0,0
+DY,unmatched,EE,35,nominal,1,p_{T},24217,24217,1.0,0
+DY,unmatched,EE,35,nominal,2,SC #eta,24217,24217,1.0,0
+DY,unmatched,EE,35,nominal,3,#Delta#eta seed,24217,12459,0.5144733038774415,11758
+DY,unmatched,EE,35,nominal,4,#Delta#phi,24217,11235,0.4639302968988727,1224
+DY,unmatched,EE,35,nominal,5,#sigma_{i#etai#eta},24217,8896,0.36734525333443446,2339
+DY,unmatched,EE,35,nominal,6,E ratios,24217,8896,0.36734525333443446,0
+DY,unmatched,EE,35,nominal,7,H/E,24217,6640,0.2741875541974646,2256
+DY,unmatched,EE,35,nominal,8,Track iso,24217,5993,0.2474707849857538,647
+DY,unmatched,EE,35,nominal,9,ECAL+HCAL iso,24217,5893,0.24334145435024981,100
+DY,unmatched,EE,35,nominal,10,d_{xy},24217,5498,0.22703059834000908,395
+DY,unmatched,EE,35,nominal,11,Missing hits,24217,5340,0.22050625593591278,158
+DY,unmatched,EE,35,nominal,12,ECAL driven,24217,5332,0.22017590948507246,8
+DY,unmatched,EE,35,modified,0,Baseline,24217,24217,1.0,0
+DY,unmatched,EE,35,modified,1,p_{T},24217,24217,1.0,0
+DY,unmatched,EE,35,modified,2,SC #eta,24217,24217,1.0,0
+DY,unmatched,EE,35,modified,3,#Delta#eta seed,24217,12459,0.5144733038774415,11758
+DY,unmatched,EE,35,modified,4,#Delta#phi,24217,11235,0.4639302968988727,1224
+DY,unmatched,EE,35,modified,5,#sigma_{i#etai#eta},24217,8896,0.36734525333443446,2339
+DY,unmatched,EE,35,modified,6,E ratios,24217,8896,0.36734525333443446,0
+DY,unmatched,EE,35,modified,7,H/E,24217,6640,0.2741875541974646,2256
+DY,unmatched,EE,35,modified,8,Track iso,24217,6074,0.25081554280051205,566
+DY,unmatched,EE,35,modified,9,ECAL+HCAL iso,24217,5982,0.24701655861584837,92
+DY,unmatched,EE,35,modified,10,d_{xy},24217,5572,0.23008630301028205,410
+DY,unmatched,EE,35,modified,11,Missing hits,24217,5406,0.22323161415534543,166
+DY,unmatched,EE,35,modified,12,ECAL driven,24217,5397,0.22285997439815006,9
+W,prompt,EB,20,nominal,0,Baseline,33299,33299,1.0,0
+W,prompt,EB,20,nominal,1,p_{T},33299,18349,0.5510375686957566,14950
+W,prompt,EB,20,nominal,2,SC #eta,33299,18349,0.5510375686957566,0
+W,prompt,EB,20,nominal,3,#Delta#eta seed,33299,18097,0.5434697738670831,252
+W,prompt,EB,20,nominal,4,#Delta#phi,33299,17916,0.5380341752004565,181
+W,prompt,EB,20,nominal,5,#sigma_{i#etai#eta},33299,17916,0.5380341752004565,0
+W,prompt,EB,20,nominal,6,E ratios,33299,17641,0.5297756689390072,275
+W,prompt,EB,20,nominal,7,H/E,33299,17150,0.5150304813958377,491
+W,prompt,EB,20,nominal,8,Track iso,33299,17016,0.5110063365266224,134
+W,prompt,EB,20,nominal,9,ECAL+HCAL iso,33299,16857,0.5062314183609118,159
+W,prompt,EB,20,nominal,10,d_{xy},33299,16774,0.503738851016547,83
+W,prompt,EB,20,nominal,11,Missing hits,33299,16729,0.5023874590828553,45
+W,prompt,EB,20,nominal,12,ECAL driven,33299,16650,0.5000150154659299,79
+W,prompt,EB,20,modified,0,Baseline,33299,33299,1.0,0
+W,prompt,EB,20,modified,1,p_{T},33299,33299,1.0,0
+W,prompt,EB,20,modified,2,SC #eta,33299,33299,1.0,0
+W,prompt,EB,20,modified,3,#Delta#eta seed,33299,32742,0.9832727709540827,557
+W,prompt,EB,20,modified,4,#Delta#phi,33299,32357,0.9717108621880537,385
+W,prompt,EB,20,modified,5,#sigma_{i#etai#eta},33299,32357,0.9717108621880537,0
+W,prompt,EB,20,modified,6,E ratios,33299,31313,0.9403585693264062,1044
+W,prompt,EB,20,modified,7,H/E,33299,30084,0.9034505540706929,1229
+W,prompt,EB,20,modified,8,Track iso,33299,29826,0.8957025736508604,258
+W,prompt,EB,20,modified,9,ECAL+HCAL iso,33299,29485,0.8854620258866632,341
+W,prompt,EB,20,modified,10,d_{xy},33299,29326,0.8806871077209526,159
+W,prompt,EB,20,modified,11,Missing hits,33299,29237,0.878014354785429,89
+W,prompt,EB,20,modified,12,ECAL driven,33299,29067,0.8729090963692603,170
+W,prompt,EE,20,nominal,0,Baseline,19971,19971,1.0,0
+W,prompt,EE,20,nominal,1,p_{T},19971,10746,0.5380802163136548,9225
+W,prompt,EE,20,nominal,2,SC #eta,19971,10746,0.5380802163136548,0
+W,prompt,EE,20,nominal,3,#Delta#eta seed,19971,10298,0.5156476891492664,448
+W,prompt,EE,20,nominal,4,#Delta#phi,19971,10075,0.5044814981723499,223
+W,prompt,EE,20,nominal,5,#sigma_{i#etai#eta},19971,9942,0.4978218416704221,133
+W,prompt,EE,20,nominal,6,E ratios,19971,9942,0.4978218416704221,0
+W,prompt,EE,20,nominal,7,H/E,19971,9568,0.47909468729658006,374
+W,prompt,EE,20,nominal,8,Track iso,19971,9455,0.4734364829002053,113
+W,prompt,EE,20,nominal,9,ECAL+HCAL iso,19971,9381,0.469731110109659,74
+W,prompt,EE,20,nominal,10,d_{xy},19971,9282,0.4647739221871714,99
+W,prompt,EE,20,nominal,11,Missing hits,19971,9269,0.4641229783185619,13
+W,prompt,EE,20,nominal,12,ECAL driven,19971,9258,0.46357217966050773,11
+W,prompt,EE,20,modified,0,Baseline,19971,19971,1.0,0
+W,prompt,EE,20,modified,1,p_{T},19971,19971,1.0,0
+W,prompt,EE,20,modified,2,SC #eta,19971,19971,1.0,0
+W,prompt,EE,20,modified,3,#Delta#eta seed,19971,18778,0.9402633819037605,1193
+W,prompt,EE,20,modified,4,#Delta#phi,19971,18323,0.9174803465024285,455
+W,prompt,EE,20,modified,5,#sigma_{i#etai#eta},19971,18029,0.9027590005507986,294
+W,prompt,EE,20,modified,6,E ratios,19971,18029,0.9027590005507986,0
+W,prompt,EE,20,modified,7,H/E,19971,17085,0.8554904611686946,944
+W,prompt,EE,20,modified,8,Track iso,19971,16896,0.8460267387712183,189
+W,prompt,EE,20,modified,9,ECAL+HCAL iso,19971,16773,0.839867808322067,123
+W,prompt,EE,20,modified,10,d_{xy},19971,16600,0.8312052476090331,173
+W,prompt,EE,20,modified,11,Missing hits,19971,16581,0.8302538681087577,19
+W,prompt,EE,20,modified,12,ECAL driven,19971,16565,0.8294527064243152,16
+W,unmatched,EB,20,nominal,0,Baseline,8711,8711,1.0,0
+W,unmatched,EB,20,nominal,1,p_{T},8711,3032,0.34806566410285844,5679
+W,unmatched,EB,20,nominal,2,SC #eta,8711,3032,0.34806566410285844,0
+W,unmatched,EB,20,nominal,3,#Delta#eta seed,8711,1477,0.16955573412926186,1555
+W,unmatched,EB,20,nominal,4,#Delta#phi,8711,1369,0.1571576168063368,108
+W,unmatched,EB,20,nominal,5,#sigma_{i#etai#eta},8711,1369,0.1571576168063368,0
+W,unmatched,EB,20,nominal,6,E ratios,8711,683,0.07840661232923889,686
+W,unmatched,EB,20,nominal,7,H/E,8711,534,0.06130180231890713,149
+W,unmatched,EB,20,nominal,8,Track iso,8711,478,0.05487314889220526,56
+W,unmatched,EB,20,nominal,9,ECAL+HCAL iso,8711,465,0.05338078291814947,13
+W,unmatched,EB,20,nominal,10,d_{xy},8711,443,0.05085524050051659,22
+W,unmatched,EB,20,nominal,11,Missing hits,8711,436,0.05005165882217885,7
+W,unmatched,EB,20,nominal,12,ECAL driven,8711,430,0.0493628745264608,6
+W,unmatched,EB,20,modified,0,Baseline,8711,8711,1.0,0
+W,unmatched,EB,20,modified,1,p_{T},8711,8711,1.0,0
+W,unmatched,EB,20,modified,2,SC #eta,8711,8711,1.0,0
+W,unmatched,EB,20,modified,3,#Delta#eta seed,8711,4976,0.5712317759155091,3735
+W,unmatched,EB,20,modified,4,#Delta#phi,8711,4559,0.5233612673631042,417
+W,unmatched,EB,20,modified,5,#sigma_{i#etai#eta},8711,4559,0.5233612673631042,0
+W,unmatched,EB,20,modified,6,E ratios,8711,3064,0.3517391803466881,1495
+W,unmatched,EB,20,modified,7,H/E,8711,2077,0.23843416370106763,987
+W,unmatched,EB,20,modified,8,Track iso,8711,1809,0.20766846515899437,268
+W,unmatched,EB,20,modified,9,ECAL+HCAL iso,8711,1766,0.2027321777063483,43
+W,unmatched,EB,20,modified,10,d_{xy},8711,1673,0.1920560211227184,93
+W,unmatched,EB,20,modified,11,Missing hits,8711,1655,0.18998966823556424,18
+W,unmatched,EB,20,modified,12,ECAL driven,8711,1637,0.18792331534841006,18
+W,unmatched,EE,20,nominal,0,Baseline,6001,6001,1.0,0
+W,unmatched,EE,20,nominal,1,p_{T},6001,2362,0.3936010664889185,3639
+W,unmatched,EE,20,nominal,2,SC #eta,6001,2362,0.3936010664889185,0
+W,unmatched,EE,20,nominal,3,#Delta#eta seed,6001,1066,0.17763706048991834,1296
+W,unmatched,EE,20,nominal,4,#Delta#phi,6001,969,0.16147308781869688,97
+W,unmatched,EE,20,nominal,5,#sigma_{i#etai#eta},6001,694,0.11564739210131644,275
+W,unmatched,EE,20,nominal,6,E ratios,6001,694,0.11564739210131644,0
+W,unmatched,EE,20,nominal,7,H/E,6001,437,0.07282119646725546,257
+W,unmatched,EE,20,nominal,8,Track iso,6001,372,0.0619896683886019,65
+W,unmatched,EE,20,nominal,9,ECAL+HCAL iso,6001,369,0.06148975170804866,3
+W,unmatched,EE,20,nominal,10,d_{xy},6001,343,0.05715714047658724,26
+W,unmatched,EE,20,nominal,11,Missing hits,6001,327,0.054490918180303285,16
+W,unmatched,EE,20,nominal,12,ECAL driven,6001,326,0.054324279286785536,1
+W,unmatched,EE,20,modified,0,Baseline,6001,6001,1.0,0
+W,unmatched,EE,20,modified,1,p_{T},6001,6001,1.0,0
+W,unmatched,EE,20,modified,2,SC #eta,6001,6001,1.0,0
+W,unmatched,EE,20,modified,3,#Delta#eta seed,6001,2914,0.4855857357107149,3087
+W,unmatched,EE,20,modified,4,#Delta#phi,6001,2631,0.43842692884519247,283
+W,unmatched,EE,20,modified,5,#sigma_{i#etai#eta},6001,2044,0.34060989835027494,587
+W,unmatched,EE,20,modified,6,E ratios,6001,2044,0.34060989835027494,0
+W,unmatched,EE,20,modified,7,H/E,6001,1444,0.24062656223962672,600
+W,unmatched,EE,20,modified,8,Track iso,6001,1275,0.21246458923512748,169
+W,unmatched,EE,20,modified,9,ECAL+HCAL iso,6001,1253,0.20879853357773703,22
+W,unmatched,EE,20,modified,10,d_{xy},6001,1170,0.19496750541576405,83
+W,unmatched,EE,20,modified,11,Missing hits,6001,1134,0.18896850524912515,36
+W,unmatched,EE,20,modified,12,ECAL driven,6001,1130,0.18830194967505415,4
+W,prompt,EB,35,nominal,0,Baseline,18349,18349,1.0,0
+W,prompt,EB,35,nominal,1,p_{T},18349,18349,1.0,0
+W,prompt,EB,35,nominal,2,SC #eta,18349,18349,1.0,0
+W,prompt,EB,35,nominal,3,#Delta#eta seed,18349,18097,0.9862662815412284,252
+W,prompt,EB,35,nominal,4,#Delta#phi,18349,17916,0.976401983759333,181
+W,prompt,EB,35,nominal,5,#sigma_{i#etai#eta},18349,17916,0.976401983759333,0
+W,prompt,EB,35,nominal,6,E ratios,18349,17641,0.9614147909967846,275
+W,prompt,EB,35,nominal,7,H/E,18349,17150,0.9346558395552891,491
+W,prompt,EB,35,nominal,8,Track iso,18349,17016,0.9273529892637201,134
+W,prompt,EB,35,nominal,9,ECAL+HCAL iso,18349,16857,0.9186876669028284,159
+W,prompt,EB,35,nominal,10,d_{xy},18349,16774,0.9141642596326776,83
+W,prompt,EB,35,nominal,11,Missing hits,18349,16729,0.9117118099078969,45
+W,prompt,EB,35,nominal,12,ECAL driven,18349,16650,0.9074063981688375,79
+W,prompt,EB,35,modified,0,Baseline,18349,18349,1.0,0
+W,prompt,EB,35,modified,1,p_{T},18349,18349,1.0,0
+W,prompt,EB,35,modified,2,SC #eta,18349,18349,1.0,0
+W,prompt,EB,35,modified,3,#Delta#eta seed,18349,18106,0.9867567714861846,243
+W,prompt,EB,35,modified,4,#Delta#phi,18349,17921,0.9766744781731974,185
+W,prompt,EB,35,modified,5,#sigma_{i#etai#eta},18349,17921,0.9766744781731974,0
+W,prompt,EB,35,modified,6,E ratios,18349,17648,0.9617962831761949,273
+W,prompt,EB,35,modified,7,H/E,18349,17157,0.9350373317346994,491
+W,prompt,EB,35,modified,8,Track iso,18349,17026,0.9278979780914491,131
+W,prompt,EB,35,modified,9,ECAL+HCAL iso,18349,16868,0.9192871546133304,158
+W,prompt,EB,35,modified,10,d_{xy},18349,16785,0.9147637473431794,83
+W,prompt,EB,35,modified,11,Missing hits,18349,16740,0.9123112976183988,45
+W,prompt,EB,35,modified,12,ECAL driven,18349,16661,0.9080058858793395,79
+W,prompt,EE,35,nominal,0,Baseline,10746,10746,1.0,0
+W,prompt,EE,35,nominal,1,p_{T},10746,10746,1.0,0
+W,prompt,EE,35,nominal,2,SC #eta,10746,10746,1.0,0
+W,prompt,EE,35,nominal,3,#Delta#eta seed,10746,10298,0.9583100688628327,448
+W,prompt,EE,35,nominal,4,#Delta#phi,10746,10075,0.9375581611762517,223
+W,prompt,EE,35,nominal,5,#sigma_{i#etai#eta},10746,9942,0.9251814628699051,133
+W,prompt,EE,35,nominal,6,E ratios,10746,9942,0.9251814628699051,0
+W,prompt,EE,35,nominal,7,H/E,10746,9568,0.8903778150009306,374
+W,prompt,EE,35,nominal,8,Track iso,10746,9455,0.8798622743346362,113
+W,prompt,EE,35,nominal,9,ECAL+HCAL iso,10746,9381,0.8729759910664433,74
+W,prompt,EE,35,nominal,10,d_{xy},10746,9282,0.8637632607481853,99
+W,prompt,EE,35,nominal,11,Missing hits,10746,9269,0.8625535082821515,13
+W,prompt,EE,35,nominal,12,ECAL driven,10746,9258,0.8615298715801228,11
+W,prompt,EE,35,modified,0,Baseline,10746,10746,1.0,0
+W,prompt,EE,35,modified,1,p_{T},10746,10746,1.0,0
+W,prompt,EE,35,modified,2,SC #eta,10746,10746,1.0,0
+W,prompt,EE,35,modified,3,#Delta#eta seed,10746,10298,0.9583100688628327,448
+W,prompt,EE,35,modified,4,#Delta#phi,10746,10075,0.9375581611762517,223
+W,prompt,EE,35,modified,5,#sigma_{i#etai#eta},10746,9942,0.9251814628699051,133
+W,prompt,EE,35,modified,6,E ratios,10746,9942,0.9251814628699051,0
+W,prompt,EE,35,modified,7,H/E,10746,9568,0.8903778150009306,374
+W,prompt,EE,35,modified,8,Track iso,10746,9468,0.88107202680067,100
+W,prompt,EE,35,modified,9,ECAL+HCAL iso,10746,9398,0.8745579750604876,70
+W,prompt,EE,35,modified,10,d_{xy},10746,9297,0.8651591289782244,101
+W,prompt,EE,35,modified,11,Missing hits,10746,9284,0.8639493765121906,13
+W,prompt,EE,35,modified,12,ECAL driven,10746,9273,0.862925739810162,11
+W,unmatched,EB,35,nominal,0,Baseline,3032,3032,1.0,0
+W,unmatched,EB,35,nominal,1,p_{T},3032,3032,1.0,0
+W,unmatched,EB,35,nominal,2,SC #eta,3032,3032,1.0,0
+W,unmatched,EB,35,nominal,3,#Delta#eta seed,3032,1477,0.48713720316622694,1555
+W,unmatched,EB,35,nominal,4,#Delta#phi,3032,1369,0.4515171503957784,108
+W,unmatched,EB,35,nominal,5,#sigma_{i#etai#eta},3032,1369,0.4515171503957784,0
+W,unmatched,EB,35,nominal,6,E ratios,3032,683,0.22526385224274406,686
+W,unmatched,EB,35,nominal,7,H/E,3032,534,0.17612137203166228,149
+W,unmatched,EB,35,nominal,8,Track iso,3032,478,0.15765171503957784,56
+W,unmatched,EB,35,nominal,9,ECAL+HCAL iso,3032,465,0.15336411609498682,13
+W,unmatched,EB,35,nominal,10,d_{xy},3032,443,0.14610817941952506,22
+W,unmatched,EB,35,nominal,11,Missing hits,3032,436,0.1437994722955145,7
+W,unmatched,EB,35,nominal,12,ECAL driven,3032,430,0.14182058047493404,6
+W,unmatched,EB,35,modified,0,Baseline,3032,3032,1.0,0
+W,unmatched,EB,35,modified,1,p_{T},3032,3032,1.0,0
+W,unmatched,EB,35,modified,2,SC #eta,3032,3032,1.0,0
+W,unmatched,EB,35,modified,3,#Delta#eta seed,3032,1627,0.5366094986807388,1405
+W,unmatched,EB,35,modified,4,#Delta#phi,3032,1497,0.4937335092348285,130
+W,unmatched,EB,35,modified,5,#sigma_{i#etai#eta},3032,1497,0.4937335092348285,0
+W,unmatched,EB,35,modified,6,E ratios,3032,1073,0.3538918205804749,424
+W,unmatched,EB,35,modified,7,H/E,3032,599,0.1975593667546174,474
+W,unmatched,EB,35,modified,8,Track iso,3032,500,0.16490765171503957,99
+W,unmatched,EB,35,modified,9,ECAL+HCAL iso,3032,490,0.1616094986807388,10
+W,unmatched,EB,35,modified,10,d_{xy},3032,465,0.15336411609498682,25
+W,unmatched,EB,35,modified,11,Missing hits,3032,457,0.15072559366754618,8
+W,unmatched,EB,35,modified,12,ECAL driven,3032,449,0.14808707124010553,8
+W,unmatched,EE,35,nominal,0,Baseline,2362,2362,1.0,0
+W,unmatched,EE,35,nominal,1,p_{T},2362,2362,1.0,0
+W,unmatched,EE,35,nominal,2,SC #eta,2362,2362,1.0,0
+W,unmatched,EE,35,nominal,3,#Delta#eta seed,2362,1066,0.45131244707874685,1296
+W,unmatched,EE,35,nominal,4,#Delta#phi,2362,969,0.4102455546147333,97
+W,unmatched,EE,35,nominal,5,#sigma_{i#etai#eta},2362,694,0.2938187976291279,275
+W,unmatched,EE,35,nominal,6,E ratios,2362,694,0.2938187976291279,0
+W,unmatched,EE,35,nominal,7,H/E,2362,437,0.18501270110076207,257
+W,unmatched,EE,35,nominal,8,Track iso,2362,372,0.15749364944961897,65
+W,unmatched,EE,35,nominal,9,ECAL+HCAL iso,2362,369,0.15622353937341235,3
+W,unmatched,EE,35,nominal,10,d_{xy},2362,343,0.1452159187129551,26
+W,unmatched,EE,35,nominal,11,Missing hits,2362,327,0.1384419983065199,16
+W,unmatched,EE,35,nominal,12,ECAL driven,2362,326,0.1380186282811177,1
+W,unmatched,EE,35,modified,0,Baseline,2362,2362,1.0,0
+W,unmatched,EE,35,modified,1,p_{T},2362,2362,1.0,0
+W,unmatched,EE,35,modified,2,SC #eta,2362,2362,1.0,0
+W,unmatched,EE,35,modified,3,#Delta#eta seed,2362,1066,0.45131244707874685,1296
+W,unmatched,EE,35,modified,4,#Delta#phi,2362,969,0.4102455546147333,97
+W,unmatched,EE,35,modified,5,#sigma_{i#etai#eta},2362,694,0.2938187976291279,275
+W,unmatched,EE,35,modified,6,E ratios,2362,694,0.2938187976291279,0
+W,unmatched,EE,35,modified,7,H/E,2362,437,0.18501270110076207,257
+W,unmatched,EE,35,modified,8,Track iso,2362,378,0.16003386960203217,59
+W,unmatched,EE,35,modified,9,ECAL+HCAL iso,2362,375,0.15876375952582558,3
+W,unmatched,EE,35,modified,10,d_{xy},2362,348,0.14733276883996613,27
+W,unmatched,EE,35,modified,11,Missing hits,2362,331,0.1401354784081287,17
+W,unmatched,EE,35,modified,12,ECAL driven,2362,330,0.1397121083827265,1

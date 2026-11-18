@@ -1,3 +1,4 @@
+#include "ZprimeTo4l/MergedLepton/interface/MuonTrackIsolation.h"
 #include <memory>
 #include <iostream>
 
@@ -166,6 +167,8 @@ private:
   float chi2LocalPosition_muon;
   float trkKink_muon;
   float glbKink_muon;
+  float trackiso_muon; // isolationR03().sumPt (GeV)
+  float modifiedtrackiso_muon; // modified R03 track-pT sum (GeV)
   float pfrelIso04_muon;
   float gen_eta_muon;
   float gen_phi_muon;
@@ -195,6 +198,8 @@ private:
   float chi2LocalPosition_mergedMuon;
   float trkKink_mergedMuon;
   float glbKink_mergedMuon;
+  float trackiso_mergedMuon; // isolationR03().sumPt (GeV)
+  float modifiedtrackiso_mergedMuon; // modified R03 track-pT sum (GeV)
   float gen_eta_mergedMuon;
   float gen_phi_mergedMuon;
   float gen_pt_mergedMuon;
@@ -245,6 +250,8 @@ private:
   float eff_reco_1_trkKink;
   float eff_reco_1_glbKink;
   float eff_reco_1_pfrelIso04;
+  float eff_reco_1_trackiso; // isolationR03().sumPt (GeV)
+  float eff_reco_1_modifiedtrackiso; // modified R03 track-pT sum (GeV)
   bool eff_reco_1_isLoose;
   bool eff_reco_1_isMedium;
   bool eff_reco_1_isTight;
@@ -302,6 +309,8 @@ private:
   float eff_reco_2_trkKink;
   float eff_reco_2_glbKink;
   float eff_reco_2_pfrelIso04;
+  float eff_reco_2_trackiso; // isolationR03().sumPt (GeV)
+  float eff_reco_2_modifiedtrackiso; // modified R03 track-pT sum (GeV)
   bool eff_reco_2_isLoose;
   bool eff_reco_2_isMedium;
   bool eff_reco_2_isTight;
@@ -591,6 +600,8 @@ void MergedMuon::beginJob() {
   muon_->Branch("chi2LocalPosition",&chi2LocalPosition_muon,"chi2LocalPosition/F"); 
   muon_->Branch("trkKink",&trkKink_muon,"trkKink/F"); 
   muon_->Branch("glbKink",&glbKink_muon,"glbKink/F"); 
+  muon_->Branch("trackiso",&trackiso_muon,"trackiso/F");
+  muon_->Branch("modifiedtrackiso",&modifiedtrackiso_muon,"modifiedtrackiso/F");
   muon_->Branch("pfrelIso04",&pfrelIso04_muon,"pfrelIso04/F"); 
   muon_->Branch("gen_phi",&gen_phi_muon,"gen_phi/F");
   muon_->Branch("gen_eta",&gen_eta_muon,"gen_eta/F");
@@ -619,6 +630,8 @@ void MergedMuon::beginJob() {
   mergedMuon_->Branch("chi2LocalPosition",&chi2LocalPosition_mergedMuon,"chi2LocalPosition/F"); 
   mergedMuon_->Branch("trkKink",&trkKink_mergedMuon,"trkKink/F"); 
   mergedMuon_->Branch("glbKink",&glbKink_mergedMuon,"glbKink/F"); 
+  mergedMuon_->Branch("trackiso",&trackiso_mergedMuon,"trackiso/F");
+  mergedMuon_->Branch("modifiedtrackiso",&modifiedtrackiso_mergedMuon,"modifiedtrackiso/F");
   mergedMuon_->Branch("gen_phi",&gen_phi_mergedMuon,"gen_phi/F");
   mergedMuon_->Branch("gen_eta",&gen_eta_mergedMuon,"gen_eta/F");
   mergedMuon_->Branch("gen_pt",&gen_pt_mergedMuon,"gen_pt/F");
@@ -667,6 +680,8 @@ void MergedMuon::beginJob() {
   muonEfficiencyTree_->Branch("eff_reco_1_trkKink",&eff_reco_1_trkKink,"eff_reco_1_trkKink/F"); 
   muonEfficiencyTree_->Branch("eff_reco_1_glbKink",&eff_reco_1_glbKink,"eff_reco_1_glbKink/F"); 
   muonEfficiencyTree_->Branch("eff_reco_1_pfrelIso04",&eff_reco_1_pfrelIso04,"eff_reco_1_pfrelIso04/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_trackiso",&eff_reco_1_trackiso,"eff_reco_1_trackiso/F");
+  muonEfficiencyTree_->Branch("eff_reco_1_modifiedtrackiso",&eff_reco_1_modifiedtrackiso,"eff_reco_1_modifiedtrackiso/F");
   muonEfficiencyTree_->Branch("eff_reco_1_isLoose",&eff_reco_1_isLoose,"eff_reco_1_isLoose/O");
   muonEfficiencyTree_->Branch("eff_reco_1_isMedium",&eff_reco_1_isMedium,"eff_reco_1_isMedium/O");
   muonEfficiencyTree_->Branch("eff_reco_1_isTight",&eff_reco_1_isTight,"eff_reco_1_isTight/O");
@@ -724,6 +739,8 @@ void MergedMuon::beginJob() {
   muonEfficiencyTree_->Branch("eff_reco_2_trkKink",&eff_reco_2_trkKink,"eff_reco_2_trkKink/F"); 
   muonEfficiencyTree_->Branch("eff_reco_2_glbKink",&eff_reco_2_glbKink,"eff_reco_2_glbKink/F"); 
   muonEfficiencyTree_->Branch("eff_reco_2_pfrelIso04",&eff_reco_2_pfrelIso04,"eff_reco_2_pfrelIso04/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_trackiso",&eff_reco_2_trackiso,"eff_reco_2_trackiso/F");
+  muonEfficiencyTree_->Branch("eff_reco_2_modifiedtrackiso",&eff_reco_2_modifiedtrackiso,"eff_reco_2_modifiedtrackiso/F");
   muonEfficiencyTree_->Branch("eff_reco_2_isLoose",&eff_reco_2_isLoose,"eff_reco_2_isLoose/O");
   muonEfficiencyTree_->Branch("eff_reco_2_isMedium",&eff_reco_2_isMedium,"eff_reco_2_isMedium/O");
   muonEfficiencyTree_->Branch("eff_reco_2_isTight",&eff_reco_2_isTight,"eff_reco_2_isTight/O");
@@ -803,6 +820,9 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   edm::Handle<reco::BeamSpot> beamSpotHandle;
   iEvent.getByToken(beamspotToken_, beamSpotHandle);
+
+  const auto modifiedTrackIso = mergedMuonIso::modifiedTrackIsoValues(
+      *muonHandle, beamSpotHandle.isValid() ? beamSpotHandle.product() : nullptr);
 
   std::vector<reco::GenParticleRef> promptMuons;
   std::vector<reco::GenParticleRef> Muons;
@@ -1028,6 +1048,8 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       eff_reco_1_trkKink = -999.f;
       eff_reco_1_glbKink = -999.f;
       eff_reco_1_pfrelIso04 = -999.f;
+      eff_reco_1_trackiso = -999.f;
+      eff_reco_1_modifiedtrackiso = -999.f;
       eff_reco_1_isLoose = false;
       eff_reco_1_isMedium = false;
       eff_reco_1_isTight = false;
@@ -1085,6 +1107,8 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       eff_reco_2_trkKink = -999.f;
       eff_reco_2_glbKink = -999.f;
       eff_reco_2_pfrelIso04 = -999.f;
+      eff_reco_2_trackiso = -999.f;
+      eff_reco_2_modifiedtrackiso = -999.f;
       eff_reco_2_isLoose = false;
       eff_reco_2_isMedium = false;
       eff_reco_2_isTight = false;
@@ -1138,6 +1162,8 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         eff_reco_1_isTracker = (*muonHandle)[match_idx1].isTrackerMuon();
         eff_reco_1_isPFMuon = (*muonHandle)[match_idx1].isPFMuon();
         eff_reco_1_isPFIsolationValid = (*muonHandle)[match_idx1].isPFIsolationValid();
+        eff_reco_1_trackiso = (*muonHandle)[match_idx1].isIsolationValid() ? (*muonHandle)[match_idx1].isolationR03().sumPt : -999.f;
+        eff_reco_1_modifiedtrackiso = modifiedTrackIso.at(match_idx1);
         eff_reco_1_numOfMatchedStations = (*muonHandle)[match_idx1].numberOfMatchedStations();
         eff_reco_1_numOfChambers = (*muonHandle)[match_idx1].numberOfChambers();
         eff_reco_1_segCompatibility = muon::segmentCompatibility((*muonHandle)[match_idx1]);
@@ -1238,6 +1264,8 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         eff_reco_2_isTracker = (*muonHandle)[match_idx2].isTrackerMuon();
         eff_reco_2_isPFMuon = (*muonHandle)[match_idx2].isPFMuon();
         eff_reco_2_isPFIsolationValid = (*muonHandle)[match_idx2].isPFIsolationValid();
+        eff_reco_2_trackiso = (*muonHandle)[match_idx2].isIsolationValid() ? (*muonHandle)[match_idx2].isolationR03().sumPt : -999.f;
+        eff_reco_2_modifiedtrackiso = modifiedTrackIso.at(match_idx2);
         eff_reco_2_numOfMatchedStations = (*muonHandle)[match_idx2].numberOfMatchedStations();
         eff_reco_2_numOfChambers = (*muonHandle)[match_idx2].numberOfChambers();
         eff_reco_2_segCompatibility = muon::segmentCompatibility((*muonHandle)[match_idx2]);
@@ -1391,6 +1419,8 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           chi2LocalPosition_muon = muon.combinedQuality().chi2LocalPosition;
           trkKink_muon = muon.combinedQuality().trkKink;
           glbKink_muon = muon.combinedQuality().glbKink;
+          trackiso_muon = muon.isIsolationValid() ? muon.isolationR03().sumPt : -999.f;
+          modifiedtrackiso_muon = modifiedTrackIso.at(i);
 	  auto iso04 = muon.pfIsolationR04();
 	  pfrelIso04_muon =
             ( iso04.sumChargedHadronPt
@@ -1427,6 +1457,8 @@ void MergedMuon::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           chi2LocalPosition_mergedMuon = muon.combinedQuality().chi2LocalPosition;
           trkKink_mergedMuon = muon.combinedQuality().trkKink;
           glbKink_mergedMuon = muon.combinedQuality().glbKink;
+          trackiso_mergedMuon = muon.isIsolationValid() ? muon.isolationR03().sumPt : -999.f;
+          modifiedtrackiso_mergedMuon = modifiedTrackIso.at(i);
 	  gen_eta_mergedMuon = target_muon.at(0)->eta();
 	  gen_phi_mergedMuon = target_muon.at(0)->phi();
 	  gen_pt_mergedMuon = target_muon.at(0)->pt();

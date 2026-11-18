@@ -1,0 +1,6 @@
+{
+  "input_list": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/lists/DY_Jets_ext1_part_0001.txt",
+  "output": "/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/DY_Jets_ext1/part_0001.root",
+  "cmssw_release": "/cvmfs/cms.cern.ch/el8_amd64_gcc11/cms/cmssw/CMSSW_13_0_13",
+  "scram_arch": "el8_amd64_gcc11"
+}

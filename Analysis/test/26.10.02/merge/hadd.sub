@@ -1,0 +1,18 @@
+universe = vanilla
+executable = $(runner)
+arguments = $(job)
+initialdir = $(run_dir)
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = $(job),$(runner),$(checker),$(setup)
+transfer_output_files = ""
+getenv = False
+request_cpus = 1
+request_memory = $(memory_mb)
+request_disk = $(disk_mb)MB
+requirements = (TARGET.FileSystemDomain == "knu.ac.kr") && (TARGET.Arch == "X86_64")
++JobType = "long"
+output = $(run_dir)/logs/$(node).out
+error = $(run_dir)/logs/$(node).err
+log = $(run_dir)/logs/condor.log
+queue

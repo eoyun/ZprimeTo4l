@@ -1,0 +1,15 @@
+Running: ['hadd', '-n', '50', '/home/condor/dir_241479/root-merge-tmp0vzhc/merged.root', '@/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/lists/WZ_ext1_part_0002.txt']
+hadd Target file: /home/condor/dir_241479/root-merge-tmp0vzhc/merged.root
+hadd compression setting for all output: 1
+hadd Source file 1: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_601.root
+hadd Source file 2: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_602.root
+hadd Source file 3: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_603.root
+hadd Source file 4: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_604.root
+hadd Source file 5: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_605.root
+hadd Source file 6: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_606.root
+hadd Source file 7: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_607.root
+hadd Source file 8: /pnfs/knu.ac.kr/data/cms/store/user/yeo/WZto3LNu_TuneCP5_13p6TeV_powheg-pythia8/resolvedMuCR_WZ_ext1/261002_075607/0000/hists_608.root
+hadd Target path: /home/condor/dir_241479/root-merge-tmp0vzhc/merged.root:/
+hadd Target path: /home/condor/dir_241479/root-merge-tmp0vzhc/merged.root:/evtCounter
+hadd Target path: /home/condor/dir_241479/root-merge-tmp0vzhc/merged.root:/resolvedMuCRanalyzerRun3
+Verified and published: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/WZ_ext1/part_0002.root

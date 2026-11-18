@@ -1,0 +1,16 @@
+Running: ['hadd', '-n', '50', '/home/condor/dir_3684490/root-merge-c6l7e52x/merged.root', '@/u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/lists/EGamma_C_final.txt']
+hadd Target file: /home/condor/dir_3684490/root-merge-c6l7e52x/merged.root
+hadd compression setting for all output: 1
+hadd Source file 1: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0000.root
+hadd Source file 2: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0001.root
+hadd Source file 3: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0002.root
+hadd Source file 4: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0003.root
+hadd Source file 5: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0004.root
+hadd Source file 6: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0005.root
+hadd Source file 7: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0006.root
+hadd Source file 8: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0007.root
+hadd Source file 9: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/work/20261008_224630_053698/partials/EGamma_C/part_0008.root
+hadd Target path: /home/condor/dir_3684490/root-merge-c6l7e52x/merged.root:/
+hadd Target path: /home/condor/dir_3684490/root-merge-c6l7e52x/merged.root:/evtCounter
+hadd Target path: /home/condor/dir_3684490/root-merge-c6l7e52x/merged.root:/resolvedMuCRanalyzerRun3
+Verified and published: /u/user/eoyun/4l/25.10.20/CMSSW_13_0_13/src/ZprimeTo4l/Analysis/test/26.10.02/merge/results/2022C/EGamma_C.root
